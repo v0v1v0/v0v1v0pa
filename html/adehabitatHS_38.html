@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eisera</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Eigenanalysis of Selection Ratios</h2>
+
+<h3>Description</h3>
+
+<p>Performs an eigenanalysis of selection ratios.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eisera(used, available, scannf = TRUE, nf = 2)
+## S3 method for class 'esr'
+print(x, ...)
+## S3 method for class 'esr'
+scatter(x, xax = 1, yax = 2, 
+            csub = 1, possub = "bottomleft", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>used</code></td>
+<td>
+<p>a data frame containing the *number* of relocations of
+each animal (rows) in each habitat type (columns) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>available</code></td>
+<td>
+<p>a data frame containing the *proportion* of
+availability of each habitat type (columns) to each animal (rows)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scannf</code></td>
+<td>
+<p>logical.  Whether the eigenvalues bar plot should be
+displayed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nf</code></td>
+<td>
+<p>if <code>scannf = FALSE</code>, an integer indicating the number
+of kept axes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>esr</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xax</code></td>
+<td>
+<p>the column number for the x-axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yax</code></td>
+<td>
+<p>the column number for the y-axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csub</code></td>
+<td>
+<p>a character size for the legend, used with 
+<code>par("cex")*csub</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>possub</code></td>
+<td>
+<p>a string of characters indicating the sub-title 
+position ("topleft", "topright", "bottomleft", 
+"bottomright")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The eigenanalysis of selection ratios has been developped to explore
+habitat selection by animals monitored using radio-tracking, when
+habitat is defined by several categories (e.g. several vegetation
+types, see Calenge and Dufour 2006).<br></p>
+<p>This analysis can be used for both designs II (same availability for
+all animals, e.g. selection of the home range within the study area)
+and designs III (different availability, e.g. selection of the sites
+within the home range).  In the latter case, when some available
+proportions are equal to zero, the selection ratios are replaced by
+their expectation under random habitat use, following the
+recommendations of Calenge and Dufour (2006).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>esr</code> and <code>dudi</code> containing also:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>available</code></td>
+<td>
+<p>available proportions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used</code></td>
+<td>
+<p>number of relocations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wij</code></td>
+<td>
+<p>selection ratios</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Clement Calenge <a href="mailto:clement.calenge@ofb.gouv.fr">clement.calenge@ofb.gouv.fr</a> </p>
+
+
+<h3>References</h3>
+
+<p>Calenge, C. and Dufour, A.B. (2006) Eigenanalysis of selection ratios
+from animal radio-tracking data. <em>Ecology</em>. <b>87</b>,
+2349–2355.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>wi</code> for further information about the
+selection ratios, <code>compana</code> for compositional analysis.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+###########################################################
+###########################################################
+###
+###  Example given in Calenge and Dufour 2006 (design II)
+
+
+data(squirrel)
+
+## computation of the number of relocations in each habitat type
+## from the data given by Aebischer et al. (1993).
+## squirrel$locs give the percentage of relocations in each habitat
+## type, and Aebischer et al. (1993) indicate that there are 30
+## relocations per animal.
+## We therefore compute the number of relocations in each habitat type
+## using:
+us &lt;- round(30 * squirrel$locs / 100)
+
+## Habitat availability 
+av &lt;- squirrel$studyarea
+
+## Eigenanalysis of selection ratios
+ii &lt;- eisera(us, av, scannf = FALSE)
+
+scatter(ii, grid = FALSE, clab = 0.7)
+
+
+## The following graph may help the interpretation
+## (see Calenge and Dufour 2006)
+data(squirreloc)
+locs &lt;- squirreloc$locs
+are &lt;- squirreloc$map
+
+ind &lt;- levels(slot(locs, "data")$id)
+opar &lt;- par(mfrow=n2mfrow(length(ind)), mar=c(0,0,2,0))
+
+tmp &lt;- lapply(1:length(ind), function(i) {
+     plot(are, col = as.data.frame(are)[,2])
+     title(main = ind[i])
+     points(locs[slot(locs, "data")[,1]==ind[i],], pch=16, cex=1.5)
+box()
+})
+plot(0,0, axes=FALSE, ty="n", xlim=c(-1,1), asp=1)
+legend(-0.8,0.8, unique(slot(are,"data")[,1]),
+       fill=unique(slot(are,"data")[,2]))
+par(opar)
+
+
+###########################################################
+###########################################################
+###
+###  Example of design III
+
+iii &lt;- eisera(us, squirrel$mcp, scannf = FALSE)
+scatter(iii, grid = FALSE, clab = 0.7)
+
+</code></pre>
+
+
+</div>

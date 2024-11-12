@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_rm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure Resource Manager</h2>
+
+<h3>Description</h3>
+
+<p>Base class for interacting with Azure Resource Manager.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>az_rm</code>.
+</p>
+
+
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(tenant, app, ...)</code>: Initialize a new ARM connection with the given credentials. See 'Authentication' for more details.
+</p>
+</li>
+<li> <p><code>list_subscriptions()</code>: Returns a list of objects, one for each subscription associated with this app ID.
+</p>
+</li>
+<li> <p><code>get_subscription(id)</code>: Returns an object representing a subscription.
+</p>
+</li>
+<li> <p><code>get_subscription_by_name(name)</code>: Returns the subscription with the given name (as opposed to a GUID).
+</p>
+</li>
+<li> <p><code>do_operation(...)</code>: Carry out an operation. See 'Operations' for more details.
+</p>
+</li>
+</ul>
+<h3>Authentication</h3>
+
+<p>The recommended way to authenticate with ARM is via the get_azure_login function, which creates a new instance of this class.
+</p>
+<p>To authenticate with the <code>az_rm</code> class directly, provide the following arguments to the <code>new</code> method:
+</p>
+
+<ul>
+<li> <p><code>tenant</code>: Your tenant ID. This can be a name ("myaadtenant"), a fully qualified domain name ("myaadtenant.onmicrosoft.com" or "mycompanyname.com"), or a GUID.
+</p>
+</li>
+<li> <p><code>app</code>: The client/app ID to use to authenticate with Azure Active Directory. The default is to login interactively using the Azure CLI cross-platform app, but it's recommended to supply your own app credentials if possible.
+</p>
+</li>
+<li> <p><code>password</code>: if <code>auth_type == "client_credentials"</code>, the app secret; if <code>auth_type == "resource_owner"</code>, your account password.
+</p>
+</li>
+<li> <p><code>username</code>: if <code>auth_type == "resource_owner"</code>, your username.
+</p>
+</li>
+<li> <p><code>certificate</code>: If 'auth_type == "client_credentials", a certificate to authenticate with. This is a more secure alternative to using an app secret.
+</p>
+</li>
+<li> <p><code>auth_type</code>: The OAuth authentication method to use, one of "client_credentials", "authorization_code", "device_code" or "resource_owner". See get_azure_token for how the default method is chosen, along with some caveats.
+</p>
+</li>
+<li> <p><code>version</code>: The Azure Active Directory version to use for authenticating.
+</p>
+</li>
+<li> <p><code>host</code>: your ARM host. Defaults to <code style="white-space: pre;">⁠https://management.azure.com/⁠</code>. Change this if you are using a government or private cloud.
+</p>
+</li>
+<li> <p><code>aad_host</code>: Azure Active Directory host for authentication. Defaults to <code style="white-space: pre;">⁠https://login.microsoftonline.com/⁠</code>. Change this if you are using a government or private cloud.
+</p>
+</li>
+<li> <p><code>...</code>: Further arguments to pass to <code>get_azure_token</code>.
+</p>
+</li>
+<li> <p><code>scopes</code>: The Azure Service Management scopes (permissions) to obtain for this login. Only for <code>version=2</code>.
+</p>
+</li>
+<li> <p><code>token</code>: Optionally, an OAuth 2.0 token, of class AzureToken. This allows you to reuse the authentication details for an existing session. If supplied, all other arguments will be ignored.
+</p>
+</li>
+</ul>
+<h3>Operations</h3>
+
+<p>The <code>do_operation()</code> method allows you to carry out arbitrary operations on the Resource Manager endpoint. It takes the following arguments:
+</p>
+
+<ul>
+<li> <p><code>op</code>: The operation in question, which will be appended to the URL path of the request.
+</p>
+</li>
+<li> <p><code>options</code>: A named list giving the URL query parameters.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments passed to call_azure_rm, and then to the appropriate call in httr. In particular, use <code>body</code> to supply the body of a PUT, POST or PATCH request, and <code>api_version</code> to set the API version.
+</p>
+</li>
+<li> <p><code>http_verb</code>: The HTTP verb as a string, one of <code>GET</code>, <code>PUT</code>, <code>POST</code>, <code>DELETE</code>, <code>HEAD</code> or <code>PATCH</code>.
+</p>
+</li>
+</ul>
+<p>Consult the Azure documentation for what operations are supported.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>create_azure_login, get_azure_login
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager overview</a>,
+<a href="https://learn.microsoft.com/en-us/rest/api/resources/">REST API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# start a new Resource Manager session
+az &lt;- az_rm$new(tenant="myaadtenant.onmicrosoft.com", app="app_id", password="password")
+
+# authenticate with credentials in a file
+az &lt;- az_rm$new(config_file="creds.json")
+
+# authenticate with device code
+az &lt;- az_rm$new(tenant="myaadtenant.onmicrosoft.com", app="app_id", auth_type="device_code")
+
+# retrieve a list of subscription objects
+az$list_subscriptions()
+
+# a specific subscription
+az$get_subscription("subscription_id")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

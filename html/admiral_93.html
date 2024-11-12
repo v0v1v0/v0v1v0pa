@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_merged_lookup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge Lookup Table with Source Dataset</h2>
+
+<h3>Description</h3>
+
+<p>Merge user-defined lookup table with the input dataset. Optionally print a
+list of records from the input dataset that do not have corresponding
+mapping from the lookup table.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_merged_lookup(
+  dataset,
+  dataset_add,
+  by_vars,
+  order = NULL,
+  new_vars = NULL,
+  mode = NULL,
+  filter_add = NULL,
+  check_type = "warning",
+  duplicate_msg = NULL,
+  print_not_mapped = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Lookup table
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The input dataset and the selected observations from the additional dataset
+are merged by the specified variables.
+</p>
+<p>Variables can be renamed by naming the element, i.e.
+<code style="white-space: pre;">⁠by_vars = exprs(&lt;name in input dataset&gt; = &lt;name in additional dataset&gt;)⁠</code>, similar to the <code>dplyr</code> joins.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If the argument is set to a non-null value, for each by group the first or
+last observation from the additional dataset is selected with respect to the
+specified order.
+</p>
+<p>Variables defined by the <code>new_vars</code> argument can be used in the sort order.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values</em>: list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code> or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>Variables to add
+</p>
+<p>The specified variables from the additional dataset are added to the output
+dataset. Variables can be renamed by naming the element, i.e., <code style="white-space: pre;">⁠new_vars = exprs(&lt;new name&gt; = &lt;old name&gt;)⁠</code>.
+</p>
+<p>For example <code>new_vars = exprs(var1, var2)</code> adds variables <code>var1</code> and <code>var2</code>
+from <code>dataset_add</code> to the input dataset.
+</p>
+<p>And <code>new_vars = exprs(var1, new_var2 = old_var2)</code> takes <code>var1</code> and
+<code>old_var2</code> from <code>dataset_add</code> and adds them to the input dataset renaming
+<code>old_var2</code> to <code>new_var2</code>.
+</p>
+<p>Values of the added variables can be modified by specifying an expression.
+For example, <code>new_vars = LASTRSP = exprs(str_to_upper(AVALC))</code> adds the
+variable <code>LASTRSP</code> to the dataset and sets it to the upper case value of
+<code>AVALC</code>.
+</p>
+<p>If the argument is not specified or set to <code>NULL</code>, all variables from the
+additional dataset (<code>dataset_add</code>) are added.
+</p>
+<p><em>Permitted Values</em>: list of variables or named expressions created by <code>exprs()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode
+</p>
+<p>Determines if the first or last observation is selected. If the <code>order</code>
+argument is specified, <code>mode</code> must be non-null.
+</p>
+<p>If the <code>order</code> argument is not specified, the <code>mode</code> argument is ignored.
+</p>
+<p><em>Permitted Values</em>: <code>"first"</code>, <code>"last"</code>, <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional dataset (<code>dataset_add</code>)
+</p>
+<p>Only observations fulfilling the specified condition are taken into account
+for merging. If the argument is not specified, all observations are
+considered.
+</p>
+<p>Variables defined by the <code>new_vars</code> argument can be used in the filter
+condition.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the (restricted) additional dataset are not unique
+with respect to the by variables and the order.
+</p>
+<p>If the <code>order</code> argument is not specified, the <code>check_type</code> argument is ignored:
+if the observations of the (restricted) additional dataset are not unique with respect
+to the by variables, an error is issued.
+</p>
+<p><em>Permitted Values</em>: <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>duplicate_msg</code></td>
+<td>
+<p>Message of unique check
+</p>
+<p>If the uniqueness check fails, the specified message is displayed.
+</p>
+<p><em>Default</em>:
+</p>
+<div class="sourceCode r"><pre>paste(
+  "Dataset {.arg dataset_add} contains duplicate records with respect to",
+  "{.var {vars2chr(by_vars)}}."
+)
+</pre></div>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_not_mapped</code></td>
+<td>
+<p>Print a list of unique <code>by_vars</code> values that do not
+have corresponding records from the lookup table?
+</p>
+<p><em>Default</em>: <code>TRUE</code>
+</p>
+<p><em>Permitted Values</em>: <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The output dataset contains all observations and variables of the
+input dataset, and add the variables specified in <code>new_vars</code> from the lookup
+table specified in <code>dataset_add</code>. Optionally prints a list of unique
+<code>by_vars</code> values that do not have corresponding records
+from the lookup table (by specifying <code>print_not_mapped = TRUE</code>).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_merged_summary()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_var_relative_flag()</code>,
+<code>derive_vars_computed()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged()</code>,
+<code>derive_vars_transposed()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+vs &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID,        ~VISIT, ~VSTESTCD,       ~VSTEST,
+  "PILOT01",    "VS", "01-1028",   "SCREENING",  "HEIGHT",      "Height",
+  "PILOT01",    "VS", "01-1028",   "SCREENING",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "01-1028",    "BASELINE",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "01-1028",      "WEEK 4",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "01-1028", "SCREENING 1",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "01-1028",    "BASELINE",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "01-1028",      "WEEK 4",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "04-1325",   "SCREENING",  "HEIGHT",      "Height",
+  "PILOT01",    "VS", "04-1325",   "SCREENING",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "04-1325",    "BASELINE",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "04-1325",      "WEEK 4",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "04-1325", "SCREENING 1",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "04-1325",    "BASELINE",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "04-1325",      "WEEK 4",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "10-1027",   "SCREENING",  "HEIGHT",      "Height",
+  "PILOT01",    "VS", "10-1027",   "SCREENING",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "10-1027",    "BASELINE",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "10-1027",      "WEEK 4",    "TEMP", "Temperature",
+  "PILOT01",    "VS", "10-1027", "SCREENING 1",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "10-1027",    "BASELINE",  "WEIGHT",      "Weight",
+  "PILOT01",    "VS", "10-1027",      "WEEK 4",  "WEIGHT",      "Weight"
+)
+
+param_lookup &lt;- tribble(
+  ~VSTESTCD,                 ~VSTEST, ~PARAMCD,                       ~PARAM,
+  "SYSBP", "Systolic Blood Pressure",  "SYSBP", "Syst Blood Pressure (mmHg)",
+  "WEIGHT",                 "Weight", "WEIGHT",                "Weight (kg)",
+  "HEIGHT",                 "Height", "HEIGHT",                "Height (cm)",
+  "TEMP",              "Temperature",   "TEMP",            "Temperature (C)",
+  "MAP",    "Mean Arterial Pressure",    "MAP",   "Mean Art Pressure (mmHg)",
+  "BMI",           "Body Mass Index",    "BMI",    "Body Mass Index(kg/m^2)",
+  "BSA",         "Body Surface Area",    "BSA",     "Body Surface Area(m^2)"
+)
+
+derive_vars_merged_lookup(
+  dataset = vs,
+  dataset_add = param_lookup,
+  by_vars = exprs(VSTESTCD),
+  new_vars = exprs(PARAMCD, PARAM),
+  print_not_mapped = TRUE
+)
+</code></pre>
+
+
+</div>

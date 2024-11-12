@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>evaluate_estimator</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate performance characteristics of an estimator</h2>
+
+<h3>Description</h3>
+
+<p>This function evaluates an <code>EstimatorScore</code> for a <code>PointEstimator</code>
+or and <code>IntervalEstimator</code> by integrating over the sampling distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">evaluate_estimator(
+  score,
+  estimator,
+  data_distribution,
+  use_full_twoarm_sampling_distribution = FALSE,
+  design,
+  true_parameter = mu,
+  mu,
+  sigma,
+  tol = getOption("adestr_tol_outer", default = .adestr_options[["adestr_tol_outer"]]),
+  maxEval = getOption("adestr_maxEval_outer", default =
+    .adestr_options[["adestr_maxEval_outer"]]),
+  absError = getOption("adestr_absError_outer", default =
+    .adestr_options[["adestr_absError_outer"]]),
+  exact = FALSE,
+  early_futility_part = TRUE,
+  continuation_part = TRUE,
+  early_efficacy_part = TRUE,
+  conditional_integral = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>score</code></td>
+<td>
+<p>performance measure to evaluate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimator</code></td>
+<td>
+<p>object of class <code>PointEstimator</code>, <code>IntervalEstimator</code> or <code>PValue</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_distribution</code></td>
+<td>
+<p>object of class <code>Normal</code> or <code>Student</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_full_twoarm_sampling_distribution</code></td>
+<td>
+<p>logical indicating whether this estimator is intended to be used
+with the full sampling distribution in a two-armed trial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>object of class <code>TwoStageDesign</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_parameter</code></td>
+<td>
+<p>true value of the parameter (used e.g. when evaluating bias).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>expected value of the underlying normal distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>assumed standard deviation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>relative tolerance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxEval</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absError</code></td>
+<td>
+<p>absolute tolerance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>logical indicating usage of exact n2 function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>early_futility_part</code></td>
+<td>
+<p>include early futility part of integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>continuation_part</code></td>
+<td>
+<p>include continuation part of integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>early_efficacy_part</code></td>
+<td>
+<p>include early efficacy part of integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conditional_integral</code></td>
+<td>
+<p>treat integral as a conditional integral.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>General</h4>
+
+<p>First, a functional representation of the integrand is created by combining information
+from the <code>EstimatorScore</code> object (<code>score</code>) and the <code>PointEstimator</code> or
+<code>IntervalEstimator</code> object (<code>estimator</code>).
+The sampling distribution of a design is determined by the <code>TwoStageDesign</code> object
+(<code>design</code>) and the <code>DataDistribution</code> object (<code>data_distribution</code>),
+as well as the assumed parameters <code class="reqn">\mu</code> (mu) and <code class="reqn">\sigma</code> (sigma).
+The other parameters control various details of the integration problem.
+</p>
+
+
+
+<h4>Other parameters</h4>
+
+<p>For a two-armed <code>data_distribution</code>,
+if <code>use_full_twoarm_sampling_distribution</code> is <code>TRUE</code>, the sample means
+for both groups are integrated independently. If <code>use_full_twoarm_sampling_distribution</code>
+is <code>FALSE</code>, only the difference in sample means is integrated.
+</p>
+<p><code>true_parameter</code> controls which parameters is supposed to be estimated. This
+is usually <code>mu</code>, but could be set to <code>sigma</code> if one is interested in
+estimating the standard deviation.
+</p>
+<p>If the parameter <code>exact</code> is set to <code>FALSE</code>
+(the default), the continuous version of the second-stage sample-size function <code>n2</code>
+is used. Otherwise, an integer valued version of that function will be used,
+though this is considerably slower.
+</p>
+<p>The parameters <code>early_futility_part</code>,
+<code>continuation_part</code> and <code>early_efficacy_part</code> control which parts
+of the sample-space should be integrated over (all default to <code>TRUE</code>).
+They can be used in conjunction with the parameter <code>conditional_integral</code>,
+which enables the calculation of the expected value of performance score conditional
+on reaching any of the selected integration regions.
+</p>
+<p>Lastly, the paramters
+<code>tol</code>, <code>maxEval</code>, and <code>absError</code> control the integration accuracy.
+They are handed down to the <code>hcubature</code> function.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>EstimatorScoreResult</code>
+containing the values of the evaluated <code>EstimatorScore</code> and
+information about the setting for which they were calculated
+(e.g. the <code>estimator</code>, <code>data_distribution</code>, <code>design</code>, <code>mu</code>, and <code>sigma</code>).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>EstimatorScore
+</p>
+<p>PointEstimator IntervalEstimator
+</p>
+<p>plot
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">evaluate_estimator(
+  score = MSE(),
+  estimator = SampleMean(),
+  data_distribution = Normal(FALSE),
+  design = get_example_design(),
+  mu = c(0, 0.3, 0.6),
+  sigma = 1,
+  exact = FALSE
+)
+
+evaluate_estimator(
+  score = Coverage(),
+  estimator = StagewiseCombinationFunctionOrderingCI(),
+  data_distribution = Normal(FALSE),
+  design = get_example_design(),
+  mu = c(0, 0.3),
+  sigma = 1,
+  exact = FALSE
+)
+
+</code></pre>
+
+
+</div>

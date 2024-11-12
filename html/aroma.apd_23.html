@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readApdUnits</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reads Affymetrix probe data (APD) as units (probesets)</h2>
+
+<h3>Description</h3>
+
+<p>Reads Affymetrix probe data (APD) as units (probesets) by using the unit and group definitions in the
+corresponding Affymetrix CDF file.
+</p>
+<p>If more than one APD file is read, all files are assumed to be of
+the same chip type, and have the same read map, if any.
+It is not possible to read APD files of different types at the
+same time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+readApdUnits(filenames, units=NULL, ..., transforms=NULL, cdf=NULL,
+  stratifyBy=c("nothing", "pmmm", "pm", "mm"), addDimnames=FALSE, readMap="byMapType",
+  dropArrayDim=TRUE, verbose=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filenames</code></td>
+<td>
+<p>The filenames of the APD files.  All APD files must
+be of the same chip type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+<p>An <code>integer</code> <code>vector</code> of unit indices specifying which units
+to be read.  If <code>NULL</code>, all units are read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>readApd</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transforms</code></td>
+<td>
+<p>A <code>list</code> of exactly <code>length(filenames)</code>
+<code>function</code>s.  If <code>NULL</code>, no transformation is performed.
+Values read are passed through the corresponding transform
+function before being returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cdf</code></td>
+<td>
+<p>A <code>character</code> filename of a CDF file, or a CDF <code>list</code>
+structure.  If <code>NULL</code>, the CDF file is searched for by
+<code>findCdf</code> first starting from the current directory
+and then from the directory where the first APD file is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratifyBy</code></td>
+<td>
+<p>Argument passed to low-level method
+<code>readCdfCellIndices</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addDimnames</code></td>
+<td>
+<p>If <code>TRUE</code>, dimension names are added to arrays,
+otherwise not.  The size of the returned APD structure in bytes
+increases by 30-40% with dimension names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>readMap</code></td>
+<td>
+<p>A <code>vector</code> remapping cell indices to file indices.
+If <code>"byMapType"</code>, the read map of type according to APD header
+will be search for and read.  It is much faster to specify the
+read map explicitly compared with searching for it each time.
+If <code>NULL</code>, no map is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dropArrayDim</code></td>
+<td>
+<p>If <code>TRUE</code> and only one array is read, the elements of
+the group field do <em>not</em> have an array dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>See <code>Verbose</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named <code>list</code> where the names corresponds to the names of the units
+read.  Each element of the <code>list</code> is in turn a <code>list</code> structure
+with groups (aka blocks).
+</p>
+
+
+<h3>Speed</h3>
+
+<p>Since the cell indices are semi-randomized across the array and
+with units (probesets), it is very unlikely that the read will
+consist of subsequent cells (which would be faster to read).
+However, the speed of this method, which uses <code>FileVector</code>
+to read data, is comparable to the speed of
+<code>readCelUnits</code>, which uses the Fusion SDK
+(<code>readCel</code>) to read data.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Henrik Bengtsson</p>
+
+
+<h3>See Also</h3>
+
+<p>To read CEL units, <code>readCelUnits</code>.
+Internally, the <code>readApd</code>() method is used for read probe data,
+and <code>readApdMap</code>(), if APD file has a map type specified and
+the read map was not given explicitly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library("R.utils") # Arguments
+
+verbose &lt;- Arguments$getVerbose(TRUE)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 1. Scan for existing CEL files
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# a) Scan current directory for CEL files
+files &lt;- list.files(pattern="[.](cel|CEL)$")
+files &lt;- files[!file.info(files)$isdir]
+
+if (length(files) &gt; 0 &amp;&amp; require("affxparser")) {
+  # b) Corresponding APD filenames
+  celNames &lt;- files
+  apdNames &lt;- gsub(pattern, ".apd", files)
+ 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # 1. Copy the probe intensities from a CEL to an APD file
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  for (kk in 1) {
+    verbose &amp;&amp; enter(verbose, "Reading CEL file #", kk)
+    cel &lt;- readCel(celNames[kk])
+    verbose &amp;&amp; exit(verbose)
+ 
+    if (!file.exists(apdNames[kk])) {
+      verbose &amp;&amp; enter(verbose, "Creating APD file #", kk)
+      chipType &lt;- cel$header$chiptype
+      writeApd(apdNames[kk], data=cel$intensities, chipType=chipType)
+      verbose &amp;&amp; exit(verbose)
+    }
+ 
+    verbose &amp;&amp; enter(verbose, "Verifying APD file #", kk)
+    apd &lt;- readApd(apdNames[kk])
+    verbose &amp;&amp; exit(verbose)
+    stopifnot(identical(apd$intensities, cel$intensities))
+  }
+ 
+ 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # 2. Read a subset of the units
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  units &lt;- c(1, 20:205)
+  cel &lt;- readCelUnits(celNames[1], units=units)
+  apd &lt;- readApdUnits(apdNames[1], units=units)
+  stopifnot(identical(apd, cel))
+ 
+ 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # 3. The same, but stratified on PMs and MMs
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  apd &lt;- readApdUnits(apdNames[1], units=units, stratifyBy="pmmm",
+                                                addDimnames=TRUE)
+} # if (length(files) &gt; 0)
+</code></pre>
+
+
+</div>

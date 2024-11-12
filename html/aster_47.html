@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>raster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aster Model Simulation</h2>
+
+<h3>Description</h3>
+
+<p>Random generation of data for Aster models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">raster(theta, pred, fam, root, famlist = fam.default())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>canonical parameter of the conditional model.
+A matrix, rows represent individuals and columns represent
+nodes in the graphical model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>integer vector of length <code>ncol(theta)</code> determining
+the graph.  <code>pred[j]</code> is the index of the predecessor of
+the node with index <code>j</code> unless the predecessor is a root
+node, in which case <code>pred[j] == 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam</code></td>
+<td>
+<p>integer vector of length <code>ncol(theta)</code> determining
+the exponential family structure of the aster model.  Each element
+is an index into the vector of family specifications given by
+the argument <code>famlist</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>A matrix of the same dimensions as <code>theta</code>.
+Data <code>root[i, j]</code> is the data for the founder that is
+the predecessor of the <code>[i, j]</code> node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>famlist</code></td>
+<td>
+<p>a list of family specifications (see <code>families</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix of the same dimensions as <code>theta</code>.  The random data
+for an aster model with the specified graph, parameters, and root
+data.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aster</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### see package vignette for explanation ###
+data(echinacea)
+vars &lt;- c("ld02", "ld03", "ld04", "fl02", "fl03", "fl04",
+    "hdct02", "hdct03", "hdct04")
+redata &lt;- reshape(echinacea, varying = list(vars),
+     direction = "long", timevar = "varb", times = as.factor(vars),
+     v.names = "resp")
+redata &lt;- data.frame(redata, root = 1)
+pred &lt;- c(0, 1, 2, 1, 2, 3, 4, 5, 6)
+fam &lt;- c(1, 1, 1, 1, 1, 1, 3, 3, 3)
+hdct &lt;- grep("hdct", as.character(redata$varb))
+hdct &lt;- is.element(seq(along = redata$varb), hdct)
+redata &lt;- data.frame(redata, hdct = as.integer(hdct))
+aout4 &lt;- aster(resp ~ varb + nsloc + ewloc + pop * hdct - pop,
+    pred, fam, varb, id, root, data = redata)
+newdata &lt;- data.frame(pop = levels(echinacea$pop))
+for (v in vars)
+    newdata[[v]] &lt;- 1
+newdata$root &lt;- 1
+newdata$ewloc &lt;- 0
+newdata$nsloc &lt;- 0
+renewdata &lt;- reshape(newdata, varying = list(vars),
+    direction = "long", timevar = "varb", times = as.factor(vars),
+    v.names = "resp")
+hdct &lt;- grep("hdct", as.character(renewdata$varb))
+hdct &lt;- is.element(seq(along = renewdata$varb), hdct)
+renewdata &lt;- data.frame(renewdata, hdct = as.integer(hdct))
+beta.hat &lt;- aout4$coef
+theta.hat &lt;- predict(aout4, model.type = "cond", parm.type = "canon")
+theta.hat &lt;- matrix(theta.hat, nrow = nrow(aout4$x), ncol = ncol(aout4$x))
+xstar &lt;- raster(theta.hat, pred, fam, aout4$root)
+aout4star &lt;- aster(xstar, aout4$root, pred, fam, aout4$modmat, beta.hat)
+beta.star &lt;- aout4star$coef
+print(cbind(beta.hat, beta.star))
+</code></pre>
+
+
+</div>

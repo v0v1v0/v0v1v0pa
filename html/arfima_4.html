@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arfima.sim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate an ARFIMA time series.</h2>
+
+<h3>Description</h3>
+
+<p>This function simulates an long memory ARIMA time series, with one of
+fractionally differenced white noise (FDWN), fractional Gaussian noise
+(FGN), power-law autocovariance (PLA) noise, or short memory noise and
+possibly seasonal effects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arfima.sim(
+  n,
+  model = list(phi = numeric(0), theta = numeric(0), dint = 0, dfrac = numeric(0), H =
+    numeric(0), alpha = numeric(0), seasonal = list(phi = numeric(0), theta = numeric(0),
+    dint = 0, period = numeric(0), dfrac = numeric(0), H = numeric(0), alpha =
+    numeric(0))),
+  useC = 3,
+  sigma2 = 1,
+  rand.gen = rnorm,
+  muHat = 0,
+  zinit = NULL,
+  innov = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of points to be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model to be simulated from.  The phi and theta arguments
+should be vectors with the values of the AR and MA parameters. Note that
+Box-Jenkins notation is used for the MA parameters: see the "Details"
+section of <code>arfima</code>.  The dint argument indicates how much
+differencing should be required to make the process stationary.  The dfrac,
+H, and alpha arguments are FDWN, FGN and PLA values respectively; note that
+only one (or none) of these can have a value, or an error is returned. The
+seasonal argument is a list, with the same parameters, and a period, as the
+model argument. Note that with a seasonal model, we can have mixing of
+FDWN/FGN/HD noise: one in the non-seasonal part, and the other in the
+seasonal part.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useC</code></td>
+<td>
+<p>How much interfaced C code to use: an integer between 0 and 3.
+The value 3 is strongly recommended. See the "Details" section of
+<code>arfima</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>The desired variance for the innovations of the series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rand.gen</code></td>
+<td>
+<p>The distribution of the innovations.  Any distribution
+recognized by <code>R</code> is possible</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muHat</code></td>
+<td>
+<p>The theoretical mean of the series before integration (if
+integer integration is done)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zinit</code></td>
+<td>
+<p>Used for prediction; not meant to be used directly.  This
+allows a start of a time series to be specified before inverse differencing
+(integration) is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innov</code></td>
+<td>
+<p>Used for prediction; not meant to be used directly.  This
+allows for the use of given innovations instead of ones provided by
+<code>rand.gen</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters passed to the random variate generator;
+currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A suitably defined stationary series is generated, and if either of the
+dints (non-seasonal or seasonal) are greater than zero, the series is
+integrated (inverse-differenced) with zinit equalling a suitable amount of
+0s if not supplied.  Then a suitable amount of points are taken out of the
+beginning of the series (i.e. dint + period * seasonal dint = the length of
+zinit) to obtain a series of length n.  The stationary series is generated
+by calculating the theoretical autovariance function and using it, along
+with the innovations to generate a series as in McLeod et. al. (2007).
+<em>Note:</em> if you would like to fit a function from a fitted arfima model,
+the function <code>sim_from_fitted</code> can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A sample from a multivariate normal distribution that has a
+covariance structure defined by the autocovariances generated for given
+parameters.  The sample acts like a time series with the given parameters.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>JQ (Justin) Veenstra
+</p>
+
+
+<h3>References</h3>
+
+<p>McLeod, A. I., Yu, H. and Krougly, Z. L. (2007) Algorithms for
+Linear Time Series Analysis: With R Package Journal of Statistical Software,
+Vol. 23, Issue 5
+</p>
+<p>Veenstra, J.Q. Persistence and Antipersistence:  Theory and
+Software (PhD Thesis)
+</p>
+<p>P. Borwein (1995) An efficient algorithm for Riemann Zeta function Canadian
+Math. Soc. Conf. Proc., 27, pp. 29-34.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arfima</code>, <code>sim_from_fitted</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(6533)
+sim &lt;- arfima.sim(1000, model = list(phi = .2, dfrac = .3, dint = 2))
+
+fit &lt;- arfima(sim, order = c(1, 2, 0))
+fit
+
+</code></pre>
+
+
+</div>

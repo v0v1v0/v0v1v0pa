@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clean_site_index</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepare and clean site index file</h2>
+
+<h3>Description</h3>
+
+<p>A site index file contains information on when specific ARUs were deployed
+where. This function cleans a file (csv, xlsx) or data frame in preparation
+for adding these details to the output of <code>clean_metadata()</code>. It can be used
+to specify missing information according to date, such as GPS lon/lats and
+site ids.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clean_site_index(
+  site_index,
+  name_aru_id = "aru_id",
+  name_site_id = "site_id",
+  name_date_time = "date",
+  name_coords = c("longitude", "latitude"),
+  name_extra = NULL,
+  resolve_overlaps = TRUE,
+  quiet = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>site_index</code></td>
+<td>
+<p>(Spatial) Data frame or file path. Site index data
+to clean. If file path, must be to a local csv or xlsx file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_aru_id</code></td>
+<td>
+<p>Character. Name of the column that contains ARU ids.
+Default <code>"aru_id"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_site_id</code></td>
+<td>
+<p>Character. Name of the column that contains site ids.
+Default <code>"site_id"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_date_time</code></td>
+<td>
+<p>Character. Column name that contains dates or
+date/times. Can be vector of two names if there are both 'start' and 'end'
+columns. Can be <code>NULL</code> to ignore dates. Default <code>"date"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_coords</code></td>
+<td>
+<p>Character. Column names that contain longitude and
+latitude (in that order). Ignored if <code>site_index</code> is spatial. Default
+<code>c("longitude", "latitude")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_extra</code></td>
+<td>
+<p>Character. Column names for extra data to include. If a named
+vector, will rename the columns (see examples). Default <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolve_overlaps</code></td>
+<td>
+<p>Logical. Whether or not to resolve date overlaps by
+shifting the start/end dates to noon (default <code>TRUE</code>). This assumes that
+ARUs are generally <em>not</em> deployed/removed at midnight (the official
+start/end of a day) and so noon is used as an approximation for when an ARU
+was deployed or removed. If possible, use specific deployment times to
+avoid this issue.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical. Whether to suppress progress messages and other
+non-essential updates.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that times are assumed to be in 'local' time and a timezone isn't used
+(and is removed if present, replaced with UTC). This allows sites
+from different timezones to be processed at the same time.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Standardized site index data frame
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+s &lt;- clean_site_index(example_sites,
+  name_aru_id = "ARU",
+  name_site_id = "Sites",
+  name_date_time = c("Date_set_out", "Date_removed"),
+  name_coords = c("lon", "lat")
+)
+
+s &lt;- clean_site_index(example_sites,
+  name_aru_id = "ARU",
+  name_site_id = "Sites",
+  name_date_time = c("Date_set_out", "Date_removed"),
+  name_coords = c("lon", "lat"),
+  name_extra = c("plot" = "Plots")
+)
+
+# Without dates
+eg &lt;- dplyr::select(example_sites, -Date_set_out, -Date_removed)
+s &lt;- clean_site_index(eg,
+  name_aru_id = "ARU",
+  name_site_id = "Sites",
+  name_date_time = NULL,
+  name_coords = c("lon", "lat"),
+  name_extra = c("plot" = "Plots")
+)
+
+</code></pre>
+
+
+</div>

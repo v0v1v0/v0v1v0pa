@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>marginal_laplace</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Marginal Laplace approximation</h2>
+
+<h3>Description</h3>
+
+<p>Implement the marginal Laplace approximation of Tierney and Kadane (1986) for
+finding the marginal posterior <code>(theta | Y)</code> from an unnormalized joint posterior
+<code>(W,theta,Y)</code> where <code>W</code> is high dimensional and <code>theta</code> is low dimensional.
+See the <code>AGHQ</code> software paper for a detailed example, or Stringer et. al. (2020).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">marginal_laplace(
+  ff,
+  k,
+  startingvalue,
+  transformation = default_transformation(),
+  optresults = NULL,
+  control = default_control_marglaplace(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ff</code></td>
+<td>
+<p>A function list similar to that required by <code>aghq</code>. However, each
+function now takes arguments <code>W</code> and <code>theta</code>. Explicitly, this is a
+list containing elements:
+</p>
+
+<ul>
+<li>
+<p><code>fn</code>: function taking arguments <code>W</code> and <code>theta</code> and returning a numeric
+value representing the log-joint posterior at <code>W,theta</code>
+</p>
+</li>
+<li>
+<p><code>gr</code>: function taking arguments <code>W</code> and <code>theta</code> and returning a numeric
+vector representing the gradient with respect to <code>W</code> of the log-joint posterior at <code>W,theta</code>
+</p>
+</li>
+<li>
+<p><code>he</code>: function taking arguments <code>W</code> and <code>theta</code> and returning a numeric
+matrix representing the hessian with respect to <code>W</code> of the log-joint posterior at <code>W,theta</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer, the number of quadrature points to use. I suggest at least 3. k = 1 corresponds to a Laplace
+approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startingvalue</code></td>
+<td>
+<p>A list with elements <code>W</code> and <code>theta</code>, which are numeric
+vectors to start the optimizations for each variable. If you're using this method
+then the log-joint posterior should be concave and these optimizations should not be
+sensitive to starting values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformation</code></td>
+<td>
+<p>Optional. Do the quadrature for parameter <code>theta</code>, but
+return summaries and plots for parameter <code>g(theta)</code>. This applies to the <code>theta</code>
+parameters only, not the <code>W</code> parameters.
+<code>transformation</code> is either: a) an <code>aghqtrans</code> object returned by <code>aghq::make_transformation</code>,
+or b) a list that will be passed to that function internally. See <code>?aghq::make_transformation</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optresults</code></td>
+<td>
+<p>Optional. A list of the results of the optimization of the log
+posterior, formatted according to the output of <code>aghq::optimize_theta</code>. The
+<code>aghq::aghq</code> function handles the optimization for you; passing this list
+overrides this, and is useful for when you know your optimization is too difficult to be
+handled by general-purpose software. See the software paper for several examples of this.
+If you're unsure whether this option is needed for your problem then it probably is not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list with elements
+</p>
+
+<ul>
+<li>
+<p><code>method</code>: optimization method to use for the <code>theta</code> optimization:
+</p>
+
+<ul>
+<li>
+<p>'sparse_trust' (default): <code>trustOptim::trust.optim</code>
+</p>
+</li>
+<li>
+<p>'sparse': <code>trust::trust</code>
+</p>
+</li>
+<li>
+<p>'BFGS': <code>optim(...,method = "BFGS")</code>
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>inner_method</code>: optimization method to use for the <code>W</code> optimization; same
+options as for <code>method</code>
+</p>
+</li>
+</ul>
+<p>Default <code>inner_method</code> is 'sparse_trust' and default <code>method</code> is 'BFGS'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>ff$fn</code>, <code>ff$gr</code>, and <code>ff$he</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>k &gt; 1</code>, an object of class <code>marginallaplace</code>, which includes
+the result of calling <code>aghq::aghq</code> on
+the Laplace approximation of <code>(theta|Y)</code>, .... See software paper for full details.
+If <code>k = 1</code>, an object of class <code>laplace</code> which is the result of calling
+<code>aghq::laplace_approximation</code> on
+the Laplace approximation of <code>(theta|Y)</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other quadrature: 
+<code>aghq()</code>,
+<code>get_hessian()</code>,
+<code>get_log_normconst()</code>,
+<code>get_mode()</code>,
+<code>get_nodesandweights()</code>,
+<code>get_numquadpoints()</code>,
+<code>get_opt_results()</code>,
+<code>get_param_dim()</code>,
+<code>laplace_approximation()</code>,
+<code>marginal_laplace_tmb()</code>,
+<code>nested_quadrature()</code>,
+<code>normalize_logpost()</code>,
+<code>optimize_theta()</code>,
+<code>plot.aghq()</code>,
+<code>print.aghqsummary()</code>,
+<code>print.aghq()</code>,
+<code>print.laplacesummary()</code>,
+<code>print.laplace()</code>,
+<code>print.marginallaplacesummary()</code>,
+<code>summary.aghq()</code>,
+<code>summary.laplace()</code>,
+<code>summary.marginallaplace()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+objfunc2dmarg &lt;- function(W,theta) objfunc2d(c(W,theta))
+objfunc2dmarggr &lt;- function(W,theta) {
+  fn &lt;- function(W) objfunc2dmarg(W,theta)
+  numDeriv::grad(fn,W)
+}
+objfunc2dmarghe &lt;- function(W,theta) {
+  fn &lt;- function(W) objfunc2dmarg(W,theta)
+  numDeriv::hessian(fn,W)
+}
+
+funlist2dmarg &lt;- list(
+  fn = objfunc2dmarg,
+  gr = objfunc2dmarggr,
+  he = objfunc2dmarghe
+)
+</code></pre>
+
+
+</div>

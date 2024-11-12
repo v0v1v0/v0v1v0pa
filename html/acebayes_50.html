@@ -1,0 +1,282 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>utilities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Approximate expected utility function for generalised linear models and non-linear regression models
+</h2>
+
+<h3>Description</h3>
+
+<p>Generates an approximate utility function for generalised linear models and non-linear regression models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">utilityglm(formula, family, prior, 
+criterion = c("D", "A", "E", "SIG", "NSEL", "SIG-Norm", "NSEL-Norm"),
+method = c("quadrature", "MC"), nrq)
+
+utilitynlm(formula, prior, desvars, criterion =  c("D", "A", "E", "SIG", "NSEL"),
+method = c("quadrature", "MC"), nrq)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>An argument providing a symbolic description of the model.
+</p>
+<p>For <code>utilityglm</code>, an object of class <code>"formula"</code>: a symbolic description of the model. 
+</p>
+<p>For <code>utilitynlm</code>, an object of class <code>"formula"</code>: a symbolic description of the model. The terms should correspond to the argument <code>prior</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>For <code>utilityglm</code>, a description of the error distribution and link function to be used in the model. This can be a character string naming a family function, a family function or the result of a call to a family function. (See <code>family</code> for details of family functions.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+
+<p>An argument specifying the prior distribution.  	
+</p>
+<p>For <code>method = "MC"</code>, a function with one argument: <code>B</code>; a scalar integer. This function should return a <code>B</code> by <code>p</code> matrix (<code>p+1</code> for <code>criterion = "SIG"</code> or <code>criterion = "NSEL"</code>), with <code>p</code> the number of model parameters, containing a random sample from the prior distribution of the parameters. The value of <code>p</code> should correspond to the number of terms specified by the <code>formula</code> argument. For <code>utilitynlm</code>, the column names must match the names of parameters in the <code>formula</code> argument. For <code>utilitynlm</code>, if <code>criterion="SIG"</code>, <code>criterion="NSEL"</code>, <code>criterion="SIG-Norm"</code> or <code>criterion="NSEL-Norm"</code> then an extra column called <code>sig2</code> should be included with a sample from the error variance.
+</p>
+<p>For <code>method = "quadrature"</code>, a list specifying a normal or uniform prior for the model parameters. For a normal prior distribution, the list should have named entries <code>mu</code> and <code>sigma2</code> specifying the prior mean and variance-covariance matrix. The prior mean may be specified as a scalar, which will then be replicated to form an vector of common prior means, or a vector of length <code>p</code>. The prior variance-covariance matrix may be specified as either a scalar common variance or a vector of length <code>p</code> of variances (for independent prior distributions) or as a <code>p</code> by <code>p</code> matrix. For <code>utilitynlm</code>, the names attribute of <code>mu</code> must match the names of the parameters in the <code>formula</code> argument. For a uniform prior distribution, the list should have a named entry <code>support</code>, a <code>2</code> by <code>p</code> matrix with each column giving the lower and upper limits of the support of the independent continuous uniform distribution for the corresponding parameter. For <code>utilitynlm</code>, the column names of <code>support</code> must match the names of parameters in the <code>formula</code> argument.	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>desvars</code></td>
+<td>
+
+<p>For <code>utilitynlm</code>, a character vector listing the design variables that appear in the argument <code>formula</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>An optional character argument specifying the utility function. There are currently seven utility functions implemented as follows:
+</p>
+
+<ol>
+<li>
+<p><b>pseudo-Bayesian D-optimality</b> (<code>criterion = "D"</code>);
+</p>
+</li>
+<li>
+<p><b>pseudo-Bayesian A-optimality</b> (<code>criterion = "A"</code>);
+</p>
+</li>
+<li>
+<p><b>pseudo-Bayesian E-optimality</b> (<code>criterion = "E"</code>).
+</p>
+</li>
+<li>
+<p><b>Shannon information gain</b> with Monte Carlo (MC) approximation to marginal likelihood (<code>criterion = "SIG"</code>);
+</p>
+</li>
+<li>
+<p><b>Shannon information gain</b> with normal-based Laplace approximation to marginal likelihood (<code>criterion = "SIG-Norm"</code>, only for <code>utilityglm</code>));
+</p>
+</li>
+<li>
+<p><b>negative squared error loss</b> with importance sampling approximation to posterior mean (<code>criterion = "NSEL"</code>);
+</p>
+</li>
+<li>
+<p><b>negative squared error loss</b> with normal-based approximation to posterior mean (<code>criterion = "NSEL-Norm"</code>, only for <code>utilityglm</code>)) ;
+</p>
+</li>
+</ol>
+<p>The default value is <code>"D"</code> denoting pseudo-Bayesian D-optimality. See <b>Details</b> for more information. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>An optional character argument specifying the method of approximating the expected utility function. Current choices are <code>method = "quadrature"</code> for a deterministic quadrature approximation and <code>method = "MC"</code> for a stochastic Monte Carlo approximation. The first of these choices is <b>only</b> available when the argument <code>criterion = "A"</code>, <code>"D"</code> or <code>"E"</code>. The second choice is available for all possible values of the argument <code>criterion</code>. If left unspecified, the argument defaults to <code>"quadrature"</code> for <code>criterion = "A"</code>, <code>"D"</code> or <code>"E"</code> and to <code>"MC"</code> otherwise. See <b>Details</b> for more information. 			
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrq</code></td>
+<td>
+
+<p>For <code>method = "quadrature"</code>, a vector of length two specifying the number of radial abscissas (<code>nrq[1]</code>) and quasi-random rotations (<code>nrq[2]</code>) required for the implemented quadrature scheme; see <b>Details</b> for more information. If left unspecified, the default value is <code>c(2, 8)</code>.	
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Two utility functions are implemented.
+</p>
+
+<ol>
+<li>
+<p><b>Shannon information gain (SIG)</b> 
+</p>
+<p>The utility function is
+</p>
+<p style="text-align: center;"><code class="reqn">u^{SIG}(d) = \pi(\theta|y,d) - \pi(\theta),</code>
+</p>
+
+<p>where <code class="reqn">\pi(\theta|y,d)</code> and <code class="reqn">\pi(\theta)</code> denote the posterior and prior densities of the parameters <code class="reqn">\theta</code>, respectively.
+</p>
+</li>
+<li>
+<p><b>Negative squared error loss (NSEL)</b>
+</p>
+<p>The utility function is
+</p>
+<p style="text-align: center;"><code class="reqn">u^{NSEL}(d) = - \left(\theta - E(\theta |y,d)\right)^T \left(\theta - E(\theta |y,d)\right),</code>
+</p>
+
+<p>where <code class="reqn">E(\theta | y,d)</code> denotes the posterior mean of <code class="reqn">\theta</code>.
+</p>
+</li>
+</ol>
+<p>In both cases the utility function is not available in closed form due to the analytical intractability of either the posterior distribution (for SIG) or the posterior mean (for NSEL). The <code>acebayes</code> package implements two approximations to both utility functions. If <code>criterion = "SIG"</code> or <code>criterion = "NSEL"</code> then sampling-based Monte Carlo or importance sampling approximations will be employed. This was the original approach used by Overstall &amp; Woods (2017). If <code>criterion = "SIG-Norm"</code> or <code>criterion = "NSEL-Norm"</code> then approximations based on approximate normality of the posterior (Overstall et al., 2017) will be used.
+</p>
+<p>The normal approximation to the posterior can be taken further leading to the approximation by some scalar function of the Fisher information matrix, <code class="reqn">\mathcal{I} (\theta;d)</code>, which only depends on <code class="reqn">\theta</code> (Chaloner &amp; Verdinelli, 1995). In the case of SIG, the approximate utility is given by
+</p>
+<p style="text-align: center;"><code class="reqn">u^{D}(d) = \log \vert \mathcal{I} (\theta;d) \vert,</code>
+</p>
+
+<p>and the resulting design is typically called pseudo-Bayesian D-optimal. For NSEL, the approximate utility is given by
+</p>
+<p style="text-align: center;"><code class="reqn">u^A(d) = - \mathrm{tr} \left\{ \mathcal{I} (\theta;d)^{-1} \right\} </code>
+</p>
+
+<p>with the resulting design termed pseudo-Bayesian A-optimal. These designs are often used under the frequentist approach to optimal experimental design and so to complete the usual set, the following utility for finding a pseudo-Bayesian E-optimal design is also implemented:
+</p>
+<p style="text-align: center;"><code class="reqn">u^E(d) = \mathrm{min} \mbox{ } e\left(\mathcal{I} (\theta;d) \right),</code>
+</p>
+
+<p>where <code class="reqn">e()</code> denotes the function that calculates the eigenvalues of its argument.
+</p>
+<p>The expected utilities can be approximated using Monte Carlo methods (<code>method = "MC"</code> for all criteria) or using a deterministic quadrature method (<code>method = "quadrature"</code>, implemented for the D, A and E criteria). The former approach approximates the expected utility via sampling from the prior. The latter approach uses a radial-spherical integration rule (Monahan and Genz, 1997) and <code>B[1]</code> specifies the number, <code class="reqn">n_r</code>, of radial abscissas and <code>B[2]</code> specifies the number,  <code class="reqn">n_q</code>, of random rotations. Larger values of  <code class="reqn">n_r</code> will produce more accurate, but also more computationally expensive, approximations. See Gotwalt et al. (2009) for further details.   
+</p>
+<p>For <code>utilityglm</code>, note that the utility functions for SIG and NSEL are currently only implemented for logistic regression, i.e. <code>family = binomial</code>, or Poisson regression, i.e. <code>family = poisson(link = "log")</code>, whereas the utility functions for pseudo-Bayesian designs are implemented for generic GLM families.
+</p>
+<p>For more details on the ACE algorithm, see Overstall &amp; Woods (2017).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function will return a list with the following components:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>utility</code></td>
+<td>
+
+<p>The utility function resulting from the choice of arguments.
+</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p>Antony M. Overstall <a href="mailto:A.M.Overstall@soton.ac.uk">A.M.Overstall@soton.ac.uk</a>, David C. Woods, Maria Adamou &amp; Damianos Michaelides
+</p>
+
+
+<h3>References</h3>
+
+<p>Chaloner, K. &amp; Verdinelli, I. (1995). Bayesian experimental design: a review. <em>Statistical
+Science</em>, <b>10</b>, 273-304.
+</p>
+<p>Gotwalt, C. M., Jones, B. A.  &amp; Steinberg, D. M. (2009). Fast computation of designs robust to parameter uncertainty for nonlinear settings. <em>Technometrics</em>, <b>51</b>, 88-95.
+</p>
+<p>Monahan, J. and Genz, A. (1997). Spherical-radial integration rules for
+Bayesian computation,” Journal of the American Statistical Association, 92, 664-674.
+</p>
+<p>Overstall, A.M. &amp; Woods, D.C. (2017). Bayesian design of experiments using
+approximate coordinate exchange. <em>Technometrics</em>, <b>59</b>, 458-470.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aceglm</code>, <code>acenlm</code>, <code>paceglm</code>, <code>pacenlm</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## 1. This example uses utilityglm to generate the pseudo-Bayesian D-optimality
+## approximate expected utility function using a Monte Carlo approximation.
+
+low&lt;-c(-3, 4, 5, -6, -2.5)
+upp&lt;-c(3, 10, 11, 0, 3.5)
+## Lower and upper limits of the uniform prior distributions.
+
+prior&lt;-function(B){
+t(t(6*matrix(runif(n=5*B),ncol=5))+low)}
+## Create a function which specifies the prior. This function will return a 
+## B by 5 matrix where each row gives a value generated from the prior 
+## distribution for the model parameters.
+
+ex &lt;- utilityglm(formula = ~x1+x2+x3+x4, family = binomial, prior = prior, method = "MC")
+
+set.seed(1)
+## Set seed for reproducibility.
+
+n&lt;-6
+## Specify the sample size (number of runs).
+
+start.d&lt;-matrix( 2 * randomLHS(n = n,k = 4) - 1,nrow = n,ncol = 4,
+dimnames = list(as.character(1:n),c("x1", "x2", "x3", "x4")))
+## Generate an initial design of appropriate dimension. The initial design is a 
+## Latin hypercube sample.
+
+ex$utility(d = start.d, B = 10)
+## Evaluate resulting approximate utility. Should get:
+
+#[1] -13.98143 -17.07772 -19.88988 -22.40720 -15.27411 -15.02717 -16.17253 -18.66600 -13.75118
+#[10] -21.83820
+
+## 2. This example uses utilitynlm to generate the psuedo-Bayesian A-optimality expected utility
+## function using a quadrature approximation
+
+low&lt;-c(0.01884, 0.298, 21.8)
+upp&lt;-c(0.09884, 8.298, 21.8)
+## Lower and upper limits of the uniform prior distributions. Note that the prior
+## for the third element is a point mass.
+
+prior2 &lt;- list(support = cbind(rbind(low, upp)))
+colnames(prior2$support) &lt;- c("a", "b", "c")
+## Specify a uniform prior with ranges given by low and upp
+
+ex2 &lt;- utilitynlm(formula = ~ c * (exp( - a * t) - exp( - b *t)), prior = prior2, 
+                            desvars = "t")
+                            
+n &lt;- 6
+start.d &lt;- matrix(24 * randomLHS(n = n, k = 1), nrow = n)
+colnames(start.d) &lt;- "t"
+ex2$utility(d = start.d) 
+## -13.17817    
+
+</code></pre>
+
+
+</div>

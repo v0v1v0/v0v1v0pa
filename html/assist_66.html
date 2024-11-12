@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>snr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fit A Semi-parametric Nonlinear Regression Model
+</h2>
+
+<h3>Description</h3>
+
+<p>This generic function fits a Semi-parametric Nonlinear Regression Model as formulated in Ke (2000).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">snr(formula, func, params, data, start, 
+    spar = "v", verbose = FALSE, control = list(), correlation = NULL, 
+    weights = NULL) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>a model formula, with the response on the left of a <code class="reqn">\mbox{\textasciitilde}</code> operator 
+and on the right an expression representing the mean function 
+with at least one unknown function appearing with a symbol, 
+e.g. f. If "data" is present, all names except the nonparametric 
+function(s) used in the formula should be defined as parameters 
+or variables in the data frame.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+
+<p>a list of spline formulae each specifying the spline components 
+necessary to estimate each non-parametric function. On the left 
+of a  <code class="reqn">\mbox{\textasciitilde}</code> operator of each component is the unknow function symbol(s) 
+as well as its arguments, while the right side is a list of two 
+components <code>nb</code>, an optional one-side formula for representing 
+the null space's bases, and a required <code>rk</code> structure. <code>nb</code> and 
+<code>rk</code> are similar to <code>formula</code> and <code>rk</code> in ssr. A missing <code>nb</code> 
+denotes an empty null space.   
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+
+<p>a two-sided formula specifying models for the parameters. 
+The syntax of <code>params</code> in <code>gnls</code> is adopted. See <code>gnls</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional data frame containing the variables named in model, 
+params, correlation and weights. By default the variables are taken 
+from the environment from which snr is called.	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>a numeric list with two components: "params=", a vector of the size of the length of the unknown parameters, 
+providing inital values for the paramters, and "f=" a list of vectors or expressions which input inital values for the unknown functions. 
+If the unknown functions appear linear in the model, the intial values then are not necessary. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spar</code></td>
+<td>
+
+<p>a character string specifying a method for choosing the smoothing parameter. "v", "m" and "u" represent  GCV, GML and
+UBR respectively. Default is "v" for GCV.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>an optional logical numerical value. If <code>TRUE</code>, information on
+the evolution of the iterative algorithm is printed. Default is
+<code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>an optional list of control parameters. See <code>snr.control</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlation</code></td>
+<td>
+
+<p>an optional <code>corStruct</code> as in gnls. Default is NULL, corresponding to uncorrelation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights </code></td>
+<td>
+
+<p>an optional <code>varFunc</code> structure as in <code>gnls</code>. Default is NULL, representing equal variances.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A semi-parametric regression model is generalization of self-modeling 
+regression, nonlinear regression and smoothing spline models, including 
+as special cases (nonlinear) partial spline models, varying coefficients 
+models, PP regression and some other popular models. 'snr' is 
+implemented with an alternate iterative procedures with smoothing splines 
+to estimate the unknown functions and general nonlinear regression to
+estimate parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>snr</code> is returned, representing a semi-parametric 
+nonlinear regression fit. Generic functions such as print, summary, 
+intervals and predict have methods to show the results of  the  fit.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chunlei Ke <a href="mailto:chunlei_ke@yahoo.com">chunlei_ke@yahoo.com</a> and Yuedong Wang <a href="mailto:yuedong@pstat.ucsb.edu">yuedong@pstat.ucsb.edu</a>.</p>
+
+
+<h3>References</h3>
+
+<p>Ke, C. (2000). Semi-parametric Nonlinear Regression and Mixed Effects 
+Models. PhD thesis, University of California, Santa Barbara.
+</p>
+<p>Pinheiro, J.C. and Bates, D. M. (2000). Mixed-Effects Models in S
+and S-PLUS. Springer.
+</p>
+<p>Wahba, G. (1990). Spline Models for Observational Data. SIAM, Vol. 59.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>intervals.snr</code>,  <code>predict.snr</code>, <code>snr.control</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(CO2)
+options(contrasts=rep("contr.treatment", 2))    
+co2.fit1 &lt;- nlme(uptake~exp(a1)*(1-exp(-exp(a2)*(conc-a3))), 
+                 fixed=list(a1+a2~Type*Treatment,a3~1), 
+                 random=a1~1, groups=~Plant, 
+                 start=c(log(30),0,0,0,log(0.01),0,0,0,50),
+                 data=CO2)
+
+M &lt;- model.matrix(~Type*Treatment, data=CO2)[,-1]
+
+## fit a SNR model
+co2.fit2 &lt;- snr(uptake~exp(a1)*f(exp(a2)*(conc-a3)),
+                func=f(u)~list(~I(1-exp(-u))-1,lspline(u, type="exp")),
+                params=list(a1~M-1, a3~1, a2~Type*Treatment),
+                start=list(params=co2.fit1$coe$fixed[c(2:4,9,5:8)]), data=CO2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

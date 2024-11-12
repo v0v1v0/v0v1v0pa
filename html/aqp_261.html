@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>profileInformationIndex</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Soil Profile Information Index</h2>
+
+<h3>Description</h3>
+
+<p>A simple index of "information" content associated with individuals in a <code>SoilProfileCollection</code> object. Information content is quantified by number of bytes after compression via <code>memCompress()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">profileInformationIndex(
+  x,
+  vars,
+  method = c("joint", "individual"),
+  baseline = FALSE,
+  numericDigits = 8,
+  padNA = FALSE,
+  scaleNumeric = FALSE,
+  compression = "gzip"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>SoilProfileCollection</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>character vector of site or horizon level attributes to consider</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character, 'individual' or 'joint' complexity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>baseline</code></td>
+<td>
+<p>logical, compute ratio to "baseline" information content, see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numericDigits</code></td>
+<td>
+<p>integer, number of significant digits to retain in numeric -&gt; character conversion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>padNA</code></td>
+<td>
+<p>logical, pad depths to <code>max(x)</code>, supplied to <code>dice(fill = padNA)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaleNumeric</code></td>
+<td>
+<p>logical, <code>scale()</code> each numeric variable, causing "profile information" to vary based on other profiles in the collection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compression</code></td>
+<td>
+<p>character, compression method as used by <code>memCompress()</code>: 'gzip', 'bzip2', 'xz', 'none'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Information content via compression (gzip) is the central assumption behind this function: the values associated with a simple soil profile having few horizons and little variation between horizons (isotropic depth-functions) will compress to a much smaller size than a complex profile (many horizons, strong anisotropy). Information content is evaluated a profile at a time, over each site or horizon level attribute specified in <code>vars</code>. The <code>baseline</code> argument invokes a comparison to the simplest possible representation of each depth-function:
+</p>
+
+<ul>
+<li> <p><code>numeric</code>: replication of the mean value to match the number of horizons with non-NA values
+</p>
+</li>
+<li> <p><code>character</code> or <code>factor</code>: replication of the most frequent value to match the number of horizons with non-NA values
+</p>
+</li>
+</ul>
+<p>The ratios computed against a "simple" baseline represent something like "information gain". Larger baseline ratios suggest more complexity (more information) associated with a soil profile's depth-functions. Alternatively, the total quantity of information (in bytes) can be determined by setting <code>baseline = FALSE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a numeric vector of the same length as <code>length(x)</code> and in the same order, suitable for direct assignment to a new site-level attribute
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# single horizon, constant value
+p1 &lt;- data.frame(id = 1, top = 0, bottom = 100, p = 5, name = 'H')
+
+# multiple horizons, constant value
+p2 &lt;- data.frame(
+  id = 2, top = c(0, 10, 20, 30, 40, 50),
+  bottom = c(10, 20, 30, 40, 50, 100),
+  p = rep(5, times = 6),
+  name = c('A1', 'A2', 'Bw', 'Bt1', 'Bt2', 'C')
+)
+
+# multiple horizons, random values
+p3 &lt;- data.frame(
+  id = 3, top = c(0, 10, 20, 30, 40, 50),
+  bottom = c(10, 20, 30, 40, 50, 100),
+  p = c(1, 5, 10, 35, 6, 2),
+  name = c('A1', 'A2', 'Bw', 'Bt1', 'Bt2', 'C')
+)
+
+# multiple horizons, mostly NA
+p4 &lt;- data.frame(
+  id = 4, top = c(0, 10, 20, 30, 40, 50),
+  bottom = c(10, 20, 30, 40, 50, 100),
+  p = c(1, NA, NA, NA, NA, NA),
+  name = c('A1', 'A2', 'Bw', 'Bt1', 'Bt2', 'C')
+)
+
+# shallower version of p1
+p5 &lt;- data.frame(id = 5, top = 0, bottom = 50, p = 5, name = 'H')
+
+# combine and upgrade to SPC
+z &lt;- rbind(p1, p2, p3, p4, p5)
+depths(z) &lt;- id ~ top + bottom
+hzdesgnname(z) &lt;- 'name'
+
+z &lt;- fillHzGaps(z)
+
+# visual check
+par(mar = c(1, 0, 3, 3))
+plotSPC(z, color = 'p', name.style = 'center-center', cex.names = 0.8, max.depth = 110)
+
+# factor version of horizon name
+z$fname &lt;- factor(z$name)
+
+vars &lt;- c('p', 'name')
+# result is total bytes
+pi &lt;- profileInformationIndex(z, vars = vars, method = 'joint', baseline = FALSE)
+
+text(x = 1:5, y = 105, labels = pi, cex = 0.85)
+mtext('Profile Information Index (bytes)', side = 1, line = -1)
+
+</code></pre>
+
+
+</div>

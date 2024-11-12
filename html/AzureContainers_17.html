@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_aks</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Azure Kubernetes Service (AKS)</h2>
+
+<h3>Description</h3>
+
+<p>Method for the AzureRMR::az_resource_group class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>create_aks(name, location = self$location,
+           dns_prefix = name, kubernetes_version = NULL,
+           enable_rbac = FALSE, agent_pools = agent_pool("pool1", 3),
+           login_user = "", login_passkey = "",
+           cluster_service_principal = NULL, managed_identity = TRUE,
+           private_cluster = FALSE,
+           properties = list(), ..., wait = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: The name of the Kubernetes service.
+</p>
+</li>
+<li> <p><code>location</code>: The location/region in which to create the service. Defaults to this resource group's location.
+</p>
+</li>
+<li> <p><code>dns_prefix</code>: The domain name prefix to use for the cluster endpoint. The actual domain name will start with this argument, followed by a string of pseudorandom characters.
+</p>
+</li>
+<li> <p><code>kubernetes_version</code>: The Kubernetes version to use. If not specified, uses the most recent version of Kubernetes available.
+</p>
+</li>
+<li> <p><code>enable_rbac</code>: Whether to enable Kubernetes role-based access controls (which is distinct from Azure AD RBAC).
+</p>
+</li>
+<li> <p><code>agent_pools</code>: The pool specification(s) for the cluster. See 'Details'.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠login_user,login_passkey⁠</code>: Optionally, a login username and public key (on Linux). Specify these if you want to be able to ssh into the cluster nodes.
+</p>
+</li>
+<li> <p><code>cluster_service_principal</code>: The service principal that AKS will use to manage the cluster resources. This should be a list, with the first component being the client ID and the second the client secret. If not supplied, a new service principal will be created (requires an interactive session). Ignored if <code>managed_identity=TRUE</code>, which is the default.
+</p>
+</li>
+<li> <p><code>managed_identity</code>: Whether the cluster should have a managed identity assigned to it. If <code>FALSE</code>, a service principal will be used to manage the cluster's resources; see 'Details' below.
+</p>
+</li>
+<li> <p><code>private_cluster</code>: Whether this cluster is private (not visible from the public Internet). A private cluster is accessible only to hosts on its virtual network.
+</p>
+</li>
+<li> <p><code>properties</code>: A named list of further Kubernetes-specific properties to pass to the initialization function.
+</p>
+</li>
+<li> <p><code>wait</code>: Whether to wait until the AKS resource provisioning is complete. Note that provisioning a Kubernetes cluster can take several minutes.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments to pass to the initialization function.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>An AKS resource is a Kubernetes cluster hosted in Azure. See the documentation for the resource for more information. To work with the cluster (deploy images, define and start services, etc) see the documentation for the cluster endpoint.
+</p>
+<p>The nodes for an AKS cluster are organised into <em>agent pools</em>, also known as <em>node pools</em>, which are homogenous groups of virtual machines. To specify the details for a single agent pool, use the <code>agent_pool</code> function, which returns an S3 object of that class. To specify the details for multiple pools, you can supply a list of such objects, or a single call to the <code>aks_pools</code> function; see the examples below. Note that <code>aks_pools</code> is older, and does not support all the possible parameters for an agent pool.
+</p>
+<p>Of the agent pools in a cluster, at least one must be a <em>system pool</em>, which is used to host critical system pods such as CoreDNS and tunnelfront. If you specify more than one pool, the first pool will be treated as the system pool. Note that there are certain <a href="https://docs.microsoft.com/en-us/azure/aks/use-system-pools">extra requirements</a> for the system pool.
+</p>
+<p>An AKS cluster requires an identity to manage the low-level resources it uses, such as virtual machines and networks. The default and recommended method is to use a <em>managed identity</em>, in which all the details of this process are handled by AKS. In AzureContainers version 1.2.1 and older, a <em>service principal</em> was used instead, which is an older and less automated method. By setting <code>managed_identity=FALSE</code>, you can continue using a service principal instead of a managed identity.
+</p>
+<p>One thing to be aware of with service principals is that they have a secret password that will expire eventually. By default, the password for a newly-created service principal will expire after one year. You should run the <code>update_service_password</code> method of the AKS object to reset/update the password before it expires.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>az_kubernetes_service</code> representing the service.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>get_aks, delete_aks, list_aks, agent_pool, aks_pools
+</p>
+<p>az_kubernetes_service
+</p>
+<p>kubernetes_cluster for the cluster endpoint
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/aks/">AKS documentation</a> and
+<a href="https://docs.microsoft.com/en-us/rest/api/aks/">API reference</a>
+</p>
+<p><a href="https://kubernetes.io/docs/reference/">Kubernetes reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+rg &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+rg$create_aks("mycluster", agent_pools=agent_pool("pool1", 5))
+
+# GPU-enabled cluster
+rg$create_aks("mygpucluster", agent_pools=agent_pool("pool1", 5, size="Standard_NC6s_v3"))
+
+# multiple agent pools
+rg$create_aks("mycluster", agent_pools=list(
+    agent_pool("pool1", 2),
+    agent_pool("pool2", 3, size="Standard_NC6s_v3")
+))
+
+# deprecated alternative for multiple pools
+rg$create_aks("mycluster",
+    agent_pools=aks_pools(c("pool1", "pool2"), c(2, 3), c("Standard_DS2_v2", "Standard_NC6s_v3")))
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

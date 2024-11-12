@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AFglm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable fraction estimation based on a logistic regression model from a <code>glm</code> object (commonly used for cross-sectional or case-control sampling designs).</h2>
+
+<h3>Description</h3>
+
+<p><code>AFglm</code> estimates the model-based adjusted attributable fraction for data from a logistic regression model in the form of a <code>glm</code> object. This model is commonly used for data from a cross-sectional or non-matched case-control sampling design.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AFglm(object, data, exposure, clusterid, case.control = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted logistic regression model object of class "<code>glm</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment (<code>formula</code>), typically the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure</code></td>
+<td>
+<p>the name of the exposure variable as a string. The exposure must be binary (0/1) where unexposed is coded as 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterid</code></td>
+<td>
+<p>the name of the cluster identifier variable as a string, if data are clustered. Cluster robust standard errors will be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>case.control</code></td>
+<td>
+<p>can be set to <code>TRUE</code> if the data is from a non-matched case control study. By default <code>case.control</code> is set to <code>FALSE</code> which is used for cross-sectional sampling designs.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>AFglm</code> estimates the attributable fraction for a binary outcome <code>Y</code>
+under the hypothetical scenario where a binary exposure <code>X</code> is eliminated from the population.
+The estimate is adjusted for confounders <code>Z</code> by logistic regression using the (<code>glm</code>) function.
+The estimation strategy is different for cross-sectional and case-control sampling designs even if the underlying logististic regression model is the same.
+For cross-sectional sampling designs the AF can be defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AF=1-\frac{Pr(Y_0=1)}{Pr(Y=1)}</code>
+</p>
+
+<p>where <code class="reqn">Pr(Y_0=1)</code> denotes the counterfactual probability of the outcome if
+the exposure would have been eliminated from the population and <code class="reqn">Pr(Y = 1)</code> denotes the factual probability of the outcome.
+If <code>Z</code> is sufficient for confounding control, then <code class="reqn">Pr(Y_0=1)</code> can be expressed as
+<code class="reqn">E_Z\{Pr(Y=1\mid{X=0,Z})\}.</code>
+The function uses logistic regression to estimate <code class="reqn">Pr(Y=1\mid{X=0,Z})</code>, and the marginal sample distribution of <code>Z</code>
+to approximate the outer expectation (Sjölander and Vansteelandt, 2012).
+For case-control sampling designs the outcome prevalence is fixed by sampling design and absolute probabilities (<code>P.est</code> and <code>P0.est</code>) can not be estimated.
+Instead adjusted log odds ratios (<code>log.or</code>) are estimated for each individual.
+This is done by setting <code>case.control</code> to <code>TRUE</code>. It is then assumed that the outcome is rare so that the risk ratio can be approximated by the odds ratio.
+For case-control sampling designs the AF be defined as (Bruzzi et. al)
+</p>
+<p style="text-align: center;"><code class="reqn">AF = 1 - \frac{Pr(Y_0=1)}{Pr(Y = 1)}</code>
+</p>
+
+<p>where <code class="reqn">Pr(Y_0=1)</code> denotes the counterfactual probability of the outcome if
+the exposure would have been eliminated from the population. If <code>Z</code> is sufficient for confounding control then the probability <code class="reqn">Pr(Y_0=1)</code> can be expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">Pr(Y_0=1)=E_Z\{Pr(Y=1\mid{X}=0,Z)\}.</code>
+</p>
+
+<p>Using Bayes' theorem this implies that the AF can be expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">AF = 1-\frac{E_Z\{Pr(Y=1\mid X=0,Z)\}}{Pr(Y=1)}=1-E_Z\{RR^{-X}(Z)\mid{Y = 1}\}</code>
+</p>
+
+<p>where <code class="reqn">RR(Z)</code> is the risk ratio </p>
+<p style="text-align: center;"><code class="reqn">\frac{Pr(Y=1\mid{X=1,Z})}{Pr(Y=1\mid{X=0,Z})}.</code>
+</p>
+
+<p>Moreover, the risk ratio can be approximated by the odds ratio if the outcome is rare. Thus,
+</p>
+<p style="text-align: center;"><code class="reqn"> AF \approx 1 - E_Z\{OR^{-X}(Z)\mid{Y = 1}\}.</code>
+</p>
+
+<p>If <code>clusterid</code> is supplied, then a clustered sandwich formula is used in all variance calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AF.est</code></td>
+<td>
+<p>estimated attributable fraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AF.var</code></td>
+<td>
+<p>estimated variance of <code>AF.est</code>. The variance is obtained by combining the delta method with the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.est</code></td>
+<td>
+<p>estimated factual proportion of cases; <code class="reqn">Pr(Y=1)</code>. Returned by default when <code>case.control = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.var</code></td>
+<td>
+<p>estimated variance of <code>P.est</code>. The variance is obtained by the sandwich formula. Returned by default when <code>case.control = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0.est</code></td>
+<td>
+<p>estimated counterfactual proportion of cases if exposure would be eliminated; <code class="reqn">Pr(Y_0=1)</code>. Returned by default when <code>case.control = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0.var</code></td>
+<td>
+<p>estimated variance of <code>P0.est</code>. The variance is obtained by the sandwich formula. Returned by default when <code>case.control = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.or</code></td>
+<td>
+<p>a vector of the estimated log odds ratio for every individual. <code>log.or</code> contains the estimated coefficient for the exposure variable <code>X</code> for every level of the confounder <code>Z</code> as specified by the user in the formula. If the model to be estimated is
+</p>
+<p style="text-align: center;"><code class="reqn">logit\{Pr(Y=1|X,Z)\} = \alpha+\beta{X}+\gamma{Z}</code>
+</p>
+
+<p>then <code>log.or</code> is the estimate of <code class="reqn">\beta</code>.
+If the model to be estimated is
+</p>
+<p style="text-align: center;"><code class="reqn">logit\{Pr(Y=1|X,Z)\}=\alpha+\beta{X}+\gamma{Z}+\psi{XZ}</code>
+</p>
+
+<p>then <code>log.odds</code> is the estimate of
+<code class="reqn">\beta + \psi{Z}</code>. Only returned if argument <code>case.control</code> is set to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Elisabeth Dahlqwist, Arvid Sjölander
+</p>
+
+
+<h3>References</h3>
+
+<p>Bruzzi, P., Green, S. B., Byar, D., Brinton, L. A., and Schairer, C. (1985). Estimating the population attributable risk for multiple risk factors using case-control data. <em>American Journal of Epidemiology</em> <b>122</b>, 904-914.
+</p>
+<p>Greenland, S. and Drescher, K. (1993). Maximum Likelihood Estimation of the Attributable Fraction from logistic Models. <em>Biometrics</em> <b>49</b>, 865-872.
+</p>
+<p>Sjölander, A. and Vansteelandt, S. (2011). Doubly robust estimation of attributable fractions. <em>Biostatistics</em> <b>12</b>, 112-121.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code> used for fitting the logistic regression model. For conditional logistic regression (commonly for data from a matched case-control sampling design) see <code>AFclogit</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate a cross-sectional sample
+
+expit &lt;- function(x) 1 / (1 + exp( - x))
+n &lt;- 1000
+Z &lt;- rnorm(n = n)
+X &lt;- rbinom(n = n, size = 1, prob = expit(Z))
+Y &lt;- rbinom(n = n, size = 1, prob = expit(Z + X))
+
+# Example 1: non clustered data from a cross-sectional sampling design
+data &lt;- data.frame(Y, X, Z)
+
+# Fit a glm object
+fit &lt;- glm(formula = Y ~ X + Z + X * Z, family = binomial, data = data)
+
+# Estimate the attributable fraction from the fitted logistic regression
+AFglm_est &lt;- AFglm(object = fit, data = data, exposure = "X")
+summary(AFglm_est)
+
+# Example 2: clustered data from a cross-sectional sampling design
+# Duplicate observations in order to create clustered data
+id &lt;- rep(1:n, 2)
+data &lt;- data.frame(id = id, Y = c(Y, Y), X = c(X, X), Z = c(Z, Z))
+
+# Fit a glm object
+fit &lt;- glm(formula = Y ~ X + Z + X * Z, family = binomial, data = data)
+
+# Estimate the attributable fraction from the fitted logistic regression
+AFglm_clust &lt;- AFglm(object = fit, data = data,
+                         exposure = "X", clusterid = "id")
+summary(AFglm_clust)
+
+
+# Example 3: non matched case-control
+# Simulate a sample from a non matched case-control sampling design
+# Make the outcome a rare event by setting the intercept to -6
+
+expit &lt;- function(x) 1 / (1 + exp( - x))
+NN &lt;- 1000000
+n &lt;- 500
+intercept &lt;- -6
+Z &lt;- rnorm(n = NN)
+X &lt;- rbinom(n = NN, size = 1, prob = expit(Z))
+Y &lt;- rbinom(n = NN, size = 1, prob = expit(intercept + X + Z))
+population &lt;- data.frame(Z, X, Y)
+Case &lt;- which(population$Y == 1)
+Control &lt;- which(population$Y == 0)
+# Sample cases and controls from the population
+case &lt;- sample(Case, n)
+control &lt;- sample(Control, n)
+data &lt;- population[c(case, control), ]
+
+# Fit a glm object
+fit &lt;- glm(formula = Y ~ X + Z + X * Z, family = binomial, data = data)
+
+# Estimate the attributable fraction from the fitted logistic regression
+AFglm_est_cc &lt;- AFglm(object = fit, data = data, exposure = "X", case.control = TRUE)
+summary(AFglm_est_cc)
+</code></pre>
+
+
+</div>

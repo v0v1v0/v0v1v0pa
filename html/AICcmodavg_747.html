@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>useBICCustom</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Custom Computation of BIC and QBIC from User-supplied Input
+</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the Bayesian information criterion (BIC) or a
+quasi-likelihood counterpart (QBIC) from user-supplied input instead
+of extracting the values automatically from a model object.  This
+function is particularly useful for output imported from other
+software or for model classes that are not currently supported by
+<code>useBIC</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">useBICCustom(logL, K, return.K = FALSE, nobs = NULL, c.hat = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>logL</code></td>
+<td>
+
+<p>the value of the model log-likelihood.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+
+<p>the number of estimated parameters in the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.K</code></td>
+<td>
+
+<p>logical.  If <code>FALSE</code>, the function returns the information
+criterion specified.  If <code>TRUE</code>, the function returns K (number
+of estimated parameters) for a given model.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+
+<p>the sample size required to compute the BIC or QBIC.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat</code></td>
+<td>
+
+<p>value of overdispersion parameter (i.e., variance inflation factor)
+such as that obtained from <code>c_hat</code>.  Note that values of
+<code>c.hat</code> different from 1 are only appropriate for binomial GLM's
+with trials &gt; 1 (i.e., success/trial or cbind(success, failure)
+syntax), with Poisson GLM's, single-season or dynamic occupancy
+models (MacKenzie et al. 2002, 2003), <em>N</em>-mixture models (Royle
+2004, Dail and Madsen 2011), or capture-mark-recapture models (e.g.,
+Lebreton et al. 1992).  If c.hat &gt; 1, <code>useBICCustom</code> will return
+the quasi-likelihood analogue of the information criterion requested.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>useBICCustom</code> computes one of the following two information
+criteria:
+</p>
+<p>the Bayesian information criterion (BIC, Schwarz 1978) or the
+quasi-likelihood BIC (QBIC).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>useBICCustom</code> returns the BIC or QBIC depending on the values of
+the <code>c.hat</code> argument.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The actual (Q)BIC values are not really interesting in themselves,
+as they depend directly on the data, parameters estimated, and
+likelihood function.  Furthermore, a single value does not tell much
+about model fit.  Information criteria become relevant when compared
+to one another for a given data set and set of candidate models.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York.
+</p>
+<p>Dail, D., Madsen, L. (2011) Models for estimating abundance from
+repeated counts of an open population. <em>Biometrics</em> <b>67</b>,
+577–587. 
+</p>
+<p>Lebreton, J.-D., Burnham, K. P., Clobert, J., Anderson, D. R. (1992)
+Modeling survival and testing biological hypotheses using marked
+animals: a unified approach with case-studies. <em>Ecological
+Monographs</em> <b>62</b>, 67–118. 
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Lachman, G. B., Droege, S., Royle,
+J. A., Langtimm, C. A. (2002) Estimating site occupancy rates when
+detection probabilities are less than one. <em>Ecology</em> <b>83</b>,
+2248–2255.
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Hines, J. E., Knutson, M. G.,
+Franklin, A. B. (2003) Estimating site occupancy, colonization, and
+local extinction when a species is detected imperfectly. <em>Ecology</em>
+<b>84</b>, 2200–2207.
+</p>
+<p>Royle, J. A. (2004) <em>N</em>-mixture models for estimating population
+size from spatially replicated counts. <em>Biometrics</em> <b>60</b>, 
+108–115.
+</p>
+<p>Schwarz, G. (1978) Estimating the dimension of a model. <em>Annals of
+Statistics</em> <b>6</b>, 461–464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AICc</code>, <code>aictabCustom</code>, <code>useBIC</code>, 
+<code>bictab</code>, <code>evidence</code>, <code>modavgCustom</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##cement data from Burnham and Anderson (2002, p. 101)
+data(cement)
+##run multiple regression - the global model in Table 3.2
+glob.mod &lt;- lm(y ~ x1 + x2 + x3 + x4, data = cement)
+
+##extract log-likelihood
+LL &lt;- logLik(glob.mod)[1]
+
+##extract number of parameters
+##including residual variance
+K.mod &lt;- length(coef(glob.mod)) + 1
+
+##compute BIC with full likelihood
+useBICCustom(LL, K.mod, nobs = nrow(cement))
+##compare against useBIC
+useBIC(glob.mod)
+</code></pre>
+
+
+</div>

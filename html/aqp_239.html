@@ -1,0 +1,250 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Deprecated: Numerical Soil Profile Comparison</h2>
+
+<h3>Description</h3>
+
+<p>See <code>NCSP()</code> for the modern interface to numerical soil profile comparison/classification.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pc(
+  s,
+  vars,
+  max_d,
+  k,
+  filter = NULL,
+  sample_interval = NA,
+  replace_na = TRUE,
+  add_soil_flag = TRUE,
+  return_depth_distances = FALSE,
+  strict_hz_eval = FALSE,
+  progress = "none",
+  plot.depth.matrix = FALSE,
+  rescale.result = FALSE,
+  verbose = FALSE
+)
+
+pc.SPC(s, vars, rescale.result = FALSE, ...)
+
+## S4 method for signature 'SoilProfileCollection'
+profile_compare(s, vars, rescale.result = FALSE, ...)
+
+## S4 method for signature 'data.frame'
+profile_compare(
+  s,
+  vars,
+  max_d,
+  k,
+  filter = NULL,
+  sample_interval = NA,
+  replace_na = TRUE,
+  add_soil_flag = TRUE,
+  return_depth_distances = FALSE,
+  strict_hz_eval = FALSE,
+  progress = "none",
+  plot.depth.matrix = FALSE,
+  rescale.result = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>Variable names</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_d</code></td>
+<td>
+<p>depth-slices up to this depth are considered in the comparison</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>a depth-weighting coeficient, use '0' for no depth-weighting (see
+examples below)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>an index used to determine which horizons (rows) are included
+in the analysis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_interval</code></td>
+<td>
+<p>use every n-th depth slice instead of every depth
+slice, useful for working with &gt; 1000 profiles at a time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace_na</code></td>
+<td>
+<p>if TRUE, missing data are replaced by maximum
+dissimilarity (TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_soil_flag</code></td>
+<td>
+<p>The algorithm will generate a 'soil'/'non-soil' matrix
+for use when comparing soil profiles with large differences in depth (TRUE).
+See details section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_depth_distances</code></td>
+<td>
+<p>return intermediate, depth-wise dissimilarity
+results (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strict_hz_eval</code></td>
+<td>
+<p>should horizons be strictly checked for internal
+self-consistency? (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>'none' (default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.depth.matrix</code></td>
+<td>
+<p>should a plot of the 'soil'/'non-soil' matrix be
+returned (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale.result</code></td>
+<td>
+<p>Rescale result? Default: FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>extra debug output (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>profile_compare()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Performs a numerical comparison of soil profiles using named properties,
+based on a weighted, summed, depth-segment-aligned dissimilarity
+calculation. If <code>s</code> is a <code>SoilProfileCollection</code>,
+site-level variables (2 or more) can also be used. The site-level and
+horizon-level dissimilarity matrices are then re-scaled and averaged.
+</p>
+<p>Variability in soil depth can interfere significantly with the calculation
+of between-profile dissimilarity– what is the numerical “distance” (or
+dissimilarity) between a slice of soil from profile A and the corresponding,
+but missing, slice from a shallower profile B? Gower's distance metric would
+yield a NULL distance, despite the fact that intuition suggests otherwise:
+shallower soils should be more dissimilar from deeper soils. For example,
+when a 25 cm deep profile is compared with a 50 cm deep profile, numerical
+distances are only accumulated for the first 25 cm of soil (distances from
+26 - 50 cm are NULL). When summed, the total distance between these profiles
+will generally be less than the distance between two profiles of equal
+depth. Our algorithm has an option (setting replace_na=TRUE) to replace NULL
+distances with the maximum distance between any pair of profiles for the
+current depth slice. In this way, the numerical distance between a slice of
+soil and a corresponding slice of non-soil reflects the fact that these two
+materials should be treated very differently (i.e. maximum dissimilarity).
+</p>
+<p>This alternative calculation of dissimilarities between soil and non-soil
+slices solves the problem of comparing shallow profiles with deeper
+profiles. However, it can result in a new problem: distances calculated
+between two shallow profiles will be erroneously inflated beyond the extent
+of either profile's depth. Our algorithm has an additional option (setting
+add_soil_flag=TRUE) that will preserve NULL distances between slices when
+both slices represent non-soil material. With this option enabled, shallow
+profiles will only accumulate mutual dissimilarity to the depth of the
+deeper profile.
+</p>
+<p>Note that when the <code>add_soil_flag</code> option is enabled (default), slices
+are classified as 'soil' down to the maximum depth to which at least one of
+variables used in the dissimilarity calculation is not NA. This will cause
+problems when profiles within a collection contain all NAs within the
+columns used to determine dissimilarity. An approach for identifying and
+removing these kind of profiles is presented in the examples section below.
+</p>
+<p>A notice is issued if there are any NA values within the matrix used for
+distance calculations, as these values are optionally replaced by the max
+dissimilarity.
+</p>
+<p>Our approach builds on the work of (Moore, 1972) and the previously
+mentioned depth-slicing algorithm.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dissimilarity matrix object of class 'dissimilarity, dist',
+optionally scaled by max(D).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dylan E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> D.E. Beaudette, P. Roudier, A.T. O'Geen, Algorithms for quantitative pedology: A toolkit for soil scientists, Computers &amp; Geosciences, Volume 52, 2013, Pages 258-268, ISSN 0098-3004, <a href="https://doi.org/10.1016/j.cageo.2012.10.020">doi:10.1016/j.cageo.2012.10.020</a>.
+</p>
+</li>
+<li>
+<p> Moore, A.; Russell, J. &amp; Ward, W. Numerical analysis of soils: A comparison of three soil profile models with field classification. Journal of Soil Science, 1972, 23, 194-209.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>dice()</code>, <code>cluster::daisy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># See ?NCSP for examples
+</code></pre>
+
+
+</div>

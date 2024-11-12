@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adproclus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Additive profile clustering</h2>
+
+<h3>Description</h3>
+
+<p>Perform additive profile clustering (ADPROCLUS) on object-by-variable data.
+Creates a model that assigns the objects to overlapping clusters which are
+characterized in terms of the variables by the so-called profiles.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adproclus(
+  data,
+  nclusters,
+  start_allocation = NULL,
+  nrandomstart = 3,
+  nsemirandomstart = 3,
+  algorithm = "ALS2",
+  save_all_starts = FALSE,
+  seed = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Object-by-variable data matrix of class <code>matrix</code> or
+<code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclusters</code></td>
+<td>
+<p>Number of clusters to be used. Must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_allocation</code></td>
+<td>
+<p>Optional matrix of binary values as starting
+allocation for first run. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrandomstart</code></td>
+<td>
+<p>Number of random starts (see <code>get_random</code>).
+Can be zero. Increase for better results, though longer computation time.
+Some research finds 500 starts to be a useful reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsemirandomstart</code></td>
+<td>
+<p>Number of semi-random starts
+(see <code>get_semirandom</code>)). Can be zero. Increase for better
+results, though longer computation time.
+Some research finds 500 starts to be a useful reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>Character string "<code>ALS1</code>" (default) or "<code>ALS2</code>",
+denoting the type of alternating least squares algorithm. Can be
+abbreviated with "1" or "2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_all_starts</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, the results of all algorithm
+starts are returned. By default, only the best solution is retained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer. Seed for the random number generator.
+Default: NULL, meaning no reproducibility.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In this function, Mirkin's (1987, 1990) Additive Profile Clustering
+(ADPROCLUS) method is used to obtain an unrestricted overlapping clustering
+model of the object by variable data provided by <code>data</code>.
+</p>
+<p>The ADPROCLUS model approximates an <code class="reqn">I \times J</code> object by
+variable data matrix <code class="reqn">X</code> by an <code class="reqn">I \times J</code> model matrix
+<code class="reqn">M</code> that can be decomposed into an <code class="reqn">I \times K</code> binary
+cluster membership matrix <code class="reqn">A</code> and a <code class="reqn">K \times J</code>
+real-valued cluster profile matrix <code class="reqn">P</code>, with <code class="reqn">K</code>
+indicating the number of overlapping clusters.
+In particular, the aim of an ADPROCLUS analysis is therefore,
+given a number of clusters <code class="reqn">K</code>, to estimate a
+model matrix <code class="reqn">M = AP</code> which reconstructs the data matrix
+<code class="reqn">X</code> as close as possible in a least squares sense
+(i.e. sum of squared residuals). For a detailed illustration of the
+ADPROCLUS model and associated loss function, see Wilderjans et al. (2011).
+</p>
+<p>The alternating least squares algorithms ("<code>ALS1</code>" and "<code>ALS2</code>")
+that can be used for minimization of the loss function were proposed by
+Depril et al. (2008). In "<code>ALS2</code>", starting from an initial random or
+rational estimate of <code class="reqn">A</code> (see <code>get_random</code> and
+<code>get_semirandom</code>), <code class="reqn">A</code> and <code class="reqn">P</code>
+are alternately re-estimated conditionally upon each other until convergence.
+The "<code>ALS1</code>" algorithm differs from the previous one in that each
+row in <code class="reqn">A</code> is updated independently and that the
+conditionally optimal <code class="reqn">P</code> is recalculated after each row
+update, instead of the end of the matrix. For a discussion and comparison of
+the different algorithms, see Depril et al., 2008.
+</p>
+<p><strong>Warning:</strong> Computation time increases exponentially with increasing
+number of clusters, <code class="reqn">K</code>. We recommend to determine the computation time
+of a single start for each specific dataset and <code class="reqn">K</code> before increasing the
+number of starts.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>adproclus()</code> returns a list with the following
+components, which describe the best model (from the multiple starts):
+</p>
+
+<dl>
+<dt><code>model</code></dt>
+<dd>
+<p>matrix. The obtained overlapping clustering model
+<strong>M</strong> of the same size as <code>data</code>.</p>
+</dd>
+<dt><code>A</code></dt>
+<dd>
+<p>matrix. The membership matrix <strong>A</strong> of the clustering
+model. Clusters are sorted by size.</p>
+</dd>
+<dt><code>P</code></dt>
+<dd>
+<p>matrix. The profile matrix
+<strong>P</strong> of the clustering model.</p>
+</dd>
+<dt><code>sse</code></dt>
+<dd>
+<p>numeric. The
+residual sum of squares of the clustering model, which is minimized by the
+ALS algorithm.</p>
+</dd>
+<dt><code>totvar</code></dt>
+<dd>
+<p>numeric. The total sum of squares
+of <code>data</code>.</p>
+</dd>
+<dt><code>explvar</code></dt>
+<dd>
+<p>numeric. The proportion of variance
+in <code>data</code> that is accounted for by the clustering model.</p>
+</dd>
+<dt><code>iterations</code></dt>
+<dd>
+<p>numeric. The number of algorithm iterations
+until convergence of the relevant single start.</p>
+</dd>
+<dt><code>timer_one_run</code></dt>
+<dd>
+<p>numeric. The amount of time (in seconds) the
+relevant single start ran for.</p>
+</dd>
+<dt><code>initial_start</code></dt>
+<dd>
+<p>list. Containing the initial
+membership matrix, as well as the type of start that was used
+to obtain the clustering solution. (as returned by <code>get_random</code>
+or <code>get_semirandom</code>)</p>
+</dd>
+<dt><code>runs</code></dt>
+<dd>
+<p>list. Each element represents one model obtained from
+one of the multiple starts.
+Each element contains all of the above information for the
+respective start.</p>
+</dd>
+<dt><code>parameters</code></dt>
+<dd>
+<p>list. Contains the parameters used for the
+model.</p>
+</dd>
+<dt><code>timer</code></dt>
+<dd>
+<p>numeric. The amount of time (in seconds) the complete
+algorithm ran for.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Wilderjans, T. F., Ceulemans, E., Van Mechelen, I., &amp; Depril, D.
+(2011S). ADPROCLUS: a graphical user interface for fitting additive profile
+clustering models to object by variable data matrices. <em>Behavior
+Research Methods, 43</em>(1), 56-65.
+</p>
+<p>Depril, D., Van Mechelen, I., &amp; Mirkin, B. (2008). Algorithms for additive
+clustering of rectangular data tables. <em>Computational Statistics and
+Data Analysis, 52,</em> 4923-4938.
+</p>
+<p>Mirkin, B. G. (1987). The method of principal clusters. <em>Automation
+and Remote Control</em>, 10:131-143.
+</p>
+<p>Mirkin, B. G. (1990). A sequential fitting procedure for linear data
+analysis models. <em>Journal of Classification</em>, 7(2):167-195.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>adproclus_low_dim</code></dt>
+<dd>
+<p>for low dimensional ADPROCLUS</p>
+</dd>
+<dt><code>get_random</code></dt>
+<dd>
+<p>for generating random starts</p>
+</dd>
+<dt><code>get_semirandom</code></dt>
+<dd>
+<p>for generating semi-random starts</p>
+</dd>
+<dt><code>get_rational</code></dt>
+<dd>
+<p>for generating rational starts</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Loading a test dataset into the global environment
+x &lt;- stackloss
+
+# Quick clustering with K = 2 clusters
+clust &lt;- adproclus(data = x, nclusters = 2)
+
+# Clustering with K = 3 clusters,
+# using the ALS2 algorithm,
+# with 2 random and 2 semi-random starts
+clust &lt;- adproclus(x, 3,
+  nrandomstart = 2, nsemirandomstart = 2, algorithm = "ALS2"
+)
+
+# Saving the results of all starts
+clust &lt;- adproclus(x, 3,
+  nrandomstart = 2, nsemirandomstart = 2, save_all_starts = TRUE
+)
+
+# Clustering using a user-defined rational start profile matrix
+# (here the first 4 rows of the data)
+start &lt;- get_rational(x, x[1:4, ])$A
+clust &lt;- adproclus(x, 4, start_allocation = start)
+
+</code></pre>
+
+
+</div>

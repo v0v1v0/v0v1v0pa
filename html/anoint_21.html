@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pim.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit proportional interactions model</h2>
+
+<h3>Description</h3>
+
+<p>Fits a single proportional interactions model for generalized linear or Cox regression model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pim.fit(formula, trt, data, family="binomial", na.action=na.omit, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula for covariate model as given in <code>glm</code> or <code>coxph</code>, i.e. <code>y~x1+x2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt</code></td>
+<td>
+<p>character name of treatment assignment indicator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame containing the variables of <code>formula</code> and <code>trt</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>character specifying family of <code>glm</code> or character "coxph" if <code>coxph</code> model is fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>function, na.action to perform for handling observations with missing variables among variables in formula. Default is <code>na.omit</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>glm</code> or <code>coxph</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Under the proportional interaction model the <code>coef</code> of the main covariate effects in the control arm are multiplied by the <code>interaction</code> effect to get the covariate effects for the treatment group.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with 
+</p>
+
+<dl>
+<dt>interaction</dt>
+<dd>
+<p>value of the interaction effect of the proportional interaction model, see details</p>
+</dd>
+<dt>LRT</dt>
+<dd>
+<p>value of likelihood ratio test of proportional interaction</p>
+</dd>
+<dt>lower</dt>
+<dd>
+<p>lower endpoint of 95 percent confidence interval for interaction parameter</p>
+</dd>
+<dt>upper</dt>
+<dd>
+<p>upper endpoint of 95 percent confidence interval for interaction parameter</p>
+</dd>
+<dt>pvalue</dt>
+<dd>
+<p>pvalue for 1-df chi-squared test</p>
+</dd>
+<dt>model0</dt>
+<dd>
+<p>model object for control group</p>
+</dd>
+<dt>model1</dt>
+<dd>
+<p>model object for treatment group</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Stephanie Kovalchik &lt;s.a.kovalchik@gmail.com&gt;</p>
+
+
+<h3>References</h3>
+
+<p>Follmann DA, Proschan MA. A multivariate test of interaction for use in clinical trials. <em>Biometrics</em> 1999; 55(4):1151-1155
+</p>
+
+
+<h3>See Also</h3>
+
+<p>pim.subsets</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(11903)
+
+# NO INTERACTION CONDITION, LOGISTIC MODEL
+
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.5),log(.5*.75)),
+                             beta = log(c(1.5,2)),
+                             gamma = rep(1,2),
+                             mean = c(0,0),
+                             vcov = diag(2),
+                             type="survival", n = 500
+                             )
+
+head(null.interaction)
+
+pim.fit(Surv(y, event)~V1+V2,trt="trt",data=null.interaction,family="coxph")
+
+
+# PROPORTIONAL INTERACTION WITH THREE COVARIATES AND BINARY OUTCOME
+
+pim.interaction &lt;- data.anoint(
+			     n = 5000,
+                             alpha = c(log(.2/.8),log(.2*.75/(1-.2*.75))),
+                             beta = rep(log(.8),3),
+                             gamma = rep(1.5,3),
+                             mean = c(0,0,0),
+                             vcov = diag(3),
+                             type="binomial"
+                             )
+
+pim.fit(y~V1+V2+V3,trt="trt",data=pim.interaction,family="binomial")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Crop voxel space</h2>
+
+<h3>Description</h3>
+
+<p>Crop <code>VoxelSpace</code> object based on voxel i, j,
+k, index. If cropping index are missing, the function will automatically crop
+the voxel space by discarding outermost unsampled slices of voxels. A <em>slice</em>
+designates a layer with constant i (i-slice), j (j-slice) or k (k-slice).
+<em>unsampled</em> means that no pulse went through.
+</p>
+<p>One may want to crop the voxel space on coordinates rather than grid index.
+To do so the voxel space must be first converted to an <code>sf::sf</code>
+object and use the <code>sf::st_crop()</code> function.
+</p>
+<div class="sourceCode"><pre>vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+vxsp@data[, c("x", "y"):=getPosition(vxsp)[, .(x, y)]]
+library(sf)
+vx.sf &lt;- sf::st_as_sf(vxsp@data, coords=c("x", "y"))
+vx.sf &lt;- sf::st_crop(vx.sf, c(xmin = 4, ymin = 1, xmax = 5, ymax = 4))
+sf::st_bbox(vx.sf)
+vxsp@data &lt;- sf::st_drop_geometry(vx.sf)
+</pre></div>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">crop(vxsp, imin = 0, imax = Inf, jmin = 0, jmax = Inf, kmin = 0, kmax = Inf)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vxsp</code></td>
+<td>
+<p>a <code>VoxelSpace</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imin</code></td>
+<td>
+<p>minimum i index of cropped area (inclusive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imax</code></td>
+<td>
+<p>maximum i index of cropped area (inclusive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jmin</code></td>
+<td>
+<p>minimum j index of cropped area (inclusive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jmax</code></td>
+<td>
+<p>maximum j index of cropped area (inclusive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmin</code></td>
+<td>
+<p>minimum k index of cropped area (inclusive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmax</code></td>
+<td>
+<p>maximum k index of cropped area (inclusive)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Cropped voxel space with updated i, j, k grid coordinates and
+updated header (min and max corner).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+plot(crop(vxsp, imin = 1, imax = 5))
+# introduce unsampled areas in voxel space
+vxsp@data[i &lt; 3, nbSampling:= 0]
+# automatic cropping
+plot(crop(vxsp))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

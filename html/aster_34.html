@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>penmlogl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalized Minus Log Likelihood for Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Penalized minus log likelihood for an aster model, and its first and second
+derivative.  The penalization allows for (approximate) random effects.
+These functions are called inside <code>pickle</code>,
+<code>pickle1</code>, <code>pickle2</code>, <code>pickle3</code>,
+and <code>reaster</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">penmlogl(parm, sigma, fixed, random, obj, y, origin, deriv = 2)
+penmlogl2(parm, alpha, sigma, fixed, random, obj, y, origin)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>for <code>penmlogl</code>, parameter value (vector of regression
+coefficients and rescaled random effects) at which we evaluate the
+penalized log likelihood.  For <code>penmlogl2</code> the vector of rescaled
+random effects only (see next item).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the vector of fixed effects.  For <code>penmlogl2</code>, the
+concatenation <code>c(alpha, parm)</code> is the same as <code>parm</code> that
+is supplied to <code>pemnmlogl</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>vector of square roots of variance components, one component
+for each group of random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the model matrix for fixed effects.  The number of rows
+is <code>nrow(obj$data)</code>.
+The number of columns is the number of fixed effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>the model matrix or matrices for random effects.
+Each has the same number of rows as <code>fixed</code>.  The number of columns
+is the number of random effects in a group.  Either a matrix or a list
+of matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>aster model object, the result of a call to <code>aster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response vector.  May be omitted, in which case <code>obj$x</code>
+is used.  If supplied, must be a matrix of the same dimensions as
+<code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>origin of aster model.  May be omitted, in which case
+default origin (see <code>aster</code>) is used.  If supplied, must be
+a matrix of the same dimensions <code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>number of derivatives wanted.  Allowed values are 0, 1, or 2.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Consider an aster model with random effects and canonical parameter vector
+of the form
+</p>
+<p style="text-align: center;"><code class="reqn">M \alpha + Z_1 b_1 + \cdots + Z_k b_k</code>
+</p>
+
+<p>where <code class="reqn">M</code> and each <code class="reqn">Z_j</code> are known matrices having the same
+row dimension, where <code class="reqn">\alpha</code> is a vector of unknown parameters
+(the fixed effects) and each <code class="reqn">b_j</code> is a vector of random effects
+that are supposed to be (marginally) independent and identically distributed
+mean-zero normal with variance <code>sigma[j]^2</code>.
+</p>
+<p>These functions evaluate minus the “penalized log likelihood”
+for this model, which considers the random effects as parameters but
+adds a penalization term
+</p>
+<p style="text-align: center;"><code class="reqn">b_1^2 / (2 \sigma_1^2) + \cdots + b_k^2 / (2 \sigma_k^2)</code>
+</p>
+
+<p>to minus the log likelihood.
+</p>
+<p>To properly deal with random effects that are zero, random effects
+are rescaled by their standard deviation.
+The rescaled random effects are
+<code class="reqn">c_i = b_i / \sigma_i</code>.
+If <code class="reqn">\sigma_i = 0</code>, then the corresponding rescaled
+random effects <code class="reqn">c_i</code> are also zero.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing some of the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>minus the penalized log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>minus the first derivative vector of the penalized
+log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>minus the second derivative matrix of the penalized
+log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>argument</code></td>
+<td>
+<p>the value of the <code>parm</code> argument for this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>the vector by which <code>parm</code> must be scaled to obtain
+the true random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mlogl.gradient</code></td>
+<td>
+<p>gradient for evaluation of log likelihood;
+<code>gradient</code> is this plus gradient of penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mlogl.hessian</code></td>
+<td>
+<p>hessian for evaluation of log likelihood;
+<code>hessian</code> is this plus hessian of penalty.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Not intended for use by naive users.  Use <code>reaster</code>,
+which calls them.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For an example using this function see the example
+for <code>pickle</code>.</p>
+
+
+</div>

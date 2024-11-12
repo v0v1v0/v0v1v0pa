@@ -1,0 +1,299 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_exposure</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add an Aggregated Parameter and Derive the Associated Start and End Dates</h2>
+
+<h3>Description</h3>
+
+<p>Add a record computed from the aggregated analysis value of another parameter and compute the
+start (<code>ASTDT(M)</code>)and end date (<code>AENDT(M)</code>) as the minimum and maximum date by <code>by_vars</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_exposure(
+  dataset = NULL,
+  dataset_add,
+  by_vars,
+  input_code,
+  analysis_var,
+  summary_fun,
+  filter = NULL,
+  filter_add = NULL,
+  set_values_to = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified for <code>by_vars</code>, <code>analysis_var</code>, <code>PARAMCD</code>,
+alongside either <code>ASTDTM</code> and <code>AENDTM</code> or <code>ASTDT</code> and <code>AENDT</code> are also expected.
+Observations from the specified dataset are going to be used to calculate and added
+as new records to the input dataset (<code>dataset</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>For each group defined by <code>by_vars</code> an observation is added to the output
+dataset. Only variables specified in <code>by_vars</code> will be populated
+in the newly created records.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input_code</code></td>
+<td>
+<p>Required parameter code
+</p>
+<p>The observations where <code>PARAMCD</code> equals the specified value are considered to compute the
+summary record.
+</p>
+<p><em>Permitted Values:</em> A character of <code>PARAMCD</code> value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Analysis variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary_fun</code></td>
+<td>
+<p>Function that takes as an input the <code>analysis_var</code> and
+performs the calculation.
+This can include built-in functions as well as user defined functions,
+for example <code>mean</code> or <code>function(x) mean(x, na.rm = TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>filter_add</code> instead.
+</p>
+<p>Filter condition as logical expression to apply during
+summary calculation. By default, filtering expressions are computed within
+<code>by_vars</code> as this will help when an aggregating, lagging, or ranking
+function is involved.
+</p>
+<p>For example,
+</p>
+
+<ul>
+<li> <p><code>filter = (AVAL &gt; mean(AVAL, na.rm = TRUE))</code> will filter all <code>AVAL</code>
+values greater than mean of <code>AVAL</code> with in <code>by_vars</code>.
+</p>
+</li>
+<li> <p><code>filter = (dplyr::n() &gt; 2)</code> will filter n count of <code>by_vars</code> greater
+than 2.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter condition as logical expression to apply during
+summary calculation. By default, filtering expressions are computed within
+<code>by_vars</code> as this will help when an aggregating, lagging, or ranking
+function is involved.
+</p>
+<p>For example,
+</p>
+
+<ul>
+<li> <p><code>filter_add = (AVAL &gt; mean(AVAL, na.rm = TRUE))</code> will filter all <code>AVAL</code>
+values greater than mean of <code>AVAL</code> with in <code>by_vars</code>.
+</p>
+</li>
+<li> <p><code>filter_add = (dplyr::n() &gt; 2)</code> will filter n count of <code>by_vars</code> greater
+than 2.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variable-value pairs
+</p>
+<p>Set a list of variables to some specified value for the new observation(s)
+</p>
+
+<ul>
+<li>
+<p> LHS refer to a variable. It is expected that at least <code>PARAMCD</code> is defined.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a symbol, a numeric
+value, <code>NA</code>, or an expression.
+(e.g.  <code>exprs(PARAMCD = "TDOSE",PARCAT1 = "OVERALL")</code>).
+</p>
+</li>
+</ul>
+<p><em>Permitted Values:</em> List of variable-value pairs</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each group (with respect to the variables specified for the <code>by_vars</code> parameter),
+an observation is added to the output dataset and the defined values are set to the defined
+variables
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with a new record added for each group (with respect to the variables
+specified for the <code>by_vars</code> parameter). That is, a variable will only
+be populated in this new record if it is specified in <code>by_vars</code>.
+For each new record,
+</p>
+
+<ul>
+<li>
+<p> the variable specified <code>analysis_var</code> is computed as defined by <code>summary_fun</code>,
+</p>
+</li>
+<li>
+<p> the variable(s) specified on the LHS of <code>set_values_to</code> are set to their paired value (RHS).
+In addition, the start and end date are computed as the minimum/maximum dates by <code>by_vars</code>.
+</p>
+</li>
+</ul>
+<p>If the input datasets contains
+</p>
+
+<ul>
+<li>
+<p> both <code>AxxDTM</code> and <code>AxxDT</code> then all <code>ASTDTM</code>,<code>AENDTM</code>, <code>ASTDT</code>, <code>AENDT</code> are computed
+</p>
+</li>
+<li>
+<p> only <code>AxxDTM</code> then <code>ASTDTM</code>,<code>AENDTM</code> are computed
+</p>
+</li>
+<li>
+<p> only <code>AxxDT</code> then <code>ASTDT</code>,<code>AENDT</code> are computed.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate, warn.conflicts = FALSE)
+library(stringr, warn.conflicts = FALSE)
+adex &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~AVAL, ~AVALC, ~VISIT, ~ASTDT, ~AENDT,
+  "1015", "DOSE", 80, NA_character_, "BASELINE", ymd("2014-01-02"), ymd("2014-01-16"),
+  "1015", "DOSE", 85, NA_character_, "WEEK 2", ymd("2014-01-17"), ymd("2014-06-18"),
+  "1015", "DOSE", 82, NA_character_, "WEEK 24", ymd("2014-06-19"), ymd("2014-07-02"),
+  "1015", "ADJ", NA, NA_character_, "BASELINE", ymd("2014-01-02"), ymd("2014-01-16"),
+  "1015", "ADJ", NA, NA_character_, "WEEK 2", ymd("2014-01-17"), ymd("2014-06-18"),
+  "1015", "ADJ", NA, NA_character_, "WEEK 24", ymd("2014-06-19"), ymd("2014-07-02"),
+  "1017", "DOSE", 80, NA_character_, "BASELINE", ymd("2014-01-05"), ymd("2014-01-19"),
+  "1017", "DOSE", 50, NA_character_, "WEEK 2", ymd("2014-01-20"), ymd("2014-05-10"),
+  "1017", "DOSE", 65, NA_character_, "WEEK 24", ymd("2014-05-10"), ymd("2014-07-02"),
+  "1017", "ADJ", NA, NA_character_, "BASELINE", ymd("2014-01-05"), ymd("2014-01-19"),
+  "1017", "ADJ", NA, "ADVERSE EVENT", "WEEK 2", ymd("2014-01-20"), ymd("2014-05-10"),
+  "1017", "ADJ", NA, NA_character_, "WEEK 24", ymd("2014-05-10"), ymd("2014-07-02")
+) %&gt;%
+  mutate(ASTDTM = ymd_hms(paste(ASTDT, "00:00:00")), AENDTM = ymd_hms(paste(AENDT, "00:00:00")))
+
+# Cumulative dose
+adex %&gt;%
+  derive_param_exposure(
+    dataset_add = adex,
+    by_vars = exprs(USUBJID),
+    set_values_to = exprs(
+      PARAMCD = "TDOSE",
+      PARCAT1 = "OVERALL",
+      AVAL = sum(AVAL, na.rm = TRUE)
+    ),
+    input_code = "DOSE"
+  ) %&gt;%
+  select(-ASTDTM, -AENDTM)
+
+# average dose in w2-24
+adex %&gt;%
+  derive_param_exposure(
+    dataset_add = adex,
+    by_vars = exprs(USUBJID),
+    filter_add = VISIT %in% c("WEEK 2", "WEEK 24"),
+    set_values_to = exprs(
+      PARAMCD = "AVDW224",
+      PARCAT1 = "WEEK2-24",
+      AVAL = mean(AVAL, na.rm = TRUE)
+    ),
+    input_code = "DOSE"
+  ) %&gt;%
+  select(-ASTDTM, -AENDTM)
+
+# Any dose adjustment?
+adex %&gt;%
+  derive_param_exposure(
+    dataset_add = adex,
+    by_vars = exprs(USUBJID),
+    set_values_to = exprs(
+      PARAMCD = "TADJ",
+      PARCAT1 = "OVERALL",
+      AVALC = if_else(sum(!is.na(AVALC)) &gt; 0, "Y", NA_character_)
+    ),
+    input_code = "ADJ"
+  ) %&gt;%
+  select(-ASTDTM, -AENDTM)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,404 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_extreme_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add the First or Last Observation for Each By Group as New Records</h2>
+
+<h3>Description</h3>
+
+<p>Add the first or last observation for each by group as new observations. The
+new observations can be selected from the additional dataset. This function can
+be used for adding the maximum or minimum value as a separate visit.
+All variables of the selected observation are kept. This distinguishes
+<code>derive_extreme_records()</code> from <code>derive_summary_records()</code>,
+where only the by variables are populated for the new records.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_extreme_records(
+  dataset = NULL,
+  dataset_add,
+  dataset_ref = NULL,
+  by_vars = NULL,
+  order = NULL,
+  mode = NULL,
+  filter_add = NULL,
+  check_type = "warning",
+  exist_flag = NULL,
+  true_value = "Y",
+  false_value = NA_character_,
+  keep_source_vars = exprs(everything()),
+  set_values_to
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The additional dataset, which determines the by groups returned in the input dataset,
+based on the groups that exist in this dataset after being subset by <code>filter_add</code>.
+</p>
+<p>The variables specified in the <code>by_vars</code> and <code>filter_add</code> parameters are expected
+in this dataset. If <code>mode</code> and <code>order</code> are specified, the first or last observation
+within each by group, defined by <code>by_vars</code>, is selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_ref</code></td>
+<td>
+<p>Reference dataset
+</p>
+<p>The variables specified for <code>by_vars</code> are expected. For each
+observation of the specified dataset a new observation is added to the
+input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>If <code>dataset_ref</code> is specified, this argument must be specified.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>Within each by group the observations are ordered by the specified order.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If <code>"first"</code> is specified, the first observation of each by group is added
+to the input dataset. If <code>"last"</code> is specified, the last observation of
+each by group is added to the input dataset.
+</p>
+<p><em>Permitted Values:</em> <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional dataset (<code>dataset_add</code>)
+</p>
+<p>Only observations in <code>dataset_add</code> fulfilling the specified condition are
+considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the (restricted) additional dataset are not unique
+with respect to the by variables and the order.
+</p>
+<p><em>Permitted Values</em>: <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exist_flag</code></td>
+<td>
+<p>Existence flag
+</p>
+<p>The specified variable is added to the output dataset.
+</p>
+<p>For by groups with at least one observation in the additional dataset
+(<code>dataset_add</code>) <code>exist_flag</code> is set to the value specified by the
+<code>true_value</code> argument.
+</p>
+<p>For all other by groups <code>exist_flag</code> is set to the value specified by the
+<code>false_value</code> argument.
+</p>
+<p><em>Permitted Values:</em> Variable name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_value</code></td>
+<td>
+<p>True value
+</p>
+<p>For new observations selected from the additional dataset (<code>dataset_add</code>),
+<code>exist_flag</code> is set to the specified value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>false_value</code></td>
+<td>
+<p>False value
+</p>
+<p>For new observations not selected from the additional dataset
+(<code>dataset_add</code>), <code>exist_flag</code> is set to the specified value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_source_vars</code></td>
+<td>
+<p>Variables to be kept in the new records
+</p>
+<p>A named list or tidyselect expressions created by <code>exprs()</code> defining the
+variables to be kept for the new records. The variables specified for
+<code>by_vars</code> and <code>set_values_to</code> need not be specified here as they are kept
+automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations.
+</p>
+<p>Set a list of variables to some specified value for the new records
+</p>
+
+<ul>
+<li>
+<p> LHS refer to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value, an expression or NA. If summary functions are
+used, the values are summarized by the variables specified for <code>by_vars</code>.
+</p>
+</li>
+</ul>
+<p>For example:
+</p>
+<div class="sourceCode"><pre>  set_values_to = exprs(
+    AVAL = sum(AVAL),
+    DTYPE = "AVERAGE",
+  )
+</pre></div>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The additional dataset (<code>dataset_add</code>) is restricted as specified by the
+<code>filter_add</code> argument.
+</p>
+</li>
+<li>
+<p> For each group (with respect to the variables specified for the
+<code>by_vars</code> argument) the first or last observation (with respect to the
+order specified for the <code>order</code> argument and the mode specified for the
+<code>mode</code> argument) is selected.
+</p>
+</li>
+<li>
+<p> If <code>dataset_ref</code> is specified, observations which are in <code>dataset_ref</code>
+but not in the selected records are added.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> argument are added to
+the selected observations.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>keep_source_vars</code> argument are selected
+along with the variables specified in <code>by_vars</code> and <code>set_values_to</code>
+arguments.
+</p>
+</li>
+<li>
+<p> The observations are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the first or last observation of each by group
+added as new observations.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate)
+
+adlb &lt;- tribble(
+  ~USUBJID, ~AVISITN, ~AVAL, ~LBSEQ,
+  "1",      1,          113,      1,
+  "1",      2,          113,      2,
+  "1",      3,          117,      3,
+  "2",      1,          101,      1,
+  "2",      2,          101,      2,
+  "2",      3,           95,      3
+)
+
+# Add a new record for each USUBJID storing the minimum value (first AVAL).
+# If multiple records meet the minimum criterion, take the first value by
+# AVISITN. Set AVISITN = 97 and DTYPE = MINIMUM for these new records.
+# Specify the variables that need to be kept in the new records.
+derive_extreme_records(
+  adlb,
+  dataset_add = adlb,
+  by_vars = exprs(USUBJID),
+  order = exprs(AVAL, AVISITN),
+  mode = "first",
+  filter_add = !is.na(AVAL),
+  keep_source_vars = exprs(AVAL),
+  set_values_to = exprs(
+    AVISITN = 97,
+    DTYPE = "MINIMUM"
+  )
+)
+
+# Add a new record for each USUBJID storing the maximum value (last AVAL).
+# If multiple records meet the maximum criterion, take the first value by
+# AVISITN. Set AVISITN = 98 and DTYPE = MAXIMUM for these new records.
+derive_extreme_records(
+  adlb,
+  dataset_add = adlb,
+  by_vars = exprs(USUBJID),
+  order = exprs(desc(AVAL), AVISITN),
+  mode = "first",
+  filter_add = !is.na(AVAL),
+  set_values_to = exprs(
+    AVISITN = 98,
+    DTYPE = "MAXIMUM"
+  )
+)
+
+# Add a new record for each USUBJID storing for the last value.
+# Set AVISITN = 99 and DTYPE = LOV for these new records.
+derive_extreme_records(
+  adlb,
+  dataset_add = adlb,
+  by_vars = exprs(USUBJID),
+  order = exprs(AVISITN),
+  mode = "last",
+  set_values_to = exprs(
+    AVISITN = 99,
+    DTYPE = "LOV"
+  )
+)
+
+# Derive a new parameter for the first disease progression (PD)
+adsl &lt;- tribble(
+  ~USUBJID, ~DTHDT,
+  "1",      ymd("2022-05-13"),
+  "2",      ymd(""),
+  "3",      ymd("")
+) %&gt;%
+  mutate(STUDYID = "XX1234")
+
+adrs &lt;- tribble(
+  ~USUBJID, ~ADTC,        ~AVALC,
+  "1",      "2020-01-02", "PR",
+  "1",      "2020-02-01", "CR",
+  "1",      "2020-03-01", "CR",
+  "1",      "2020-04-01", "SD",
+  "2",      "2021-06-15", "SD",
+  "2",      "2021-07-16", "PD",
+  "2",      "2021-09-14", "PD"
+) %&gt;%
+  mutate(
+    STUDYID = "XX1234",
+    ADT = ymd(ADTC),
+    PARAMCD = "OVR",
+    PARAM = "Overall Response",
+    ANL01FL = "Y"
+  ) %&gt;%
+  select(-ADTC)
+
+derive_extreme_records(
+  adrs,
+  dataset_ref = adsl,
+  dataset_add = adrs,
+  by_vars = exprs(STUDYID, USUBJID),
+  filter_add = PARAMCD == "OVR" &amp; AVALC == "PD",
+  order = exprs(ADT),
+  exist_flag = AVALC,
+  true_value = "Y",
+  false_value = "N",
+  mode = "first",
+  set_values_to = exprs(
+    PARAMCD = "PD",
+    PARAM = "Disease Progression",
+    AVAL = yn_to_numeric(AVALC),
+    ANL01FL = "Y",
+    ADT = ADT
+  )
+)
+
+# derive parameter indicating death
+derive_extreme_records(
+  dataset_ref = adsl,
+  dataset_add = adsl,
+  by_vars = exprs(STUDYID, USUBJID),
+  filter_add = !is.na(DTHDT),
+  exist_flag = AVALC,
+  true_value = "Y",
+  false_value = "N",
+  mode = "first",
+  set_values_to = exprs(
+    PARAMCD = "DEATH",
+    PARAM = "Death",
+    ANL01FL = "Y",
+    ADT = DTHDT
+  )
+)
+</code></pre>
+
+
+</div>

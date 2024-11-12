@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>model_text_regressor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AutoKeras Text Regressor Model</h2>
+
+<h3>Description</h3>
+
+<p>AutoKeras text regression class.<br>
+To 'fit', 'evaluate' or 'predict', format inputs as:
+</p>
+
+<ul>
+<li>
+<p>x : array. The input data should be array. The data should be one
+dimensional. Each element in the data should be a string which is a full
+sentence.
+
+</p>
+</li>
+<li>
+<p>y : array. The targets passing to the head would have to be array or
+data.frame. It can be single-column or multi-column. The values should all
+be numerical.
+
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">model_text_regressor(
+  output_dim = NULL,
+  loss = "mean_squared_error",
+  metrics = NULL,
+  name = "text_regressor",
+  max_trials = 100,
+  directory = tempdir(),
+  objective = "val_loss",
+  overwrite = TRUE,
+  seed = runif(1, 0, 1e+07)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>output_dim</code></td>
+<td>
+<p>: numeric. The number of output dimensions. Defaults to
+'NULL'. If 'NULL', it will infer from the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>: A Keras loss function. Defaults to use "mean_squared_error".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>: A list of Keras metrics. Defaults to use
+"mean_squared_error".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>: character. The name of the AutoModel. Defaults to
+"text_regressor".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_trials</code></td>
+<td>
+<p>: numeric. The maximum number of different Keras Models to
+try. The search may finish before reaching the 'max_trials'. Defaults to
+'100'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directory</code></td>
+<td>
+<p>: character. The path to a directory for storing the search
+outputs. Defaults to 'tempdir()', which would create a folder with the name
+of the AutoModel in the current directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>: character. Name of model metric to minimize or maximize,
+e.g. "val_accuracy". Defaults to "val_loss".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>: logical. Defaults to 'TRUE'. If 'FALSE', reloads an
+existing project of the same name if one is found. Otherwise, overwrites
+the project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>: numeric. Random seed. Defaults to 'runif(1, 0, 10e6)'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Important: The object returned by this function behaves like an R6 object,
+i.e., within function calls with this object as parameter, it is most likely
+that the object will be modified. Therefore it is not necessary to assign
+the result of the functions to the same object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A non-trained text regressor AutokerasModel.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library("keras")
+
+# Get IMDb dataset
+imdb &lt;- dataset_imdb(num_words = 1000)
+c(x_train, y_train) %&lt;-% imdb$train
+c(x_test, y_test) %&lt;-% imdb$test
+
+# AutoKeras procceses each text data point as a character vector,
+# i.e., x_train[[1]] "&lt;START&gt; this film was just brilliant casting..",
+# so we need to transform the dataset.
+word_index &lt;- dataset_imdb_word_index()
+word_index &lt;- c(
+  "&lt;PAD&gt;", "&lt;START&gt;", "&lt;UNK&gt;", "&lt;UNUSED&gt;",
+  names(word_index)[order(unlist(word_index))]
+)
+x_train &lt;- lapply(x_train, function(x) {
+  paste(word_index[x + 1], collapse = " ")
+})
+x_test &lt;- lapply(x_test, function(x) {
+  paste(word_index[x + 1], collapse = " ")
+})
+
+x_train &lt;- matrix(unlist(x_train), ncol = 1)
+x_test &lt;- matrix(unlist(x_test), ncol = 1)
+y_train &lt;- array(unlist(y_train))
+y_test &lt;- array(unlist(y_test))
+
+library("autokeras")
+
+# Initialize the text regressor
+reg &lt;- model_text_regressor(max_trials = 10) %&gt;% # It tries 10 different models
+  fit(x_train, y_train) # Feed the text regressor with training data
+
+# If you want to use own valitadion data do:
+reg &lt;- model_text_regressor(max_trials = 10) %&gt;%
+  fit(
+    x_train,
+    y_train,
+    validation_data = list(x_test, y_test)
+  )
+
+# Predict with the best model
+(predicted_y &lt;- reg %&gt;% predict(x_test))
+
+# Evaluate the best model with testing data
+reg %&gt;% evaluate(x_test, y_test)
+
+# Get the best trained Keras model, to work with the keras R library
+export_model(reg)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

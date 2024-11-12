@@ -1,0 +1,357 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ADMMsigma</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalized precision matrix estimation via ADMM</h2>
+
+<h3>Description</h3>
+
+<p>Penalized precision matrix estimation using the ADMM algorithm.
+Consider the case where <code class="reqn">X_{1}, ..., X_{n}</code> are iid <code class="reqn">N_{p}(\mu,
+\Sigma)</code> and we are tasked with estimating the precision matrix,
+denoted <code class="reqn">\Omega \equiv \Sigma^{-1}</code>. This function solves the
+following optimization problem:
+</p>
+
+<dl>
+<dt>Objective:</dt>
+<dd>
+<p><code class="reqn">\hat{\Omega}_{\lambda} = \arg\min_{\Omega \in S_{+}^{p}}
+\left\{ Tr\left(S\Omega\right) - \log \det\left(\Omega \right) +
+\lambda\left[\frac{1 - \alpha}{2}\left\| \Omega \right|_{F}^{2} +
+\alpha\left\| \Omega \right\|_{1} \right] \right\}</code></p>
+</dd>
+</dl>
+<p>where <code class="reqn">0 \leq \alpha \leq 1</code>, <code class="reqn">\lambda &gt; 0</code>,
+<code class="reqn">\left\|\cdot \right\|_{F}^{2}</code> is the Frobenius norm and we define
+<code class="reqn">\left\|A \right\|_{1} = \sum_{i, j} \left| A_{ij} \right|</code>.
+This elastic net penalty is identical to the penalty used in the popular penalized
+regression package <code>glmnet</code>. Clearly, when <code class="reqn">\alpha = 0</code> the elastic-net
+reduces to a ridge-type penalty and when <code class="reqn">\alpha = 1</code> it reduces to a
+lasso-type penalty.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ADMMsigma(X = NULL, S = NULL, nlam = 10, lam.min.ratio = 0.01,
+  lam = NULL, alpha = seq(0, 1, 0.2), diagonal = FALSE, path = FALSE,
+  rho = 2, mu = 10, tau.inc = 2, tau.dec = 2, crit = c("ADMM",
+  "loglik"), tol.abs = 1e-04, tol.rel = 1e-04, maxit = 10000,
+  adjmaxit = NULL, K = 5, crit.cv = c("loglik", "penloglik", "AIC",
+  "BIC"), start = c("warm", "cold"), cores = 1, trace = c("progress",
+  "print", "none"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>option to provide a nxp data matrix. Each row corresponds to a single observation and each column contains n observations of a single feature/variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>option to provide a pxp sample covariance matrix (denominator n). If argument is <code>NULL</code> and <code>X</code> is provided instead then <code>S</code> will be computed automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlam</code></td>
+<td>
+<p>number of <code>lam</code> tuning parameters for penalty term generated from <code>lam.min.ratio</code> and <code>lam.max</code> (automatically generated). Defaults to 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam.min.ratio</code></td>
+<td>
+<p>smallest <code>lam</code> value provided as a fraction of <code>lam.max</code>. The function will automatically generate <code>nlam</code> tuning parameters from <code>lam.min.ratio*lam.max</code> to <code>lam.max</code> in log10 scale. <code>lam.max</code> is calculated to be the smallest <code>lam</code> such that all off-diagonal entries in <code>Omega</code> are equal to zero (<code>alpha</code> = 1). Defaults to 1e-2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam</code></td>
+<td>
+<p>option to provide positive tuning parameters for penalty term. This will cause <code>nlam</code> and <code>lam.min.ratio</code> to be disregarded. If a vector of parameters is provided, they should be in increasing order. Defaults to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>elastic net mixing parameter contained in [0, 1]. <code>0 = ridge, 1 = lasso</code>. If a vector of parameters is provided, they should be in increasing order. Defaults to grid of values <code>seq(0, 1, 0.2)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p>option to penalize the diagonal elements of the estimated precision matrix (<code class="reqn">\Omega</code>). Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>option to return the regularization path. This option should be used with extreme care if the dimension is large. If set to TRUE, cores must be set to 1 and errors and optimal tuning parameters will based on the full sample. Defaults to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>initial step size for ADMM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>factor for primal and residual norms in the ADMM algorithm. This will be used to adjust the step size <code>rho</code> after each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.inc</code></td>
+<td>
+<p>factor in which to increase step size <code>rho</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.dec</code></td>
+<td>
+<p>factor in which to decrease step size <code>rho</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit</code></td>
+<td>
+<p>criterion for convergence (<code>ADMM</code> or <code>loglik</code>). If <code>crit = loglik</code> then iterations will stop when the relative change in log-likelihood is less than <code>tol.abs</code>. Default is <code>ADMM</code> and follows the procedure outlined in Boyd, et al.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol.abs</code></td>
+<td>
+<p>absolute convergence tolerance. Defaults to 1e-4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol.rel</code></td>
+<td>
+<p>relative convergence tolerance. Defaults to 1e-4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations. Defaults to 1e4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjmaxit</code></td>
+<td>
+<p>adjusted maximum number of iterations. During cross validation this option allows the user to adjust the maximum number of iterations after the first <code>lam</code> tuning parameter has converged (for each <code>alpha</code>). This option is intended to be paired with <code>warm</code> starts and allows for 'one-step' estimators. Defaults to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>specify the number of folds for cross validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit.cv</code></td>
+<td>
+<p>cross validation criterion (<code>loglik</code>, <code>penloglik</code>, <code>AIC</code>, or <code>BIC</code>). Defaults to <code>loglik</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>specify <code>warm</code> or <code>cold</code> start for cross validation. Default is <code>warm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>option to run CV in parallel. Defaults to <code>cores = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>option to display progress of CV. Choose one of <code>progress</code> to print a progress bar, <code>print</code> to print completed tuning parameters, or <code>none</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For details on the implementation of 'ADMMsigma', see the website
+<a href="https://mgallow.github.io/ADMMsigma/articles/Details.html">https://mgallow.github.io/ADMMsigma/articles/Details.html</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns class object <code>ADMMsigma</code> which includes:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Call</code></td>
+<td>
+<p>function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Iterations</code></td>
+<td>
+<p>number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tuning</code></td>
+<td>
+<p>optimal tuning parameters (lam and alpha).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambdas</code></td>
+<td>
+<p>grid of lambda values for CV.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Alphas</code></td>
+<td>
+<p>grid of alpha values for CV.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Omega</code></td>
+<td>
+<p>estimated penalized precision matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>estimated covariance matrix from the penalized precision matrix (inverse of Omega).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Path</code></td>
+<td>
+<p>array containing the solution path. Solutions will be ordered in ascending alpha values for each lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>final sparse update of estimated penalized precision matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>final dual update.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>final step size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Loglik</code></td>
+<td>
+<p>penalized log-likelihood for Omega</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MIN.error</code></td>
+<td>
+<p>minimum average cross validation error (cv.crit) for optimal parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AVG.error</code></td>
+<td>
+<p>average cross validation error (cv.crit) across all folds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CV.error</code></td>
+<td>
+<p>cross validation errors (cv.crit).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Galloway <a href="mailto:gall0441@umn.edu">gall0441@umn.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Boyd, Stephen, Neal Parikh, Eric Chu, Borja Peleato, Jonathan Eckstein, and others. 2011. 'Distributed Optimization and Statistical Learning via the Alternating Direction Method of Multipliers.' <em>Foundations and Trends in Machine Learning</em> 3 (1). Now Publishers, Inc.: 1-122. <a href="https://web.stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf">https://web.stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf</a>
+</p>
+</li>
+<li>
+<p> Hu, Yue, Chi, Eric C, amd Allen, Genevera I. 2016. 'ADMM Algorithmic Regularization Paths for Sparse Statistical Machine Learning.' <em>Splitting Methods in Communication, Imaging, Science, and Engineering</em>. Springer: 433-459.
+</p>
+</li>
+<li>
+<p> Zou, Hui and Hastie, Trevor. 2005. 'Regularization and Variable Selection via the Elastic Net.' <em>Journal of the Royal Statistial Society: Series B (Statistical Methodology)</em> 67 (2). Wiley Online Library: 301-320.
+</p>
+</li>
+<li>
+<p> Rothman, Adam. 2017. 'STAT 8931 notes on an algorithm to compute the Lasso-penalized Gaussian likelihood precision matrix estimator.'
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>plot.ADMM</code>, <code>RIDGEsigma</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generate data from a sparse matrix
+# first compute covariance matrix
+S = matrix(0.7, nrow = 5, ncol = 5)
+for (i in 1:5){
+ for (j in 1:5){
+   S[i, j] = S[i, j]^abs(i - j)
+ }
+ }
+
+# generate 100 x 5 matrix with rows drawn from iid N_p(0, S)
+set.seed(123)
+Z = matrix(rnorm(100*5), nrow = 100, ncol = 5)
+out = eigen(S, symmetric = TRUE)
+S.sqrt = out$vectors %*% diag(out$values^0.5)
+S.sqrt = S.sqrt %*% t(out$vectors)
+X = Z %*% S.sqrt
+
+# elastic-net type penalty (use CV for optimal lambda and alpha)
+ADMMsigma(X)
+
+# ridge penalty (use CV for optimal lambda)
+ADMMsigma(X, alpha = 0)
+
+# lasso penalty (lam = 0.1)
+ADMMsigma(X, lam = 0.1, alpha = 1)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MCMC.parallel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Parallel computation of MCMC()
+</h2>
+
+<h3>Description</h3>
+
+<p>A wrapper function to generate several independent Markov chains by
+stetting up cluster on a multi-core machine. The function is
+based on the <span class="pkg">parallel</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MCMC.parallel(p, n, init, n.chain = 4, n.cpu, packages = NULL, dyn.libs=NULL,
+    scale = rep(1, length(init)),  adapt = !is.null(acc.rate),
+    acc.rate = NULL, gamma = 2/3, list = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>function that returns a value proportional to the log probability
+density to sample from. Alternatively the function can return a list
+with at least one element named <code>log.density</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>number of samples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+<p>vector with initial values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.chain</code></td>
+<td>
+
+<p>number of independent chains.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cpu</code></td>
+<td>
+
+<p>number of CPUs that should be used in parallel.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>packages</code></td>
+<td>
+
+<p>vector with name of packages to load into each instance. (Typically,
+all packages on which <code>p</code> depends.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dyn.libs</code></td>
+<td>
+
+<p>vector with name of dynamic link libraries (shared objects) to load into each
+instance. The libraries must be located in the working directory.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+
+<p>vector with the variances <em>or</em> covariance matrix of the jump distribution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adapt</code></td>
+<td>
+
+<p>if <code>TRUE</code>, adaptive sampling is used, if <code>FALSE</code> classic metropolis
+sampling, if a positive integer the adaption stops after <code>adapt</code> iterations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acc.rate</code></td>
+<td>
+
+<p>desired acceptance rate (ignored if <code>adapt=FALSE</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+
+<p>controls the speed of adaption. Should be between 0.5 and 1. A lower
+gamma leads to faster adaption.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>list</code></td>
+<td>
+
+<p>logical. If <code>TRUE</code> a list of lits is returned otherwise a list of matrices with the samples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>further arguments passed to <code>p</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is just a wrapper to use <code>MCMC</code> in parallel. It is
+based on <span class="pkg">parallel</span>. Obviously, the application of this function
+makes only sense on a multi-core machine.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with a list or matrix for each chain. See <code>MCMC</code> for details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Scheidegger, <a href="mailto:andreas.scheidegger@eawag.ch">andreas.scheidegger@eawag.ch</a> or
+<a href="mailto:scheidegger.a@gmail.com">scheidegger.a@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>MCMC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## ----------------------
+## Banana shaped distribution
+
+## log-pdf to sample from
+p.log &lt;- function(x) {
+  B &lt;- 0.03                              # controls 'bananacity'
+  -x[1]^2/200 - 1/2*(x[2]+B*x[1]^2-100*B)^2
+}
+
+## ----------------------
+## generate samples
+## compute 4 independent chains on 2 CPU's (if available) in parallel
+
+samp &lt;- MCMC.parallel(p.log, n=200, init=c(x1=0, x2=1),
+    n.chain=4, n.cpu=2, scale=c(1, 0.1),
+    adapt=TRUE, acc.rate=0.234)
+
+str(samp)
+
+</code></pre>
+
+
+</div>

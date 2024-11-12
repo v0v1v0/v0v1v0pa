@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>initializeParameterObject</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Initialize Parameter</h2>
+
+<h3>Description</h3>
+
+<p><code>initializeParameterObject</code> initializes a new parameter object or reconstructs one from a restart file
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">initializeParameterObject(
+  genome = NULL,
+  sphi = NULL,
+  num.mixtures = 1,
+  gene.assignment = NULL,
+  initial.expression.values = NULL,
+  model = "ROC",
+  split.serine = TRUE,
+  mixture.definition = "allUnique",
+  mixture.definition.matrix = NULL,
+  init.with.restart.file = NULL,
+  mutation.prior.mean = 0,
+  mutation.prior.sd = 0.35,
+  propose.by.prior = FALSE,
+  init.csp.variance = 0.0025,
+  init.sepsilon = 0.1,
+  init.w.obs.phi = FALSE,
+  init.initiation.cost = 4,
+  init.partition.function = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>genome</code></td>
+<td>
+<p>An object of type Genome necessary for the initialization of the Parameter object.
+The default value is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sphi</code></td>
+<td>
+<p>Initial values for sphi. Expected is a vector of length numMixtures.
+The default value is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.mixtures</code></td>
+<td>
+<p>The number of mixtures elements for the underlying mixture distribution (numMixtures &gt; 0).
+The default value is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gene.assignment</code></td>
+<td>
+<p>A vector holding the initial mixture assignment for each gene. 
+The vector length has to equal the number of genes in the genome.
+Valid values for the vector range from 1 to numMixtures. 
+It is possible but not advised to leave a mixture element empty.
+The default Value is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.expression.values</code></td>
+<td>
+<p>(Optional) A vector with intial phi values.
+The length of the vector has to equal the number of genes in the Genome object and the order of the genes should match the order of the genes in the Genome.
+The default value is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Specifies the model used. Valid options are "ROC", "PA", "PANSE", or "FONSE".
+The default model is "ROC".
+ROC is described in Gilchrist et al. 2015.
+PA, PANSE and FONSE are currently unpublished.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split.serine</code></td>
+<td>
+<p>Whether serine should be considered as 
+one or two amino acids when running the model.
+TRUE and FALSE are the only valid values.
+The default value for split.serine is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture.definition</code></td>
+<td>
+<p>A string describing how each mixture should
+be treated with respect to mutation and selection.
+Valid values consist of "allUnique", "mutationShared", and "selectionShared".
+The default value for mixture.definition is "allUnique".
+See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture.definition.matrix</code></td>
+<td>
+<p>A matrix representation of how
+the mutation and selection categories correspond to the mixtures.
+The default value for mixture.definition.matrix is NULL.
+If provided, the model will use the matrix to initialize the mutation and selection
+categories instead of the definition listed directly above.
+See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.with.restart.file</code></td>
+<td>
+<p>File name containing information to reinitialize a 
+previous Parameter object.
+If given, all other arguments will be ignored.
+The default value for init.with.restart.file is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutation.prior.mean</code></td>
+<td>
+<p>Controlling the mean of the normal prior on mutation paramters.
+If passed in as single number (default is 0), this will be the mean value for all categories, for all codons. User may also
+supply a vector with n * 40 values, where n is the number of mutation categories. Future versions will check the number of rows matches
+the number of mutation categories definded by user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutation.prior.sd</code></td>
+<td>
+<p>Controlling the standard deviation of the normal prior on the mutation parameters.
+If passed in as single number (default is 0.35), this will be the standard deviation value for all categories, for all codons. User may also
+supply a vector with n * 40 values, where n is the number of mutation categories. Future versions will check the number of rows matches
+the number of mutation categories definded by user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>propose.by.prior</code></td>
+<td>
+<p>Mutation bias parameters will be proposed based on the means and standard deviations set in mutation.prior.mean and mutation.prior.sd</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.csp.variance</code></td>
+<td>
+<p>specifies the initial proposal width for codon specific parameter (default is 0.0025). 
+The proposal width adapts during the runtime to reach a taget acceptance rate of ~0.25</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.sepsilon</code></td>
+<td>
+<p>specifies the initial value for sepsilon. default is 0.1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.w.obs.phi</code></td>
+<td>
+<p>If TRUE, initialize phi values with observed phi values 
+(data from RNAseq, mass spectrometry, ribosome footprinting) Default is FALSE. 
+If multiple observed phi values exist for a gene, the geometric mean of these values is used as initial phi.
+When using this function, one should remove any genes with 
+missing phi values, as these genes will not have an initial phi value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.initiation.cost</code></td>
+<td>
+<p>FOR FONSE ONLY. Initializes the initiation cost a_1 at this value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.partition.function</code></td>
+<td>
+<p>FOR PANSE ONLY. initializes the partition function Z.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>initializeParameterObject</code> checks the values of the arguments 
+given to insure the values are valid.
+</p>
+<p>The mixture definition and mixture definition matrix describes how the mutation
+and selection categories are set up with respect to the number of mixtures. For
+example, if mixture.definition = "allUnique" and numMixtures = 3, a matrix
+representation would be <code>matrix(c(1,2,3,1,2,3), ncol=2)</code>
+where each row represents a mixture, the first column represents the mutation
+category, and the second column represents the selection category.
+Another example would be mixture.definition = "selectionShared" and numMixtures = 4 (
+<code>matrix(c(1,2,3,4,1,1,1,1), ncol=2)</code>).
+In this case, the selection category is the same for every mixture. If a matrix
+is given, and it is valid, then the mutation/selection relationship will be
+defined by the given matrix and the keyword will be ignored. A matrix should only
+be given in cases where the keywords would not create the desired matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<p>parameter Returns an initialized Parameter object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+genome_file &lt;- system.file("extdata", "genome.fasta", package = "AnaCoDa")
+restart_file &lt;- system.file("extdata", "restart_file.rst", package = "AnaCoDa")
+
+genome &lt;- initializeGenomeObject(file = genome_file)
+
+## initialize a new parameter object
+sphi_init &lt;- 1
+numMixtures &lt;- 1
+geneAssignment &lt;- rep(1, length(genome))
+parameter &lt;- initializeParameterObject(genome = genome, sphi = sphi_init, 
+                                       num.mixtures = numMixtures, 
+                                       gene.assignment = geneAssignment, 
+                                       mixture.definition = "allUnique")
+
+## re-initialize a parameter object from a restart file. Useful for checkpointing
+parameter &lt;- initializeParameterObject(init.with.restart.file = restart_file)
+
+## initialize a parameter object with a custon mixture definition matrix
+def.matrix &lt;- matrix(c(1,1,1,2), ncol=2)
+geneAssignment &lt;- c(rep(1,floor(length(genome)/2)),rep(2,ceiling(length(genome)/2)))
+parameter &lt;- initializeParameterObject(genome = genome, sphi = c(0.5, 2), num.mixtures = 2,
+                                       gene.assignment = geneAssignment,
+                                       mixture.definition.matrix = def.matrix)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>assignment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Linear Sum Assignment Problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Linear (sum) assignment problem, or LSAP.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">assignment(cmat, dir = "min")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cmat</code></td>
+<td>
+<p>quadratic (numeric) matrix, the cost matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>direction, can be "min" or "max".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Solves the linear (sum) assignment problem for quadratic matrices.
+Uses the <code>lp.assign</code> function from the <code>lpSolve</code> package,
+that is it solves LSAP as a mixed integer linear programming problem.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with components <code>perm</code>, the permutation that defines the
+minimum solution, <code>min</code>, the minimum value, and <code>err</code> is
+always <code>0</code>, i.e. not used at the moment.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Slower than the Hungarian algorithm in package <code>clue</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Burkard, R., M. Dell'Amico, and S. Martello (2009). Assignment Problems.
+Society for Industrial and Applied Mathematics (SIAM).
+</p>
+<p>Martello, S., and P. Toth (1990). Knapsack Problems: Algorithms and
+Computer Implementations. John Wiley &amp; Sons, Ltd.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>clue::solve_LSAP</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##  Example similar to clue::solve_LSAP
+set.seed(8237)
+x &lt;- matrix(sample(1:100), nrow = 10)
+y &lt;- assignment(x)
+# show permutation and check minimum sum
+y$perm                          #   7  6 10  5  8  2  1  4  9  3
+y$min                           # 173
+z &lt;- cbind(1:10, y$perm)
+x[z]                            #  16  9 49  6 17 14  1 44 10  7
+y$min == sum(x[z])              # TRUE
+
+## Not run: 
+##  Example: minimize sum of distances of complex points
+n &lt;- 100
+x &lt;- rt(n, df=3) + 1i * rt(n, df=3)
+y &lt;- runif(n) + 1i * runif(n)
+cmat &lt;- round(outer(x, y, FUN = function(x,y) Mod(x - y)), 2)
+system.time(T1 &lt;- assignment(cmat))     # elapsed: 0.003
+T1$min / 100                            # 145.75
+
+## Hungarian algorithm in package 'clue'
+library("clue")
+system.time(T2 &lt;- solve_LSAP(cmat))     # elapsed: 0.014
+sum(cmat[cbind(1:n, T2)])               # 145.75
+
+## End(Not run)
+</code></pre>
+
+
+</div>

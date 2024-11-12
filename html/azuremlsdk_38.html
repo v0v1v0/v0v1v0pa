@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>deploy_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Deploy a web service from registered model(s)</h2>
+
+<h3>Description</h3>
+
+<p>Deploy a web service from zero or more registered models. Types of web
+services that can be deployed are <code>LocalWebservice</code>, which will deploy
+a model locally, and <code>AciWebservice</code> and <code>AksWebservice</code>, which will
+deploy a model to Azure Container Instances (ACI) and Azure Kubernetes
+Service (AKS), respectively.The type of web service deployed will be
+determined by the <code>deployment_config</code> specified. Returns a <code>Webservice</code>
+object corresponding to the deployed web service.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">deploy_model(
+  workspace,
+  name,
+  models,
+  inference_config,
+  deployment_config = NULL,
+  deployment_target = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>workspace</code></td>
+<td>
+<p>The <code>Workspace</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A string of the name to give the deployed service. Must be
+unique to the workspace, only consist of lowercase letters, numbers, or
+dashes, start with a letter, and be between 3 and 32 characters long.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>A list of <code>Model</code> objects. Can be an empty list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inference_config</code></td>
+<td>
+<p>The <code>InferenceConfig</code> object used to describe
+how to configure the model to make predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deployment_config</code></td>
+<td>
+<p>The deployment configuration of type
+<code>LocalWebserviceDeploymentConfiguration</code>,
+<code>AciServiceDeploymentConfiguration</code>, or
+<code>AksServiceDeploymentConfiguration</code> used to configure the web service.
+The deployment configuration is specific to the compute target that will
+host the web service. For example, when you deploy a model locally, you
+must specify the port where the service accepts requests. If <code>NULL</code>, an
+empty configuration object will be used based on the desired target
+specified by <code>deployment_target</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deployment_target</code></td>
+<td>
+<p>The compute target to deploy the model to.
+You will only need to specify this parameter if you are deploy to AKS,
+in which case provide an <code>AksCompute</code> object. If you are deploying locally
+or to ACI, leave this parameter as <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>LocalWebservice</code>, <code>AciWebservice</code>, or <code>AksWebservice</code> object.
+</p>
+
+
+<h3>Details</h3>
+
+<p>If you encounter any issue in deploying your web service, please visit this
+<a href="https://docs.microsoft.com/en-us/azure/machine-learning/service/how-to-troubleshoot-deployment">troubleshooting guide</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>inference_config()</code>, <code>aci_webservice_deployment_config()</code>,
+<code>aks_webservice_deployment_config()</code>, <code>local_webservice_deployment_config()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+ws &lt;- load_workspace_from_config()
+model &lt;- get_model(ws, name = "my_model")
+r_env &lt;- r_environment(name = "r_env")
+inference_config &lt;- inference_config(entry_script = "score.R",
+                                     source_directory = ".",
+                                     environment = r_env)
+deployment_config &lt;- aci_webservice_deployment_config(cpu_cores = 1, memory_gb = 1)
+service &lt;- deploy_model(ws,
+                        name = "my_webservice",
+                        models = list(model),
+                        inference_config = inference_config,
+                        deployment_config = deployment_config)
+wait_for_deployment(service, show_output = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

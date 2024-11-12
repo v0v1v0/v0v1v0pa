@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitact</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit activity model to time-of-day data</h2>
+
+<h3>Description</h3>
+
+<p>Fits kernel density to radian time-of-day data and estimates activity level from this distribution.
+Optionally: 1. bootstraps the distribution, in which case SEs and confidence limits are also
+stored for activity level and PDF; 2. weights the distribution; 3. truncates the distribution at given times.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitact(
+  dat,
+  wt = NULL,
+  reps = 999,
+  bw = NULL,
+  adj = 1,
+  sample = c("none", "data", "model"),
+  bounds = NULL,
+  show = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A numeric vector of radian time-of-day data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wt</code></td>
+<td>
+<p>A numeric vector of weights for each <code>dat</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+<p>Number of bootstrap iterations to perform. Ignored if <code>sample=="none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Numeric value for kernel bandwidth. If NULL, calculated internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>Numeric bandwidth adjustment multiplier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample</code></td>
+<td>
+<p>Character string defining sampling method for bootstrapping errors (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A two-element vector defining radian bounds at which to truncate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show</code></td>
+<td>
+<p>Logical whether or not to show a progress bar while bootstrapping.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When no <code>bounds</code> are given (default), a circular kernel distribution is fitted using <code>dvmkern</code>.
+Otherwise, a normal kernel distribution is used, truncated at the values of <code>bounds</code>, using <code>density2</code>.
+</p>
+<p>The bandwidth adjustment multiplier <code>adj</code> is provided to allow
+exploration of the effect of adjusting the internally calculated bandwidth on
+accuracy of activity level estimates.
+</p>
+<p>The alternative bootstrapping methods defined by <code>sample</code> are:
+</p>
+
+<ul>
+<li>
+<p><code>"none"</code>: no bootstrapping
+</p>
+</li>
+<li>
+<p><code>"data"</code>: sample from the data
+</p>
+</li>
+<li>
+<p><code>"model"</code>: sample from the fitted probability density distribution
+</p>
+</li>
+</ul>
+<p>It's generally better to sample from the data, but sampling from
+the fitted distribution can sometimes provide more sensible confidence intervals when
+the number of observations is very small.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of type <code>actmod</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Fit without confidence limits
+data(BCItime)
+tm &lt;- 2*pi*subset(BCItime, species=="brocket")$time
+mod1 &lt;- fitact(tm)
+plot(mod1)
+
+#Fit with confidence limits (limited reps to speed up)
+mod2 &lt;- fitact(tm, sample="data", reps=10)
+plot(mod2)
+
+#Fit weighted function to correct for detection radius 1.2 times higher
+#by day than by night, assuming day between pi/2 (6 am) and pi*2/3 (6 pm)
+weight &lt;- 1/ifelse(tm&gt;pi/2 &amp; tm&lt;pi*3/2, 1.2, 1)
+mod3 &lt;- fitact(tm, wt=weight)
+plot(mod3)
+#Overplot unweighted version for comparison
+plot(mod1, add=TRUE, tline=list(col=2))
+
+#Fit truncated function to consider only night time records,
+#assuming night between pi*3/2 (6 pm) and pi/3 (6 am)
+mod4 &lt;- fitact(tm, bounds=c(pi*3/2, pi/2))
+plot(mod4, centre="night")
+</code></pre>
+
+
+</div>

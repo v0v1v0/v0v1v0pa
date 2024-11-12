@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quasipois</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quasi-Likelihood Model for Counts</h2>
+
+<h3>Description</h3>
+
+<p>The function fits the log linear model (“Procedure II”) proposed by Breslow (1984) accounting for 
+overdispersion in counts <code class="reqn">y</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quasipois(formula, data, phi = NULL, tol = 0.001)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula for the fixed effects. The left-hand side of the formula must be the counts <code>y</code> i.e.,
+positive integers (<code>y &gt;= 0</code>). The right-hand side can involve an offset term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the response (<code>y</code>) and explanatory variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>When <code>phi</code> is NULL (the default), the overdispersion parameter <code class="reqn">\phi</code> is estimated from the data.
+Otherwise, its value is considered as fixed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A positive scalar (default to 0.001). The algorithm stops at iteration <code class="reqn">r + 1</code> when the condition
+<code class="reqn">\chi{^2}[r+1] - \chi{^2}[r] &lt;= tol</code> is met by the <code class="reqn">\chi^2</code> statistics .</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a given count <code class="reqn">y</code>, the model is:
+</p>
+<p style="text-align: center;"><code class="reqn">y~|~\lambda \sim Poisson(~\lambda)</code>
+</p>
+
+<p>with <code class="reqn">\lambda</code> a random variable of mean <code class="reqn">E[\lambda] = \mu</code>
+and variance <code class="reqn">Var[\lambda] = \phi * \mu^2</code>.<br>
+The marginal mean and variance are:
+</p>
+<p style="text-align: center;"><code class="reqn">E[y] = \mu</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[y] = \mu + \phi * \mu^2</code>
+</p>
+
+<p>The function uses the function <code>glm</code> and the parameterization: <code class="reqn">\mu = exp(X b) = exp(\eta)</code>, where <code class="reqn">X</code> 
+is a design-matrix, <code class="reqn">b</code> is a vector of fixed effects and <code class="reqn">\eta = X b</code> is the linear predictor. <br>
+The estimate of <code class="reqn">b</code> maximizes the quasi log-likelihood of the marginal model.
+The parameter <code class="reqn">\phi</code> is estimated with the moment method or can be set to a constant
+(a regular <em>glim</em> is fitted when <code class="reqn">\phi</code> is set to 0). The literature recommends to estimate <code class="reqn">\phi</code>
+with the saturated model. Several explanatory variables are allowed in <code class="reqn">b</code>. None is allowed in <code class="reqn">\phi</code>.<br>
+An offset can be specified in the argument <code>formula</code> to model rates <code class="reqn">y/T</code> (see examples). The offset and the
+marginal mean are <code class="reqn">log(T)</code> and <code class="reqn">\mu = exp(log(T) + \eta)</code>, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of formal class “glimQL”: see <code>glimQL-class</code> for details.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthieu Lesnoff <a href="mailto:matthieu.lesnoff@cirad.fr">matthieu.lesnoff@cirad.fr</a>, Renaud Lancelot <a href="mailto:renaud.lancelot@cirad.fr">renaud.lancelot@cirad.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Breslow, N.E., 1984. <em>Extra-Poisson variation in log-linear models</em>. Appl. Statist. 33, 38-44.<br>
+Moore, D.F., Tsiatis, A., 1991. <em>Robust estimation of the variance in moment methods for extra-binomial
+and extra-poisson variation</em>. Biometrics 47, 383-401.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code>, <code>negative.binomial</code> in the recommended package <span class="pkg">MASS</span>, 
+<code>geese</code> in the contributed package <span class="pkg">geepack</span>, 
+<code>glm.poisson.disp</code> in the contributed package <span class="pkg">dispmod</span>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # without offset
+  data(salmonella)
+  quasipois(y ~ log(dose + 10) + dose,
+            data = salmonella)
+  quasipois(y ~ log(dose + 10) + dose, 
+            data = salmonella, phi = 0.07180449)
+  summary(glm(y ~ log(dose + 10) + dose,
+          family = poisson, data = salmonella))
+  quasipois(y ~ log(dose + 10) + dose,
+          data = salmonella, phi = 0)
+  # with offset
+  data(cohorts)
+  i &lt;- cohorts$age ; levels(i) &lt;- 1:7
+  j &lt;- cohorts$period ; levels(j) &lt;- 1:7
+  i &lt;- as.numeric(i); j &lt;- as.numeric(j)
+  cohorts$cohort &lt;- j + max(i) - i
+  cohorts$cohort &lt;- as.factor(1850 + 5 * cohorts$cohort)
+  fm1 &lt;- quasipois(y ~ age + period + cohort + offset(log(n)),
+                   data = cohorts)
+  fm1
+  quasipois(y ~ age + cohort + offset(log(n)),
+            data = cohorts, phi = fm1@phi)
+  </code></pre>
+
+
+</div>

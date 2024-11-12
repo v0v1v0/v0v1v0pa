@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apexcharter-shiny-facets</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Shiny bindings for faceting with apexcharter</h2>
+
+<h3>Description</h3>
+
+<p>Output and render functions for using apexcharter faceting within Shiny
+applications and interactive Rmd documents.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apexfacetOutput(outputId)
+
+renderApexfacet(expr, env = parent.frame(), quoted = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>outputId</code></td>
+<td>
+<p>output variable to read from</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expr</code></td>
+<td>
+<p>An expression that generates a apexcharter facet with <code>ax_facet_wrap()</code> or <code>ax_facet_grid()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>The environment in which to evaluate <code>expr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quoted</code></td>
+<td>
+<p>Is <code>expr</code> a quoted expression (with <code>quote()</code>)? This
+is useful if you want to save an expression in a variable.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An Apexcharts output that can be included in the application UI.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ax_facet_wrap()</code>, <code>ax_facet_grid()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(shiny)
+library(apexcharter)
+
+data("unhcr_ts")
+refugees &lt;- unhcr_ts %&gt;% 
+  subset(
+    population_type == "Refugees (incl. refugee-like situations)"
+  ) %&gt;% 
+  transform(date = as.Date(paste0(year, "-01-01")))
+
+
+ui &lt;- fluidPage(
+  
+  tags$h2("Apexcharts Facets Example"),
+  
+  apexfacetOutput("myfacet")
+  
+)
+
+server &lt;- function(input, output, session) {
+  
+  output$myfacet &lt;- renderApexfacet({
+    apex(refugees, aes(date, n), type = "column") %&gt;% 
+      ax_yaxis(tickAmount = 5) %&gt;% 
+      ax_facet_wrap(
+        vars(continent_origin), 
+        scales = "free"
+      )
+  })
+  
+}
+
+if (interactive())
+  shinyApp(ui, server)
+</code></pre>
+
+
+</div>

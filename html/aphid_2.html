@@ -1,0 +1,450 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>align</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiple sequence alignment in R.</h2>
+
+<h3>Description</h3>
+
+<p><code>align</code> performs a multiple alignment on a list of
+sequences using profile hidden Markov models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">align(x, ...)
+
+## S3 method for class 'DNAbin'
+align(
+  x,
+  model = NULL,
+  progressive = FALSE,
+  seeds = NULL,
+  seqweights = "Henikoff",
+  refine = "Viterbi",
+  k = 5,
+  maxiter = 100,
+  maxsize = NULL,
+  inserts = "map",
+  lambda = 0,
+  threshold = 0.5,
+  deltaLL = 1e-07,
+  DI = FALSE,
+  ID = FALSE,
+  residues = NULL,
+  gap = "-",
+  pseudocounts = "background",
+  qa = NULL,
+  qe = NULL,
+  cores = 1,
+  quiet = FALSE,
+  ...
+)
+
+## S3 method for class 'AAbin'
+align(
+  x,
+  model = NULL,
+  progressive = FALSE,
+  seeds = NULL,
+  seqweights = "Henikoff",
+  refine = "Viterbi",
+  k = 5,
+  maxiter = 100,
+  maxsize = NULL,
+  inserts = "map",
+  lambda = 0,
+  threshold = 0.5,
+  deltaLL = 1e-07,
+  DI = FALSE,
+  ID = FALSE,
+  residues = NULL,
+  gap = "-",
+  pseudocounts = "background",
+  qa = NULL,
+  qe = NULL,
+  cores = 1,
+  quiet = FALSE,
+  ...
+)
+
+## S3 method for class 'list'
+align(
+  x,
+  model = NULL,
+  progressive = FALSE,
+  seeds = NULL,
+  seqweights = "Henikoff",
+  k = 5,
+  refine = "Viterbi",
+  maxiter = 100,
+  maxsize = NULL,
+  inserts = "map",
+  lambda = 0,
+  threshold = 0.5,
+  deltaLL = 1e-07,
+  DI = FALSE,
+  ID = FALSE,
+  residues = NULL,
+  gap = "-",
+  pseudocounts = "background",
+  qa = NULL,
+  qe = NULL,
+  cores = 1,
+  quiet = FALSE,
+  ...
+)
+
+## Default S3 method:
+align(
+  x,
+  model,
+  pseudocounts = "background",
+  residues = NULL,
+  gap = "-",
+  maxsize = NULL,
+  quiet = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a list of DNA, amino acid, or other character sequences
+consisting of symbols emitted from the chosen residue alphabet.
+The vectors can either be of mode "raw" (consistent with the "DNAbin"
+or "AAbin" coding scheme set out in the <code>ape</code> package),
+or "character", in which case the alphabet should be specified in
+the <code>residues</code> argument. This argument can alternatively be a
+vector representing a single sequence. In this case, and if the
+second argument is also a single sequence, a standard pairwise
+alignment is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>aditional arguments to be passed to <code>"Viterbi"</code> (if
+<code>refine = "Viterbi"</code>) or <code>"forward"</code> (if
+<code>refine = "BaumWelch"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>an optional profile hidden Markov model (a <code>"PHMM"</code>
+object) to align the sequences to. If <code>NULL</code> a PHMM will
+be derived from the list of sequences, and each sequence
+will be aligned back to the model to produce the multiple sequence
+alignment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progressive</code></td>
+<td>
+<p>logical indicating whether the alignment used
+to derive the initial model parameters
+should be built progressively (assuming input is a list of
+unaligned sequences, ignored otherwise).
+Defaults to FALSE, in which case the longest sequence or sequences
+are used (faster, but possibly less accurate).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seeds</code></td>
+<td>
+<p>optional integer vector indicating which sequences should
+be used as seeds for building the guide tree for the progressive
+alignment (assuming input is a list of unaligned sequences,
+and <code>progressive = TRUE</code>, ignored otherwise).
+Defaults to NULL, in which a set of log(n, 2)^2 non-identical
+sequences are chosen from the list of sequences by k-means clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seqweights</code></td>
+<td>
+<p>either NULL (all sequences are given weights
+of 1), a numeric vector the same length as <code>x</code> representing
+the sequence weights used to derive the model, or a character string giving
+the method to derive the weights from the sequences
+(see <code>weight</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refine</code></td>
+<td>
+<p>the method used to iteratively refine the model parameters
+following the initial progressive alignment and model derivation step.
+Current supported options are <code>"Viterbi"</code> (Viterbi training;
+the default option), <code>"BaumWelch"</code> (a modified version of the
+Expectation-Maximization algorithm), and "none" (skips the model
+refinement step).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>integer representing the k-mer size to be used in tree-based
+sequence weighting (if applicable). Defaults to 5. Note that higher
+values of k may be slow to compute and use excessive memory due to
+the large numbers of calculations required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>the maximum number of EM iterations or Viterbi training
+iterations to carry out before the cycling process is terminated and
+the partially trained model is returned. Defaults to 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxsize</code></td>
+<td>
+<p>integer giving the upper bound on the number of modules
+in the PHMM. If NULL no maximum size is enforced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inserts</code></td>
+<td>
+<p>character string giving the model construction method
+in which alignment columns
+are marked as either match or insert states. Accepted methods include
+<code>"threshold"</code> (only columns with fewer than a specified
+proportion of gaps form match states in the model), <code>"map"</code> (default;
+match and insert columns are found using the maximum <em>a posteriori</em>
+method outlined in Durbin et al (1998) chapter 5.7), <code>"inherited"</code>
+(match and insert columns are inherited from the input alignment),
+and <code>"none"</code> (all columns are assigned match states in the model).
+Alternatively, insert columns can be
+specified manually by providing a logical vector the same length
+as the number of columns in the alignment, with <code>TRUE</code> for insert
+columns and <code>FALSE</code> for match states.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>penalty parameter used to favour models with fewer match
+states. Equivalent to the log of the prior probability of marking each
+column (Durbin et al 1998, chapter 5.7). Only applicable when
+<code>inserts = "map"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>the maximum proportion of gaps for an alignment column
+to be considered for a match state in the PHMM (defaults to 0.5).
+Only applicable when <code>inserts = "threshold"</code>.
+Note that the maximum <em>a posteriori</em>
+method works poorly for alignments with few sequences,
+so the 'threshold' method is
+automatically used when the number of sequences is less than 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaLL</code></td>
+<td>
+<p>numeric, the maximum change in log likelihood between EM
+iterations before the cycling procedure is terminated (signifying model
+convergence). Defaults to 1E-07. Only applicable if
+<code>method = "BaumWelch"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DI</code></td>
+<td>
+<p>logical indicating whether delete-insert transitions should be
+allowed in the profile hidden Markov model (if applicable). Defaults
+to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>logical indicating whether insert-delete transitions should be
+allowed in the profile hidden Markov model (if applicable). Defaults
+to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residues</code></td>
+<td>
+<p>either NULL (default; emitted residues are automatically
+detected from the sequences), a case sensitive character vector
+specifying the residue alphabet, or one of the character strings
+"RNA", "DNA", "AA", "AMINO". Note that the default option can be slow for
+large lists of character vectors. Furthermore, the default setting
+<code>residues = NULL</code> will not detect rare residues that are not present
+in the sequences, and thus will not assign them emission probabilities
+in the model. Specifying the residue alphabet is therefore
+recommended unless x is a "DNAbin" or "AAbin" object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap</code></td>
+<td>
+<p>the character used to represent gaps in the alignment matrix.
+Ignored for <code>"DNAbin"</code> or <code>"AAbin"</code> objects. Defaults to "-"
+otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudocounts</code></td>
+<td>
+<p>character string, either "background", Laplace"
+or "none". Used to account for the possible absence of certain
+transition and/or emission types in the input sequences.
+If <code>pseudocounts = "background"</code> (default), pseudocounts
+are calculated from the background transition and emission
+frequencies in the sequences.
+If <code>pseudocounts = "Laplace"</code> one of each possible transition
+and emission type is added to the transition and emission counts.
+If <code>pseudocounts = "none"</code> no pseudocounts are added (not
+generally recommended, since low frequency transition/emission types
+may be excluded from the model).
+Alternatively this argument can be a two-element list containing
+a matrix of transition pseudocounts
+as its first element and a matrix of emission pseudocounts as its
+second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qa</code></td>
+<td>
+<p>an optional named 9-element vector of background transition
+probabilities with <code>dimnames(qa) = c("DD", "DM", "DI", "MD", "MM",
+"MI", "ID", "IM", "II")</code>, where M, I and D represent match, insert and
+delete states, respectively. If <code>NULL</code>, background transition
+probabilities are estimated from the sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qe</code></td>
+<td>
+<p>an optional named vector of background emission probabilities
+the same length as the residue alphabet (i.e. 4 for nucleotides and 20
+for amino acids) and with corresponding names (i.e. <code>c("A", "T",
+"G", "C")</code> for DNA). If <code>qe = NULL</code>, background emission probabilities
+are automatically derived from the sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>integer giving the number of CPUs to parallelize the operation
+over. Defaults to 1, and reverts to 1 if x is not a list.
+This argument may alternatively be a 'cluster' object,
+in which case it is the user's responsibility to close the socket
+connection at the conclusion of the operation,
+for example by running <code>parallel::stopCluster(cores)</code>.
+The string 'autodetect' is also accepted, in which case the maximum
+number of cores to use is one less than the total number of cores available.
+Note that in this case there
+may be a tradeoff in terms of speed depending on the number and size
+of sequences to be aligned, due to the extra time required to initialize
+the cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>logical indicating whether feedback should be printed
+to the console.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function builds a multiple sequence alignment using profile
+hidden Markov models. The default behaviour is to select the longest
+sequence in the set that had the lowest sequence weight, derive a profile
+HMM from the single sequence, and iteratively train the model
+using the entire sequence set. Training can be achieved using either
+the Baum Welch or Viterbi training algorithm, with the latter being
+significantly faster, particularly when multi-threading is used.
+Once the model parameters have converged (Baum Welch) or no variation
+is seen in the sequential alignments (Viterbi training), the sequences
+are aligned to the profile HMM to produce the alignment matrix.
+The preceeding steps can be omitted if a pre-trained profile HMM
+is passed to the function via the "model" argument.
+</p>
+<p>If <code>progressive = TRUE</code> the function alternatively uses a
+progressive alignment procedure similar to the Clustal Omega algorithm
+(Sievers et al 2011). The involves an initial progressive multiple
+sequence alignment via a guide tree,
+followed by the derivation of a profile hidden Markov model
+from the alignment, an iterative model refinement step,
+and finally the alignment of the sequences back to the model as above.
+</p>
+<p>If only two sequences are provided, a standard pairwise alignment
+is carried out using the Needleman-Wunch or Smith-Waterman algorithm.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a matrix of aligned sequences, with the same mode and class as the
+input sequence list.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Shaun Wilkinson
+</p>
+
+
+<h3>References</h3>
+
+<p>Durbin R, Eddy SR, Krogh A, Mitchison G (1998) Biological
+sequence analysis: probabilistic models of proteins and nucleic acids.
+Cambridge University Press, Cambridge, United Kingdom.
+</p>
+<p>Sievers F, Wilm A, Dineen D, Gibson TJ, Karplus K, Li W, Lopez R, McWilliam H,
+Remmert M, Soding J, Thompson JD, Higgins DG (2011) Fast, scalable generation
+of high-quality protein multiple sequence alignments using Clustal Omega.
+<em>Molecular Systems Biology</em>, <strong>7</strong>, 539.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>unalign</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Protein pairwise alignment example from Durbin et al (1998) chapter 2.
+  x &lt;- c("H", "E", "A", "G", "A", "W", "G", "H", "E", "E")
+  y &lt;- c("P", "A", "W", "H", "E", "A", "E")
+  sequences &lt;- list(x = x, y = y)
+  glo &lt;- align(sequences, type = "global")
+  sem &lt;- align(sequences, type = "semiglobal")
+  loc &lt;- align(sequences, type = "local")
+  glo
+  sem
+  loc
+
+  ## Deconstruct the woodmouse alignment and re-align
+  library(ape)
+  data(woodmouse)
+  tmp &lt;- unalign(woodmouse)
+  x &lt;- align(tmp, windowspace = "WilburLipman")
+
+</code></pre>
+
+
+</div>

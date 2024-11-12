@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>APSurv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimating the Time-dependent AP and AUC for Censored Time to Event Outcome Data.</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the estimates of the AP and AUC
+for censored time to event data as well as their
+confidence intervals using the perturbation or the
+nonparametric bootstrap resampling method. The estimation
+method is based on Yuan, Y., Zhou, Q. M., Li, B., Cai, H., Chow, E. J., Armstrong, G. T. (2018). A threshold-free summary index of prediction accuracy for censored time to event data. Statistics in medicine, 37(10), 1671-1681.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  APSurv(stime, status, marker, t0.list, cut.values = NULL,
+    method = "none", alpha = 0.95, B = 1000,
+    weight = NULL, Plot = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>stime</code></td>
+<td>
+<p>Censored event time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p>Binary indicator of censoring. 1 indicates
+observing event of interest, 0 otherwise. Other values will be treated as competing risk event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marker</code></td>
+<td>
+<p>Numeric risk score. Data
+can be continuous or ordinal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0.list</code></td>
+<td>
+<p>Prediction time intervals of interest. It
+could be one numerical value or a vector of numerical
+values, which must be in the range of stime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cut.values</code></td>
+<td>
+<p>Risk score values to use as a cut-off for
+calculation of time-dependent positive predictive values
+(PPV) and true positive fractions (TPF). The default
+value is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method to obtain confidence intervals. The
+default is method = "none", in which case only point estimates will be given without confidence intervals.
+If method= "perturbation", then perturbation based CI will be calculated.
+If method = "bootstrap", then nonparametric bootstrap based CI will be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Confidence level. The default level is
+0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of resampling to obtain a confidence
+interval. The default value is 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>Optional. The default value is NULL, in
+which case the observations are weighted by the inverse
+of the probability that their respective time-dependent
+event status (whether the event occurs within a specified
+time period) is observed. In estimating the probability,
+the survival function of the censoring time is estimated
+by a Kaplan-Meier estimator under the assumption that the
+censoring time is independent of both the event time and
+risks score.  Users can use their own weights, in which
+case the t0.list should be a scalar and the length of
+weight is required to be the same as the length of
+status.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Plot</code></td>
+<td>
+<p>Whether to plot the time-dependent AP versus
+the prediction time intervals.  The default value is
+TRUE, in which case the AP is evaluated at the time
+points which partition the range of the event times of
+the data into 100 intervals.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class "APsurv" which is a list with
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ap_summary</code></td>
+<td>
+<p>Summary of estimated AP(s) at the specified
+prediction time intervals of interest. For each
+prediction time interval, the output includes the
+estimated event rate, a point estimate of the AP, the
+estimated scaled AP (ratio of the AP versus event rate),
+and their corresponding confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auc_summary</code></td>
+<td>
+<p>Summary of AUC at the specified prediction
+time intervals of interest. For each prediction time
+intervals, the output includes the estimated event rate
+and a point estimate of AUC with a confidence interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PPV</code></td>
+<td>
+<p>Available object, time-dependent positive predictive
+values at the unique risk score in the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TPF</code></td>
+<td>
+<p>Available object, time-dependent true positive
+fractions at the unique risk score in the data.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Yuan, Y., Zhou, Q. M., Li, B., Cai, H., Chow, E. J., Armstrong, G. T. (2018). A threshold-free summary index of prediction accuracy for censored time to event data. Statistics in medicine, 37(10), 1671-1681.
+</p>
+<p>Bingying Li (2015) Threshold-free Measure for Assessing
+the Performance of Risk Prediction with Censored Data,
+MSc. thesis, Simon Fraser University, Canada
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(APtools)
+data(mayo)
+t0.list=seq(from=min(mayo[,1]),to=max(mayo[,1]),length.out=5)[-c(1,5)]
+cut.values=seq(min(mayo[,3]),max(mayo[,3]),length.out=10)[-10]
+out &lt;- APSurv(stime=mayo[,1],status=mayo[,2],marker=mayo[,3],
+	t0.list=t0.list,cut.values=cut.values,method='bootstrap',
+	alpha=0.90,B=500,weight=rep(1,nrow(mayo)),Plot=FALSE)
+out
+</code></pre>
+
+
+</div>

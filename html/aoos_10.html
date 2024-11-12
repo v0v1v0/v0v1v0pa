@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>%g%</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wrapper for writing S4 generics and methods</h2>
+
+<h3>Description</h3>
+
+<p>These are two wrappers around <code>setGeneric</code> and <code>setMethod</code>. A
+relevant difference is that generics and methods are stored in the
+environment in which  <code>%g%</code> and <code>%m%</code> are called and not in the
+top-environment. Furthermore both functions have side effects in that they
+will call <code>globalVariables</code> for the arguments and name of the
+generic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lhs %g% rhs
+
+lhs %m% rhs
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lhs</code></td>
+<td>
+<p>see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>the body as an expression</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Syntax for the left hand side:
+<br><code>[&lt;valueClass&gt;:]&lt;genericName&gt;(&lt;argList&gt;)</code>
+<br> - <code>valueClass</code> optional, is the class of the return value (see
+setGeneric)
+<br> - <code>genericName</code> the name of the generic function
+<br> - <code>argList</code> are <code>name = value</code> or <code>name ~ type</code>
+expressions. Name-Value expressions are just like in a function definition.
+Name-Type expressions are used to define the signature of a method (see
+setMethod). See %type% and the examples how to work with 
+them.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A new generic function and a method:
+numeric : generic(x) %g% standardGeneric("generic") 
+generic(x ~ numeric) %m% x
+generic(1)
+
+# Polymorphic methods in an object:
+Object &lt;- function() {
+  numeric : generic(x) %g% standardGeneric("generic") 
+  generic(x ~ numeric) %m% x
+  retList("Object")
+}
+Object()$generic(1)
+
+# Class Unions:
+## This generic allows for return values of type numeric or character:
+'numeric | character' : generic(x) %g% standardGeneric("generic")
+
+## This method also allows for numeric or character as argument:
+generic(x ~ character | numeric) %m% x
+generic(1)
+generic("")
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,441 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vizAPOTC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Directly visualize clonal expansion of a combined seurat object</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+<p>This function combines the functionality of both <code>RunAPOTC()</code> and
+<code>APOTCPlot()</code>. Given a Seurat object, it first runs the APackOfTheClones
+method (<code>RunAPOTC()</code>) to compute clonal expansion information, and then
+generates a ggplot2 object of the clonal expansion plot with
+a circle size legend. (<code>APOTCPlot()</code>)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vizAPOTC(
+  seurat_obj,
+  reduction_base = "umap",
+  clonecall = "strict",
+  ...,
+  extra_filter = NULL,
+  alt_ident = NULL,
+  clone_scale_factor = "auto",
+  rad_scale_factor = 0.95,
+  order_clones = TRUE,
+  try_place = FALSE,
+  repulse = TRUE,
+  repulsion_threshold = 1,
+  repulsion_strength = 1,
+  max_repulsion_iter = 20L,
+  show_shared = NULL,
+  only_link = NULL,
+  clone_link_width = "auto",
+  clone_link_color = "black",
+  clone_link_alpha = 0.5,
+  res = 360L,
+  linetype = "blank",
+  use_default_theme = TRUE,
+  retain_axis_scales = FALSE,
+  alpha = 1,
+  show_labels = FALSE,
+  label_size = 5,
+  add_size_legend = TRUE,
+  legend_sizes = "auto",
+  legend_position = "auto",
+  legend_buffer = 0.2,
+  legend_color = "#808080",
+  legend_spacing = "auto",
+  legend_label = "Clone sizes",
+  legend_text_size = 5,
+  add_legend_background = TRUE,
+  add_legend_centerspace = 0,
+  detail = TRUE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>seurat_obj</code></td>
+<td>
+<p>A seurat object that has been integrated with clonotype
+data with <code>scRepertoire::combineExpression</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduction_base</code></td>
+<td>
+<p>character. The seurat reduction to base the clonal
+expansion plotting on. Defaults to <code>'umap'</code> but can be any reduction present
+within the reductions slot of the input seurat object, including custom ones.
+If ''pca'“, the cluster coordinates will be based on PC1 and PC2.
+However, generally APackOfTheClones is used for displaying UMAP and
+occasionally t-SNE versions to intuitively highlight clonal expansion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clonecall</code></td>
+<td>
+<p>character. The column name in the seurat object metadata to
+use. See <code>scRepertoire</code> documentation for more information about this
+parameter that is central to both packages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional "subsetting" keyword arguments indicating the rows
+corresponding to elements in the seurat object metadata that should be
+filtered by. E.g., <code>seurat_clusters = c(1, 9, 10)</code> will filter the cells to
+those in the <code>seurat_clusters</code> column with any of the values 1, 9, and 10.
+Unfortunately, column names in the seurat object metadata cannot
+conflict with the keyword arguments. <em><strong>MAJOR NOTE</strong></em> if any subsetting
+keyword arguments are a <em>prefix</em> of any preceding argument names (e.g. a
+column named <code>reduction</code> is a prefix of the <code>reduction_base</code> argument)
+R will interpret it as the same argument unless <em>both</em> arguments
+are named. Additionally, this means any subsequent arguments <em>must</em> be named.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extra_filter</code></td>
+<td>
+<p>character. An additional string that should be formatted
+<em>exactly</em> like a statement one would pass into dplyr::filter that does
+<em>additional</em> filtering to cells in the seurat object - on top of the other
+keyword arguments - based on the metadata. This means that it will be
+logically AND'ed with any keyword argument filters. This is a more flexible
+alternative / addition to the filtering keyword arguments. For example, if
+one wanted to filter by the length of the amino acid sequence of TCRs, one
+could pass in something like <code>extra_filter = "nchar(CTaa) - 1 &gt; 10"</code>. When
+involving characters, ensure to enclose with single quotes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt_ident</code></td>
+<td>
+<p>character. By default, cluster identity is assumed to be
+whatever is in <code>Idents(seurat_obj)</code>, and clones will be grouped by the active
+ident. However, <code>alt_ident</code> could be set as the name of some column in the
+meta data of the seurat object to be grouped by. This column is meant to have
+been a product of <code>Seurat::StashIdent</code> or manually added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone_scale_factor</code></td>
+<td>
+<p>Dictates how much to scale each circle(between 0,1)
+radius when converting from clonotype counts into circles that represent
+individual clonotypes. The argument defaults to the character <code>"auto"</code>, and
+if so, the most visually pleasing factor will be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rad_scale_factor</code></td>
+<td>
+<p>numeric between 0 and 1. This value decreases the
+radius of the smallest clones by this scale factor. And the absolute value
+of this decrease will be applied to all packed circles, effectively shrinking
+all circles on the spot, and introduce more constant spacing in between.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order_clones</code></td>
+<td>
+<p>logical. Decides if the largest clone circles should be
+near cluster centroids. This is highly recommended to be set to TRUE for
+increased intuitiveness of the visualization, as resulting plots tend to
+give an improved impression of the proportion of expanded clones. If
+<code style="white-space: pre;">⁠FALSE,⁠</code> will randomly scramble the positions of each circle. For the sake
+of being replicable, a random seed is recommended to be set with set.seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>try_place</code></td>
+<td>
+<p>If <code>TRUE</code>, always minimizes distance from a newly placed
+circle to the origin in the circle packing algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repulse</code></td>
+<td>
+<p>If <code>TRUE</code>, will attempt to push overlapping clusters away from
+each other.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repulsion_threshold</code></td>
+<td>
+<p>numeric. The radius that clonal circle clusters
+overlap is acceptable when repulsing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repulsion_strength</code></td>
+<td>
+<p>numeric. The smaller the value the less the
+clusters repulse each other per iteration, and vice versa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_repulsion_iter</code></td>
+<td>
+<p>integer. The number of repulsion iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_shared</code></td>
+<td>
+<p>The output of getSharedClones can be inputted here,
+and the resulting plot will overlay lines between clone circles if that
+clonotype is common between clusters. Note that the input <em><strong>must</strong></em> be
+generated from data in the correct <code>APackOfTheClones</code> run, and the behavior
+is undefined otherwise and will likely error. The next 4 arguments allow for
+aesthetic customization of these line links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only_link</code></td>
+<td>
+<p>Optional integer indicating to only display clone
+links originating from this cluster if showing shared clones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone_link_width</code></td>
+<td>
+<p>numeric. The width of the lines that connect shared
+clones. Defaults to <code>"auto"</code> which will estimate a reasonable value depending
+on circle sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone_link_color</code></td>
+<td>
+<p>character. The color of the lines that connect shared
+clones. Defaults to <code>"blend"</code> which will use the average colors of the two
+connected clones. Else, any hex color or valid color string input will work,
+and the corresponding color will be applied on all links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone_link_alpha</code></td>
+<td>
+<p>numeric. The alpha of the lines that connect shared
+clones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>The number of points on the generated path per full circle. From
+plot viewers, if circles seem slightly too pixelated, it is recommended to
+first try to export the plot as an <code>.svg</code> before increasing <code>res</code> due to
+increased plotting times from ggforce::geom_circle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linetype</code></td>
+<td>
+<p>The type of outline each circle should have. defaults to
+<code style="white-space: pre;">⁠"blank⁠</code> meaning no outline. More information is in the function
+documentation of <code>ggforce::geom_circle</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_default_theme</code></td>
+<td>
+<p>logical that defaults to <code>TRUE</code>. If <code>TRUE</code>,
+the resulting plot will have the same theme as the seurat reference reduction
+plot. Else, the plot will simply have a blank background.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retain_axis_scales</code></td>
+<td>
+<p>If <code>TRUE</code>, approximately maintains the axis scales
+of the original reduction plot. However, it will only attempt to extend the
+axes and never shorten. Users are recommended to set this to <code>TRUE</code>
+especially if working with subsetted versions of the clonal data to better
+preserve the geometric relation to the original dimensional reduction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric. The alpha of the circles in (0, 1]. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_labels</code></td>
+<td>
+<p>If <code>TRUE</code>, will label each circle cluster at the centroid,
+defaulting to "C0, C1, ...".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label_size</code></td>
+<td>
+<p>The text size of labels if shown. Defaults to 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_size_legend</code></td>
+<td>
+<p>If <code>TRUE</code>, adds a legend to the plot visualizing the
+relative sizes of clones. Note that it is simply an overlay and not a real
+ggplot2 legend.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_sizes</code></td>
+<td>
+<p>numeric vector. Indicates the circle sizes to be
+displayed on the legend, and will always be sorted from smallest to greatest.
+Defaults to <code>"auto"</code> which estimate a reasonable range of sizes to display.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_position</code></td>
+<td>
+<p>character or numeric. Can be set to either
+<code>"top_left"</code>, <code>"top_right"</code>, <code>"bottom_left"</code>, <code>"bottom_right"</code> and places the
+legend roughly in the corresponding position. Otherwise, can be a numeric
+vector of length 2 indicating the x and y position of the <em>topmost (smallest)
+circle</em> of the legend.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_buffer</code></td>
+<td>
+<p>numeric. Indicates how much to "push" the legend towards
+the center of the plot from the selected corner. If negative, will push away</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_color</code></td>
+<td>
+<p>character. Indicates the hex color of the circles
+displayed on the legend. Defaults to the hex code for a gray tone</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_spacing</code></td>
+<td>
+<p>numeric. Indicates the horizontal distance between each
+stacked circle on the size legend. Defaults to <code>"auto"</code> which will use an
+estimated value depending on plot size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_label</code></td>
+<td>
+<p>character. The title of the legend, which defaults to
+<code style="white-space: pre;">⁠"clone sizes⁠</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_text_size</code></td>
+<td>
+<p>numeric. The text size of the letters and numbers on
+the legend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_legend_background</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, will add a border around the
+legend and fill the background to be white, overlaying anything else.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_legend_centerspace</code></td>
+<td>
+<p>numeric. An additional amount of distance
+changed between the circle sizes on the left side of the legend and the
+numbers on the right. Useful to set to around 0.5 (or more / less) when there
+are particularly large clone sizes that may cover the numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail</code></td>
+<td>
+<p>logical. If <code>FALSE</code>, will only plot entire clusters as one
+large circle, which may be useful in cases where there are a high number
+of clones resulting in a large number of circles on the resulting ggplot,
+which has increased plotting times, and certain aspects of the plot needs
+to be finely adjusted with AdjustAPOTC or simply inspected. This should
+not be set to <code>FALSE</code> for the actual clonal expansion plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical. Decides if visual cues are displayed to the R console
+of the progress.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that the subsetting arguments <code>...</code> and <code>extra_filter</code> are only a
+quick convenience to subset based on metadata, and the <code>subset</code> S3 method
+defined in <code>Seurat</code> is much more mature are has more features. Additionally,
+users need to work with data subsets are recommended to and likely already
+are working with seurat objects subsetted/split with <code>Seurat::SplitObject</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot object of the APackOfTheClones clonal expansion plot of the
+seurat object. There is an additional 10th element in the object named
+<code>"APackOfTheClones"</code> used by other functions in this package and shouldn't
+interfere with any other ggplot functionality. (As far as currently known)
+</p>
+
+
+<h3>Cluster labelling</h3>
+
+<p>For the ident that was used to cluster the clones, labels for each cluster
+are inferred and stored in the run so that they can be used by other
+functions and optionally overlaid on the plot over clusters. If the levels
+of the ident used is a naturally ordered integer sequence, then the labels
+generated would be <code style="white-space: pre;">⁠"C1", "C2", "C3" ... ⁠</code>, else they would be the actual
+ident levels themselves.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>AdjustAPOTC
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("combined_pbmc")
+
+# plot with default parameters
+vizAPOTC(combined_pbmc, verbose = FALSE)
+
+# use arguments from RunAPOTC and APOTCPlot
+vizAPOTC(
+    combined_pbmc, try_place = TRUE, show_labels = TRUE, verbose = FALSE
+)
+
+</code></pre>
+
+
+</div>

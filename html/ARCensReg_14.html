@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rARCens</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Generating censored autoregressive data
+</h2>
+
+<h3>Description</h3>
+
+<p>It simulates a censored response variable with autoregressive errors of order <code class="reqn">p</code> following normal or Student-t innovations, with an established censoring rate.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rARCens(n, beta, phi, sig2 = 1, x = rep(1, n), cens = "left", 
+  pcens = 0.1, innov = "norm", nu = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Length of the desired time serie.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Vector of theoretical regression parameters of length <code class="reqn">l</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>Vector of theoretical autoregressive coefficients of length <code class="reqn">p</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig2</code></td>
+<td>
+<p>Theoretical variance of the error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix of covariates of dimension <code class="reqn">n</code>x<code class="reqn">l</code> (in models that include 
+an intercept <code>x</code> should contain a column of ones).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens</code></td>
+<td>
+<p><code>'left'</code> for left censoring, <code>'right'</code> for right censoring.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcens</code></td>
+<td>
+<p>Desired censoring rate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innov</code></td>
+<td>
+<p>Distribution of the innovation variable. The values are <code>'norm'</code> and <code>'t'</code> for normal and Student-t distribution, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>Degrees of freedom for Student-t innovations.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Generated response (y), censoring indicator (cc), and lower (lcl) and upper (ucl) bounds of the interval, which contains the true value of the censored observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>Theoretical parameters (beta, sig2, phi).</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>For data generation with Student-t innovations, the first <code class="reqn">p</code> observations are not censored.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Fernanda L. Schumacher, Katherine L. Valeriano, Victor H. Lachos, Christian E. Galarza,
+and Larissa A. Matos
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ARCensReg</code>, <code>ARtCensReg</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+
+## Example 1: Generating a sample with normal innovations
+set.seed(1234)
+dat = rARCens(n=100, beta=c(1,-1), phi=c(.48,-.2), sig2=.5,
+              x=cbind(1,runif(100)), cens='left', pcens=.10)
+
+# Plotting the time serie
+ggplot(data.frame(dat$data$y), aes(x=1:100, y=dat$data$y)) + geom_line() + 
+  geom_line(aes(x=1:100, y=dat$data$ucl), color="red", linetype="twodash") + 
+  labs(x="Time", y=bquote(y["obs"])) + theme_bw()
+
+table(dat$data$cc)
+
+dat$param
+#[1]  1.00 -1.00  0.50  0.48 -0.20
+
+## Example 2: Generating a sample with Student-t innovations
+set.seed(8278)
+dat1 = rARCens(n=100, beta=c(1,-1), phi=c(.48,-.2), sig2=.5,
+               x=cbind(1,rnorm(100)), cens='right', pcens=.10, 
+               innov='t', nu=3)
+
+# Plotting the time serie
+ggplot(data.frame(dat1$data$y), aes(x=1:100, y=dat1$data$y)) + geom_line() + 
+  geom_line(aes(x=1:100, y=dat1$data$lcl), color="red", linetype="twodash") + 
+  labs(x="Time", y=bquote(y["obs"])) + theme_bw()
+  
+dat1$param
+#[1]  1.00 -1.00  0.50  0.48 -0.20  3.00
+</code></pre>
+
+
+</div>

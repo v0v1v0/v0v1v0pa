@@ -1,0 +1,284 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bootREMLRT.asreml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Uses the parametric bootstrap to calculate the p-value for a REML ratio test to compare two models.</h2>
+
+<h3>Description</h3>
+
+<p>Extracts the REML log likelihood for two <code>asreml</code> objects 
+and forms the observed REML ratio statistic. It assumes that the second 
+<code>asreml</code> object is the result of fitting a model that is a reduced 
+version of the model for the first object and is considered to the null model. 
+Using the <code>mean</code> and <code>V</code>, <code>nboot</code> bootstrap samples of simulated 
+response values are generated in parallel; that is, <code>ncores</code> cores are used 
+and each is used to generate and analyse a sample.  The full and reduced models 
+are fitted to the data and if either analysis fails to converge another sample 
+is generated and analysed using the current core, with a maximum of 
+<code>max.retries</code> attempts to obtain a sample that converges for both analysis. 
+Thus the maximum number of data sets that will be generated is 
+<code>nboot</code> * <code>max.retries</code>. If a bootstrap sample converges for both analyses, 
+the REML ratio test statistic is formed for it. The p-value is then calculated 
+as <code class="reqn">(k + 1) / (b + 1)</code> where <code class="reqn">k</code> is the number 
+of simulated ratio test statistics greater than the observed test statistic and 
+<code class="reqn">s</code> is the number of bootstrap samples that were returned.
+</p>
+<p>The function checks that the models do not differ in either their fixed 
+or sparse models. It also check the difference in the number of variance 
+parameters between the two fits to the models, taking into account the 
+<code>bound.exclusions</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+bootREMLRT(h0.asreml.obj, h1.asreml.obj, 
+           nboot = 100, max.retries = 5, seed = NULL, 
+           means=NULL, V = NULL, extra.matrix = NULL, ignore.terms = NULL, 
+           fixed.spline.terms = NULL, 
+           bound.exclusions = c("F","B","S","C"), 
+           tolerance = 1E-10, update = TRUE, trace = FALSE, 
+           ncores = 2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>h0.asreml.obj</code></td>
+<td>
+<p><code>asreml</code> object containing the fit under the model for the 
+null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h1.asreml.obj</code></td>
+<td>
+<p><code>asreml</code> object containing the fit under the model for the 
+alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>The number of bootstrap samples to be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.retries</code></td>
+<td>
+<p>The maximum number of attempts to generate a sample whose analyses 
+converge for both models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A single value, interpreted as an integer, that specifies the 
+starting value of the random number generator. The "L'Ecuyer-CMRG" random 
+generator is used and <code>nextRNGStream</code> is used to seed each core from the
+original <code>seed</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>The <code>vector</code> of means to be used in generating simulated bootstrap 
+samples. If it is <code>NULL</code>, the fitted values based on <code>object</code> 
+are used. It must be the same length as the response variable for 
+<code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>The fitted variance <code>matrix</code>, i.e. having the pattern and values that 
+conform to the model fit stored in the supplied <code>object</code>. If it is 
+<code>NULL</code>, <code>estimateV.asreml</code> is used to estimate the 
+variance matrix for the observations from the variance parameter estimates 
+from the <code>reduced.asreml.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extra.matrix</code></td>
+<td>
+<p>A <code>matrix</code> of order equal to the number of observations that is to 
+be added to the variance <code>matrix</code>, the latter based 
+on the information in <code>asreml.obj</code>. It is assumed that the sigma-parameterized 
+values of the variance parameter estimates, such as is given in the <code>varcomp</code> 
+component of <code>summary.asreml</code>, have been used in calculating 
+<code>extra.matrix</code>; the values in the <code>vparameters</code> component of 
+<code>G.param</code> and <code>R.param</code> may be either gamma- or sigma-parameterized. 
+The argument <code>extra.matrix</code> can be used in conjunction with 
+<code>ignore.terms</code> as a workaround to include components of the variance matrix 
+for variance functions that have not been implemented in <code>estimateV</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.terms</code></td>
+<td>
+<p>A <code>character</code> giving terms from either the <code>random</code> or 
+<code>residual</code> models that are to be ignored in that their contributions to 
+the variance is not to be included in the estimated matrix. The term names are those 
+given in the <code>vparameters</code> component of the <code>asreml</code> object or the 
+<code>varcomp</code> component produced by <code>summary.asreml</code>, but only up to the 
+first exclamation mark (<code>!</code>). This can be used 
+in conjunction with <code>estimateV.asreml</code> as a workaround to include components 
+of the variance matrix for variance functions that have not been implemented                
+in <code>estimateV</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed.spline.terms</code></td>
+<td>
+<p>A <code>character</code> vector giving one or more spline terms in the 
+<code>random</code> model that are regarded as fixed  and so are to be ignored 
+because they are not regarded as contributing to the variance. The term 
+names are those given in the <code>vparameters</code> component of the 
+<code>asreml</code> object or the <code>varcomp</code> component produced by 
+<code>summary.asreml</code>, but only up to the first exclamation mark 
+(<code>!</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.exclusions</code></td>
+<td>
+<p>A <code>character</code> specifying one or more bound codes that 
+will result in a variance parameter in the <code>random</code> model being 
+excluded from contributing to the variance. If set to <code>NULL</code> 
+then none will be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>The value such that eigenvalues less than it are considered to be zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE </code>then the arguments <code>R.param</code> 
+and <code>G.param</code> are set to those in the <code>asreml</code> object supplied 
+in <code>object</code> so that the values from the original model are used as 
+starting values. If <code>FALSE</code> then <code>asreml</code> <code>calls</code> are 
+evaluated, the only changes from the previous call being that 
+(i) the model is fitted to simulated data and (ii) modifications 
+specified via <code>...</code> are mode, except that changes cannot be made to 
+any of the models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If <code>TRUE</code> then partial iteration details are displayed when ASReml-R 
+functions are invoked; if <code>FALSE</code> then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>A <code>numeric</code> specifying the number of cores to use in doing the 
+simulations. In choosing a value for <code>ncores</code>, it is necessary to 
+take into account other processes that are using parallel processing at 
+the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that are passed down to the function asreml. Changes to the 
+models are not allowed. Other changes are dangerous and generally should be 
+avoided.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following components:
+</p>
+
+<ol>
+<li>
+<p><b>REMLRT:</b> the observed REML ratio statistic. 
+</p>
+</li>
+<li>
+<p><b>p:</b> the bootstrap p-value for the observed test statistic.
+</p>
+</li>
+<li>
+<p><b>DF:</b> the calculated difference in DF for the variance parameters in the two models.
+</p>
+</li>
+<li>
+<p><b>totalunconverged:</b> the total number of unconverged analyses over the simulations.
+</p>
+</li>
+<li>
+<p><b>REMLRT.sim:</b> a <code>numeric</code> containing the values of the ratio statistics 
+for the simulated data. It has an attribute called <code>na.action</code> that 
+can be retrieved using <code>attr(REMLRT.sim, which = "na.action")</code>; it 
+contains a list of the simulation numbers that were abandoned because 
+<code>max.retries</code> failed to converge for both models.
+</p>
+</li>
+<li>
+<p><b>nunconverged:</b> the number of unconverged analyses for each bootstrap sample, the 
+maximum being <code>max.retries</code>.</p>
+</li>
+</ol>
+<h3>Note</h3>
+
+<p>A bootstrap sample is generated using a multivariate normal distribution with expected value as 
+specified by <code>means</code> and variance matrix given by <code>V</code>. Each simulated sample 
+is analysed according to the reduced model and, provided this analysis converges, 
+according to the full.model. If one of these analyses fails to converge, it is 
+abandoned and another sample is generated for this simulation. As many as 
+<code>max.retries</code> attempts are made to generate a data set for which both analyses 
+converge. If data set that converges for both analyses is not generated for a 
+simulation, <code>NA</code> is returned for that bootstrap sample. Hence, the maximum number 
+of data sets that will be generated is <code>nboot</code> * <code>max.retries</code> and less than 
+<code>nboot</code> samples will be generated if a data set that converges for both analyses 
+is not obtained within <code>max.retries</code> attempts. 
+</p>
+<p>If a bootstrap sample converges for both analyses, the REML ratio test statistic is calculated 
+as <code class="reqn">2(log(REML)_F - log(REML)_R)</code>.
+</p>
+<p>The <code>DF</code> is calculated from the information in <code>full.asreml.obj</code> and 
+<code>reduced.asreml.obj</code>. The degrees of freedom are computed as the difference 
+between the two models in the number of variance parameters whose estimates do 
+not have a code for <code>bound</code> specified in <code>bound.exclusions</code>.
+</p>
+<p>If ASReml-R version 4 is being used then the codes specified in 
+<code>bound.exclusions</code> are not restricted to a subset of the default codes, but 
+a warning is issued if a code other than these is specified. 
+For ASReml-R version 3, only a subset of the default codes are allowed: 
+<code>F</code> (<code>Fixed</code>), <code>B</code> (<code>Boundary</code>), <code>C</code> (<code>Constrained</code>) 
+and <code>S</code> (<code>Singular</code>). 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>REMLRT.asreml</code>, <code>infoCriteria.asreml</code>, <code>newfit.asreml</code>, 
+<code>testranfix.asrtests</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+    bootREMLRT(ICV.max, ICV.red, ncores = parallel::detectCores())
+
+## End(Not run)</code></pre>
+
+
+</div>

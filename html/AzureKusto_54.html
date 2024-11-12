@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_kusto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kusto/Azure Data Explorer cluster resource class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing a Kusto cluster, exposing methods for working with it.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_resource class:
+</p>
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new storage object. See 'Initialization'.
+</p>
+</li>
+<li> <p><code>start()</code>: Start the cluster.
+</p>
+</li>
+<li> <p><code>stop()</code>: Stop the cluster.
+</p>
+</li>
+<li> <p><code>create_database(...)</code>: Create a new Kusto database. See <code>Databases</code> below.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠get_database(database))⁠</code>: Get an existing database.
+</p>
+</li>
+<li> <p><code>delete_database(database, confirm=TRUE)</code>: Delete a database, by default asking for confirmation first.
+</p>
+</li>
+<li> <p><code>list_databases()</code>: List all databases in this cluster.
+</p>
+</li>
+<li> <p><code>get_default_tenant()</code>: Retrieve the default tenant to authenticate with this cluster.
+</p>
+</li>
+<li> <p><code>get_query_token(tenant, ...)</code>: Obtain an authentication token from Azure Active Directory for this cluster's query endpoint. Accepts further arguments that will be passed to get_kusto_token.
+</p>
+</li>
+<li> <p><code>get_ingestion_token(tenant, ...)</code>: Obtain an authentication token for this cluster's ingestion endpoint. Accepts further arguments that will be passed to get_kusto_token.
+</p>
+</li>
+</ul>
+<h3>Initialization</h3>
+
+<p>Initializing a new object of this class can either retrieve an existing Kusto cluster, or create a new cluster on the host. Generally, the best way to initialize an object is via the <code>get_kusto_cluster</code> and <code>create_kusto_cluster</code> methods of the az_resource_group class, which handle the details automatically.
+</p>
+
+
+<h3>Databases</h3>
+
+<p>A Kusto cluster can have several databases, which are represented in AzureKusto via az_kusto_database R6 objects. The <code>az_kusto</code> class provides the <code>create_database</code>, <code>get_database</code>, <code>delete_database</code> and <code>list_databases</code> methods for creating, deleting and retrieving databases. It's recommended to use these methods rather than calling <code>az_kusto_database$new()</code> directly.
+</p>
+<p><code>create_database</code> takes the following arguments. It returns an object of class az_kusto_database
+</p>
+
+<ul>
+<li> <p><code>database</code>: The name of the database to create.
+</p>
+</li>
+<li> <p><code>retention_period</code>: The retention period of the database, after which data will be soft-deleted.
+</p>
+</li>
+<li> <p><code>cache_period</code>: The cache period of the database, the length of time for which queries will be cached.
+</p>
+</li>
+</ul>
+<p><code>get_database</code> takes a single argument <code>database</code>, the name of the database to retrieve, and returns an object of class <code>az_kusto_database</code>. <code>delete_database</code> takes the name of the database to delete and returns NULL on a successful deletion. <code>list_databases</code> takes no arguments and returns a list of <code>az_kusto_database</code> objects, one for each database in the cluster.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>az_kusto_database, kusto_database_endpoint,
+create_kusto_cluster, get_kusto_cluster, delete_kusto_cluster,
+get_kusto_token
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/data-explorer/">Kusto/Azure Data Explorer documentation</a>,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# recommended way of retrieving a resource: via a resource group object
+kus &lt;- resgroup$get_kusto_cluster("mykusto")
+
+# list databases
+kust$list_databases()
+
+# create a new database with a retention period of 6 months
+kust$create_database("newdb", retention_period=180)
+
+# get the default authentication tenant
+kus$get_default_tenant()
+
+# generate an authentication token
+kust$get_aad_token()
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

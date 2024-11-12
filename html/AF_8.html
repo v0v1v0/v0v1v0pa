@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AFparfrailty</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable fraction function based on a Weibull gamma-frailty model as a <code>parfrailty</code> object (commonly used for cohort sampling family designs with time-to-event outcomes).</h2>
+
+<h3>Description</h3>
+
+<p><code>AFparfrailty</code> estimates the model-based adjusted attributable fraction function from a shared Weibull gamma-frailty model in form of a  <code>parfrailty</code> object. This model is commonly used for data from cohort sampling familty designs with time-to-event outcomes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AFparfrailty(object, data, exposure, times, clusterid)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted Weibull gamma-parfrailty object of class "<code>parfrailty</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment (<code>formula</code>), typically the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure</code></td>
+<td>
+<p>the name of the exposure variable as a string. The exposure must be binary (0/1) where unexposed is coded as 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>a scalar or vector of time points specified by the user for which the attributable fraction function is estimated. If not specified the observed death times will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterid</code></td>
+<td>
+<p>the name of the cluster identifier variable as a string, if data are clustered.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>AFparfrailty</code> estimates the attributable fraction for a time-to-event outcome
+under the hypothetical scenario where a binary exposure <code>X</code> is eliminated from the population.
+The estimate is adjusted for confounders <code>Z</code> by the shared frailty model (<code>parfrailty</code>).
+The baseline hazard is assumed to follow a Weibull distribution and the unobserved shared frailty effects <code>U</code> are assumed to be gamma distributed.
+Let the AF function be defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AF=1-\frac{\{1-S_0(t)\}}{\{1-S(t)\}}</code>
+</p>
+
+<p>where <code class="reqn">S_0(t)</code> denotes the counterfactual survival function for the event if
+the exposure would have been eliminated from the population at baseline and <code class="reqn">S(t)</code> denotes the factual survival function.
+If <code>Z</code> and <code>U</code> are sufficient for confounding control, then <code class="reqn">S_0(t)</code> can be expressed as <code class="reqn">E_Z\{S(t\mid{X=0,Z })\}</code>.
+The function uses a fitted Weibull gamma-frailty model to estimate <code class="reqn">S(t\mid{X=0,Z})</code>, and the marginal sample distribution of <code>Z</code>
+to approximate the outer expectation. A clustered sandwich formula is used in all variance calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AF.est</code></td>
+<td>
+<p>estimated attributable fraction function for every time point specified by <code>times</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AF.var</code></td>
+<td>
+<p>estimated variance of <code>AF.est</code>. The variance is obtained by combining the delta methods with the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.est</code></td>
+<td>
+<p>estimated factual survival function; <code class="reqn">S(t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var</code></td>
+<td>
+<p>estimated variance of <code>S.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S0.est</code></td>
+<td>
+<p>estimated counterfactual survival function if exposure would be eliminated; <code class="reqn">S_0(t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S0.var</code></td>
+<td>
+<p>estimated variance of <code>S0.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Elisabeth Dahlqwist, Arvid Sjölander
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>parfrailty</code> used for fitting the Weibull gamma-frailty and <code>stdParfrailty</code> used for standardization of a <code>parfrailty</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: clustered data with frailty U
+expit &lt;- function(x) 1 / (1 + exp( - x))
+n &lt;- 100
+m &lt;- 2
+alpha &lt;- 1.5
+eta &lt;- 1
+phi &lt;- 0.5
+beta &lt;- 1
+id &lt;- rep(1:n,each=m)
+U &lt;- rep(rgamma(n, shape = 1 / phi, scale = phi), each = m)
+Z &lt;- rnorm(n * m)
+X &lt;- rbinom(n * m, size = 1, prob = expit(Z))
+# Reparametrize scale as in rweibull function
+weibull.scale &lt;- alpha / (U * exp(beta * X)) ^ (1 / eta)
+t &lt;- rweibull(n * m, shape = eta, scale = weibull.scale)
+
+# Right censoring
+c &lt;- runif(n * m, 0, 10)
+delta &lt;- as.numeric(t &lt; c)
+t &lt;- pmin(t, c)
+
+data &lt;- data.frame(t, delta, X, Z, id)
+
+# Fit a parfrailty object
+library(stdReg)
+fit &lt;- parfrailty(formula = Surv(t, delta) ~ X + Z + X * Z, data = data, clusterid = "id")
+summary(fit)
+
+# Estimate the attributable fraction from the fitted frailty model
+
+time &lt;- c(seq(from = 0.2, to = 1, by = 0.2))
+
+AFparfrailty_est &lt;- AFparfrailty(object = fit, data = data, exposure = "X",
+                                  times = time, clusterid = "id")
+summary(AFparfrailty_est)
+plot(AFparfrailty_est, CI = TRUE, ylim=c(0.1,0.7))
+</code></pre>
+
+
+</div>

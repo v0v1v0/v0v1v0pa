@@ -1,0 +1,290 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_query_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates a queries dataset as input dataset to the <code>dataset_queries</code> argument in
+<code>derive_vars_query()</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Creates a queries dataset as input dataset to the <code>dataset_queries</code> argument
+in the <code>derive_vars_query()</code> function as defined in the <a href="../articles/queries_dataset.html">Queries Dataset Documentation</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_query_data(queries, version = NULL, get_terms_fun = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>queries</code></td>
+<td>
+<p>List of queries
+</p>
+<p>A list of <code>query()</code> objects is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>Dictionary version
+</p>
+<p>The dictionary version used for coding the terms should be specified.
+If any of the queries is a basket (SMQ, SDG, ....) or a customized query
+including a basket, the parameter needs to be specified.
+</p>
+<p><em>Permitted Values</em>: A character string (the expected format is
+company-specific)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get_terms_fun</code></td>
+<td>
+<p>Function which returns the terms
+</p>
+<p>For each query specified for the <code>queries</code> parameter referring to a basket
+(i.e., those where the <code>definition</code> field is set to a <code>basket_select()</code>
+object or a list which contains at least one <code>basket_select()</code> object) the
+specified function is called to retrieve the terms defining the query.
+This function is not provided by admiral as it is company specific, i.e.,
+it has to be implemented at company level.
+</p>
+<p>The function must return a dataset with all the terms defining the basket.
+The output dataset must contain the following variables.
+</p>
+
+<ul>
+<li> <p><code>SRCVAR</code>: the variable to be used for defining a term of the basket,
+e.g., <code>AEDECOD</code>
+</p>
+</li>
+<li> <p><code>TERMCHAR</code>: the name of the term if the variable <code>SRCVAR</code> is
+referring to is character
+</p>
+</li>
+<li> <p><code>TERMNUM</code> the numeric id of the term if the variable <code>SRCVAR</code> is
+referring to is numeric
+</p>
+</li>
+<li> <p><code>GRPNAME</code>: the name of the basket. The values must be the same for
+all observations.
+</p>
+</li>
+</ul>
+<p>The function must provide the following parameters
+</p>
+
+<ul>
+<li> <p><code>basket_select</code>: A <code>basket_select()</code> object.
+</p>
+</li>
+<li> <p><code>version</code>: The dictionary version. The value specified for the
+<code>version</code> in the <code>create_query_data()</code> call is passed to this
+parameter.
+</p>
+</li>
+<li> <p><code>keep_id</code>: If set to <code>TRUE</code>, the output dataset must contain the
+<code>GRPID</code> variable. The variable must be set to the numeric id of the basket.
+</p>
+</li>
+<li> <p><code>temp_env</code>: A temporary environment is passed to this parameter. It can
+be used to store data which is used for all baskets in the
+<code>create_query_data()</code> call. For example if SMQs need to be read from a
+database all SMQs can be read and stored in the environment when the first
+SMQ is handled. For the other SMQs the terms can be retrieved from the
+environment instead of accessing the database again.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each <code>query()</code> object listed in the <code>queries</code> argument, the terms belonging
+to the query (<code>SRCVAR</code>, <code>TERMCHAR</code>, <code>TERMNUM</code>) are determined with respect
+to the <code>definition</code> field of the query: if the definition field of the
+<code>query()</code> object is
+</p>
+
+<ul>
+<li>
+<p> a <code>basket_select()</code> object, the terms are read from the basket
+database by calling the function specified for the <code>get_terms_fun</code> parameter.
+</p>
+</li>
+<li>
+<p> a data frame, the terms stored in the data frame are used.
+</p>
+</li>
+<li>
+<p> a list of data frames and <code>basket_select()</code> objects, all terms from
+the data frames and all terms read from the basket database referenced by the
+<code>basket_select()</code> objects are collated.
+</p>
+</li>
+</ul>
+<p>The following variables (as described in <a href="../articles/queries_dataset.html">Queries Dataset Documentation</a>) are created:
+</p>
+
+<ul>
+<li> <p><code>PREFIX</code>: Prefix of the variables to be created by
+<code>derive_vars_query()</code> as specified by the <code>prefix</code> element.
+</p>
+</li>
+<li> <p><code>GRPNAME</code>: Name of the query as specified by the <code>name</code> element.
+</p>
+</li>
+<li> <p><code>GRPID</code>: Id of the query as specified by the <code>id</code> element. If the <code>id</code>
+element is not specified for a query, the variable is set to <code>NA</code>. If the
+<code>id</code> element is not specified for any query, the variable is not created.
+</p>
+</li>
+<li> <p><code>SCOPE</code>: scope of the query as specified by the <code>scope</code> element of
+the <code>basket_select()</code> object. For queries not defined by a <code>basket_select()</code>
+object, the variable is set to <code>NA</code>. If none of the queries is defined by a
+<code>basket_select()</code> object, the variable is not created.
+</p>
+</li>
+<li> <p><code>SCOPEN</code>: numeric scope of the query. It is set to <code>1</code> if the
+scope is broad. Otherwise it is set to <code>2</code>. If the <code>add_scope_num</code> element
+equals <code>FALSE</code>, the variable is set to <code>NA</code>. If the <code>add_scope_num</code> element
+equals <code>FALSE</code> for all baskets or none of the queries is an basket , the variable
+is not created.
+</p>
+</li>
+<li> <p><code>SRCVAR</code>: Name of the variable used to identify the terms.
+</p>
+</li>
+<li> <p><code>TERMCHAR</code>: Value of the term variable if it is a character variable.
+</p>
+</li>
+<li> <p><code>TERMNUM</code>: Value of the term variable if it is a numeric variable.
+</p>
+</li>
+<li> <p><code>VERSION</code>: Set to the value of the <code>version</code> argument. If it is not
+specified, the variable is not created.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A dataset to be used as input dataset to the <code>dataset_queries</code>
+argument in <code>derive_vars_query()</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>derive_vars_query()</code>, <code>query()</code>, <code>basket_select()</code>, <a href="../articles/queries_dataset.html">Queries Dataset Documentation</a>
+</p>
+<p>Creating auxiliary datasets: 
+<code>consolidate_metadata()</code>,
+<code>create_period_dataset()</code>,
+<code>create_single_dose_dataset()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(pharmaversesdtm)
+library(admiral)
+
+# creating a query dataset for a customized query
+cqterms &lt;- tribble(
+  ~TERMCHAR, ~TERMNUM,
+  "APPLICATION SITE ERYTHEMA", 10003041L,
+  "APPLICATION SITE PRURITUS", 10003053L
+) %&gt;%
+  mutate(SRCVAR = "AEDECOD")
+
+cq &lt;- query(
+  prefix = "CQ01",
+  name = "Application Site Issues",
+  definition = cqterms
+)
+
+create_query_data(queries = list(cq))
+
+# create a query dataset for SMQs
+pregsmq &lt;- query(
+  prefix = "SMQ02",
+  id = auto,
+  definition = basket_select(
+    name = "Pregnancy and neonatal topics (SMQ)",
+    scope = "NARROW",
+    type = "smq"
+  )
+)
+
+bilismq &lt;- query(
+  prefix = "SMQ04",
+  definition = basket_select(
+    id = 20000121L,
+    scope = "BROAD",
+    type = "smq"
+  )
+)
+
+# The get_terms function from pharmaversesdtm is used for this example.
+# In a real application a company-specific function must be used.
+create_query_data(
+  queries = list(pregsmq, bilismq),
+  get_terms_fun = pharmaversesdtm:::get_terms,
+  version = "20.1"
+)
+
+# create a query dataset for SDGs
+sdg &lt;- query(
+  prefix = "SDG01",
+  id = auto,
+  definition = basket_select(
+    name = "5-aminosalicylates for ulcerative colitis",
+    scope = NA_character_,
+    type = "sdg"
+  )
+)
+
+# The get_terms function from pharmaversesdtm is used for this example.
+# In a real application a company-specific function must be used.
+create_query_data(
+  queries = list(sdg),
+  get_terms_fun = pharmaversesdtm:::get_terms,
+  version = "2019-09"
+)
+
+# creating a query dataset for a customized query including SMQs
+# The get_terms function from pharmaversesdtm is used for this example.
+# In a real application a company-specific function must be used.
+create_query_data(
+  queries = list(
+    query(
+      prefix = "CQ03",
+      name = "Special issues of interest",
+      definition = list(
+        basket_select(
+          name = "Pregnancy and neonatal topics (SMQ)",
+          scope = "NARROW",
+          type = "smq"
+        ),
+        cqterms
+      )
+    )
+  ),
+  get_terms_fun = pharmaversesdtm:::get_terms,
+  version = "20.1"
+)
+</code></pre>
+
+
+</div>

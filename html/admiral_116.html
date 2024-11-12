@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_shift</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Shift</h2>
+
+<h3>Description</h3>
+
+<p>Derives a character shift variable containing concatenated shift in
+values based on user-defined pairing, e.g., shift from baseline to
+analysis value, shift from baseline grade to analysis grade, ...
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_shift(
+  dataset,
+  new_var,
+  from_var,
+  to_var,
+  missing_value = "NULL",
+  sep_val = " to "
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>from_var</code> and <code>to_var</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>Name of the character shift variable to create.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from_var</code></td>
+<td>
+<p>Variable containing value to shift from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to_var</code></td>
+<td>
+<p>Variable containing value to shift to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_value</code></td>
+<td>
+<p>Character string to replace missing values in <code>from_var</code> or <code>to_var</code>.
+</p>
+<p>Default: "NULL"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep_val</code></td>
+<td>
+<p>Character string to concatenate values of <code>from_var</code> and <code>to_var</code>.
+</p>
+<p>Default: " to "</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>new_var</code> is derived by concatenating the values of <code>from_var</code> to values of <code>to_var</code>
+(e.g. "NORMAL to HIGH"). When <code>from_var</code> or <code>to_var</code> has missing value, the
+missing value is replaced by <code>missing_value</code> (e.g. "NORMAL to NULL").
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the character shift variable added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions that returns variable appended to dataset: 
+<code>derive_basetype_records()</code>,
+<code>derive_var_analysis_ratio()</code>,
+<code>derive_var_anrind()</code>,
+<code>derive_var_atoxgr()</code>,
+<code>derive_var_atoxgr_dir()</code>,
+<code>derive_var_base()</code>,
+<code>derive_var_chg()</code>,
+<code>derive_var_ontrtfl()</code>,
+<code>derive_var_pchg()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+data &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~AVAL, ~ABLFL, ~BNRIND, ~ANRIND,
+  "P01", "ALB", 33, "Y", "LOW", "LOW",
+  "P01", "ALB", 38, NA, "LOW", "NORMAL",
+  "P01", "ALB", NA, NA, "LOW", NA,
+  "P02", "ALB", 37, "Y", "NORMAL", "NORMAL",
+  "P02", "ALB", 49, NA, "NORMAL", "HIGH",
+  "P02", "SODIUM", 147, "Y", "HIGH", "HIGH"
+)
+
+data %&gt;%
+  convert_blanks_to_na() %&gt;%
+  derive_var_shift(
+    new_var = SHIFT1,
+    from_var = BNRIND,
+    to_var = ANRIND
+  )
+
+# or only populate post-baseline records
+data %&gt;%
+  convert_blanks_to_na() %&gt;%
+  restrict_derivation(
+    derivation = derive_var_shift,
+    args = params(
+      new_var = SHIFT1,
+      from_var = BNRIND,
+      to_var = ANRIND
+    ),
+    filter = is.na(ABLFL)
+  )
+</code></pre>
+
+
+</div>

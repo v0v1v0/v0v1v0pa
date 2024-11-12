@@ -1,0 +1,348 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amCluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Clustering of multilocus genotypes
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs clustering of multilocus genotypes to identify unique consensus and singleton genotypes
+and generates analysis output in formatted text, HTML, or CSV. These functions are usually
+called by <code>amUnique</code>. This interface remains to enable a better understanding of how
+<code>amUnique</code> operates. For more information see example.<br></p>
+<p>There are three steps to this analysis: (1) identify the dissimilarity between pairs of
+genotypes using a metric which takes missing data into account, (2) cluster this dissimilarity
+matrix using a standard hierarchical agglomerative clustering approach, and (3) use a dynamic
+tree cutting approach to identify clusters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	amCluster(
+		amDatasetFocal,
+		runUntilSingletons = TRUE,
+		cutHeight = 0.3,
+		missingMethod = 2,
+		consensusMethod = 1,
+		clusterMethod = "complete"
+		)
+
+	amHTML.amCluster(
+		x,
+		htmlFile = NULL,
+		htmlCSS = amCSSForHTML()
+		)
+
+	amCSV.amCluster(
+		x,
+		csvFile
+		)
+
+  ## S3 method for class 'amCluster'
+summary(
+    object,
+		html = NULL,
+		csv = NULL,
+		...
+		)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>amDatasetFocal</code></td>
+<td>
+
+<p>An <code>amDataset</code> object containing genotypes to cluster.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runUntilSingletons</code></td>
+<td>
+
+<p>When <code>runUntilSingletons = TRUE</code>, the analysis runs recursively with the unique
+individuals determined in one analysis feeding into the next until no more clusters are
+formed; applicable when the goal is to thin a dataset to unique genotypes.<br>
+For more manual control over the process, use <code>runUntilSingletons = FALSE</code>.<br>
+See details and examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutHeight</code></td>
+<td>
+
+<p>Sets the tree cutting height using the hybrid method in the <code>dynamicTreeCut</code>
+package.<br>
+See details and <code>cutreeHybrid</code> for more information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missingMethod</code></td>
+<td>
+
+<p>The method used to determine the similarity of multilocus genotypes when data is missing.<br>
+The default, (<code>missingMethod = 2</code>), is preferable in all cases.<br>
+See <code>amMatrix</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensusMethod</code></td>
+<td>
+
+<p>The method (an integer) used to determine the consensus multilocus genotype from a cluster
+of multilocus genotypes.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterMethod</code></td>
+<td>
+
+<p>The method used by <code>hclust</code> for clustering.<br>
+Only the default <code>clusterMethod = "complete"</code> performs acceptably in simulations.<br>
+This option remains for experimental reasons.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object, x</code></td>
+<td>
+
+<p>An <code>amPairwise</code> object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htmlFile</code></td>
+<td>
+
+<p>HTML filepath to create.<br>
+If <code>htmlFile = NULL</code>, a file is created in the operating system temporary directory and
+is then opened in the default browser.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htmlCSS</code></td>
+<td>
+
+<p>String containing a valid cascading style sheet.<br>
+A default style sheet is provided in <code>amCSSForHTML</code>.<br>
+See <code>amCSSForHTML</code> for details of how to tweak this CSS.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>html</code></td>
+<td>
+
+<p>If <code>html = NULL</code> or <code>html=FALSE</code>, formatted textual output is displayed on the
+console.<br>
+If <code>html = TRUE</code>, the <code>summary.amCluster</code> method produces and loads an HTML file in the
+default browser.<br><code>html</code> can also contain a path to a file where HTML output will be written.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csvFile, csv</code></td>
+<td>
+
+<p>CSV filepath to create containing only the unique genotypes determined in the clustering.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional arguments to <code>summary.amCluster</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Selecting an appropriate <code>cutHeight</code> parameter (also known as the d-hat criterion) is
+essential. Typically this function is called from <code>amUnique</code>, and the conversion between
+alleleMismatch (m-hat) and cutHeight (d-hat) will be done automatically. Selecting an
+appropriate value for alleleMismatch (m-hat) can be done using <code>amUniqueProfile</code>. See the
+supplementary documentation for an explanation of how these parameters are related.<br></p>
+<p><code>runUntilSingletons=TRUE</code> provides an efficient and reliable way to determine the unique
+individuals in a dataset if the dataset meets certain criteria. To understand how the clustering
+is thinning the dataset run this recursion manually using <code>runUntilSingletons=FALSE</code>. An
+example is provided below.<br></p>
+<p><code>cutHeight</code> in practice gives the amount of dissimilarity (using the metric described in
+<code>amMatrix</code>) required for two multilocus genotypes to be declared different (also
+known as d-hat). The default setting for <code>consensusMethod</code> performs well.
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+	<code>consensusMethod</code>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+		<code>1</code> </td>
+<td style="text-align: left;"> Genotype with max similarity to others in the cluster is consensus
+		(DEFAULT)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+		<code>2</code> </td>
+<td style="text-align: left;"> Genotype with max similarity to others in the cluster is consensus then
+		interpolate missing alleles using mode non-missing allele in each column</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+		<code>3</code> </td>
+<td style="text-align: left;"> Genotype with min missing data is consensus</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+		<code>4</code> </td>
+<td style="text-align: left;"> Genotype with min missing data is consensus then interpolate missing alleles
+		using mode non-missing allele in each column</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+	</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>amCluster</code> object or side effects: analysis summary written to an HTML file or to the
+console, or written to a CSV file.
+</p>
+
+
+<h3>Note</h3>
+
+<p>There is an additional side effect of <code>html = TRUE</code> (or of <code>htmlFile = NULL</code>). If
+required, there is a clean up of the operating system temporary directory where AlleleMatch
+temporary HTML files are stored. Files that match the pattern am*.html and are older than 24
+hours are deleted from this temporary directory.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Paul Galpern (<a href="mailto:pgalpern@gmail.com">pgalpern@gmail.com</a>)
+</p>
+
+
+<h3>References</h3>
+
+<p>For a complete vignette, please access via the Data S1 Supplementary documentation and tutorials
+(PDF) located at &lt;doi:10.1111/j.1755-0998.2012.03137.x&gt;.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>amDataset</code>, <code>amMatrix</code>, <code>amPairwise</code>,
+<code>amUnique</code>, <code>amUniqueProfile</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 
+	data("amExample5")
+
+	## Produce amDataset object
+	myDataset &lt;-
+		amDataset(
+			amExample5,
+			missingCode = "-99",
+			indexColumn = 1,
+			metaDataColumn = 2,
+			ignoreColumn = "gender"
+			)
+
+	## Usage
+	myCluster &lt;-
+		amCluster(
+			myDataset,
+			cutHeight = 0.2
+			)
+
+	## Display analysis as HTML in default browser
+	summary.amCluster(
+		myCluster,
+		html = TRUE
+		)
+
+	## Save analysis to HTML file
+	summary.amCluster(
+		myCluster,
+		html = "myCluster.htm"
+		)
+
+	## Display analysis as formatted text on the console
+	summary.amCluster(myCluster)
+
+	## Save unique genotypes only to a CSV file
+	summary.amCluster(
+		myCluster,
+		csv = "myCluster.csv"
+		)
+
+	## Demonstration of how amCluster operates
+	## Manual control over the recursion in amCluster()
+	summary.amCluster(
+		myCluster1 &lt;-
+			amCluster(
+				myDataset,
+				runUntilSingletons = FALSE,
+				cutHeight = 0.2
+				),
+			html = TRUE
+			)
+	summary.amCluster(
+		myCluster2 &lt;-
+			amCluster(
+				myCluster1$unique,
+				runUntilSingletons = FALSE,
+				cutHeight = 0.2
+				),
+			html = TRUE
+			)
+	summary.amCluster(
+		myCluster3 &lt;-
+			amCluster(
+				myCluster2$unique,
+				runUntilSingletons = FALSE,
+				cutHeight = 0.2
+				),
+			html = TRUE
+			)
+	summary.amCluster(
+		myCluster4 &lt;-
+			amCluster(
+				myCluster3$unique,
+				runUntilSingletons = FALSE,
+				cutHeight = 0.2
+				),
+			html = TRUE
+			)
+	## No more clusters, therefore stop.
+	
+## End(Not run)
+</code></pre>
+
+
+</div>

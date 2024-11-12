@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spc2mpspline,SoilProfileCollection-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>SoilProfileCollection wrapper for <code>mpspline2::mpspline()</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Generate mass-preserving splines for any numeric attribute in a SoilProfileCollection using <code>mpspline2::mpspline()</code>. mpspline2 implements the method described in Bishop et al. (1999). Currently this function only works with a single <code>var_name</code> at a time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'SoilProfileCollection'
+spc2mpspline(
+  object,
+  var_name = NULL,
+  method = c("est_1cm", "est_icm", "est_dcm"),
+  pattern = "R|Cr|Cd|qm",
+  hzdesgn = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_name</code></td>
+<td>
+<p>Column name in <code style="white-space: pre;">⁠@horizons⁠</code> slot of <code>object</code> containing numeric values to spline</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Options include "est_1cm" (default; 1cm estimates), "est_icm" (estimates over original layer boundaries), "est_dcm" (estimates over constant interval, specified with <code>d</code> argument to <code>mpspline3::mpspline()</code>). Default value for <code>d</code> is <code>c(0, 5, 15, 30, 60, 100, 200)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>Regex pattern to match for bottom of profile (passed to <code>minDepthOf()</code>) default: "R|Cr|Cd|qm"; only used if <code>hzdesgn</code> is specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hzdesgn</code></td>
+<td>
+<p>Column name in <code style="white-space: pre;">⁠@horizons⁠</code> slot of <code>object</code> containing horizon designations default: <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to <code>mpspline2::mpspline()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function now relies on the missing data checks provided by the mpspline2 package. See <code>attr(..., 'removed')</code> to see whole profiles that were removed from the set. Horizons containing <code>NA</code> in the property of interest are dropped with a message.
+</p>
+<p>Data completeness is assessed and the input SoilProfileCollection is filtered and truncated to create a container for the results from <code>mpspline2::mpspline()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A SoilProfileCollection with 1cm slices. Spline variables are in columns prefixed with "spline_" and RMSE/RMSE_IQR are in columns prefixed with "rmse_". If any profiles were removed from the collection, their profile IDs are stored in <code>attr(result, 'removed')</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown
+</p>
+
+
+<h3>References</h3>
+
+<p>Bishop, T.F.A., McBratney, A.B., Laslett, G.M. (1999) Modelling soil attribute depth functions with equal-area quadratic smoothing splines. Geoderma 91(1–2), pp. 27-45. <a href="https://doi.org/10.1016/S0016-7061%2899%2900003-8">doi:10.1016/S0016-7061(99)00003-8</a>
+</p>
+<p>O'Brien, Lauren (2022). mpspline2: Mass-Preserving Spline Functions for Soil Data. R package version 0.1.6. <a href="https://cran.r-project.org/package=mpspline2">https://cran.r-project.org/package=mpspline2</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (requireNamespace("mpspline2")) {
+  data(sp1)
+  depths(sp1) &lt;- id ~ top + bottom
+
+  res &lt;- spc2mpspline(sp1, "prop")
+
+  plotSPC(res[1:5,], color = "prop_spline", divide.hz = FALSE)
+}
+</code></pre>
+
+
+</div>

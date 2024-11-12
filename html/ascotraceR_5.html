@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summarise_trace</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarise a trace_asco output nested list as a single data.frame object</h2>
+
+<h3>Description</h3>
+
+<p>Creates a paddock-level summary <a href="https://CRAN.R-project.org/package=data.table"><span class="pkg">data.table</span></a> from the output of
+<code>trace_asco()</code> on a daily time-step where each row represents one day for
+the entire paddock.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">summarise_trace(trace)
+
+summarize_trace(trace)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>a nested list output from <code>trace_asco()</code></p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A <a href="https://CRAN.R-project.org/package=data.table"><span class="pkg">data.table</span></a> summarising the model's output for a paddock
+on a daily time-step with the area under the disease progress curve
+(<abbr><span class="acronym">AUDPC</span></abbr>) at the paddock level for the simulation's run with the
+following columns:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+<strong>i_day</strong>: </td>
+<td style="text-align: left;"> Model iteration day (day) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>new_gp</strong>: </td>
+<td style="text-align: left;"> New growing points on <code>i_day</code> (n) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>susceptible_gp</strong>: </td>
+<td style="text-align: left;"> Susceptible growing points on <code>i_day</code> (n) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>exposed_gp</strong>: </td>
+<td style="text-align: left;"> Exposed growing points on <code>i_day</code> (n) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>i_date</strong>: </td>
+<td style="text-align: left;"> Calendar date corresponding to model's <code>i_day</code> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>day</strong>: </td>
+<td style="text-align: left;"> Julian day or numeric day of year (day) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>cdd</strong>: </td>
+<td style="text-align: left;"> Cumulative degree days (day) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>cwh</strong>: </td>
+<td style="text-align: left;"> Cumulative wet hours (h) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>cr</strong>: </td>
+<td style="text-align: left;"> Cumulative rainfall (mm) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>gp_standard</strong>: </td>
+<td style="text-align: left;"> standard growing points assuming growth is not
+impeded by infection on <code>i_day</code> (n) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+<strong>AUDPC</strong>: </td>
+<td style="text-align: left;"> Area under the disease progress curve (AUDPC) for the duration
+of the model's run.</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>trace_asco()</code>, <code>tidy_trace()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+Newmarracarra &lt;-
+   read.csv(system.file("extdata",
+            "1998_Newmarracarra_weather_table.csv", package = "ascotraceR"))
+station_data &lt;-
+   system.file("extdata", "stat_dat.csv", package = "ascotraceR")
+
+weather_dat &lt;- format_weather(
+   x = Newmarracarra,
+   POSIXct_time = "Local.Time",
+   temp = "mean_daily_temp",
+   ws = "ws",
+   wd_sd = "wd_sd",
+   rain = "rain_mm",
+   wd = "wd",
+   station = "Location",
+   time_zone = "Australia/Perth",
+   lonlat_file = station_data)
+
+traced &lt;- trace_asco(
+  weather = weather_dat,
+  paddock_length = 100,
+  paddock_width = 100,
+  initial_infection = "1998-06-10",
+  sowing_date = "1998-06-09",
+  harvest_date = "1998-06-30",
+  time_zone = "Australia/Perth",
+  primary_infection_foci = "centre")
+
+summarised &lt;- summarise_trace(traced)
+
+
+
+Newmarracarra &lt;-
+   read.csv(system.file("extdata",
+            "1998_Newmarracarra_weather_table.csv", package = "ascotraceR"))
+station_data &lt;-
+   system.file("extdata", "stat_dat.csv", package = "ascotraceR")
+
+weather_dat &lt;- format_weather(
+   x = Newmarracarra,
+   POSIXct_time = "Local.Time",
+   temp = "mean_daily_temp",
+   ws = "ws",
+   wd_sd = "wd_sd",
+   rain = "rain_mm",
+   wd = "wd",
+   station = "Location",
+   time_zone = "Australia/Perth",
+   lonlat_file = station_data)
+
+traced &lt;- trace_asco(
+  weather = weather_dat,
+  paddock_length = 100,
+  paddock_width = 100,
+  initial_infection = "1998-06-10",
+  sowing_date = as.POSIXct("1998-06-09"),
+  harvest_date = as.POSIXct("1998-06-09") + lubridate::ddays(100),
+  time_zone = "Australia/Perth",
+  primary_infection_foci = "centre")
+
+summarised &lt;- summarise_trace(traced)
+
+</code></pre>
+
+
+</div>

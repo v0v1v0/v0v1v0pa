@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nll_frailty_logscale</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Negative log-likelihood function: frailty variables on logscale</h2>
+
+<h3>Description</h3>
+
+<p>This negative log-likelihood (nll) function is the same as 'nll_frailty', except it assumes the variables to estimate are on a logscale.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nll_frailty_logscale(
+  log.a1 = log.a1,
+  log.b1 = log.b1,
+  log.a2 = log.a2,
+  log.b2 = log.b2,
+  log.theta = log.theta,
+  data = data,
+  time = time,
+  censor = censor,
+  infected_treatment = infected_treatment,
+  d1 = "Weibull",
+  d2 = "Weibull",
+  d3 = ""
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>log.a1, log.b1</code></td>
+<td>
+<p>location and scale parameters for background mortality,
+on a logscale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.a2, log.b2</code></td>
+<td>
+<p>location and scale parameters for mortality
+due to infection, on a logscale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.theta</code></td>
+<td>
+<p>parameter describing variance of the unobserved variation
+in virulence, on a logscale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>name of data frame containing survival data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>name of data frame column identifying time of event; time &gt; 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor</code></td>
+<td>
+<p>name of data frame column idenifying if event was death (0)
+or right-censoring (1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>infected_treatment</code></td>
+<td>
+<p>name of data frame column identifying if data
+are from an infected (1) or uninfected (0) treatment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d1, d2</code></td>
+<td>
+<p>names of probability distributions chosen to describe
+background mortality and mortality due to infection, respectively;
+both default to the Weibull distribution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d3</code></td>
+<td>
+<p>name of probability distribution chosen to describe
+unobserved frailty; choice of 'gamma' or 'inverse Gaussian'</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>numeric
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nll_frailty</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### Example 1: unobserved variation in virulence with gamma distribution
+
+# step #1: parameterise nll function to be passed to 'mle2'
+    m01_prep_function &lt;- function(
+      log.a1 = log.a1, log.b1 = log.b1,
+      log.a2 = log.a2, log.b2 = log.b2,
+      log.theta = log.theta){
+        nll_frailty_logscale(
+          log.a1 = log.a1, log.b1 = log.b1,
+          log.a2 = log.a2, log.b2 = log.b2,
+          log.theta = log.theta,
+          data = data_lorenz,
+          time = t,
+          censor = censored,
+          infected_treatment = g,
+          d1 = "Gumbel", d2 = "Weibull", d3 = "Gamma"
+          )}
+
+# step #2: send 'prep_function' to 'mle2' for maximum likelihood estimation
+    m01 &lt;- mle2(
+      m01_prep_function,
+      start = list(
+        log.a1 = 3, log.b1 = 1.5, log.a2 = 0.7, log.b2 = -0.7, log.theta = 1
+        )
+      )
+
+  summary(m01)
+
+  exp(coef(m01))
+
+</code></pre>
+
+
+</div>

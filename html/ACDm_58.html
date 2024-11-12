@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim_ACD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+ACD simulation
+</h2>
+
+<h3>Description</h3>
+
+<p>Simulates a sample from a specified ACD <code>model</code> and error term distribution <code>dist</code>. The error terms can also be sampled from residuals. The possibility of including a diurnal seasonal component in the simulated sample is included.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    
+sim_ACD(N = 1000, model = "ACD", dist = "exponential", param = NULL, order = NULL,
+    Nburn = 50, startX = c(1), startMu = c(1), errors = NULL, sampleErrors = TRUE, 
+    roundToSec = FALSE, rm0 = FALSE, diurnalFactor = FALSE, splineObj = NULL,
+    open = NULL, close = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>sample size
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>the class of conditional mean duration specification. One of <code>"ACD"</code>, <code>"LACD1"</code>, <code>"LACD2"</code>, <code>"AMACD"</code>,<code>"ABACD"</code>, <code>"SNIACD"</code> or <code>"LSNIACD"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+
+<p>the distribution of the error terms (only if <code>errors</code> are left out). Must be one of <code>"exponential"</code>, <code>"weibull"</code>, <code>"burr"</code>, <code>"gengamma"</code> or <code>"genf"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+
+<p>a vector of the parameters of the DGP (data generating process).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+
+<p>a vector describing the order of the conditional mean duration specification, e.g. <code>order = c(1,1)</code> for an ACD(1,1) model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nburn</code></td>
+<td>
+
+<p>the number of burned observations. Used to lower the effect of the start values of the simulated series. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startX</code></td>
+<td>
+
+<p>a vector of values to start the simulation from.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startMu</code></td>
+<td>
+
+<p>a vector of conditional mean values to start the simulation from.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errors</code></td>
+<td>
+
+<p>a vector of error terms. If provided and <code>sampleErrors = TRUE</code> the errors will be sampled from this vector (with replacement). If instead <code>sampleErrors = FALSE</code> the error terms will be matched by the <code>errors</code> vector non stochastic (must then be of the same length as <code>N + Nburn</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampleErrors</code></td>
+<td>
+
+<p>logical flag, see <code>errors</code> above. Default is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roundToSec</code></td>
+<td>
+
+<p>if <code>TRUE</code> the simulated sample will be discretized with 1 second(unit) precision.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm0</code></td>
+<td>
+
+<p>if <code>TRUE</code> zero durations will be removed. Will the result in a smaller sample than <code>N</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diurnalFactor</code></td>
+<td>
+
+<p>if <code>TRUE</code> the simulated data will include a diurnal factor. The diurnal factor is from a fitted cubic spline given as argument to <code>splineObj</code>. If the argument <code>splineObj</code> is empty, a default fitted cubic spline from <code>transData</code> using aggregation over weekdays will be used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splineObj</code></td>
+<td>
+
+<p>a cubic spline return by <code>diurnalAdj()</code>. Currently only works with cubic splines fitted with weekday aggregation. Also see <code>diurnalFactor</code> above.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>open</code></td>
+<td>
+
+<p>only used if <code>diurnalFactor = TRUE</code> and a <code>splineObj</code> were provided. The time the exchange opens trading (as used in the fitted <code>splineObj</code>), for example <code>open = "10:00:00"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>close</code></td>
+<td>
+
+<p>only used if <code>diurnalFactor = TRUE</code> and a <code>splineObj</code> were provided. The time the exchange close trading (as used in the fitted <code>splineObj</code>), for example <code>close = "18:25:00"</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a numerical vector of simulated ACD durations
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Markus Belfrage
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+x &lt;- sim_ACD() #simulates 1000 observations from an ACD(1,1) with exp. errors as default
+acdFit(x)
+
+
+</code></pre>
+
+
+</div>

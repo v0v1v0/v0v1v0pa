@@ -1,0 +1,261 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autoencoder</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Train an Autoencoding Neural Network</h2>
+
+<h3>Description</h3>
+
+<p>Construct and train an Autoencoder by setting the target variables equal 
+to the input variables. The number of nodes in the middle layer should be 
+smaller than the number of input variables in X in order to create a 
+bottleneck layer.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autoencoder(
+  X,
+  hidden.layers,
+  standardize = TRUE,
+  loss.type = "squared",
+  huber.delta = 1,
+  activ.functions = "tanh",
+  step.H = 5,
+  step.k = 100,
+  optim.type = "sgd",
+  learn.rates = 1e-04,
+  L1 = 0,
+  L2 = 0,
+  sgd.momentum = 0.9,
+  rmsprop.decay = 0.9,
+  adam.beta1 = 0.9,
+  adam.beta2 = 0.999,
+  n.epochs = 100,
+  batch.size = 32,
+  drop.last = TRUE,
+  val.prop = 0.1,
+  verbose = TRUE,
+  random.seed = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>matrix with explanatory variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hidden.layers</code></td>
+<td>
+<p>vector specifying the number of nodes in each layer. The
+number of hidden layers in the network is implicitly defined by the length of
+this vector. Set <code>hidden.layers</code> to <code>NA</code> for a network with no hidden 
+layers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>logical indicating if X and Y should be standardized before
+training the network. Recommended to leave at <code>TRUE</code> for faster
+convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss.type</code></td>
+<td>
+<p>which loss function should be used. Options are "squared", 
+"absolute", "huber" and "pseudo-huber"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>huber.delta</code></td>
+<td>
+<p>used only in case of loss functions "huber" and "pseudo-huber".
+This parameter controls the cut-off point between quadratic and absolute loss.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>activ.functions</code></td>
+<td>
+<p>character vector of activation functions to be used in 
+each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
+'ramp' and 'step'. Should be either the size of the number of hidden layers
+or equal to one. If a single activation type is specified, this type will be 
+broadcasted across the hidden layers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step.H</code></td>
+<td>
+<p>number of steps of the step activation function. Only applicable 
+if activ.functions includes 'step'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step.k</code></td>
+<td>
+<p>parameter controlling the smoothness of the step activation 
+function. Larger values lead to a less smooth step function. Only applicable 
+if activ.functions includes 'step'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.type</code></td>
+<td>
+<p>type of optimizer to use for updating the parameters. Options 
+are 'sgd', 'rmsprop' and 'adam'. SGD is implemented with momentum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>learn.rates</code></td>
+<td>
+<p>the size of the steps to make in gradient descent. If set 
+too large, the optimization might not converge to optimal values. If set too 
+small, convergence will be slow. Should be either the size of the number of 
+hidden layers plus one or equal to one. If a single learn rate is specified, 
+this learn rate will be broadcasted across the layers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L1</code></td>
+<td>
+<p>L1 regularization. Non-negative number. Set to zero for no regularization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L2</code></td>
+<td>
+<p>L2 regularization. Non-negative number. Set to zero for no regularization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sgd.momentum</code></td>
+<td>
+<p>numeric value specifying how much momentum should be
+used. Set to zero for no momentum, otherwise a value between zero and one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmsprop.decay</code></td>
+<td>
+<p>level of decay in the rms term. Controls the strength
+of the exponential decay of the squared gradients in the term that scales the
+gradient before the parameter update. Common values are 0.9, 0.99 and 0.999</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adam.beta1</code></td>
+<td>
+<p>level of decay in the first moment estimate (the mean). 
+The recommended value is 0.9</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adam.beta2</code></td>
+<td>
+<p>level of decay in the second moment estimate (the uncentered
+variance). The recommended value is 0.999</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.epochs</code></td>
+<td>
+<p>the number of epochs to train. One epoch is a single iteration 
+through the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch.size</code></td>
+<td>
+<p>the number of observations to use in each batch. Batch learning
+is computationally faster than stochastic gradient descent. However, large
+batches might not result in optimal learning, see Efficient Backprop by LeCun 
+for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop.last</code></td>
+<td>
+<p>logical. Only applicable if the size of the training set is not
+perfectly devisible by the batch size. Determines if the last chosen observations
+should be discarded (in the current epoch) or should constitute a smaller batch. 
+Note that a smaller batch leads to a noisier approximation of the gradient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>val.prop</code></td>
+<td>
+<p>proportion of training data to use for tracking the loss on a 
+validation set during training. Useful for assessing the training process and
+identifying possible overfitting. Set to zero for only tracking the loss on the 
+training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating if additional information should be printed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.seed</code></td>
+<td>
+<p>optional seed for the random number generator</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A function for training Autoencoders. During training, the network will learn a
+generalised representation of the data (generalised since the middle layer
+acts as a bottleneck, resulting in reproduction of only the most
+important features of the data). As such, the network models the normal state 
+of the data and therefore has a denoising property. This property can be 
+exploited to detect anomalies by comparing input to reconstruction. If the 
+difference (the reconstruction error) is large, the observation is a possible 
+anomaly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>ANN</code> object. Use function <code>plot(&lt;object&gt;)</code> to assess
+loss on training and optionally validation data during training process. Use
+function <code>predict(&lt;object&gt;, &lt;newdata&gt;)</code> for prediction.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Autoencoder example
+X &lt;- USArrests
+AE &lt;- autoencoder(X, c(10,2,10), loss.type = 'pseudo-huber',
+                  activ.functions = c('tanh','linear','tanh'),
+                  batch.size = 8, optim.type = 'adam',
+                  n.epochs = 1000, val.prop = 0)
+
+# Plot loss during training
+plot(AE)
+
+# Make reconstruction and compression plots
+reconstruction_plot(AE, X)
+compression_plot(AE, X)
+
+# Reconstruct data and show states with highest anomaly scores
+recX &lt;- reconstruct(AE, X)
+sort(recX$anomaly_scores, decreasing = TRUE)[1:5]
+
+</code></pre>
+
+
+</div>

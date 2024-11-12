@@ -1,0 +1,575 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read_access</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download accessibility estimates with population and land use data</h2>
+
+<h3>Description</h3>
+
+<p>Download estimates of access to employment, health, education and social
+assistance services by transport mode and time of the day for the cities
+included in the AOP project. See the documentation 'Details' for the data
+dictionary. The data set reports information for each heaxgon in a H3 spatial
+grid at resolution 9, with a side of 174 meters and an area of 0.10 km2. More
+information about H3 at <a href="https://h3geo.org/docs/core-library/restable/">https://h3geo.org/docs/core-library/restable/</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read_access(
+  city = NULL,
+  mode = "walk",
+  peak = TRUE,
+  year = 2019,
+  geometry = FALSE,
+  showProgress = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>city</code></td>
+<td>
+<p>Character. A city name or three-letter abbreviation. If
+<code>city="all"</code>, the function returns data for all cities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Character. A transport mode. Modes available include
+'public_transport', 'bicycle', or 'walk' (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peak</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> (the default), returns accessibility estimates
+during peak time, between 6am and 8am. If <code>FALSE</code>, returns
+accessibility during off-peak, between 2pm and 4am. This argument
+only takes effect when <code>mode</code> is either <code>car</code> or <code>public_transport</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>Numeric. A year number in YYYY format. Defaults to 2019.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geometry</code></td>
+<td>
+<p>Logical. If <code>FALSE</code> (the default), returns a regular data.table
+of aop data. If <code>TRUE</code>, returns an <code style="white-space: pre;">⁠sf data.frame⁠</code> with simple
+feature geometry of spatial hexagonal grid H3. See details in
+read_grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+<p>Logical. Defaults to <code>TRUE</code> display progress bar.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> object
+</p>
+
+
+<h3>Data dictionary:</h3>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>data_type</strong> </td>
+<td style="text-align: left;"> <strong>column</strong> </td>
+<td style="text-align: left;"> <strong>description</strong> </td>
+<td style="text-align: left;"> <strong>values</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   temporal </td>
+<td style="text-align: left;"> year </td>
+<td style="text-align: left;"> Year of reference </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   transport </td>
+<td style="text-align: left;"> mode </td>
+<td style="text-align: left;"> Transport mode </td>
+<td style="text-align: left;"> walk; bicycle; public_transport; car </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   transport </td>
+<td style="text-align: left;"> peak </td>
+<td style="text-align: left;"> Peak and off-peak </td>
+<td style="text-align: left;"> 1 (peak); 0 (off-peak) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The name of the columns with accessibility estimates are the junction of
+three components: 1) Type of accessibility indicator 2) Type of opportunity /
+population 3) Time threshold
+</p>
+
+
+<h4>1) Type of accessibility indicator</h4>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>Indicator</strong> </td>
+<td style="text-align: left;"> <strong>Description</strong> </td>
+<td style="text-align: left;"> <strong>Observation</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   CMA </td>
+<td style="text-align: left;"> Cumulative opportunity measure (active) </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   CMP </td>
+<td style="text-align: left;"> Cumulative opportunity measure (passive) </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   TMI </td>
+<td style="text-align: left;"> Travel time to closest opportunity </td>
+<td style="text-align: left;"> Value = Inf when travel time is longer than 2h (public transport or car) or 1,5h (walking or bicycle) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>2) Type of opportunity / population</h4>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>Type of opportunity</strong> </td>
+<td style="text-align: left;"> <strong>Description</strong> </td>
+<td style="text-align: left;"> <strong>Observation: available in combination with</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   TT </td>
+<td style="text-align: left;"> All jobs </td>
+<td style="text-align: left;"> CMA indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   TB </td>
+<td style="text-align: left;"> Jobs with primary education </td>
+<td style="text-align: left;"> CMA indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   TM </td>
+<td style="text-align: left;"> Jobs with secondary education </td>
+<td style="text-align: left;"> CMA indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   TA </td>
+<td style="text-align: left;"> Jobs with tertiary education </td>
+<td style="text-align: left;"> CMA indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   ST </td>
+<td style="text-align: left;"> All healthcare facilities </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SB </td>
+<td style="text-align: left;"> Healthcare facilities - Low complexity </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SM </td>
+<td style="text-align: left;"> Healthcare facilities - Medium complexity </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SA </td>
+<td style="text-align: left;"> Healthcare facilities - High complexity </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   ET </td>
+<td style="text-align: left;"> All public schools </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   EI </td>
+<td style="text-align: left;"> Public schools - early childhood </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   EF </td>
+<td style="text-align: left;"> Public schools - elementary schools </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   EM </td>
+<td style="text-align: left;"> Public schools - high schools </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   MT </td>
+<td style="text-align: left;"> All school enrollments </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   MI </td>
+<td style="text-align: left;"> School enrollments - early childhood </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   MF </td>
+<td style="text-align: left;"> School enrollments - elementary schools </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   MM </td>
+<td style="text-align: left;"> School enrollments - high schools </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   CT </td>
+<td style="text-align: left;"> All Social Assistance Reference Centers (CRAS) </td>
+<td style="text-align: left;"> CMA and TMI indicators </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>People</strong> </td>
+<td style="text-align: left;"> <strong>Description</strong> </td>
+<td style="text-align: left;"> <strong>Observation: available in combination with</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PT </td>
+<td style="text-align: left;"> All population </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PH </td>
+<td style="text-align: left;"> Men </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PM </td>
+<td style="text-align: left;"> Women </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PB </td>
+<td style="text-align: left;"> White population </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PA </td>
+<td style="text-align: left;"> Asian-descendent population </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PI </td>
+<td style="text-align: left;"> Indigenous population </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   PN </td>
+<td style="text-align: left;"> Back population </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P0005I </td>
+<td style="text-align: left;"> Population between 0 and 5 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P0614I </td>
+<td style="text-align: left;"> Population between 6 and 14 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P1518I </td>
+<td style="text-align: left;"> Population between 15 and 18 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P1924I </td>
+<td style="text-align: left;"> Population between 19 and 24 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P2539I </td>
+<td style="text-align: left;"> Population between 25 and 39 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P4069I </td>
+<td style="text-align: left;"> Population between 40 and 69 years old </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   P70I </td>
+<td style="text-align: left;"> Population with 70 years old or more </td>
+<td style="text-align: left;"> CMP indicator </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>3) Time threshold (only applicable to CMA and CMP estimates)</h4>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>Time threshold</strong> </td>
+<td style="text-align: left;"> **Description	** </td>
+<td style="text-align: left;"> <strong>Observation: only applicable to</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   15 </td>
+<td style="text-align: left;"> Opportunities accessible within 15 min. </td>
+<td style="text-align: left;"> Active transport modes </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   30 </td>
+<td style="text-align: left;"> Opportunities accessible within 30 min. </td>
+<td style="text-align: left;"> All transport modes </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   45 </td>
+<td style="text-align: left;"> Opportunities accessible within 45 min. </td>
+<td style="text-align: left;"> Active transport modes </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   60 </td>
+<td style="text-align: left;"> Opportunities accessible within 60 min. </td>
+<td style="text-align: left;"> All transport modes </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   90 </td>
+<td style="text-align: left;"> Opportunities accessible within 90 min. </td>
+<td style="text-align: left;"> Public transport and car </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   120 </td>
+<td style="text-align: left;"> Opportunities accessible within 120 min. </td>
+<td style="text-align: left;"> Public transport and car </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>4) Cities available</h4>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>City name</strong> </td>
+<td style="text-align: left;"> <strong>Three-letter abbreviation</strong> </td>
+<td style="text-align: left;"> <strong>Transport modes</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Belem </td>
+<td style="text-align: left;"> <code>bel</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Belo Horizonte </td>
+<td style="text-align: left;"> <code>bho</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Brasilia </td>
+<td style="text-align: left;"> <code>bsb</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Campinas </td>
+<td style="text-align: left;"> <code>cam</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Campo Grande </td>
+<td style="text-align: left;"> <code>cgr</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Curitiba </td>
+<td style="text-align: left;"> <code>cur</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Duque de Caxias </td>
+<td style="text-align: left;"> <code>duq</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Fortaleza </td>
+<td style="text-align: left;"> <code>for</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Goiania </td>
+<td style="text-align: left;"> <code>goi</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Guarulhos </td>
+<td style="text-align: left;"> <code>gua</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Maceio </td>
+<td style="text-align: left;"> <code>mac</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Manaus </td>
+<td style="text-align: left;"> <code>man</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Natal </td>
+<td style="text-align: left;"> <code>nat</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Porto Alegre </td>
+<td style="text-align: left;"> <code>poa</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Recife </td>
+<td style="text-align: left;"> <code>rec</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Rio de Janeiro </td>
+<td style="text-align: left;"> <code>rio</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Salvador </td>
+<td style="text-align: left;"> <code>sal</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Sao Goncalo </td>
+<td style="text-align: left;"> <code>sgo</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Sao Luis </td>
+<td style="text-align: left;"> <code>slz</code> </td>
+<td style="text-align: left;"> Active </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   Sao Paulo </td>
+<td style="text-align: left;"> <code>spo</code> </td>
+<td style="text-align: left;"> All </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Read accessibility estimates of a single city
+df &lt;- read_access(city = 'Fortaleza', mode = 'public_transport', year = 2019, showProgress = FALSE)
+df &lt;- read_access(city = 'Goiania', mode = 'public_transport', year = 2019, showProgress = FALSE)
+
+# Read accessibility estimates for all cities
+all &lt;- read_access(city = 'all', mode = 'walk', year = 2019, showProgress = FALSE)
+
+</code></pre>
+
+
+</div>

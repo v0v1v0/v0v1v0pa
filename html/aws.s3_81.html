@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>s3write_using</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Custom read and write</h2>
+
+<h3>Description</h3>
+
+<p>Read/write objects from/to S3 using a custom function
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">s3write_using(x, FUN, ..., object, bucket, opts = NULL)
+
+s3read_using(FUN, ..., object, bucket, opts = NULL, filename = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>For <code>s3write_using</code>, a single R object to be saved via the first argument to <code>FUN</code> and uploaded to S3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>For <code>s3write_using</code>, a function to which <code>x</code> and a file path will be passed (in that order).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to <code>FUN</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Character string with the object key, or an object of class “s3_object”. In most cases, if <code>object</code> is specified as the latter, <code>bucket</code> can be omitted because the bucket name will be extracted from “Bucket” slot in <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bucket</code></td>
+<td>
+<p>Character string with the name of the bucket, or an object of class “s3_bucket”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>Optional additional arguments passed to <code>put_object</code> or <code>save_object</code>, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Optional string, name of the temporary file that will be created. If not specified, <code>tempfile()</code> with the extension of the object is used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>For <code>s3write_using</code>, a logical, invisibly. For <code>s3read_using</code>, the output of <code>FUN</code> applied to the file from <code>object</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>s3saveRDS</code>, <code>s3readRDS</code>, <code>put_object</code>,<code>get_object</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library("datasets")
+# create bucket
+b &lt;- put_bucket("myexamplebucket")
+
+# save a dataset to the bucket as a csv
+if (require("utils")) {
+  s3write_using(mtcars, FUN = write.csv, object = "mtcars.csv", bucket = b)
+}
+
+# load dataset from the bucket as a csv
+if (require("utils")) {
+  s3read_using(FUN = read.csv, object = "mtcars.csv", bucket = b)
+}
+
+# cleanup
+delete_object(object = "mtcars.csv", bucket = b)
+delete_bucket(bucket = b)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

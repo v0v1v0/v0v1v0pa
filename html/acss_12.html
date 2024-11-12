@@ -1,0 +1,70 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>matthews2013</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data from Experiment 1 in Matthews (2013)</h2>
+
+<h3>Description</h3>
+
+<p>Mean responses on a 6-point scale ("definitely random" to "definitely not random") of participants to 216 strings of length 21.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">matthews2013
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data.frame with 216 rows and 3 variables.</p>
+
+
+<h3>Source</h3>
+
+<p>Matthews, W. (2013). Relatively random: Context effects on perceived randomness and predicted outcomes. <em>Journal of Experimental Psychology: Learning, Memory, and Cognition</em>, 39(5), 1642-1648.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+data(matthews2013)
+
+spans &lt;- 3:11
+# note, the next loop takes more than 5 minutes.
+for (i in spans) {
+  matthews2013[,paste0("K2_span", i)] &lt;- 
+    sapply(local_complexity(matthews2013$string, alphabet=2, span = i), mean)
+}
+
+lm_list &lt;- vector("list", 8)
+for (i in seq_along(spans)) {
+  lm_list[[i]] &lt;- lm(as.formula(paste0("mean ~ K2_span", spans[i])), matthews2013)
+}
+
+plot(spans, sapply(lm_list, function(x) summary(x)$r.squared), type = "o")
+
+# do more predictors increase fit?
+require(MASS)
+m_initial &lt;- lm(mean ~ 1, matthews2013)
+m_step &lt;- stepAIC(m_initial, 
+                  scope = as.formula(paste("~", paste(paste0("K2_span", spans), 
+                  collapse = "+"))))
+summary(m_step)
+
+m_initial2 &lt;- lm(as.formula(paste("mean ~", paste(paste0("K2_span", spans), 
+                  collapse = "+"))), matthews2013)
+m_step2 &lt;- stepAIC(m_initial2)
+summary(m_step2)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

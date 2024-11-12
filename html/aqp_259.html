@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>profileApply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterate over profiles in a SoilProfileCollection</h2>
+
+<h3>Description</h3>
+
+<p>Iterate over all profiles in a SoilProfileCollection, calling <code>FUN</code> on a single-profile SoilProfileCollection for each step.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'SoilProfileCollection'
+profileApply(
+  object,
+  FUN,
+  simplify = TRUE,
+  frameify = FALSE,
+  chunk.size = 100,
+  column.names = NULL,
+  APPLY.FUN = lapply,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>a function to be applied to each profile within the collection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>logical, should the result be simplified to a vector? default: TRUE; see examples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frameify</code></td>
+<td>
+<p>logical, should the result be collapsed into a data.frame? default: FALSE; overrides simplify argument; see examples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk.size</code></td>
+<td>
+<p>numeric, size of "chunks" for faster processing of large SoilProfileCollection objects; default: 100</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column.names</code></td>
+<td>
+<p>character, optional character vector to replace frameify-derived column names; should match length of colnames() from FUN result; default: NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>APPLY.FUN</code></td>
+<td>
+<p>function, optional alternate <code>lapply()</code>-like function for processing chunks. For example <code>future.apply::future_lapply()</code> for processing chunks in parallel. Default <code>base::lapply()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to FUN</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>When simplify is TRUE, a vector of length nrow(object) (horizon data) or of length length(object) (site data). When simplify is FALSE, a list is returned. When frameify is TRUE, a data.frame is returned. An attempt is made to identify idname and/or hzidname in the data.frame result, safely ensuring that IDs are preserved to facilitate merging profileApply result downstream.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(sp1)
+depths(sp1) &lt;- id ~ top + bottom
+
+# estimate soil depth using horizon designations
+profileApply(sp1, estimateSoilDepth, name='name')
+
+# scale a single property 'prop' in horizon table
+# scaled = (x - mean(x)) / sd(x)
+sp1$d &lt;- profileApply(sp1, FUN=function(x) round(scale(x$prop), 2))
+plot(sp1, name='d')
+
+# compute depth-wise differencing by profile
+# note that our function expects that the column 'prop' exists
+f &lt;- function(x) { c(x$prop[1], diff(x$prop)) }
+sp1$d &lt;- profileApply(sp1, FUN=f)
+plot(sp1, name='d')
+
+# compute depth-wise cumulative sum by profile
+# note the use of an anonymous function
+sp1$d &lt;- profileApply(sp1, FUN=function(x) cumsum(x$prop))
+plot(sp1, name='d')
+
+# compute profile-means, and save to @site
+# there must be some data in @site for this to work
+site(sp1) &lt;- ~ group
+sp1$mean_prop &lt;- profileApply(sp1, FUN=function(x) mean(x$prop, na.rm=TRUE))
+
+# re-plot using ranks defined by computed summaries (in @site)
+plot(sp1, plot.order=rank(sp1$mean_prop))
+
+## iterate over profiles, calculate on each horizon, merge into original SPC
+
+# example data
+data(sp1)
+
+# promote to SoilProfileCollection
+depths(sp1) &lt;- id ~ top + bottom
+site(sp1) &lt;- ~ group
+
+# calculate horizon thickness and proportional thickness
+# returns a data.frame result with multiple attributes per horizon
+thicknessFunction &lt;- function(p) {
+  hz &lt;- horizons(p)
+  depthnames &lt;- horizonDepths(p)
+  res &lt;- data.frame(profile_id(p), hzID(p),
+                    thk=(hz[[depthnames[[2]]]] - hz[[depthnames[1]]]))
+  res$hz_prop &lt;- res$thk / sum(res$thk)
+  colnames(res) &lt;- c(idname(p), hzidname(p), 'hz_thickness', 'hz_prop')
+  return(res)
+}
+
+# list output option with simplify=F, list names are profile_id(sp1)
+list.output &lt;- profileApply(sp1, thicknessFunction, simplify = FALSE)
+head(list.output)
+
+# data.frame output option with frameify=TRUE
+df.output &lt;- profileApply(sp1, thicknessFunction, frameify = TRUE)
+head(df.output)
+
+# since df.output contains idname(sp1) and hzidname(sp1),
+# it can safely be merged by a left-join via horizons&lt;- setter
+horizons(sp1) &lt;- df.output
+
+plot(density(sp1$hz_thickness, na.rm=TRUE), main="Density plot of Horizon Thickness")
+
+## iterate over profiles, subsetting horizon data
+
+# example data
+data(sp1)
+
+# promote to SoilProfileCollection
+depths(sp1) &lt;- id ~ top + bottom
+site(sp1) &lt;- ~ group
+
+# make some fake site data related to a depth of some importance
+sp1$dep &lt;- profileApply(sp1, function(i) {round(rnorm(n=1, mean=mean(i$top)))})
+
+# custom function for subsetting horizon data, by profile
+# keep horizons with lower boundary &lt; site-level attribute 'dep'
+fun &lt;- function(i) {
+  # extract horizons
+  h &lt;- horizons(i)
+  # make an expression to subset horizons
+  exp &lt;- paste('bottom &lt; ', i$dep, sep='')
+  # subset horizons, and write-back into current SPC
+  slot(i, 'horizons') &lt;- subset(h, subset=eval(parse(text=exp)))
+  # return modified SPC
+  return(i)
+}
+
+# list of modified SoilProfileCollection objects
+l &lt;- profileApply(sp1, fun, simplify=FALSE)
+
+# re-combine list of SoilProfileCollection objects into a single SoilProfileCollection
+sp1.sub &lt;- pbindlist(l)
+
+# graphically check
+par(mfrow=c(2,1), mar=c(0,0,1,0))
+plot(sp1)
+points(1:length(sp1), sp1$dep, col='red', pch=7)
+plot(sp1.sub)
+
+</code></pre>
+
+
+</div>

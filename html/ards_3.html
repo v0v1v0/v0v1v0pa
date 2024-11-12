@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_ards</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Returns the current Analysis Results Dataset</h2>
+
+<h3>Description</h3>
+
+<p>The <code>get_ards</code> function returns the current state
+of the Analysis Results Dataset (ARDS) as an R data frame. 
+This data frame may be saved to disk, saved in
+a database, or examined from code.  The function takes no parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_ards()
+</code></pre>
+
+
+<h3>Value</h3>
+
+<p>A data frame of the current analysis results.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other ards: 
+<code>add_ards()</code>,
+<code>init_ards()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ards)
+library(dplyr)
+
+# Initialize the ARDS
+# - These values will be common through the dataset
+init_ards(studyid = "IRIS",
+          tableid = "01", adsns = "iris",
+          population = "all flowers",
+          time = "1973")
+
+# Perform analysis on Petal.Length
+# - Using Species as a by-group
+analdf1 &lt;- iris |&gt; 
+  select(Petal.Length, Species) |&gt; 
+  group_by(Species) |&gt; 
+  summarize(n = n(),
+            mean = mean(Petal.Length),
+            std = sd(Petal.Length),
+            min = min(Petal.Length),
+            max = max(Petal.Length)) |&gt; 
+  add_ards(statvars = c("n", "mean", "std", "min", "max"),
+           statdesc = c("Count", "Mean", "STD", "Minimum", "Maximum"),
+           anal_var = "Petal.Length", trtvar = "Species")
+           
+# Perform analysis on Petal.Width
+# - Using Species as a by-group
+analdf2 &lt;- iris |&gt; 
+  select(Petal.Width, Species) |&gt; 
+  group_by(Species) |&gt; 
+  summarize(n = n(),
+            mean = mean(Petal.Width),
+            std = sd(Petal.Width),
+            min = min(Petal.Width),
+            max = max(Petal.Width)) |&gt; 
+  add_ards(statvars = c("n", "mean", "std", "min", "max"),
+           statdesc = c("Count", "Mean", "STD", "Minimum", "Maximum"),
+           anal_var = "Petal.Width", trtvar = "Species")
+
+# Get the ARDS
+ards &lt;- get_ards() 
+
+# Uncomment to view ards
+# View(ards)
+</code></pre>
+
+
+</div>

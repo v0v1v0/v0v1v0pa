@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prep_uhc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepare Data for UHC Plots for a Fitted Model</h2>
+
+<h3>Description</h3>
+
+<p>Creates data used to make used-habitat calibration plots
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prep_uhc(object, test_dat, n_samp = 1000, n_dens = 512, verbose = TRUE)
+
+## S3 method for class 'glm'
+prep_uhc(object, test_dat, n_samp = 1000, n_dens = 512, verbose = TRUE)
+
+## S3 method for class 'fit_logit'
+prep_uhc(object, test_dat, n_samp = 1000, n_dens = 512, verbose = TRUE)
+
+## S3 method for class 'fit_clogit'
+prep_uhc(object, test_dat, n_samp = 1000, n_dens = 512, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[glm, fit_logit, fit_clogit]⁠</code> <br> A fitted RSF or (i)SSF model.
+Should be fit to <em>training</em> dataset separate from the testing data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_dat</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[data.frame]⁠</code> <br> A <code>data.frame</code> with <em>testing</em> data from
+which to sample test points. Should be separate from the data used to train
+the model passed to <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_samp</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric = 1000]⁠</code> A <code>vector</code> of length 1 giving the number of
+samples to use to characterize the used habitat distribution under the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_dens</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric = 512]⁠</code> A <code>numeric</code> vector of length 1 giving the
+number of equally spaced points at which density (used, available, and
+sampled) is estimated. Passed to <code>stats::density.default()</code>, which indicates
+that <code>n</code> should usually be specified as a power of 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical]⁠</code> Should messages be displayed (<code>TRUE</code>) or not
+(<code>FALSE</code>)?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function performs the heavy lifting of creating UHC plots.
+It creates the data used later by the <code>plot()</code> method, which actually
+draws the UHC plots. This function (1) creates density plots of the used
+and available locations from the <em>test</em> data, and (2) resamples the (a)
+fitted coefficients and (b) test data (weighted by the exponential habitat
+selection function) to create the distribution of used habitat under the
+model.
+</p>
+<p>Note that <code>test_dat</code> should contain at least all of the variables that
+appear in the model <code>object</code>. Any further habitat variables in <code>test_dat</code>
+will also have UHC plots generated, treating these variables as possible
+candidate variables that are simply not included in this particular model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>list</code> of class <code>uhc_data</code> with elements:
+</p>
+
+<ul>
+<li> <p><code>orig</code>: List of <code>data.frame</code>s, one per variable (see <code>vars</code>). Each
+<code>data.frame</code> contains the density plot data (<code>x</code> and <code>y</code>) for the original
+used (<code>dist == "U"</code>) and available (<code>dist == "A"</code>) data.
+</p>
+</li>
+<li> <p><code>samp</code>: List of <code>data.frame</code>s, one per variable (see <code>vars</code>). Each
+<code>data.frame</code> contains the density plot data (<code>x</code> and <code>y</code>) for each iteration
+of bootstrap resampling (<code>iter</code>).
+</p>
+</li>
+<li> <p><code>vars</code>: Character vector with names of the habitat variables for which to
+create UHC plots.
+</p>
+</li>
+<li> <p><code>type</code>: Named character vector with the type for each of <code>vars</code> (either
+<code>"numeric"</code> or <code>"factor"</code>).
+</p>
+</li>
+<li> <p><code>resp</code>: Character vector of length 1 with the name of the response
+variable.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Brian J. Smith
+</p>
+
+
+<h3>References</h3>
+
+<p>Fieberg, J.R., Forester, J.D., Street, G.M., Johnson, D.H., ArchMiller, A.A.,
+and Matthiopoulos, J. 2018. Used-habitat calibration plots: A new procedure
+for validating species distribution, resource selection, and step-selection
+models. <em>Ecography</em> 41:737–752.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Fieberg <em>et al.</em> 2018 for details about UHC plots.
+</p>
+<p>Default plotting method available: <code>plot.uhc_data()</code>
+</p>
+<p>Coercion to <code>data.frame</code>: <code>as.data.frame.uhc_data()</code>
+</p>
+<p>Subsetting method: <code>Extract.uhc_data</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Load packages
+library(amt)
+library(dplyr)
+library(terra)
+library(sf)
+
+# HSF ----------------------------------------------
+# Load data
+data(uhc_hsf_locs)
+data(uhc_hab)
+hab &lt;- rast(uhc_hab, type = "xyz", crs = "epsg:32612")
+# Convert "cover" layer to factor
+levels(hab[[4]]) &lt;- data.frame(id = 1:3,
+                               cover = c("grass", "forest", "wetland"))
+
+# Split into train (80%) and test (20%)
+set.seed(1)
+uhc_hsf_locs$train &lt;- rbinom(n = nrow(uhc_hsf_locs),
+                             size = 1, prob = 0.8)
+train &lt;- uhc_hsf_locs[uhc_hsf_locs$train == 1, ]
+test &lt;- uhc_hsf_locs[uhc_hsf_locs$train == 0, ]
+
+# Available locations
+avail_train &lt;- random_points(st_as_sf(st_as_sfc(st_bbox(hab))),
+                             n = nrow(train) * 10)
+
+avail_test &lt;- random_points(st_as_sf(st_as_sfc(st_bbox(hab))),
+                            n = nrow(test) * 10)
+
+# Combine with used
+train_dat &lt;- train |&gt;
+  make_track(x, y, crs = 32612) |&gt;
+  mutate(case_ = TRUE) |&gt;
+  bind_rows(avail_train) |&gt;
+  # Attach covariates
+  extract_covariates(hab) |&gt;
+  # Assign large weights to available
+  mutate(weight = case_when(
+    case_ ~ 1,
+    !case_ ~ 5000
+  ))
+
+test_dat &lt;- test |&gt;
+  make_track(x, y, crs = 32612) |&gt;
+  mutate(case_ = TRUE) |&gt;
+  bind_rows(avail_test) |&gt;
+  # Attach covariates
+  extract_covariates(hab) |&gt;
+  # Assign large weights to available
+  mutate(weight = case_when(
+    case_ ~ 1,
+    !case_ ~ 5000
+  ))
+
+# Fit (correct) HSF
+hsf1 &lt;- glm(case_ ~ forage + temp + I(temp^2) + pred + cover,
+            data = train_dat, family = binomial(), weights = weight)
+
+# Drop weights from 'test_dat'
+test_dat$weight &lt;- NULL
+
+# Prep UHC plots
+uhc_dat &lt;- prep_uhc(object = hsf1, test_dat = test_dat,
+                    n_samp = 500, verbose = TRUE)
+
+# Plot all variables
+plot(uhc_dat)
+
+# Plot only first variable
+plot(uhc_dat[1])
+
+# Plot only "cover" variable
+plot(uhc_dat["cover"])
+
+# Coerce to data.frame
+df &lt;- as.data.frame(uhc_dat)
+
+# Simplify sampled lines to confidence envelopes
+conf &lt;- conf_envelope(df)
+
+# Default plot for the envelopes version
+plot(conf)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lock</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Management locks</h2>
+
+<h3>Description</h3>
+
+<p>Create, retrieve and delete locks. These are methods for the <code>az_subscription</code>, <code>az_resource_group</code> and <code>az_resource</code> classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<div class="sourceCode"><pre>create_lock(name, level = c("cannotdelete", "readonly"), notes = "")
+
+get_lock(name)
+
+delete_lock(name)
+
+list_locks()
+</pre></div>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: The name of a lock.
+</p>
+</li>
+<li> <p><code>level</code>: The level of protection that the lock provides.
+</p>
+</li>
+<li> <p><code>notes</code>: An optional character string to describe the lock.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>Management locks in Resource Manager can be assigned at the subscription, resource group, or resource level. They serve to protect a resource against unwanted changes. A lock can either protect against deletion (<code>level="cannotdelete"</code>) or against modification of any kind (<code>level="readonly"</code>).
+</p>
+<p>Locks assigned at parent scopes also apply to lower ones, recursively. The most restrictive lock in the inheritance takes precedence. To modify/delete a resource, any existing locks for its subscription and resource group must also be removed.
+</p>
+<p>Note if you logged in via a custom service principal, it must have "Owner" or "User Access Administrator" access to manage locks.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>create_lock</code> and <code>get_lock</code> methods return a lock object, which is itself an Azure resource. The <code>list_locks</code> method returns a list of such objects. The <code>delete_lock</code> method returns NULL on a successful delete.
+</p>
+<p>The <code>get_role_definition</code> method returns an object of class <code>az_role_definition</code>. This is a plain-old-data R6 class (no methods), which can be used as input for creating role assignments (see the examples below).
+</p>
+<p>The <code>list_role_definitions</code> method returns a list of <code>az_role_definition</code> if the <code>as_data_frame</code> argument is FALSE. If this is TRUE, it instead returns a data frame containing the most broadly useful fields for each role definition: the definition ID and role name.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>rbac
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-lock-resources">Overview of management locks</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+az &lt;- get_azure_login("myaadtenant")
+sub &lt;- az$get_subscription("subscription_id")
+rg &lt;- sub$get_resource_group("rgname")
+res &lt;- rg$get_resource(type="provider_type", name="resname")
+
+sub$create_lock("lock1", "cannotdelete")
+rg$create_lock("lock2", "cannotdelete")
+
+# error! resource is locked
+res$delete()
+
+# subscription level
+rg$delete_lock("lock2")
+sub$delete_lock("lock1")
+
+# now it works
+res$delete()
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

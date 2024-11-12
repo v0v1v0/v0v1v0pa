@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abcnonHtest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Nonparametric ABC (Approximate Bootstrap Confidence) intervals.
+</h2>
+
+<h3>Description</h3>
+
+<p>A hypothesis testing function using the nonparametric ABC intervals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abcnonHtest(x, tt, nullValue = NULL, conf.level = 0.95, 
+   alternative = c("two.sided", "less", "greater"), epsilon = 0.001, minp = 0.001)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the data. Must be either a vector, or a matrix whose rows are
+the observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tt</code></td>
+<td>
+<p>function defining the parameter in the resampling form
+<code>tt(p,x)</code>, where <code>p</code> is the vector of proportions and <code>x</code>
+is the data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nullValue</code></td>
+<td>
+
+<p>null value of the parameter for the two-sided hypothesis test, or boundary of null parameter space for one-sided ones
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+
+<p>confidence level for interval
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+
+<p>a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less". You can specify just the initial letter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>optional argument specifying step size for finite
+difference calculations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minp</code></td>
+<td>
+
+<p>minimum p-value (used in uniroot search to give a bound, toe two.sided alternatives actual minimum is 2*minp)
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates the nonparametric ABC confidence interval of DiCiccio and Efron (1992). See also Efron and Tibshirani (1993). 
+</p>
+<p>The p-values are calculated by solving for confidence limit that just touches the <code>nullValue</code>. If it is outside of the range (minp, 1-minp) for one-sided p-values, then it is set to minp.
+If it is outside the range (2*minp, 1- 2*minp) for two-sided p-values, then it is set to 2*minp.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A value of class "htest" containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>p-value for test defined by alternative and nullValue</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>estimate of the parameter, calculated using <code>x</code> and the <code>tt</code> function </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p>confidence interval for the parameter associated with <code>tt</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null.value</code></td>
+<td>
+<p> the <code>nullValue</code> (or null boundary) for the hypothesis test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p> a character string describing the alternative hypothesis </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string describing the kind of test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>a character string giving the name of the data
+and the function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>the function is modification of <code>abcnon</code> in the <code>bootstrap</code> R package, originally written by Rob Tibshirani, modifications by M.P. Fay
+</p>
+
+
+<h3>References</h3>
+
+<p>DiCiccio, T and Efron, B (1992). More accurate confidence intervals in exponential families. Biometrika 79: 231-245.
+</p>
+<p>Efron, B and Tibshirani, RJ (1993). An introduction to the bootstrap. Chapman and Hall: New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>abcnon</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># compute abc intervals for the mean
+x &lt;- c(2,4,12,4,6,3,5,7,6)
+theta &lt;- function(p,x) {sum(p*x)/sum(p)}
+## smallest p-value is 2*minp for two-sided alternatives
+abcnonHtest(x, theta, nullValue=0)  
+## test null at 95% confidence limit is like just barely
+## rejecting at the two-sided 5% level, so p-value is 0.05
+abcnonHtest(x, theta, nullValue=4.072772)  
+# compute abc intervals for the correlation
+set.seed(1)
+x &lt;- matrix(rnorm(20),ncol=2)
+theta &lt;- function(p, x)
+{
+    x1m &lt;- sum(p * x[, 1])/sum(p)
+    x2m &lt;- sum(p * x[, 2])/sum(p)
+    num &lt;- sum(p * (x[, 1] - x1m) * (x[, 2] - x2m))
+    den &lt;- sqrt(sum(p * (x[, 1] - x1m)^2) *
+              sum(p * (x[, 2] - x2m)^2))
+    return(num/den)
+}
+abcnonHtest(x, theta) 
+## compare with 
+## Not run: 
+library(bootstrap)
+abcnon(x, theta, alpha=c(.025,.975))$limits[,"abc"]
+## End(Not run)  
+</code></pre>
+
+
+</div>

@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as_esri_geometry</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Esri geometry objects</h2>
+
+<h3>Description</h3>
+
+<p>These functions convert R objects to Esri json representations. There are three
+types of representations. These are, from smallest to largest, a <a href="https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm">geometry object</a>, a <a href="https://developers.arcgis.com/documentation/common-data-types/feature-object.htm">feature</a> and a <a href="https://developers.arcgis.com/documentation/common-data-types/featureset-object.htm">feature set</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as_esri_geometry(x, crs = 4326, ..., call = rlang::caller_env())
+
+as_esri_features(x, ..., call = rlang::caller_env())
+
+as_esri_featureset(x, ...)
+
+as_geometry(x, crs, ...)
+
+as_features(x, ..., call = rlang::caller_env())
+
+as_featureset(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an sf or sfc class object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>the coordinate reference system of the FeatureSet. Must be interpretable by <code>sf::st_crs()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed on to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The execution environment of a currently running
+function, e.g. <code>call = caller_env()</code>. The corresponding function
+call is retrieved and mentioned in error messages as the source
+of the error.
+</p>
+<p>You only need to supply <code>call</code> when throwing a condition from a
+helper function which wouldn't be relevant to mention in the
+message.
+</p>
+<p>Can also be <code>NULL</code> or a defused function call to
+respectively not display any call or hard-code a code to display.
+</p>
+<p>For more information about error calls, see Including function calls in error messages.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code style="white-space: pre;">⁠_esri_⁠</code> infix indicates that the input object will be converted directly into
+the Esri JSON representation. If there is no <code style="white-space: pre;">⁠_esri_⁠</code> infix, the object will be
+converted into the appropriate list structure requiring only
+<code>jsonify::to_json(x, unbox = TRUE)</code> to convert to Esri JSON.
+</p>
+
+<ul>
+<li> <p><code>as_esri_geometry()</code> converts an <code>sfg</code> object to a geometry object
+</p>
+</li>
+<li> <p><code>as_esri_features()</code> converts an <code>sfc</code> or <code>sf</code> object to a list of features
+</p>
+</li>
+<li> <p><code>as_esri_featureset()</code> converts an <code>sf</code>, <code>sfc</code>, or <code>data.frame</code> to a feature set object
+</p>
+</li>
+</ul>
+<p>Geometry object contain the coordinates for a geometry. Features are geometries that
+have associated attributes with them. This would be similar to a row in an sf object.
+FeatureSets are a list of features that have additional metadata fields such as
+<code>spatialReference</code>, <code>geomtryType</code>, and <code>fields</code>. FeatureSets correspond to an
+<code>sf</code> object.
+</p>
+<p>Geometry objects are defined for 5 different types. These are:
+</p>
+
+<ul>
+<li>
+<p> Point: <code>esriGeometryPoint</code>
+</p>
+</li>
+<li>
+<p> Multipoint: <code>esriGeometryMultipoint</code>
+</p>
+</li>
+<li>
+<p> Polyline: <code>esriGeometryPolyline</code>
+</p>
+
+<ul><li>
+<p> note that polyline encompasses both LINESTRING and MULTILINESTRING
+</p>
+</li></ul>
+</li>
+<li>
+<p> Polygon: <code>esriGeometryPolygon</code>
+</p>
+
+<ul><li>
+<p> note that polygon encompasses both POLYGON and MULTIPOLYGON
+</p>
+</li></ul>
+</li>
+<li>
+<p> Envelope: <code>esriGeometryEnvelope</code>
+</p>
+
+<ul><li>
+<p> envelopes correspond with bounding boxes but can have a Z dimension
+</p>
+</li></ul>
+</li>
+</ul>
+<p>Field handling:
+</p>
+
+<ul>
+<li>
+<p> Vectors that inherit <code>Date</code> or <code>POSIXt</code> are converted into milliseconds since
+the Unix epoch in UTC timezone using <code>date_to_ms()</code>.
+</p>
+</li>
+<li> <p><code>factor</code>s are converted to character vectors using <code>as.character()</code> to match
+the behavior in <code>infer_esri_type()</code> which defines type mapping for Esri
+field types and R vector classes.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>a json Esri geometry object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sf)
+as_esri_geometry(st_point(c(0, 1, 3, 4)))
+as_esri_geometry(st_multipoint(x = matrix(runif(4), ncol = 2)))
+as_esri_geometry(st_linestring(x = matrix(runif(2), ncol = 2)))
+as_esri_geometry(st_linestring(x = matrix(runif(2), ncol = 2)))
+
+# polygon
+m &lt;- matrix(
+  c(0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 2, 2, 1, 2, 3, 1, 3, 2, 0, 0, 0),
+  ncol = 3,
+  byrow = TRUE
+)
+as_esri_geometry(st_polygon(list(m)))
+</code></pre>
+
+
+</div>

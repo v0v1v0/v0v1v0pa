@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>time_to_initiation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of initiation times.</h2>
+
+<h3>Description</h3>
+
+<p>Computes the time between the start of a prescription episode and the first dispensing
+event for each medication class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">time_to_initiation(
+  presc.data = NULL,
+  disp.data = NULL,
+  ID.colname = NA,
+  medication.class.colnames = NA,
+  presc.start.colname = NA,
+  disp.date.colname = NA,
+  date.format = "%d.%m.%Y",
+  suppress.warnings = FALSE,
+  return.data.table = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>presc.data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> or <em><code>data.table</code></em> containing
+the prescription episodes. Must contain, at a minimum, the patient unique ID,
+one medication identifier, and the start date of the prescription episode, and might
+also contain additional columns to identify and group medications (the actual
+column names are defined in the <em><code>medication.class.colnames</code></em> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp.data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> or <em><code>data.table</code></em> containing
+the dispensing events. Must contain, at a minimum, the patient unique ID, one
+medication identifier, the dispensing date, and might also contain additional
+columns to identify and group medications (the actual column names are defined
+in the <em><code>medication.class.colnames</code></em> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>presc.data</code>
+and <code>disp.data</code> containing the unique patient ID, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colnames</code></td>
+<td>
+<p>A <em><code>Vector</code></em> of <em>strings</em>, the
+name(s) of the column(s) in <code>data</code> containing the classes/types/groups of
+medication, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presc.start.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>presc.data</code> containing the prescription date (in the format given in
+the <code>date.format</code> parameter), or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>disp.data</code> containing the dispensing date (in the format given in
+the <code>date.format</code> parameter), or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in
+the <code>data</code> and the other parameters; see the <code>format</code> parameters
+of the <code>as.Date</code> function for details (NB, this concerns
+only the dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any
+warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.data.table</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> return a
+<code>data.table</code> object, otherwise a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other possible parameters</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The period between the start of a prescription episode and the first dose administration
+may impact health outcomes differently than omitting doses once on treatment or
+interrupting medication for longer periods of time. Primary non-adherence (not
+acquiring the first prescription) or delayed initiation may have a negative
+impact on health outcomes. The function <code>time_to_initiation</code> calculates
+the time between the start of a prescription episode and the first dispensing event, taking
+into account multiple variables to differentiate between treatments.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> or <code>data.table</code> with the following columns:
+</p>
+
+<ul>
+<li> <p><code>ID.colname</code> the unique patient ID, as given by the <code>ID.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>medication.class.colnames</code> the column(s) with classes/types/groups
+of medication, as given by the  <code>medication.class.colnames</code> parameter.
+</p>
+</li>
+<li> <p><code>episode.start</code> the date of the first prescription event.
+</p>
+</li>
+<li> <p><code>first.disp</code> the date of the first dispensing event.
+</p>
+</li>
+<li> <p><code>time.to.initiation</code> the difference in days between the first
+dispensing date and the  first prescription date.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">time_init &lt;- time_to_initiation(presc.data = durcomp.prescribing,
+                                disp.data = durcomp.dispensing,
+                                ID.colname = "ID",
+                                medication.class.colnames = c("ATC.CODE", "FORM", "UNIT"),
+                                presc.start.colname = "DATE.PRESC",
+                                disp.date.colname = "DATE.DISP",
+                                date.format = "%Y-%m-%d",
+                                suppress.warnings = FALSE,
+                                return.data.table = TRUE);
+</code></pre>
+
+
+</div>

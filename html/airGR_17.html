@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ErrorCrit_KGE2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Error criterion based on the KGE' formula</h2>
+
+<h3>Description</h3>
+
+<p>Function which computes an error criterion based on the KGE' formula proposed by Kling et al. (2012).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ErrorCrit_KGE2(InputsCrit, OutputsModel, warnings = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>InputsCrit</code></td>
+<td>
+<p>[object of class <em>InputsCrit</em>] see <code>CreateInputsCrit</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OutputsModel</code></td>
+<td>
+<p>[object of class <em>OutputsModel</em>] see <code>RunModel_GR4J</code> or <code>RunModel_CemaNeigeGR4J</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the warning messages are shown, default = <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the function is run in verbose mode or not, default = <code>TRUE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In addition to the criterion value, the function outputs include a multiplier (-1 or +1) which allows
+the use of the function for model calibration: the product <code class="reqn">CritValue \times Multiplier</code> is the criterion to be minimised (Multiplier = -1 for KGE2).<br><br>
+The KGE' formula is
+</p>
+<p style="text-align: center;"><code class="reqn">KGE' = 1 - \sqrt{(r - 1)^2 + (\gamma - 1)^2 + (\beta - 1)^2}</code>
+</p>
+
+<p>with the following sub-criteria:
+</p>
+<p style="text-align: center;"><code class="reqn">r = \mathrm{the\: linear\ correlation\: coefficient\: between\:} sim\: \mathrm{and\:} obs</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\gamma = \frac{CV_{sim}}{CV_{obs}}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\beta = \frac{\mu_{sim}}{\mu_{obs}}</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>[list] list containing the function outputs organised as follows:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+         <em>$CritValue      </em>   </td>
+<td style="text-align: left;">   [numeric] value of the criterion </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$CritName       </em>   </td>
+<td style="text-align: left;">   [character] name of the criterion </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$SubCritValues  </em>   </td>
+<td style="text-align: left;">   [numeric] values of the sub-criteria </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$SubCritNames   </em>   </td>
+<td style="text-align: left;">   [character] names of the components of the criterion </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$CritBestValue  </em>   </td>
+<td style="text-align: left;">   [numeric] theoretical best criterion value </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$Multiplier     </em>   </td>
+<td style="text-align: left;">   [numeric] integer indicating whether the criterion is indeed an error (+1) or an efficiency (-1) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         <em>$Ind_notcomputed</em>   </td>
+<td style="text-align: left;">   [numeric] indices of the time steps where <em>InputsCrit$BoolCrit</em> = <code>FALSE</code> or no data is available </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Olivier Delaigue
+</p>
+
+
+<h3>References</h3>
+
+<p>Gupta, H. V., Kling, H., Yilmaz, K. K. and Martinez, G. F. (2009).
+Decomposition of the mean squared error and NSE performance criteria: Implications for improving hydrological modelling.
+Journal of Hydrology, 377(1-2), 80-91, <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">doi:10.1016/j.jhydrol.2009.08.003</a>.
+<br><br>
+Kling, H., Fuchs, M. and Paulin, M. (2012).
+Runoff conditions in the upper Danube basin under an ensemble of climate change scenarios.
+Journal of Hydrology, 424-425, 264-277, <a href="https://doi.org/10.1016/j.jhydrol.2012.01.011">doi:10.1016/j.jhydrol.2012.01.011</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ErrorCrit</code>, <code>ErrorCrit_RMSE</code>, <code>ErrorCrit_NSE</code>, <code>ErrorCrit_KGE</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 734.568, X2 = -0.840, X3 = 109.809, X4 = 1.971)
+OutputsModel &lt;- RunModel(InputsModel = InputsModel, RunOptions = RunOptions,
+                         Param = Param, FUN = RunModel_GR4J)
+
+## efficiency criterion: Kling-Gupta Efficiency
+InputsCrit &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_KGE2, InputsModel = InputsModel,
+                               RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_KGE2(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+
+## efficiency criterion: Kling-Gupta Efficiency on square-root-transformed flows
+transfo &lt;- "sqrt"
+InputsCrit &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_KGE2, InputsModel = InputsModel,
+                               RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run],
+                               transfo = transfo)
+OutputsCrit &lt;- ErrorCrit_KGE2(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+
+## efficiency criterion: Kling-Gupta Efficiency above a threshold (quant. 75 %)
+BoolCrit &lt;- BasinObs$Qmm[Ind_Run] &gt;= quantile(BasinObs$Qmm[Ind_Run], 0.75, na.rm = TRUE)
+InputsCrit &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_KGE2, InputsModel = InputsModel,
+                               RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run],
+                               BoolCrit = BoolCrit)
+OutputsCrit &lt;- ErrorCrit_KGE2(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

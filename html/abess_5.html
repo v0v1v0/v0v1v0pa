@@ -1,0 +1,422 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abesspca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive best subset selection for principal component analysis</h2>
+
+<h3>Description</h3>
+
+<p>Adaptive best subset selection for principal component analysis
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abesspca(
+  x,
+  type = c("predictor", "gram"),
+  sparse.type = c("fpc", "kpc"),
+  cor = FALSE,
+  kpc.num = NULL,
+  support.size = NULL,
+  gs.range = NULL,
+  tune.path = c("sequence", "gsection"),
+  tune.type = c("gic", "aic", "bic", "ebic", "cv"),
+  nfolds = 5,
+  foldid = NULL,
+  ic.scale = 1,
+  c.max = NULL,
+  always.include = NULL,
+  group.index = NULL,
+  screening.num = NULL,
+  splicing.type = 1,
+  max.splicing.iter = 20,
+  warm.start = TRUE,
+  num.threads = 0,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix object. It can be either a predictor matrix
+where each row is an observation and each column is a predictor or
+a sample covariance/correlation matrix.
+If <code>x</code> is a predictor matrix, it can be in sparse matrix format
+(inherit from class <code>"dgCMatrix"</code> in package <code>Matrix</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>If <code>type = "predictor"</code>, <code>x</code> is considered as the predictor matrix.
+If <code>type = "gram"</code>, <code>x</code> is considered as a sample covariance or correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse.type</code></td>
+<td>
+<p>If <code>sparse.type = "fpc"</code>, then best subset selection performs on the first principal component;
+If <code>sparse.type = "kpc"</code>, then best subset selection would be sequentially performed on the first <code>kpc.num</code> number of principal components.
+If <code>kpc.num</code> is supplied, the default is <code>sparse.type = "kpc"</code>; otherwise, is <code>sparse.type = "fpc"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>A logical value. If <code>cor = TRUE</code>, perform PCA on the correlation matrix;
+otherwise, the covariance matrix.
+This option is available only if <code>type = "predictor"</code>.
+Default: <code>cor = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kpc.num</code></td>
+<td>
+<p>A integer decide the number of principal components to be sequentially considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>support.size</code></td>
+<td>
+<p>It is a flexible input. If it is an integer vector.
+It represents the support sizes to be considered for each principal component.
+If it is a <code>list</code> object containing <code>kpc.num</code> number of integer vectors,
+the i-th principal component consider the support size specified in the i-th element in the <code>list</code>.
+Only used for <code>tune.path = "sequence"</code>.
+The default is <code>support.size = NULL</code>, and some rules in details section are used to specify <code>support.size</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gs.range</code></td>
+<td>
+<p>A integer vector with two elements.
+The first element is the minimum model size considered by golden-section,
+the later one is the maximum one. Default is <code>gs.range = c(1, min(n, round(n/(log(log(n))log(p)))))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.path</code></td>
+<td>
+<p>The method to be used to select the optimal support size. For
+<code>tune.path = "sequence"</code>, we solve the best subset selection problem for each size in <code>support.size</code>.
+For <code>tune.path = "gsection"</code>, we solve the best subset selection problem with support size ranged in <code>gs.range</code>,
+where the specific support size to be considered is determined by golden section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.type</code></td>
+<td>
+<p>The type of criterion for choosing the support size.
+Available options are <code>"gic"</code>, <code>"ebic"</code>, <code>"bic"</code>, <code>"aic"</code> and <code>"cv"</code>.
+Default is <code>"gic"</code>.
+<code>tune.type = "cv"</code> is available only when <code>type = "predictor"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>The number of folds in cross-validation. Default is <code>nfolds = 5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>foldid</code></td>
+<td>
+<p>an optional integer vector of values between 1, ..., nfolds identifying what fold each observation is in.
+The default <code>foldid = NULL</code> would generate a random foldid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic.scale</code></td>
+<td>
+<p>A non-negative value used for multiplying the penalty term
+in information criterion. Default: <code>ic.scale = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.max</code></td>
+<td>
+<p>an integer splicing size. The default of <code>c.max</code> is the maximum of 2 and <code>max(support.size) / 2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>always.include</code></td>
+<td>
+<p>An integer vector containing the indexes of variables that should always be included in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.index</code></td>
+<td>
+<p>A vector of integers indicating the which group each variable is in.
+For variables in the same group, they should be located in adjacent columns of <code>x</code>
+and their corresponding index in <code>group.index</code> should be the same.
+Denote the first group as <code>1</code>, the second <code>2</code>, etc.
+If you do not fit a model with a group structure,
+please set <code>group.index = NULL</code> (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>screening.num</code></td>
+<td>
+<p>An integer number. Preserve <code>screening.num</code> number of predictors with the largest
+marginal maximum likelihood estimator before running algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splicing.type</code></td>
+<td>
+<p>Optional type for splicing.
+If <code>splicing.type = 1</code>, the number of variables to be spliced is
+<code>c.max</code>, ..., <code>1</code>; if <code>splicing.type = 2</code>,
+the number of variables to be spliced is <code>c.max</code>, <code>c.max/2</code>, ..., <code>1</code>.
+Default: <code>splicing.type = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.splicing.iter</code></td>
+<td>
+<p>The maximum number of performing splicing algorithm.
+In most of the case, only a few times of splicing iteration can guarantee the convergence.
+Default is <code>max.splicing.iter = 20</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warm.start</code></td>
+<td>
+<p>Whether to use the last solution as a warm start. Default is <code>warm.start = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.threads</code></td>
+<td>
+<p>An integer decide the number of threads to be
+concurrently used for cross-validation (i.e., <code>tune.type = "cv"</code>).
+If <code>num.threads = 0</code>, then all of available cores will be used.
+Default: <code>num.threads = 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to or from methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Adaptive best subset selection for principal component analysis (abessPCA) aim
+to solve the non-convex optimization problem:
+</p>
+<p style="text-align: center;"><code class="reqn">-\arg\min_{v} v^\top \Sigma v, s.t.\quad v^\top v=1, \|v\|_0 \leq s, </code>
+</p>
+
+<p>where <code class="reqn">s</code> is support size.
+Here, <code class="reqn">\Sigma</code> is covariance matrix, i.e.,
+</p>
+<p style="text-align: center;"><code class="reqn">\Sigma = \frac{1}{n} X^{\top} X.</code>
+</p>
+
+<p>A generic splicing technique is implemented to
+solve this problem.
+By exploiting the warm-start initialization, the non-convex optimization
+problem at different support size (specified by <code>support.size</code>)
+can be efficiently solved.
+</p>
+<p>The abessPCA can be conduct sequentially for each component.
+Please see the multiple principal components Section on the <a href="https://abess-team.github.io/abess/articles/v08-sPCA.html">website</a>
+for more details about this function.
+For <code>abesspca</code> function, the arguments <code>kpc.num</code> control the number of components to be consider.
+</p>
+<p>When <code>sparse.type = "fpc"</code> but <code>support.size</code> is not supplied,
+it is set as <code>support.size = 1:min(ncol(x), 100)</code> if <code>group.index = NULL</code>;
+otherwise, <code>support.size = 1:min(length(unique(group.index)), 100)</code>.
+When <code>sparse.type = "kpc"</code> but <code>support.size</code> is not supplied,
+then for 20\
+it is set as <code>min(ncol(x), 100)</code> if <code>group.index = NULL</code>;
+otherwise, <code>min(length(unique(group.index)), 100)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A S3 <code>abesspca</code> class object, which is a <code>list</code> with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>A <code class="reqn">p</code>-by-<code>length(support.size)</code> loading matrix of sparse principal components (PC),
+where each row is a variable and each column is a support size;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvars</code></td>
+<td>
+<p>The number of variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse.type</code></td>
+<td>
+<p>The same as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>support.size</code></td>
+<td>
+<p>The actual support.size values used. Note that it is not necessary the same as the input if the later have non-integer values or duplicated values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev</code></td>
+<td>
+<p>A vector with size <code>length(support.size)</code>. It records the cumulative sums of explained variance at each support size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.value</code></td>
+<td>
+<p>A value of tuning criterion of length <code>length(support.size)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kpc.num</code></td>
+<td>
+<p>The number of principal component being considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.pc</code></td>
+<td>
+<p>The variance of principal components obtained by performing standard PCA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.var.pc</code></td>
+<td>
+<p>Cumulative sums of <code>var.pc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.all</code></td>
+<td>
+<p>If <code>sparse.type = "fpc"</code>,
+it is the total standard deviations of all principal components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pev</code></td>
+<td>
+<p>A vector with the same length as <code>ev</code>. It records the percent of explained variance (compared to <code>var.all</code>) at each support size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pev.pc</code></td>
+<td>
+<p>It records the percent of explained variance (compared to <code>var.pc</code>) at each support size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.type</code></td>
+<td>
+<p>The criterion type for tuning parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune.path</code></td>
+<td>
+<p>The strategy for tuning parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The original call to <code>abess</code>.</p>
+</td>
+</tr>
+</table>
+<p>It is worthy to note that, if <code>sparse.type == "kpc"</code>, the <code>coef</code>, <code>support.size</code>, <code>ev</code>, <code>tune.value</code>, <code>pev</code> and <code>pev.pc</code> in list are <code>list</code> objects.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Some parameters not described in the Details Section is explained in the document for <code>abess</code>
+because the meaning of these parameters are very similar.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jin Zhu, Junxian Zhu, Ruihuang Liu, Junhao Huang, Xueqin Wang
+</p>
+
+
+<h3>References</h3>
+
+<p>A polynomial algorithm for best-subset selection problem. Junxian Zhu, Canhong Wen, Jin Zhu, Heping Zhang, Xueqin Wang. Proceedings of the National Academy of Sciences Dec 2020, 117 (52) 33117-33123; <a href="https://doi.org/10.1073/pnas.2014241117">doi:10.1073/pnas.2014241117</a>
+</p>
+<p>Sparse principal component analysis. Hui Zou, Hastie Trevor, and Tibshirani Robert. Journal of computational and graphical statistics 15.2 (2006): 265-286. <a href="https://doi.org/10.1198/106186006X113430">doi:10.1198/106186006X113430</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.abesspca</code>,
+<code>coef.abesspca</code>,
+<code>plot.abesspca</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(abess)
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
+
+## predictor matrix input:
+head(USArrests)
+pca_fit &lt;- abesspca(USArrests)
+pca_fit
+plot(pca_fit)
+
+## covariance matrix input:
+cov_mat &lt;- stats::cov(USArrests) * (nrow(USArrests) - 1) / nrow(USArrests)
+pca_fit &lt;- abesspca(cov_mat, type = "gram")
+pca_fit
+
+## robust covariance matrix input:
+rob_cov &lt;- MASS::cov.rob(USArrests)[["cov"]]
+rob_cov &lt;- (rob_cov + t(rob_cov)) / 2
+pca_fit &lt;- abesspca(rob_cov, type = "gram")
+pca_fit
+
+## K-component principal component analysis
+pca_fit &lt;- abesspca(USArrests,
+  sparse.type = "kpc",
+  support.size = 1:4
+)
+coef(pca_fit)
+plot(pca_fit)
+plot(pca_fit, "coef")
+
+## select support size via cross-validation ##
+n &lt;- 500
+p &lt;- 50
+support_size &lt;- 3
+dataset &lt;- generate.spc.matrix(n, p, support_size, snr = 20)
+spca_fit &lt;- abesspca(dataset[["x"]], tune.type = "cv", nfolds = 5)
+plot(spca_fit, type = "tune")
+
+</code></pre>
+
+
+</div>

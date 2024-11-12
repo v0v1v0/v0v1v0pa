@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aws.ec2metadata-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get EC2 Instance Metadata</h2>
+
+<h3>Description</h3>
+
+<p>Retrieve EC2 instance metadata from the instance
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">is_ec2()
+
+instance_document()
+
+metadata
+
+is_ecs()
+
+ecs_metadata(base_url = "http://169.254.170.2")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>base_url</code></td>
+<td>
+<p>Base URL for querying instance metadata</p>
+</td>
+</tr></table>
+<h3>Format</h3>
+
+<p>An object of class <code>list</code> of length 26.</p>
+
+
+<h3>Details</h3>
+
+<p><code>is_ec2()</code> returns a logical for whether the current R session appears to be running in an EC2 instance. <code>is_ecs()</code> returns a logical for whether the current R session appears to be running in an ECS task container.
+</p>
+<p><code>instance_document</code> returns a list containing values from the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html">Instance Identity Document</a>, including the instance ID, AMI ID, region, availability zone, etc.
+</p>
+<p><code>metadata</code> is a list of functions to return various metadata values for the currently running EC2 instance. These are only meant to be called from an EC2 instance; no guarantees are made about behavior on other platforms. Two functions: <code>versions()</code> and <code>meta_data_items()</code> return the versions of the metadata, and the set of top-level metadata items, respectively.
+</p>
+<p>The function <code>item()</code> retrieves a particular metadata item specified by its full path.
+</p>
+<p>The remaining functions in the list are aliases for potentially commonly needed metadata items.
+</p>
+<p>The environment variable <code>AWS_METADATA_SERVICE_TIMEOUT</code> controls the timeout for instance metadata checks, and defaults to 1 second.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>is_ec2()</code> and <code>is_ecs()</code> return a logical. Generally, all other functions will return a character string containing the requested information, otherwise a <code>NULL</code> if the response is empty. The <code>iam_role()</code> and <code>ecs_metadata()</code> functions return a list. An error will occur if, for some reason, the request otherwise fails.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thomas J. Leeper &lt;thosjleeper@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">Metadata Documentation</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">names(metadata)
+
+## Not run: 
+if (is_ec2()) {
+  metadata$versions()
+  metadata$items()
+
+  # get instance id
+  metadata$instance_id()
+  # get ami id
+  metadata$ami_id()
+  
+  # get IAM role (NULL if none specified)
+  metadata$iam_info()
+  metadata$iam_role("myrole")
+
+  # get an arbitrary metadata item
+  metadata$item("meta-data/placement/availability-zone")
+  
+  # get region from instance identity document
+  instance_document()$region
+}
+
+# Can also get ECS container metadata
+if (is_ecs()) {
+  # Get ECS role credentials
+  metadata$ecs_task_role()
+  # or
+  ecs_metadata()
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

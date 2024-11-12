@@ -1,0 +1,252 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_relative_flag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flag Observations Before or After a Condition is Fulfilled</h2>
+
+<h3>Description</h3>
+
+<p>Flag all observations before or after the observation where a specified
+condition is fulfilled for each by group. For example, the function could be
+called to flag for each subject all observations before the first disease
+progression or to flag all AEs after a specific AE.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_relative_flag(
+  dataset,
+  by_vars,
+  order,
+  new_var,
+  condition,
+  mode,
+  selection,
+  inclusive,
+  flag_no_ref_groups = TRUE,
+  check_type = "warning"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>order</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>Within each by group the observations are ordered by the specified order.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>New variable
+</p>
+<p>The variable is added to the input dataset and set to <code>"Y"</code> for all
+observations before or after the condition is fulfilled. For all other
+observations it is set to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>Condition for Reference Observation
+</p>
+<p>The specified condition determines the reference observation. In the output
+dataset all observations before or after (<code>selection</code> argument)
+the reference observation are flagged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If <code>"first"</code> is specified, for each by group the observations before or
+after (<code>selection</code> argument) the observation where the condition
+(<code>condition</code> argument) is fulfilled the <em>first</em> time is flagged in the
+output dataset. If <code>"last"</code> is specified, for each by group the
+observations before or after (<code>selection</code> argument) the observation where
+the condition (<code>condition</code> argument) is fulfilled the <em>last</em> time is
+flagged in the output dataset.
+</p>
+<p><em>Permitted Values:</em> <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>Flag observations before or after the reference observation?
+</p>
+<p><em>Permitted Values:</em> <code>"before"</code>, <code>"after"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inclusive</code></td>
+<td>
+<p>Flag the reference observation?
+</p>
+<p><em>Permitted Values:</em> <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag_no_ref_groups</code></td>
+<td>
+<p>Should by groups without reference observation be flagged?
+</p>
+<p><em>Permitted Values:</em> <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the input dataset are not unique with respect to the
+by variables and the order.
+</p>
+<p><em>Permitted Values:</em> <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each by group (<code>by_vars</code> argument) the observations before or
+after (<code>selection</code> argument) the observations where the condition
+(<code>condition</code> argument) is fulfilled the first or last time (<code>order</code>
+argument and <code>mode</code> argument) is flagged in the output dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the new variable (<code>new_var</code>) added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_merged_summary()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_vars_computed()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged()</code>,
+<code>derive_vars_merged_lookup()</code>,
+<code>derive_vars_transposed()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+
+# Flag all AEs after the first COVID AE
+adae &lt;- tribble(
+  ~USUBJID, ~ASTDY, ~ACOVFL, ~AESEQ,
+  "1",           2, NA,           1,
+  "1",           5, "Y",          2,
+  "1",           5, NA,           3,
+  "1",          17, NA,           4,
+  "1",          27, "Y",          5,
+  "1",          32, NA,           6,
+  "2",           8, NA,           1,
+  "2",          11, NA,           2,
+)
+
+derive_var_relative_flag(
+  adae,
+  by_vars = exprs(USUBJID),
+  order = exprs(ASTDY, AESEQ),
+  new_var = PSTCOVFL,
+  condition = ACOVFL == "Y",
+  mode = "first",
+  selection = "after",
+  inclusive = FALSE,
+  flag_no_ref_groups = FALSE
+)
+
+response &lt;- tribble(
+  ~USUBJID, ~AVISITN, ~AVALC,
+  "1",      0,        "PR",
+  "1",      1,        "CR",
+  "1",      2,        "CR",
+  "1",      3,        "SD",
+  "1",      4,        "NE",
+  "2",      0,        "SD",
+  "2",      1,        "PD",
+  "2",      2,        "PD",
+  "3",      0,        "SD",
+  "4",      0,        "SD",
+  "4",      1,        "PR",
+  "4",      2,        "PD",
+  "4",      3,        "SD",
+  "4",      4,        "PR"
+)
+
+# Flag observations up to first PD for each patient
+response %&gt;%
+  derive_var_relative_flag(
+    by_vars = exprs(USUBJID),
+    order = exprs(AVISITN),
+    new_var = ANL02FL,
+    condition = AVALC == "PD",
+    mode = "first",
+    selection = "before",
+    inclusive = TRUE
+  )
+
+# Flag observations up to first PD excluding baseline (AVISITN = 0) for each patient
+response %&gt;%
+  restrict_derivation(
+    derivation = derive_var_relative_flag,
+    args = params(
+      by_vars = exprs(USUBJID),
+      order = exprs(AVISITN),
+      new_var = ANL02FL,
+      condition = AVALC == "PD",
+      mode = "first",
+      selection = "before",
+      inclusive = TRUE
+    ),
+    filter = AVISITN &gt; 0
+  ) %&gt;%
+  arrange(USUBJID, AVISITN)
+</code></pre>
+
+
+</div>

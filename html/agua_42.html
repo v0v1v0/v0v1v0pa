@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rank_results.workflow</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tools for working with H2O AutoML results</h2>
+
+<h3>Description</h3>
+
+<p>Functions that returns a tibble describing model performances.
+</p>
+
+<ul>
+<li> <p><code>rank_results()</code> ranks average cross validation performances
+of candidate models on each metric.
+</p>
+</li>
+<li> <p><code>collect_metrics()</code> computes average statistics of performance metrics
+(summarized) for each model, or raw value in each resample (unsummarized).
+</p>
+</li>
+<li> <p><code>tidy()</code> computes average performance for each model.
+</p>
+</li>
+<li> <p><code>member_weights()</code> computes member importance for stacked ensemble
+models, i.e., the relative importance of base models in the meta-learner.
+This is typically the coefficient magnitude in the second-level GLM model.
+</p>
+</li>
+</ul>
+<p><code>extract_fit_engine()</code> extracts single candidate model from <code>auto_ml()</code>
+results. When <code>id</code> is null, it returns the leader model.
+</p>
+<p><code>refit()</code> re-fits an existing AutoML model to add more candidates. The model
+to be re-fitted needs to have engine argument <code>save_data = TRUE</code>, and
+<code>keep_cross_validation_predictions = TRUE</code> if stacked ensembles is needed for
+later models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'workflow'
+rank_results(x, ...)
+
+## S3 method for class ''_H2OAutoML''
+rank_results(x, ...)
+
+## S3 method for class 'H2OAutoML'
+rank_results(x, n = NULL, id = NULL, ...)
+
+## S3 method for class 'workflow'
+collect_metrics(x, ...)
+
+## S3 method for class ''_H2OAutoML''
+collect_metrics(x, ...)
+
+## S3 method for class 'H2OAutoML'
+collect_metrics(x, summarize = TRUE, n = NULL, id = NULL, ...)
+
+## S3 method for class ''_H2OAutoML''
+tidy(x, n = NULL, id = NULL, keep_model = TRUE, ...)
+
+get_leaderboard(x, n = NULL, id = NULL)
+
+member_weights(x, ...)
+
+## S3 method for class ''_H2OAutoML''
+extract_fit_parsnip(x, id = NULL, ...)
+
+## S3 method for class ''_H2OAutoML''
+extract_fit_engine(x, id = NULL, ...)
+
+## S3 method for class 'workflow'
+refit(object, ...)
+
+## S3 method for class ''_H2OAutoML''
+refit(object, verbosity = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>An integer for the number of top models to extract from AutoML
+results, default to all.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>A character vector of model ids to retrieve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summarize</code></td>
+<td>
+<p>A logical; should metrics be summarized over resamples
+(TRUE) or return the values for each individual resample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_model</code></td>
+<td>
+<p>A logical value for if the actual model object
+should be retrieved from the server. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object, x</code></td>
+<td>
+<p>A fitted <code>auto_ml()</code> model or workflow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>Verbosity of the backend messages printed during training;
+Must be one of NULL (live log disabled), "debug", "info", "warn", "error".
+Defaults to NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>H2O associates with each model in AutoML an unique id. This can be used for
+model extraction and prediction, i.e., <code>extract_fit_engine(x, id = id)</code>
+returns the model and <code>predict(x, id = id)</code> will predict for that model.
+<code>extract_fit_parsnip(x, id = id)</code> wraps the h2o model with parsnip
+parsnip model object is discouraged.
+</p>
+<p>The <code>algorithm</code> column corresponds to the model family H2O use for a
+particular model, including xgboost (<code>"XGBOOST"</code>),
+gradient boosting (<code>"GBM"</code>), random forest and variants (<code>"DRF"</code>, <code>"XRT"</code>),
+generalized linear model (<code>"GLM"</code>), and neural network (<code>"deeplearning"</code>).
+See the details section in <code>h2o::h2o.automl()</code> for more information.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble::tibble()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (h2o_running()) {
+ auto_fit &lt;- auto_ml() %&gt;%
+   set_engine("h2o", max_runtime_secs = 5) %&gt;%
+   set_mode("regression") %&gt;%
+   fit(mpg ~ ., data = mtcars)
+
+   rank_results(auto_fit, n = 5)
+   collect_metrics(auto_fit, summarize = FALSE)
+   tidy(auto_fit)
+   member_weights(auto_fit)
+}
+
+</code></pre>
+
+
+</div>

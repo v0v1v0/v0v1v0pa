@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_geo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Geocoding using the ArcGIS REST API</h2>
+
+<h3>Description</h3>
+
+<p>Geocodes addresses given as character values. This function returns the
+<code>tibble</code> object associated with the query.
+</p>
+<p>This function uses the <code>SingleLine</code> approach detailed in the
+<a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-find-address-candidates.htm">ArcGIS REST docs</a>. For multi-field queries (i.e.
+using specific address parameters) use <code>arc_geo_multi()</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arc_geo(
+  address,
+  lat = "lat",
+  long = "lon",
+  limit = 1,
+  full_results = FALSE,
+  return_addresses = TRUE,
+  verbose = FALSE,
+  progressbar = TRUE,
+  outsr = NULL,
+  langcode = NULL,
+  sourcecountry = NULL,
+  category = NULL,
+  custom_query = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>address</code></td>
+<td>
+<p>character with single line address
+(<code>"1600 Pennsylvania Ave NW, Washington"</code>) or a vector of addresses
+(<code>c("Madrid", "Barcelona")</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>latitude column name in the output data (default  <code>"lat"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>longitude column name in the output data (default  <code>"lon"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>maximum number of results to return per input address. Note
+that each query returns a maximum of 50 results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_results</code></td>
+<td>
+<p>returns all available data from the API service. This
+is a shorthand of <code style="white-space: pre;">⁠outFields=*⁠</code>. See <strong>References</strong>. If <code>FALSE</code> (default)
+only the default values of the API would be returned. See also
+<code>return_addresses</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_addresses</code></td>
+<td>
+<p>return input addresses with results if <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code> then detailed logs are output to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progressbar</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> displays a progress bar to indicate
+the progress of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outsr</code></td>
+<td>
+<p>The spatial reference of the <code style="white-space: pre;">⁠x,y⁠</code> coordinates returned by a
+geocode request. By default is <code>NULL</code> (i.e. the parameter won't be used in
+the query). See <strong>Details</strong> and arc_spatial_references.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>langcode</code></td>
+<td>
+<p>Sets the language in which reverse-geocoded addresses are
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sourcecountry</code></td>
+<td>
+<p>Limits the candidates returned to the specified country
+or countries. Acceptable values include the three-character country code.
+You can specify multiple country codes to limit results to more than one
+country.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>category</code></td>
+<td>
+<p>A place or address type that can be used to filter results.
+Several values can be used as well as a vector (i.e.
+<code>c("Cinema", "Museum")</code>). See arc_categories for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_query</code></td>
+<td>
+<p>API-specific parameters to be used, passed as a named
+list.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>More info and valid values in the <a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-find-address-candidates.htm">ArcGIS REST docs</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble</code> object with the results. See the details of the output in  <a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm">ArcGIS REST API Service output</a>.
+</p>
+
+
+<h3><code>outsr</code></h3>
+
+<p>The spatial reference can be specified as either a well-known ID (WKID). If
+not specified, the spatial reference of the output locations is the same as
+that of the service ( WGS84, i.e. WKID = 4326)).
+</p>
+<p>See arc_spatial_references for values and examples.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-find-address-candidates.htm">ArcGIS REST <code>findAddressCandidates</code></a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tidygeocoder::geo()</code>
+</p>
+<p>Other functions for geocoding: 
+<code>arc_geo_categories()</code>,
+<code>arc_geo_multi()</code>,
+<code>arc_reverse_geo()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+arc_geo("Madrid, Spain")
+
+library(dplyr)
+
+# Several addresses with additional output fields
+with_params &lt;- arc_geo(c("Madrid", "Barcelona"),
+  custom_query = list(outFields = c("LongLabel", "CntryName"))
+)
+
+with_params %&gt;%
+  select(lat, lon, CntryName, LongLabel)
+
+# With options: restrict search to USA
+with_params_usa &lt;- arc_geo(c("Madrid", "Barcelona"),
+  sourcecountry = "USA",
+  custom_query = list(outFields = c("LongLabel", "CntryName"))
+)
+
+with_params_usa %&gt;%
+  select(lat, lon, CntryName, LongLabel)
+
+
+</code></pre>
+
+
+</div>

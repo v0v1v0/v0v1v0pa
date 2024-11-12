@@ -1,0 +1,467 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Spatial principal component analysis</h2>
+
+<h3>Description</h3>
+
+<p>These functions implement the spatial principal component analysis
+(sPCA). The function <code>spca</code> is a generic with methods for:
+</p>
+
+<ul>
+<li> <p><code>matrix</code>: only numeric values are accepted
+</p>
+</li>
+<li> <p><code>data.frame</code>: same as for matrices
+</p>
+</li>
+<li> <p><code>genind</code>: any genind object is accepted
+</p>
+</li>
+<li> <p><code>genpop</code>: any genpop object is accepted
+</p>
+</li>
+</ul>
+<p>The core computation use <code>multispati</code> from the <code>ade4</code> package.<br></p>
+<p>Besides the set of <code>spca</code> functions, other functions include:
+</p>
+
+<ul>
+<li> <p><code>print.spca</code>: prints the spca content
+</p>
+</li>
+<li> <p><code>summary.spca</code>: gives variance and autocorrelation
+statistics
+</p>
+</li>
+<li> <p><code>plot.spca</code>: usefull graphics (connection network, 3 different
+representations of map of scores, eigenvalues barplot and
+decomposition)
+</p>
+</li>
+<li> <p><code>screeplot.spca</code>: decomposes spca eigenvalues into variance and
+autocorrelation
+</p>
+</li>
+<li> <p><code>colorplot.spca</code>: represents principal components of sPCA in
+space using the RGB system.
+</p>
+</li>
+</ul>
+<p>A tutorial on sPCA can be opened using:<br><code>adegenetTutorial(which="spca")</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spca(...)
+
+## Default S3 method:
+spca(x, ...)
+
+## S3 method for class 'matrix'
+spca(x, xy = NULL, cn = NULL, matWeight = NULL,
+            center = TRUE, scale = FALSE, scannf = TRUE,
+            nfposi = 1, nfnega = 1,
+            type = NULL, ask = TRUE,
+            plot.nb = TRUE, edit.nb = FALSE,
+            truenames = TRUE,
+            d1 = NULL, d2 = NULL, k = NULL,
+            a = NULL, dmin = NULL, ...)
+
+## S3 method for class 'data.frame'
+spca(x, xy = NULL, cn = NULL, matWeight = NULL,
+            center = TRUE, scale = FALSE, scannf = TRUE,
+            nfposi = 1, nfnega = 1,
+            type = NULL, ask = TRUE,
+            plot.nb = TRUE, edit.nb = FALSE,
+            truenames = TRUE,
+            d1 = NULL, d2 = NULL, k = NULL,
+            a = NULL, dmin = NULL, ...)
+
+## S3 method for class 'genind'
+spca(obj, xy = NULL, cn = NULL, matWeight = NULL,
+            scale = FALSE, scannf = TRUE,
+            nfposi = 1, nfnega = 1,
+            type = NULL, ask = TRUE,
+            plot.nb = TRUE, edit.nb = FALSE,
+            truenames = TRUE,
+            d1 = NULL, d2 = NULL, k = NULL,
+            a = NULL, dmin = NULL, ...)
+
+## S3 method for class 'genpop'
+spca(obj, xy = NULL, cn = NULL, matWeight = NULL,
+            scale = FALSE, scannf = TRUE,
+            nfposi = 1, nfnega = 1,
+            type = NULL, ask = TRUE,
+            plot.nb = TRUE, edit.nb = FALSE,
+            truenames = TRUE,
+            d1 = NULL, d2 = NULL, k = NULL,
+            a = NULL, dmin = NULL, ...)
+
+
+## S3 method for class 'spca'
+print(x, ...)
+
+## S3 method for class 'spca'
+summary(object, ..., printres=TRUE)
+
+## S3 method for class 'spca'
+plot(x, axis = 1, useLag=FALSE, ...)
+
+## S3 method for class 'spca'
+screeplot(x, ..., main=NULL)
+
+## S3 method for class 'spca'
+colorplot(x, axes=1:ncol(x$li), useLag=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>matrix</code> or a <code>data.frame</code> of numeric values,
+with individuals in rows and variables in columns; categorical
+variables with a binary coding are acceptable too; for <code>print</code>
+and plotting functions, a spca object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>a <code>genind</code> or <code>genpop</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>a matrix or data.frame with two columns for x and y
+coordinates. Seeked from obj$other$xy if it exists when xy is not
+provided. Can be NULL if a <code>nb</code> object is provided in
+<code>cn</code>.<br> Longitude/latitude coordinates should be converted
+first by a given projection (see 'See Also' section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cn</code></td>
+<td>
+<p>a connection network of the class 'nb' (package spdep). Can
+be NULL if xy is provided. Can be easily obtained using the function
+chooseCN (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matWeight</code></td>
+<td>
+<p>a square matrix of spatial weights, indicating the
+spatial proximities between entities. If provided, this argument
+prevails over <code>cn</code> (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>a logical indicating whether data should be centred to
+a mean of zero; used implicitely for genind or
+genpop objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>a logical indicating whether data should be scaled to
+unit variance (TRUE) or not (FALSE, default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scannf</code></td>
+<td>
+<p>a logical stating whether eigenvalues should be chosen
+interactively (TRUE, default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfposi</code></td>
+<td>
+<p>an integer giving the number of positive eigenvalues
+retained ('global structures').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfnega</code></td>
+<td>
+<p>an integer giving the number of negative eigenvalues
+retained ('local structures').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>an integer giving the type of graph (see details in
+<code>chooseCN</code> help page). If provided, <code>ask</code> is set to
+FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ask</code></td>
+<td>
+<p>a logical stating whether graph should be chosen
+interactively (TRUE,default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.nb</code></td>
+<td>
+<p>a logical stating whether the resulting graph should be
+plotted (TRUE, default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edit.nb</code></td>
+<td>
+<p>a logical stating whether the resulting graph should be
+edited manually for corrections (TRUE) or not (FALSE, default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truenames</code></td>
+<td>
+<p>a logical stating whether true names should be used
+for 'obj' (TRUE, default) instead of generic labels (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d1</code></td>
+<td>
+<p>the minimum distance between any two neighbours. Used if
+<code>type=5.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2</code></td>
+<td>
+<p>the maximum distance between any two neighbours. Used if
+<code>type=5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of neighbours per point. Used if <code>type=6</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>the exponent of the inverse distance matrix. Used if
+<code>type=7</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmin</code></td>
+<td>
+<p>the minimum distance between any two distinct points. Used
+to avoid infinite spatial proximities (defined as the inversed
+spatial distances). Used if <code>type=7</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>spca</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printres</code></td>
+<td>
+<p>a logical stating whether results should be printed on
+the screen (TRUE, default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axis</code></td>
+<td>
+<p>an integer between 1 and (nfposi+nfnega) indicating which
+axis should be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>a title for the screeplot; if NULL, a default one is
+used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axes</code></td>
+<td>
+<p>the index of the columns of X to be represented. Up to
+three axes can be chosen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useLag</code></td>
+<td>
+<p>a logical stating whether the lagged components
+(<code>x$ls</code>) should be used instead of the components
+(<code>x$li</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The spatial principal component analysis (sPCA) is designed to
+investigate spatial patterns in the genetic variability. Given
+multilocus genotypes (individual level) or allelic frequency
+(population level) and spatial coordinates, it finds individuals (or
+population) scores maximizing the product of variance and spatial
+autocorrelation (Moran's I). Large positive and negative eigenvalues
+correspond to global and local structures.<br></p>
+<p>Spatial weights can be obtained in several ways, depending how the
+arguments <code>xy</code>, <code>cn</code>, and <code>matWeight</code> are set.<br>
+When several acceptable ways are used at the same time, priority is as
+follows:<br><code>matWeight</code> &gt;  <code>cn</code> &gt; <code>xy</code> <br></p>
+
+
+<h3>Value</h3>
+
+<p>The class <code>spca</code> are given to lists with the following
+components:<br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>eig</code></td>
+<td>
+<p>a numeric vector of eigenvalues.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfposi</code></td>
+<td>
+<p>an integer giving the number of global structures
+retained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfnega</code></td>
+<td>
+<p>an integer giving the number of local structures retained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1</code></td>
+<td>
+<p>a data.frame of alleles loadings for each axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>li</code></td>
+<td>
+<p>a data.frame of row (individuals or populations) coordinates
+onto the sPCA axes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ls</code></td>
+<td>
+<p>a data.frame of lag vectors of the row coordinates; useful
+to clarify maps of global scores .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as</code></td>
+<td>
+<p>a data.frame giving the coordinates of the PCA axes onto the
+sPCA axes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>a matrix of spatial coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lw</code></td>
+<td>
+<p>a list of spatial weights of class <code>listw</code>.</p>
+</td>
+</tr>
+</table>
+<p>Other functions have different outputs:<br>
+- <code>summary.spca</code> returns a list with 3 components: <code>Istat</code>
+giving the null, minimum and maximum Moran's I values; <code>pca</code>
+gives variance and I statistics for the principal component analysis;
+<code>spca</code> gives variance and I statistics for the sPCA.<br></p>
+<p>- <code>plot.spca</code> returns the matched call.<br></p>
+<p>- <code>screeplot.spca</code> returns the matched call.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a> </p>
+
+
+<h3>References</h3>
+
+<p>Jombart, T., Devillard, S., Dufour, A.-B. and Pontier, D.
+Revealing cryptic spatial patterns in genetic variability by a new
+multivariate method. <em>Heredity</em>, <b>101</b>, 92–103.
+</p>
+<p>Wartenberg, D. E. (1985) Multivariate spatial correlation: a method for
+exploratory geographical analysis. <em>Geographical Analysis</em>,
+<b>17</b>, 263–283.
+</p>
+<p>Moran, P.A.P. (1948) The interpretation of statistical
+maps. <em>Journal of the Royal Statistical Society, B</em>
+<b>10</b>, 243–251.
+</p>
+<p>Moran, P.A.P. (1950) Notes on continuous stochastic
+phenomena. <em>Biometrika</em>, <b>37</b>, 17–23.
+</p>
+<p>de Jong, P. and Sprenger, C. and van Veen, F. (1984) On extreme values
+of Moran's I and Geary's c. <em>Geographical Analysis</em>, <b>16</b>, 17–24.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spcaIllus</code> and <code>rupica</code> for datasets illustrating the sPCA <br><code>global.rtest</code> and <code>local.rtest</code> <br><code>chooseCN</code>, <code>multispati</code>,
+<code>multispati.randtest</code><br><code>convUL</code>, from the package 'PBSmapping' to convert longitude/latitude to
+UTM coordinates.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## data(spcaIllus) illustrates the sPCA
+## see ?spcaIllus
+##
+## Not run: 
+example(spcaIllus)
+example(rupica)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

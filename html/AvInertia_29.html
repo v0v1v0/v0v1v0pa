@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>massprop_restbody</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the center of gravity and moment of inertia for the head, neck,
+torso and tail.</h2>
+
+<h3>Description</h3>
+
+<p>Function that reads in anatomical data and returns the moment of inertia
+tensor and center of gravity for the head, neck, tail and torso.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">massprop_restbody(dat_wingID_curr, dat_bird_curr)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat_wingID_curr</code></td>
+<td>
+<p>Dataframe related to the current bird wing ID
+info that must include the following columns:
+</p>
+
+<ul>
+<li>
+<p>speciesSpecies ID code as a string.
+</p>
+</li>
+<li>
+<p>BirdIDBird ID code as a string.
+</p>
+</li>
+<li>
+<p>TestIDTest ID code as a string.
+</p>
+</li>
+<li>
+<p>frameIDVideo frame ID code as a string.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat_bird_curr</code></td>
+<td>
+<p>Dataframe related to the current bird wing that must
+include the following columns:
+</p>
+
+<ul>
+<li>
+<p>extend_neckLogical input defining whether the neck should be
+modeled as extended or not.
+</p>
+</li>
+<li>
+<p>head_lengthLength of the head from base to tip (m).
+</p>
+</li>
+<li>
+<p>head_massMass of the head (kg).
+</p>
+</li>
+<li>
+<p>head_heightHeight of the head at the base (m).
+</p>
+</li>
+<li>
+<p>neck_massMass of the neck (kg).
+</p>
+</li>
+<li>
+<p>neck_widthOPTIONAL - Average width of the stretched neck (m).
+</p>
+</li>
+<li>
+<p>neck_lengthOPTIONAL - Length of the stretched neck (m).
+</p>
+</li>
+<li>
+<p>torsotail_lengthLength from the beginning of the torso to the tip of the tail (m).
+</p>
+</li>
+<li>
+<p>torsotail_massMass of the torso and tail (kg).
+</p>
+</li>
+<li>
+<p>tail_lengthLength of the tail (m).
+</p>
+</li>
+<li>
+<p>tail_massMass of the tail (kg).
+</p>
+</li>
+<li>
+<p>tail_widthAverage width of the furled tail (m).
+</p>
+</li>
+<li>
+<p>right_leg_massMass of the right leg (kg).
+</p>
+</li>
+<li>
+<p>left_leg_massMass of the left leg (kg).
+</p>
+</li>
+<li>
+<p>body_width_maxMaximum width of the torso (m).
+</p>
+</li>
+<li>
+<p>body_width_at_leg_insertWidth of the body at the point
+where the legs are inserted (m).
+</p>
+</li>
+<li>
+<p>x_loc_of_body_maxx coordinate from the VRP in the
+full bird frame of reference of the maximum body width (m).
+</p>
+</li>
+<li>
+<p>x_loc_leg_insertionx coordinate from the VRP in the
+full bird frame of reference of the leg insertion location (m).
+</p>
+</li>
+<li>
+<p>x_loc_TorsotailCoGx coordinate from the VRP in the
+full bird frame of reference of the center of gravity of the torso and tail (m).
+</p>
+</li>
+<li>
+<p>z_loc_TorsotailCoGx coordinate from the VRP in the
+full bird frame of reference of the the center of gravity of the torso and tail (m).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Function returns a dataframe that includes the moment of inertia and
+center of gravity of head, neck, torso and tail.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

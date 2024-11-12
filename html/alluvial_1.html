@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alluvial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Alluvial diagram</h2>
+
+<h3>Description</h3>
+
+<p>Drawing alluvial diagrams, also known as parallel set plots.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">alluvial(..., freq, col = "gray", border = 0, layer, hide = FALSE,
+  alpha = 0.5, gap.width = 0.05, xw = 0.1, cw = 0.1, blocks = TRUE,
+  ordering = NULL, axis_labels = NULL, cex = par("cex"),
+  cex.axis = par("cex.axis"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>vectors or data frames, all for the same number of observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>numeric, vector of frequencies of the same length as the number of observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>vector of colors of the stripes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>border</code></td>
+<td>
+<p>vector of border colors for the stripes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer</code></td>
+<td>
+<p>numeric, order of drawing of the stripes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide</code></td>
+<td>
+<p>logical, should particular stripe be plotted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric, vector of transparency of the stripes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap.width</code></td>
+<td>
+<p>numeric, relative width of inter-category gaps</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xw</code></td>
+<td>
+<p>numeric, the distance from the set axis to the control points of the xspline</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cw</code></td>
+<td>
+<p>numeric, width of the category axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocks</code></td>
+<td>
+<p>logical, whether to use blocks to tie the flows together at each category, versus contiguous ribbons (also admits character value "bookends")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordering</code></td>
+<td>
+<p>list of numeric vectors allowing to reorder the alluvia on each axis separately, see Examples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axis_labels</code></td>
+<td>
+<p>character, labels of the axes, defaults to variable names in the data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex, cex.axis</code></td>
+<td>
+<p>numeric, scaling of fonts of category labels and axis labels respectively. See <code>par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Invisibly a list with elements:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>endpoints</code></td>
+<td>
+<p>A list of matrices of y-coordinates of endpoints of the
+alluvia. x-coordinates are consecutive natural numbers.</p>
+</td>
+</tr></table>
+<h3>Note</h3>
+
+<p>Please mind that the API is planned to change to be more compatible
+with <span class="pkg">dplyr</span> verbs.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Titanic data
+tit &lt;- as.data.frame(Titanic)
+
+# 2d
+tit2d &lt;- aggregate( Freq ~ Class + Survived, data=tit, sum)
+alluvial( tit2d[,1:2], freq=tit2d$Freq, xw=0.0, alpha=0.8,
+         gap.width=0.1, col= "steelblue", border="white",
+         layer = tit2d$Survived != "Yes" )
+
+alluvial( tit2d[,1:2], freq=tit2d$Freq, 
+         hide=tit2d$Freq &lt; 150,
+         xw=0.0, alpha=0.8,
+         gap.width=0.1, col= "steelblue", border="white",
+         layer = tit2d$Survived != "Yes" )
+
+# 3d
+tit3d &lt;- aggregate( Freq ~ Class + Sex + Survived, data=tit, sum)
+
+alluvial(tit3d[,1:3], freq=tit3d$Freq, alpha=1, xw=0.2,
+         col=ifelse( tit3d$Survived == "No", "red", "gray"),
+         layer = tit3d$Sex != "Female",
+         border="white")
+
+
+# 4d
+alluvial( tit[,1:4], freq=tit$Freq, border=NA,
+         hide = tit$Freq &lt; quantile(tit$Freq, .50),
+         col=ifelse( tit$Class == "3rd" &amp; tit$Sex == "Male", "red", "gray") )
+
+# 3d example with custom ordering
+# Reorder "Sex" axis according to survival status
+ord &lt;- list(NULL, with(tit3d, order(Sex, Survived)), NULL)
+alluvial(tit3d[,1:3], freq=tit3d$Freq, alpha=1, xw=0.2,
+         col=ifelse( tit3d$Survived == "No", "red", "gray"),
+         layer = tit3d$Sex != "Female",
+         border="white", ordering=ord)
+
+# Possible blocks options
+for (blocks in c(TRUE, FALSE, "bookends")) {
+    
+    # Elaborate alluvial diagram from main examples file
+    alluvial( tit[, 1:4], freq = tit$Freq, border = NA,
+              hide = tit$Freq &lt; quantile(tit$Freq, .50),
+              col = ifelse( tit$Class == "3rd" &amp; tit$Sex == "Male",
+                            "red", "gray" ),
+              blocks = blocks )
+}
+
+
+# Data returned
+x &lt;- alluvial( tit2d[,1:2], freq=tit2d$Freq, xw=0.0, alpha=0.8,
+          gap.width=0.1, col= "steelblue", border="white",
+          layer = tit2d$Survived != "Yes" )
+points( rep(1, 16), x$endpoints[[1]], col="green")
+points( rep(2, 16), x$endpoints[[2]], col="blue")
+</code></pre>
+
+
+</div>

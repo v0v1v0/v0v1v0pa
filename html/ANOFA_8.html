@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>count</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>anofaPlot.</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>anofaPlot()</code> performs a plot of frequencies for designs
+with up to 4 factors according to the
+<code>ANOFA</code> framework. See Laurencelle and Cousineau (2023) for more. The plot is
+realized using the <code>suberb</code> library; see Cousineau et al. (2021).
+The functions <code>count()</code>, <code>init.count()</code> and <code>CI.count()</code> are internal functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anofaPlot(w, formula, confidenceLevel = .95, showPlotOnly = TRUE, plotStyle = "line", 
+    errorbarParams  = list( width =0.5, linewidth=0.75 ), ...)
+
+count(n)
+
+init.count(df)
+
+CI.count(n, gamma =0.95)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>the count for which a confidence interval is required</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>An ANOFA object obtained with <code>anofa()</code>;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>(optional) Use formula to plot just specific terms of the omnibus test.
+For example, if your analysis stored in <code>w</code> has factors A, B and C, then
+<code>anofaPlot(w, ~ A * B)</code> will only plot the factors A and B.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confidenceLevel</code></td>
+<td>
+<p>Provide the confidence level for the confidence intervals.
+(default is 0.95, i.e., 95%).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotStyle</code></td>
+<td>
+<p>(optional; default "line") How to plot the frequencies. See superb for other layouts
+(e.g., "line")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showPlotOnly</code></td>
+<td>
+<p>(optional, default True) shows only the plot or else shows the numbers
+needed to make the plot yourself.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errorbarParams</code></td>
+<td>
+<p>(optional; default list( width =0.5, linewidth=0.75 ) ) A list of
+attributes used to plot the error bars. See superb for more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other directives sent to superb(), typically 'plotStyle', 'errorbarParams', etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>a data frame for initialization of the CI function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>the confidence level</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The plot shows the frequencies (the count of cases) on the vertical axis as a
+function of the factors (the first on the horizontal axis, the second if any in a legend;
+and if a third or even a fourth factors are present, as distinct rows and columns).
+It also shows 95% confidence intervals of the frequency, adjusted for between-cells
+comparisons. The confidence intervals are based on the Clopper and Pearson method
+(Clopper and Pearson 1934) using the Leemis and Trivedi
+analytic formula (Leemis and Trivedi 1996). This "stand-alone" confidence
+interval is then adjusted for between-cell comparisons using the superb framework
+(Cousineau et al. 2021).
+</p>
+<p>See the vignette <code>DataFormatsForFrequencies</code> for more on data format and how to write their
+formula. See the vignette <code>ConfidenceInterval</code> for details on the adjustment and its purpose.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a ggplot2 object of the given frequencies.
+</p>
+
+
+<h3>References</h3>
+
+<p>Clopper CJ, Pearson ES (1934).
+“The use of confidence or fiducial limits illustrated in the case of the binomial.”
+<em>Biometrika</em>, <b>26</b>, 404-413.
+<a href="https://doi.org/10.1093/biomet/26.4.404">doi:10.1093/biomet/26.4.404</a>.<br><br> Cousineau D, Goulet M, Harding B (2021).
+“Summary plots with adjusted error bars: The superb framework with an implementation in R.”
+<em>Advances in Methods and Practices in Psychological Science</em>, <b>4</b>, 1–18.
+<a href="https://doi.org/10.1177/25152459211035109">doi:10.1177/25152459211035109</a>.<br><br> Laurencelle L, Cousineau D (2023).
+“Analysis of frequency tables: The ANOFA framework.”
+<em>The Quantitative Methods for Psychology</em>, <b>19</b>, 173–193.
+<a href="https://doi.org/10.20982/tqmp.19.2.p173">doi:10.20982/tqmp.19.2.p173</a>.<br><br> Leemis LM, Trivedi KS (1996).
+“A comparison of approximate interval estimators for the Bernoulli parameter.”
+<em>The American Statistician</em>, <b>50</b>(1), 63–68.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># 
+# The Landis et al. (2013) example has two factors, program of treatment and provider of services.
+LandisBarrettGalvin2013
+
+# This examine the omnibus analysis, that is, a 5 (provider) x 3 (program):
+w &lt;- anofa(obsfreq ~ provider * program, LandisBarrettGalvin2013) 
+
+# Once processed into w, we can ask for a standard plot
+anofaPlot(w)
+
+# We place the factor `program` on the x-axis:
+anofaPlot(w,  factorOrder = c("program","provider"))
+
+# The above example can also be obtained with a formula:
+anofaPlot(w, ~ program * provider)
+
+# Change the style for a plot with bars instead of lines
+anofaPlot(w, plotStyle = "bar")
+
+# Changing the error bar style
+anofaPlot(w, plotStyle = "bar", errorbarParams = list( width =0.1, linewidth=0.1 ) )
+
+# An example with 4 factors:
+## Not run: 
+dta &lt;- data.frame(Detergent)
+dta
+
+w &lt;- anofa( Freq ~ Temperature * M_User * Preference * Water_softness, dta )
+anofaPlot(w)
+anofaPlot(w, factorOrder = c("M_User","Preference","Water_softness","Temperature")) 
+
+
+# Illustrating the main effect of Temperature (not interacting with other factors)
+# and the interaction Preference * Previously used M brand
+# (Left and right panels of Figure 4 of the main article)
+anofaPlot(w, ~ Temperature)
+anofaPlot(w, ~ Preference * M_User)
+
+# All these plots are ggplot2 so they can be followed with additional directives, e.g.
+library(ggplot2)
+anofaPlot(w, ~ Temperature) + ylim(200,800) + theme_classic()
+anofaPlot(w, ~ Preference * M_User) + ylim(100,400) + theme_classic()
+
+## End(Not run)
+# etc. Any ggplot2 directive can be added to customize the plot to your liking.
+# See the vignette `Example2`.
+
+
+</code></pre>
+
+
+</div>

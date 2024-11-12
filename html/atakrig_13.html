@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>deconvPointVgm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Point-scale variogram, cross-variogram deconvolution.
+</h2>
+
+<h3>Description</h3>
+
+<p>Point-scale variogram, cross-variogram deconvolution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">deconvPointVgm(x, model = "Exp", maxIter = 100,
+    fixed.range = NA, longlat = FALSE, maxSampleNum = 100, fig = TRUE, ...)
+deconvPointCrossVgm(x, y, xPointVgm, yPointVgm, model = "Exp",
+    maxIter = 100, fixed.range = NA, longlat = FALSE,
+    maxSampleNum = 100, fig = TRUE, ...)
+deconvPointVgmForCoKriging(x, model = "Exp", maxIter = 100,
+    fixed.range = NA, maxSampleNum = 100, fig = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+
+<p>for <code>deconvPointVgm</code> and <code>deconvPointCrossVgm</code>, x is a <code>discreteArea</code> object.
+</p>
+<p>for <code>deconvPointVgmForCoKriging</code>, x is a list of <code>discreteArea</code> objects of all variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xPointVgm, yPointVgm</code></td>
+<td>
+
+<p>point-scale variograms of x and y respectively, gstat variogramModel.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>commonly used variogram models supported, "Exp" for exponential model, "Sph" for spherical model, "Gau" for gaussian model.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+
+<p>max iteration number of deconvolution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed.range</code></td>
+<td>
+
+<p>a fixed variogram range for deconvoluted point-scale variogram.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>longlat</code></td>
+<td>
+
+<p>indicator whether coordinates are longitude/latitude.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxSampleNum</code></td>
+<td>
+
+<p>to save memory and to reduce calculation time, for large number of discretized areas, a number (maxSampleNum) of random sample will be used. The samples are collected by system sampling method.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fig</code></td>
+<td>
+
+<p>whether to plot deconvoluted variogram.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional paramters passed to autofitVgm.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The deconvolution algorithm is implemented according to Pierre Goovaerts, Math. Geosci., 2008, 40: 101-128.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pointVariogram</code></td>
+<td>
+
+<p>deconvoluted point variogram.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areaVariogram</code></td>
+<td>
+
+<p>fitted area variogram from area centroids.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>experientialAreaVariogram</code></td>
+<td>
+
+<p>experiential area variogram from area centroids.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regularizedAreaVariogram</code></td>
+<td>
+
+<p>regularized area variogram from discretized area points and point variogram.
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Goovaerts, P., 2008. Kriging and semivariogram deconvolution in the presence of irregular geographical units. Mathematical Geosciences 40 (1): 101-128.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>ataKriging,ataCoKriging
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(atakrig)
+library(terra)
+
+rpath &lt;- system.file("extdata", package="atakrig")
+aod3k &lt;- rast(file.path(rpath, "MOD04_3K_A2017042.tif"))
+
+aod3k.d &lt;- discretizeRaster(aod3k, 1500)
+grid.pred &lt;- discretizeRaster(aod3k, 1500, type = "all")
+
+sv.ok &lt;- deconvPointVgm(aod3k.d, model="Exp", ngroup=12, rd=0.8, fig = FALSE)
+#pred.ataok &lt;- ataKriging(aod3k.d, grid.pred, sv.ok, showProgress = FALSE)
+
+
+library(atakrig)
+library(sf)
+
+## load demo data from rtop package
+#if (!require("rtop", quietly = TRUE)) message("rtop library is required for demo data.")
+rpath &lt;- system.file("extdata", package="rtop")
+observations &lt;- read_sf(rpath, "observations")
+
+## point-scale variogram
+obs.discrete &lt;- discretizePolygon(observations, cellsize=1500, id="ID", value="obs")
+pointsv &lt;- deconvPointVgm(obs.discrete, model="Exp", ngroup=12, rd=0.75, fig=TRUE)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>stdError</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Standard error of MAT fitted and predicted values</h2>
+
+<h3>Description</h3>
+
+<p>Computes the (weighted) standard deviation of the environment for the
+<em>k</em>-closest analogues for each sample. This was proposed as one
+measure of reconstruction uncertainty for MAT models (ter Braak,
+1995).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">stdError(object, ...)
+
+## S3 method for class 'mat'
+stdError(object, k, weighted = FALSE, ...)
+
+## S3 method for class 'predict.mat'
+stdError(object, k, weighted = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object for which the uncertainty measure is to be
+computed. Currently methods for <code>mat</code> and
+<code>predict.mat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; how many analogues to take? If missing, the default,
+<code>k</code> is chosen using <code>getK</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; use a weighted computation?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to other methods. Currently
+not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Two types of standard error can be produced depending upon whether the
+mean or weighted mean of <code class="reqn">y</code> for the <code class="reqn">k</code> closest analogues is
+used for the MAT predictions. If <code>weighted = FALSE</code> then the
+usual standard deviation of the response for the <code class="reqn">k</code> closest
+analogues is returned, whereas for <code>weighted = TRUE</code> a weighted
+standard deviation is used. The weights are the inverse of the
+dissimilarity between the target observation and each of the <code class="reqn">k</code>
+closest analogues.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named numeric vector of weighted standard deviations of the
+environment for the <em>k</em> closest analogues used to compute the MAT
+predicted values.
+</p>
+<p>The returned vector has attributes <code>"k"</code> and <code>"auto"</code>,
+indicating the number of analogues used and whether this was
+determined from <code>object</code> or supplied by the user.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Simpson, G.L. (2012) Analogue methods in palaeolimnology. In Birks,
+H.J.B, Lotter, A.F. Juggins S., and Smol, J.P. (Eds) <em>Tracking
+Environmental Change Using Lake Sediments, Volume 5: Data Handling and
+Numerical Techniques</em>. Springer, Dordrecht. 
+</p>
+<p>ter Braak, C.J.F. (1995) Non-linear methods for multivariate
+statistical calibration and their use in palaeoecology: a comparison
+of inverse (<em>k</em>-nearest neighbours, partial least squares, and
+weighted averaging partial least squares) and classical
+approaches. <em>Chemometrics and Intelligent Laboratory Systems</em>
+<strong>28</strong>:165–180.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>minDC</code>, <code>mat</code>,
+<code>predict.mat</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Imbrie and Kipp Sea Surface Temperature
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training set and core samples
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+ImbrieKippCore &lt;- dat[[2]] / 100
+
+## fit the MAT model using the squared chord distance measure
+ik.mat &lt;- mat(ImbrieKipp, SumSST, method = "SQchord")
+
+## standard errors - unweighted
+stdError(ik.mat)
+## standard errors - weighted version for above
+stdError(ik.mat, k = getK(ik.mat), weighted = TRUE)
+
+## standard errors - weighted; note this uses more (7) analogues
+## than the above as this model had lowest LOO error
+stdError(ik.mat, weighted = TRUE)
+
+## reconstruct for the V12-122 core data
+coreV12.mat &lt;- predict(ik.mat, V12.122, k = 3)
+## standard errors
+stdError(coreV12.mat)
+</code></pre>
+
+
+</div>

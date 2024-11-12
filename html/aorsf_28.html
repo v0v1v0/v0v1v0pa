@@ -1,0 +1,465 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_vi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Importance</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the importance of individual predictor variables using
+oblique random forests.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_vi(
+  object,
+  group_factors = TRUE,
+  importance = NULL,
+  oobag_fun = NULL,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_vi_negate(
+  object,
+  group_factors = TRUE,
+  oobag_fun = NULL,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_vi_permute(
+  object,
+  group_factors = TRUE,
+  oobag_fun = NULL,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_vi_anova(object, group_factors = TRUE, verbose_progress = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) a trained oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_factors</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, the importance of factor variables will be reported overall by aggregating the importance of individual levels of the factor. If <code>FALSE</code>, the importance of individual factor levels will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importance</code></td>
+<td>
+<p>(<em>character</em>) Indicate method for variable importance:
+</p>
+
+<ul>
+<li>
+<p> 'anova': compute analysis of variance (ANOVA) importance
+</p>
+</li>
+<li>
+<p> 'negate': compute negation importance
+</p>
+</li>
+<li>
+<p> 'permute': compute permutation importance
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag_fun</code></td>
+<td>
+<p>(<em>function</em>) to be used for evaluating out-of-bag prediction accuracy after negating coefficients
+(if importance = 'negate') or permuting the values of a predictor
+(if importance = 'permute')
+</p>
+
+<ul>
+<li>
+<p> When <code>oobag_fun = NULL</code> (the default), the evaluation statistic is selected based on tree type
+</p>
+</li>
+<li>
+<p> survival: Harrell's C-statistic (1982)
+</p>
+</li>
+<li>
+<p> classification: Area underneath the ROC curve (AUC-ROC)
+</p>
+</li>
+<li>
+<p> regression: Traditional prediction R-squared
+</p>
+</li>
+<li>
+<p> if you use your own <code>oobag_fun</code> note the following:
+</p>
+
+<ul>
+<li> <p><code>oobag_fun</code> should have three inputs: <code>y_mat</code>, <code>w_vec</code>, and <code>s_vec</code>
+</p>
+</li>
+<li>
+<p> For survival trees, <code>y_mat</code> should be a two column matrix with first column named 'time' and second named 'status'. For classification trees, <code>y_mat</code> should be a matrix with number of columns = number of distinct classes in the outcome. For regression, <code>y_mat</code> should be a matrix with one column.
+</p>
+</li>
+<li> <p><code>s_vec</code> is a numeric vector containing predictions
+</p>
+</li>
+<li> <p><code>oobag_fun</code> should return a numeric output of length 1
+</p>
+</li>
+<li>
+<p> the same <code>oobag_fun</code> should have been used when you created <code>object</code>
+so that the initial value of out-of-bag prediction accuracy is
+consistent with the values that will be computed while variable
+importance is estimated.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>For more details, see the out-of-bag
+<a href="https://docs.ropensci.org/aorsf/articles/oobag.html">vignette</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_thread</code></td>
+<td>
+<p>(<em>integer</em>) number of threads to use while computing predictions. Default is 0, which allows a suitable number of threads to be used based on availability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress messages are
+printed in the console. If <code>FALSE</code> (the default), nothing is printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When an <code>ObliqueForest</code> object is grown with importance = 'anova',
+'negate', or 'permute', the output will have a vector of importance
+values based on the requested type of importance. However, <code>orsf_vi()</code>
+can be used to compute variable importance after growing a forest
+or to compute a different type of importance.
+</p>
+<p><code>orsf_vi()</code> is a general purpose function to extract or compute variable
+importance estimates from an <code>ObliqueForest</code> object (see orsf).
+<code>orsf_vi_negate()</code>, <code>orsf_vi_permute()</code>, and <code>orsf_vi_anova()</code> are wrappers
+for <code>orsf_vi()</code>. The way these functions work depends on whether the
+<code>object</code> they are given already has variable importance estimates in it
+or not (see examples).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>orsf_vi</code> functions return a named numeric vector.
+</p>
+
+<ul>
+<li>
+<p> Names of the vector are the predictor variables used by <code>object</code>
+</p>
+</li>
+<li>
+<p> Values of the vector are the estimated importance of the given predictor.
+</p>
+</li>
+</ul>
+<p>The returned vector is sorted from highest to lowest value, with higher
+values indicating higher importance.
+</p>
+
+
+<h3>Variable importance methods</h3>
+
+<p><strong>negation importance</strong>: Each variable is assessed separately by multiplying the variable's coefficients by -1 and then determining how much the model's performance changes. The worse the model's performance after negating coefficients for a given variable, the more important the variable. This technique is promising b/c it does not require permutation and it emphasizes variables with larger coefficients in linear combinations, but it is also relatively new and hasn't been studied as much as permutation importance. See Jaeger, (2023) for more details on this technique.
+</p>
+<p><strong>permutation importance</strong>: Each variable is assessed separately by randomly permuting the variable's values and then determining how much the model's performance changes. The worse the model's performance after permuting the values of a given variable, the more important the variable. This technique is flexible, intuitive, and frequently used. It also has several <a href="https://christophm.github.io/interpretable-ml-book/feature-importance.html#disadvantages-9">known limitations</a>
+</p>
+<p><strong>analysis of variance (ANOVA) importance</strong>: A p-value is computed for each coefficient in each linear combination of variables in each decision tree. Importance for an individual predictor variable is the proportion of times a p-value for its coefficient is &lt; 0.01. This technique is very efficient computationally, but may not be as effective as permutation or negation in terms of selecting signal over noise variables. See <a href="https://link.springer.com/chapter/10.1007/978-3-642-23783-6_29">Menze, 2011</a> for more details on this technique.
+</p>
+
+
+<h3>Examples</h3>
+
+
+
+<h4>ANOVA importance</h4>
+
+<p>The default variable importance technique, ANOVA, is calculated while
+you fit an oblique random forest ensemble.
+</p>
+<div class="sourceCode r"><pre>fit &lt;- orsf(pbc_orsf, Surv(time, status) ~ . - id)
+
+fit
+</pre></div>
+<div class="sourceCode"><pre>## ---------- Oblique random survival forest
+## 
+##      Linear combinations: Accelerated Cox regression
+##           N observations: 276
+##                 N events: 111
+##                  N trees: 500
+##       N predictors total: 17
+##    N predictors per node: 5
+##  Average leaves per tree: 21.022
+## Min observations in leaf: 5
+##       Min events in leaf: 1
+##           OOB stat value: 0.84
+##            OOB stat type: Harrell's C-index
+##      Variable importance: anova
+## 
+## -----------------------------------------
+</pre></div>
+<p>ANOVA is the default because it is fast, but it may not be as decisive
+as the permutation and negation techniques for variable selection.
+</p>
+
+
+
+<h4>Raw VI values</h4>
+
+<p>the ‘raw’ variable importance values can be accessed from the fit object
+</p>
+<div class="sourceCode r"><pre>fit$get_importance_raw()
+</pre></div>
+<div class="sourceCode"><pre>##                   [,1]
+## trt_placebo 0.06355042
+## age         0.23259259
+## sex_f       0.14700432
+## ascites_1   0.46791708
+## hepato_1    0.14349776
+## spiders_1   0.17371938
+## edema_0.5   0.17459191
+## edema_1     0.51197605
+## bili        0.40590758
+## chol        0.17666667
+## albumin     0.25972156
+## copper      0.28840580
+## alk.phos    0.10614251
+## ast         0.18327491
+## trig        0.12815626
+## platelet    0.09265648
+## protime     0.22656250
+## stage       0.20264766
+</pre></div>
+<p>these are ‘raw’ because values for factors have not been aggregated into
+a single value. Currently there is one value for k-1 levels of a k level
+factor. For example, you can see edema_1 and edema_0.5 in the importance
+values above because edema is a factor variable with levels of 0, 0.5,
+and 1.
+</p>
+
+
+
+<h4>Collapse VI across factor levels</h4>
+
+<p>To get aggregated values across all levels of each factor,
+</p>
+
+<ul>
+<li>
+<p> access the <code>importance</code> element from the <code>orsf</code> fit:
+</p>
+<div class="sourceCode r"><pre># this assumes you used group_factors = TRUE in orsf()
+fit$importance
+</pre></div>
+<div class="sourceCode"><pre>##    ascites       bili      edema     copper    albumin        age    protime 
+## 0.46791708 0.40590758 0.31115216 0.28840580 0.25972156 0.23259259 0.22656250 
+##      stage        ast       chol    spiders        sex     hepato       trig 
+## 0.20264766 0.18327491 0.17666667 0.17371938 0.14700432 0.14349776 0.12815626 
+##   alk.phos   platelet        trt 
+## 0.10614251 0.09265648 0.06355042
+</pre></div>
+</li>
+<li>
+<p> use <code>orsf_vi()</code> with group_factors set to <code>TRUE</code> (the default)
+</p>
+<div class="sourceCode r"><pre>orsf_vi(fit)
+</pre></div>
+<div class="sourceCode"><pre>##    ascites       bili      edema     copper    albumin        age    protime 
+## 0.46791708 0.40590758 0.31115216 0.28840580 0.25972156 0.23259259 0.22656250 
+##      stage        ast       chol    spiders        sex     hepato       trig 
+## 0.20264766 0.18327491 0.17666667 0.17371938 0.14700432 0.14349776 0.12815626 
+##   alk.phos   platelet        trt 
+## 0.10614251 0.09265648 0.06355042
+</pre></div>
+</li>
+</ul>
+<p>Note that you can make the default returned importance values ungrouped
+by setting <code>group_factors</code> to <code>FALSE</code> in the <code>orsf_vi</code> functions or the
+<code>orsf</code> function.
+</p>
+
+
+
+<h4>Add VI to an oblique random forest</h4>
+
+<p>You can fit an oblique random forest without VI, then add VI later
+</p>
+<div class="sourceCode r"><pre>fit_no_vi &lt;- orsf(pbc_orsf,
+                  Surv(time, status) ~ . - id,
+                  importance = 'none')
+
+# Note: you can't call orsf_vi_anova() on fit_no_vi because anova
+# VI can only be computed while the forest is being grown.
+
+orsf_vi_negate(fit_no_vi)
+</pre></div>
+<div class="sourceCode"><pre>##        bili      copper         sex     protime         age       stage 
+## 0.130439814 0.051880867 0.038308025 0.025115249 0.023826061 0.020354822 
+##     albumin     ascites        chol         ast     spiders      hepato 
+## 0.019997729 0.015918292 0.013320469 0.010086726 0.007409116 0.007326714 
+##       edema         trt    alk.phos        trig    platelet 
+## 0.006844435 0.003214544 0.002517057 0.002469545 0.001056829
+</pre></div>
+<div class="sourceCode r"><pre>orsf_vi_permute(fit_no_vi)
+</pre></div>
+<div class="sourceCode"><pre>##          bili        copper           age       ascites       protime 
+##  0.0592069141  0.0237362075  0.0136479213  0.0130805894  0.0123091354 
+##         stage       albumin          chol        hepato           ast 
+##  0.0117177661  0.0106414724  0.0064501213  0.0058813969  0.0057753740 
+##         edema       spiders           sex          trig      platelet 
+##  0.0052171180  0.0048427005  0.0023386947  0.0017883700  0.0013533691 
+##      alk.phos           trt 
+##  0.0006492029 -0.0009921507
+</pre></div>
+
+
+
+<h4>Oblique random forest and VI all at once</h4>
+
+<p>fit an oblique random forest and compute vi at the same time
+</p>
+<div class="sourceCode r"><pre>fit_permute_vi &lt;- orsf(pbc_orsf,
+                       Surv(time, status) ~ . - id,
+                       importance = 'permute')
+
+# get the vi instantly (i.e., it doesn't need to be computed again)
+orsf_vi_permute(fit_permute_vi)
+</pre></div>
+<div class="sourceCode"><pre>##          bili        copper       ascites       protime       albumin 
+##  0.0571305446  0.0243657146  0.0138318057  0.0133401675  0.0130746154 
+##           age         stage          chol           ast       spiders 
+##  0.0123610374  0.0102963203  0.0077895394  0.0075250059  0.0048628813 
+##         edema        hepato           sex      platelet          trig 
+##  0.0046003168  0.0039818730  0.0016891584  0.0012767063  0.0007324402 
+##      alk.phos           trt 
+##  0.0005128897 -0.0014443967
+</pre></div>
+<p>You can still get negation VI from this fit, but it needs to be computed
+</p>
+<div class="sourceCode r"><pre>orsf_vi_negate(fit_permute_vi)
+</pre></div>
+<div class="sourceCode"><pre>##        bili      copper         sex     protime       stage         age 
+## 0.123331760 0.052544318 0.037291358 0.024977898 0.023239189 0.021934511 
+##     albumin     ascites        chol         ast     spiders       edema 
+## 0.020586632 0.014229536 0.014053040 0.012227048 0.007643156 0.006832766 
+##      hepato         trt    alk.phos        trig    platelet 
+## 0.006301693 0.004348705 0.002371797 0.002309396 0.001347035
+</pre></div>
+
+
+
+<h4>Custom functions for VI</h4>
+
+<p>The default prediction accuracy functions work well most of the time:
+</p>
+<div class="sourceCode r"><pre>fit_standard &lt;- orsf(penguins_orsf, bill_length_mm ~ ., tree_seeds = 1)
+
+# Default method for prediction accuracy with VI is R-squared
+orsf_vi_permute(fit_standard)
+</pre></div>
+<div class="sourceCode"><pre>##           species flipper_length_mm       body_mass_g     bill_depth_mm 
+##      0.3725898166      0.3261834607      0.2225730676      0.1026569498 
+##            island               sex              year 
+##      0.0876071687      0.0844807334      0.0006978493
+</pre></div>
+<p>But sometimes you want to do something specific and the defaults just
+won’t work. For these cases, you can compute VI with any function you’d
+like to measure prediction accuracy by supplying a valid function to the
+<code>oobag_fun</code> input. For example, we use mean absolute error below. Higher
+values are considered good when <code>aorsf</code> computes prediction accuracy, so
+we make our function return a pseudo R-squared based on mean absolute
+error:
+</p>
+<div class="sourceCode r"><pre>rsq_mae &lt;- function(y_mat, w_vec, s_vec){
+ 
+ mae_standard &lt;- mean(abs((y_mat - mean(y_mat)) * w_vec))
+ mae_fit &lt;- mean(abs((y_mat - s_vec) * w_vec))
+ 
+ 1 - mae_fit / mae_standard
+ 
+}
+
+fit_custom &lt;- orsf_update(fit_standard, oobag_fun = rsq_mae)
+
+# not much changes, but the difference between variables shrinks
+# and the ordering of sex and island has swapped
+orsf_vi_permute(fit_custom)
+</pre></div>
+<div class="sourceCode"><pre>##           species flipper_length_mm       body_mass_g     bill_depth_mm 
+##       0.206951751       0.193248912       0.140899603       0.076759148 
+##               sex            island              year 
+##       0.073042331       0.050851073       0.003633365
+</pre></div>
+
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Harrell, E F, Califf, M R, Pryor, B D, Lee, L K, Rosati, A R (1982).
+"Evaluating the yield of medical tests." <em>Jama</em>, <em>247</em>(18), 2543-2546.
+</p>
+</li>
+<li>
+<p> Breiman, Leo (2001). "Random Forests." <em>Machine Learning</em>, <em>45</em>(1),
+5-32. ISSN 1573-0565.
+</p>
+</li>
+<li>
+<p> Menze, H B, Kelm, Michael B, Splitthoff, N D, Koethe, Ullrich,
+Hamprecht, A F (2011). "On oblique random forests." In <em>Machine
+Learning and Knowledge Discovery in Databases: European Conference,
+ECML PKDD 2011, Athens, Greece, September 5-9, 2011, Proceedings, Part
+II 22</em>, 453-469. Springer.
+</p>
+</li>
+<li>
+<p> Jaeger BC, Welden S, Lenoir K, Speiser JL, Segar MW, Pandey A, Pajewski
+NM (2023). "Accelerated and interpretable oblique random survival
+forests." <em>Journal of Computational and Graphical Statistics</em>, 1-16.
+</p>
+</li>
+</ol>
+</div>

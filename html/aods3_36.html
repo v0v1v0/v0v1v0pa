@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>drs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test of Proportion Homogeneity between Groups using Donner's and Rao-Scott's Adjustments</h2>
+
+<h3>Description</h3>
+
+<p>The function  tests the homogeneity of probabilities between <code class="reqn">J</code> groups (H_0: <code class="reqn">\mu_1 = \mu_2 = ... = \mu_J</code>) from clustered binomial data {<code class="reqn">(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)</code>}, where <code class="reqn">n_i</code> is the size of cluster <code class="reqn">i</code>, <code class="reqn">m_i</code> the number of “successes” (proportions are <code class="reqn">y = m/n</code>), and <code class="reqn">N</code> the number of clusters. The function uses adjusted chi-squared statistics, with either the correction proposed by proposed by Donner (1989) or the correction proposed by Rao and Scott (1993).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  drs(formula, data, type = c("d", "rs"), C = NULL, pooled = FALSE)
+  
+  ## S3 method for class 'drs'
+print(x, ...)
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An formula where the left-hand side is a matrix of the form <code>cbind(m, n-m)</code> (the modelled proportion is <code class="reqn">m / n</code>). The right-hand side must specify a single grouping variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character string: either “d” for the Donner's test and “rs” for the Rao and Scott's test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing <code>n</code>, <code>m</code>) and the grouping variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>An optional vector of a priori <code class="reqn">J</code> cluster correction factors used for the Donner's test or design effects factors used for the Rao-Scott's test. If C is set no NULL (default), it is calculated internally (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pooled</code></td>
+<td>
+<p>Logical indicating if a pooled design effect is estimated over the <code class="reqn">J</code> groups for the  Rao-Scott's test (see details). Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class “drf”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to <code>print</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>Donner's test</b><br>
+The chi-squared statistic is adjusted with the correction factor <code class="reqn">C_j</code> computed in each group <code class="reqn">j</code>. The test statistic is given by:
+</p>
+<p style="text-align: center;"><code class="reqn">X^2 = \sum_{j} ( (m_j - n_j * \mu)^2 / (C_j * n_j * \mu * (1 - \mu)) )</code>
+</p>
+
+<p>where <code class="reqn">\mu = \sum_{j} (m_j) / \sum_{j} (n_j)</code> and <code class="reqn">C_j = 1 + (n_{A,j} - 1) * \rho</code>. <code class="reqn">n_{A,j}</code> is a scalar depending on the cluster sizes, and <code class="reqn">\rho</code> is the ANOVA estimate of the intra-cluster correlation assumed common across groups (see Donner, 1989 or Donner et al., 1994). The statistic is compared to a chi-squared distribution with <code class="reqn">J - 1</code> degrees of freedom. Fixed correction factors <code class="reqn">C_j</code> can be specified with the argument <code>C</code>.<br></p>
+<p><b>Rao ans Scott's test</b><br>
+The method uses design effects and “effective” sample sizes. The design effect <code class="reqn">C_j</code> in each group <code class="reqn">j</code> is estimated by <code class="reqn">C_j = v_{ratio,j} / v_{bin,j}</code>, where <code class="reqn">v_{ratio,j}</code> is the variance of the ratio estimate of the probability in group <code class="reqn">i</code> (Cochran, 1999, p. 32 and p. 66) and <code class="reqn">v_{bin,j}</code> is the standard binomial variance. The <code class="reqn">C_j</code> are used  to compute the effective sample sizes <code class="reqn">n_{adj,j} = n_j / C_j</code>, the effective numbers of successes <code class="reqn">m_{adj,j} = m_j / C_j</code> in each group <code class="reqn">j</code>, and the overall effective proportion <code class="reqn">mu_adj = \sum_{j} m_{adj,j} / \sum_{j} C_j</code>. The test statistic is obtained by substituting these quantities in the usual chi-squared statistic, yielding:
+</p>
+<p style="text-align: center;"><code class="reqn">X^2 = \sum_{j} ( (m_{adj,j} - n_{adj,j} * muadj)^2 / (n_{adj,j} * muadj * (1 - muadj)) )</code>
+</p>
+
+<p>which is compared to a chi-squared distribution with <code class="reqn">J - 1</code> degrees of freedom.<br>
+A pooled design effect over the <code class="reqn">J</code> groups is estimated if argument <code>pooled = TRUE</code> (see Rao and Scott, 1993, Eq. 6). Fixed design effects <code class="reqn">C_j</code> can be specified with the argument <code>C</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>drs</code>, printed with <code>print.drs</code>.</p>
+
+
+<h3>References</h3>
+
+<p>Donner, A., 1989. <em>Statistical methods in ophthalmology: an adjusted chi-squared approach</em>. Biometrics 45, 605-611.<br>
+Donner, A., 1993. <em>The comparison of proportions in the presence of litter effects</em>. Prev. Vet. Med. 18, 17-26.<br>
+Donner, A., Eliasziw, M., Klar, N., 1994. <em>A comparison of methods for testing homogeneity of proportions in teratologic studies</em>. Stat. Med. 13, 1253-1264.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>chisq.test</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(dja)
+# Donner
+drs(formula = cbind(m, n - m) ~ group, data = dja, type = "d")
+# Rao and Scott
+drs(formula = cbind(m, n - m) ~ group, type = "rs", data = dja)
+drs(formula = cbind(m, n - m) ~ group, type = "rs", data = dja, pooled = TRUE)
+# standard chi2 test
+drs(formula = cbind(m, n - m) ~ group, data = dja, type = "d", C = c(1:1))
+drs(formula = cbind(m, n - m) ~ group, data = dja, type = "rs", C = c(1:1))
+</code></pre>
+
+
+</div>

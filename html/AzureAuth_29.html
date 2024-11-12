@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>normalize_tenant</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Normalize GUID and tenant values</h2>
+
+<h3>Description</h3>
+
+<p>These functions are used by <code>get_azure_token</code> to recognise and properly format tenant and app IDs. <code>is_guid</code> can also be used generically for identifying GUIDs/UUIDs in any context.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">normalize_tenant(tenant)
+
+normalize_guid(x)
+
+is_guid(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tenant</code></td>
+<td>
+<p>For <code>normalize_tenant</code>, a string containing an Azure Active Directory tenant. This can be a name ("myaadtenant"), a fully qualified domain name ("myaadtenant.onmicrosoft.com" or "mycompanyname.com"), or a valid GUID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>For <code>is_guid</code>, a character string; for <code>normalize_guid</code>, a string containing a <em>validly formatted</em> GUID.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A tenant can be identified either by a GUID, or its name, or a fully-qualified domain name (FQDN). The rules for normalizing a tenant are:
+</p>
+
+<ol>
+<li>
+<p> If <code>tenant</code> is recognised as a valid GUID, return its canonically formatted value
+</p>
+</li>
+<li>
+<p> Otherwise, if it is a FQDN, return it
+</p>
+</li>
+<li>
+<p> Otherwise, if it is one of the generic tenants "common", "organizations" or "consumers", return it
+</p>
+</li>
+<li>
+<p> Otherwise, append ".onmicrosoft.com" to it
+</p>
+</li>
+</ol>
+<p>These functions are vectorised. See the link below for the GUID formats they accept.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>is_guid</code>, a logical vector indicating which values of <code>x</code> are validly formatted GUIDs.
+</p>
+<p>For <code>normalize_guid</code>, a vector of GUIDs in canonical format. If any values of <code>x</code> are not recognised as GUIDs, it throws an error.
+</p>
+<p>For <code>normalize_tenant</code>, the normalized tenant IDs or names.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>get_azure_token
+</p>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/system.guid.parse">Parsing rules for GUIDs in .NET</a>. <code>is_guid</code> and <code>normalize_guid</code> recognise the "N", "D", "B" and "P" formats.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+is_guid("72f988bf-86f1-41af-91ab-2d7cd011db47")    # TRUE
+is_guid("{72f988bf-86f1-41af-91ab-2d7cd011db47}")  # TRUE
+is_guid("72f988bf-86f1-41af-91ab-2d7cd011db47}")   # FALSE (unmatched brace)
+is_guid("microsoft")                               # FALSE
+
+# all of these return the same value
+normalize_guid("72f988bf-86f1-41af-91ab-2d7cd011db47")
+normalize_guid("{72f988bf-86f1-41af-91ab-2d7cd011db47}")
+normalize_guid("(72f988bf-86f1-41af-91ab-2d7cd011db47)")
+normalize_guid("72f988bf86f141af91ab2d7cd011db47")
+
+normalize_tenant("microsoft")     # returns 'microsoft.onmicrosoft.com'
+normalize_tenant("microsoft.com") # returns 'microsoft.com'
+normalize_tenant("72f988bf-86f1-41af-91ab-2d7cd011db47") # returns the GUID
+
+# vector arguments are accepted
+ids &lt;- c("72f988bf-86f1-41af-91ab-2d7cd011db47", "72f988bf86f141af91ab2d7cd011db47")
+is_guid(ids)
+normalize_guid(ids)
+normalize_tenant(c("microsoft", ids))
+
+</code></pre>
+
+
+</div>

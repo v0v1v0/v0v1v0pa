@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>computeFlightPerformance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute characteristics of a power curve</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the basic characteristic flight speeds for <code>bird</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">computeFlightPerformance(bird, ..., length.out=10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bird</code></td>
+<td>
+<p>description of the bird or bat, constructed using the <code>Bird</code> function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>various optional arguments that are passed on to other functions; see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length.out</code></td>
+<td>
+<p>length of calculated power curve; set <code>length.out=0</code> to not compute a power curve </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Optional arguments can be provided through <code>...</code>. These can be arguments of <code>computeFlappingPower</code>, e.g. <code>strokeplane</code>, <code>frequency</code>, etc., or arguments for <code>findMaximumRangeSpeed</code>, e.g. <code>windSpeed</code> and <code>windDir</code>. The latter will only affect the outcome of the maximum range speed, and should perhaps not be analysed through the current function...
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>birdWSName </code></td>
+<td>
+<p> variable name in work-space of the bird object </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bird </code></td>
+<td>
+<p> bird object </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table </code></td>
+<td>
+<p> table with characteristic speeds </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxClimb </code></td>
+<td>
+<p> table with climb performance </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>powercurve </code></td>
+<td>
+<p> power curve from minimum to maximum speed of length <code>lenght.out</code> </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marco Klein Heerenbrink
+</p>
+
+
+<h3>References</h3>
+
+<p>Klein Heerenbrink, M., Johansson, L. C. and Hedenström, A. (2015) Power of the wingbeat: modelling the effects of flapping wings in vertebrate flight. <em>Proc. R. Soc. A</em> <b>471</b>, 2177 <a href="https://doi.org/10.1098/rspa.2014.0952">doi:10.1098/rspa.2014.0952</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Bird</code>, <code>computeFlappingPower</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  # computationally intensive
+
+## Define a bird:
+myBird = Bird(
+    name = "Jackdaw",
+    name.scientific = "Corvus monedula",
+    massTotal = 0.215, #  (kg) total body mass
+    wingSpan = 0.67, #  (m) maximum wing span
+    wingArea = 0.0652, #  (m2) maximum wing area
+    type = "passerine"
+)
+
+## simplest performance calculation
+performance.myBird &lt;- computeFlightPerformance(myBird)
+performance.myBird
+# Name: Jackdaw
+# Sc. name: Corvus monedula
+# Bird definitions: NA
+#               speed power.aero power.chem strokeplane amplitude
+# minimumSpeed  2.706      5.234      27.29        49.9      51.3
+# minimumPower  8.031      2.093      12.27        28.1      34.5
+# maximumRange 11.025      2.523      14.33        18.2      36.7
+# maximumSpeed 16.590      5.235      27.29         6.8      50.2
+# Maximum climb performance:
+#                  speed power.aero power.chem strokeplane amplitude climbRate
+# maximumClimbRate  8.89      5.234      27.29        24.5      53.9      1.18
+# Minimized migration time:
+#                  speed speed.migration power.aero power.chem power.dep strokeplane amplitude
+# minimumTimeSpeed 11.75           1.962      2.741      15.37     3.081       16.49     38.04
+
+## optimize strokeplane angle and use speed dependent frequency
+funFrequency = function(U){19.8 - 4.7*U + 0.45*U^2 - 0.0138*U^3}
+performance.myBird &lt;- computeFlightPerformance(myBird,strokeplane='opt',frequency=funFrequency)
+performance.myBird
+# Name: Jackdaw
+# Sc. name: Corvus monedula
+# Bird definitions: NA
+#               speed power.aero power.chem strokeplane amplitude
+# minimumSpeed  2.293      5.229      27.27        49.9      43.8
+# minimumPower  8.192      2.319      13.35        21.6      42.8
+# maximumRange 11.463      2.775      15.53        14.9      44.3
+# maximumSpeed 16.088      5.233      27.29         8.3      64.5
+# Maximum climb performance:
+#                  speed power.aero power.chem strokeplane amplitude climbRate
+# maximumClimbRate  8.89      5.234      27.29        24.5      53.9      1.18
+# Minimized migration time:
+#                  speed speed.migration power.aero power.chem power.dep strokeplane amplitude
+# minimumTimeSpeed 12.07           1.905      2.964      16.43     3.081       14.13     45.13
+
+## plot variation of speed, power and flapping kinematics
+plot(performance.myBird$powercurve[c('speed','power.aero','strokeplane','frequency','amplitude')])
+
+## plot power factors
+plot(performance.myBird$powercurve[c('speed','power.aero')])
+plot(performance.myBird$powercurve[c('speed','kP.ind')])
+plot(performance.myBird$powercurve[c('speed','kP.pro0')])
+plot(performance.myBird$powercurve[c('speed','kP.pro2')])
+
+## End(Not run) # end dontrun
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>testPrecession</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Astrochronologic testing via the precession amplitude modulation approach of Zeeden et al. (2015).</h2>
+
+<h3>Description</h3>
+
+<p>Astrochronologic testing via the precession amplitude modulation approach of Zeeden et al. (2015), as updated in Zeeden et al. (2018 submitted).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">testPrecession(dat,nsim=1000,gen=1,edge=0.025,maxNoise=1,rho=NULL,detrendEnv=T,
+               solution=NULL,output=F,genplot=T,verbose=T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Stratigraphic series to analyze. First column should be location (time in ka, a positive value), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Number of Monte Carlo simulations (phase-randomized surrogates or AR1 surrogates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gen</code></td>
+<td>
+<p>Monte Carlo simulation generator: (1) use phase-randomized surrogates, (2) use AR1 surrogates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edge</code></td>
+<td>
+<p>Percentage of record to exclude from beginning and end of data series, to remove edge effects. (a value from 0-1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxNoise</code></td>
+<td>
+<p>Maximum noise level to add in simulations. A value of 1 will apply maximum noise that is equivalent to 1 standard deviation of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>Specified lag-1 correlation coefficient (rho). If rho is not specified, it will be calculated within the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detrendEnv</code></td>
+<td>
+<p>Linearly detrend envelope? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solution</code></td>
+<td>
+<p>Theoretical solution used for astrochronologic testing. Solution should be in the format: time (ka), precession angle, obliquity, eccentricity (the output from function 'getLaskar'). By default this is automatically determined within the function, using the solution of Laskar et al. (2004).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Return results as a new data frame? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This astrochronologic testing method compares observed precession-scale amplitude modulations to those expected from the theoretical eccentricity solutions. It is applicable for testing astrochronologies spanning 0-50 Ma. 
+The technique implements a series of filters to guard against artificial introduction of eccentricity modulations during tuning and data processing, and evaluates the statistical significance of the results using Monte Carlo simulation (Zeeden et al., 2015). 
+</p>
+<p>The algorithm includes an improvement in the significance testing approach. Specifically, as a safeguard against artificially imposed modulations, an adaptive noise addition step is implemented (as outlined in Zeeden et al., submitted).
+</p>
+<p>The astronomically-tuned data series under evaluation should consist of two columns: time in kiloyears &amp; data value. 
+Note that time must be positive. The default astronomical solutions used for the astrochronologic testing come from Laskar et al. (2004).
+</p>
+<p>When reporting a p-value for your result, it is important to consider the number of simulations used. 
+A factor of 10 is appropriate, such that for 1000 simulations one would report a minimum p-value of "p&lt;0.01", and for 10000 simulations one would report a minimum p-value of "p&lt;0.001".
+</p>
+<p>Please be aware that the kernel density estimate plots, which summarize the simulations, represent 'smoothed' models. Due to the smoothing bandwidth, they can sometimes give the impression of simulation values that are larger or smaller than actually present.  However, the reported p-value does not suffer from these issues.
+</p>
+<p>IMPORTANT CHANGES (June 20, 2018): Note that this version has been updated to use 'solution' instead of 'esinw', for consistency with the function 'testTilt'. If you are invoking the default option, you do not need to make any changes to your script.
+Also note that the new option 'edge' has been added, which by default will truncate your data series by 5 percent (2.5 percent on each end of the record), to guard against edge effects that can be present in the amplitude envelope. Set edge to 0 to reconstruct the
+original (now legacy) 'testPrecession' approach.
+</p>
+
+
+<h3>Value</h3>
+
+<p>When nsim is set to zero, the function will output a data frame with five columns:
+</p>
+<p>1=time, 2=precession bandpass filter output, 3=amplitude envelope of (2), 4=lowpass filter output of (3), 5=theoretical eccentricity (as extracted from precession modulations using the filtering algorithm), 6=(2) + noise, 7=amplitude envelope of (6), 8=lowpass filter output of (7)
+</p>
+<p>When nsim is &gt; 0, the function will output the correlation coefficients for each simulation.
+</p>
+
+
+<h3>References</h3>
+
+<p>C. Zeeden, S.R. Meyers, L.J. Lourens, and F.J. Hilgen, 2015,
+<em>Testing astronomically tuned age models</em>: Paleoceanography, 30, doi:10.1002/2014PA002762.
+</p>
+<p>C. Zeeden, S.R. Meyers, F.J. Hilgen, L.J. Lourens, and J. Laskar, submitted,
+<em>Time scale evaluation and the quantification of obliquity forcing</em>: Quaternary Science Reviews.
+</p>
+<p>J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004, 
+<em>A long term numerical solution for the insolation quantities of the Earth</em>: 
+Astron. Astrophys., Volume 428, 261-285.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>asm</code>, <code>eAsmTrack</code>, <code>timeOpt</code>, and <code>timeOptSim</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> ## Not run: 
+### as a test series, use the three dominant precession terms from Berger et al. (1992)
+ex&lt;-cycles(start=0,end=1000,dt=2)
+
+### now conduct astrochronologic testing
+res1=testPrecession(ex)
+
+
+### if you plan to run testPrecession repeatedly, it is advisable to download the astronomical
+### solution first
+solution&lt;-getLaskar()
+
+### now conduct astrochronologic testing
+res2&lt;-testPrecession(ex,solution=solution)
+ 
+## End(Not run)
+</code></pre>
+
+
+</div>

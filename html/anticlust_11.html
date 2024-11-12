@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kplus_anticlustering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>K-plus anticlustering</h2>
+
+<h3>Description</h3>
+
+<p>Perform anticlustering using the k-plus objective to maximize between-group 
+similarity. This function implements the k-plus anticlustering method described 
+in Papenberg (2024; &lt;doi:10.1111/bmsp.12315&gt;).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kplus_anticlustering(
+  x,
+  K,
+  variance = TRUE,
+  skew = FALSE,
+  kurtosis = FALSE,
+  covariances = FALSE,
+  T = NULL,
+  standardize = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A feature matrix where rows correspond to elements and columns
+correspond to variables (a single numeric variable can be
+passed as a vector).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>How many anticlusters should be created. Alternatively:
+(a) A vector describing the size of each group, or (b) a vector
+of length <code>nrow(x)</code> describing how elements are assigned
+to anticlusters before the optimization starts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance</code></td>
+<td>
+<p>Boolean: Should the k-plus objective include a term to 
+maximize between-group similarity with regard to the variance? 
+(Default = TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skew</code></td>
+<td>
+<p>Boolean: Should the k-plus objective include a term to 
+maximize between-group similarity with regard to skewness? 
+(Default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kurtosis</code></td>
+<td>
+<p>Boolean: Should the k-plus objective include a term to 
+maximize between-group similarity with regard to kurtosis? 
+(Default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariances</code></td>
+<td>
+<p>Boolean: Should the k-plus objective include a term to 
+maximize between-group similarity with regard to covariance structure? 
+(Default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T</code></td>
+<td>
+<p>Optional argument: An integer specifying how many
+distribution moments should be equalized between groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Boolean. If <code>TRUE</code>, the data is standardized through 
+a call to <code>scale</code> before the optimization starts. 
+Defaults to TRUE. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed down to <code>anticlustering</code>. All of the 
+arguments are supported except for <code>objective</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements the unweighted sum approach for k-plus 
+anticlustering. Details are given in Papenberg (2024). 
+</p>
+<p>The optional argument <code>T</code> denotes the number of distribution 
+moments that are considered in the anticlustering process. For example,
+<code>T = 4</code> will lead to similar means, variances, skew and kurtosis. 
+For the first four moments, it is also possible to use the boolean
+convenience arguments <code>variance</code>, <code>skew</code> and <code>kurtosis</code>; the
+mean (the first moment) is always included and cannot be "turned off".
+If the argument <code>T</code> is used, it overrides the arguments
+<code>variance</code>, <code>skew</code> and <code>kurtosis</code> (corresponding to
+the second, third and fourth moment), ignoring their values.
+</p>
+<p>The <code>standardization</code> is applied to all original features and the 
+additional k-plus features that are appended to the data set in order 
+to optimize the k-plus criterion. When using standardization, 
+all criteria such as means, variances and skewness receive a comparable
+weight during the optimization. It is usually recommended not
+to change the default setting <code>standardization = TRUE</code>.
+</p>
+<p>This function can use any arguments that are also possible in 
+<code>anticlustering</code>
+(except for 'objective' because the objective optimized here
+is the k-plus objective; to use a different objective, 
+call <code>anticlustering</code> directly). Any arguments that are
+not explicitly changed here (i.e., <code>standardize = TRUE</code>) receive the 
+default given in <code>anticlustering</code> 
+(e.g., <code>method = "exchange"</code>.)
+</p>
+
+
+<h3>References</h3>
+
+<p>Papenberg, M. (2024). K-plus Anticlustering: An Improved k-means Criterion for 
+Maximizing Between-Group Similarity. British Journal of Mathematical and 
+Statistical Psychology, 77(1), 80–102. https://doi.org/10.1111/bmsp.12315
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate some data
+N &lt;- 180
+M &lt;- 4
+features &lt;- matrix(rnorm(N * M), ncol = M)
+# standard k-plus anticlustering: optimize similarity with regard to mean and variance:
+cl &lt;- kplus_anticlustering(features, K = 3, method = "local-maximum")
+mean_sd_tab(features, cl)
+# Visualize an anticlustering solution:
+plot(features, col = palette()[2:4][cl], pch = c(16:18)[cl])
+
+# Also optimize with regard to skewness and kurtosis
+cl2 &lt;- kplus_anticlustering(
+  features, 
+  K = 3, 
+  method = "local-maximum", 
+  skew = TRUE, 
+  kurtosis = TRUE
+)
+
+# The following two calls are equivalent: 
+init_clusters &lt;- sample(rep_len(1:3, nrow(features)))
+# 1.
+x1 &lt;- kplus_anticlustering(
+  features, 
+  K = init_clusters, 
+  variance = TRUE,
+  skew = TRUE
+)
+# 2. 
+x2 &lt;- kplus_anticlustering(
+  features, 
+  K = init_clusters, 
+  T = 3
+)
+# Verify: 
+all(x1 == x2)
+
+</code></pre>
+
+
+</div>

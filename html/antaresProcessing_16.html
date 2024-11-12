@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surplusClusters</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the surplus of clusters</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the surplus of clusters of interest. The surplus of a
+cluster is equal to its production times the marginal cost of the area it
+belongs to minus variable, fixed and startup costs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">surplusClusters(
+  x,
+  timeStep = "annual",
+  synthesis = FALSE,
+  surplusLastUnit = FALSE,
+  clusterDesc = NULL,
+  opts = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>antaresData</code> object created with <code>readAntares</code>. It must
+contain an element <code>clusters</code> and an element <code>areas</code> with at
+least the column <code>MRG. PRICE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeStep</code></td>
+<td>
+<p>Desired time step for the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>synthesis</code></td>
+<td>
+<p>If TRUE, average surpluses are returned. Else the function returns surpluses
+per Monte-Carlo scenario.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surplusLastUnit</code></td>
+<td>
+<p>Should the surplus of the last unit of a cluster be computed ? If
+<code>TRUE</code>, then <code>x</code> must have been created with the option
+<code>thermalAvailabilities=TRUE</code> in order to contain the required column
+"available units"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterDesc</code></td>
+<td>
+<p>A table created with the function <code>readClusterDesc</code>.
+If is this parameter is set to <code>NULL</code> (the default), then the function
+attempts to read the needed data in the same study as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>opts where clusterDesc will be read if null based on data</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.table of class <code>antaresDataTable</code> with the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>Area name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Cluster name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeId</code></td>
+<td>
+<p>Time id and other time columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variableCost</code></td>
+<td>
+
+<p>Proportional costs of production of the cluster
+</p>
+<p>Formula = marginal cost * production
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedCost</code></td>
+<td>
+
+<p>Fixed costs of production of the cluster
+</p>
+<p>Formula = NODU * fixed cost
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startupCost</code></td>
+<td>
+
+<p>Start up costs of the cluster.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surplusPerUnit</code></td>
+<td>
+
+<p>Average surplus per unit of the cluster.
+</p>
+<p>formula = ('MRG. PRICE' * production - opCost - startupCost) / unitcount
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surplusLastUnit</code></td>
+<td>
+
+<p>Surplus of the last unit of the cluster.
+</p>
+<p>formula = ('MRG. PRICE' * prodLastUnit - opCost / pmax(1, NODU) - startup.cost)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totalSurplus</code></td>
+<td>
+
+<p>Surplus of all units of the cluster.
+</p>
+<p>formula = 'MRG. PRICE' * production - opCost - startupCost
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>economicGradient</code></td>
+<td>
+
+<p>Economic gradient of a cluster. It is equal to
+the surplus per unit divided by the capacity of a unit.
+</p>
+<p>formula = surplusPerUnit / nominalcapacity
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Data required by the function:
+showAliases("surplusClusters")
+
+mydata &lt;- readAntares(select = "surplusClusters")
+surplusClusters(mydata)
+
+# Computing the surplus of the last unit of a cluster requires the additional
+# column "availableUnits". To add this column, one has to use parameter
+# "thermalAvailabilities = TRUE" in readAntares.
+
+mydata &lt;- readAntares(select = c("surplusClusters", "thermalAvailabilities"))
+surplusClusters(mydata, surplusLastUnit = TRUE)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

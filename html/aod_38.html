@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quasibin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quasi-Likelihood Model for Proportions</h2>
+
+<h3>Description</h3>
+
+<p>The function fits the generalized linear model “II” proposed by Williams (1982) accounting 
+for overdispersion in clustered binomial data <code class="reqn">(n, y)</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quasibin(formula, data, link = c("logit", "cloglog"), phi = NULL, tol =  0.001)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula for the fixed effects. The left-hand side of the formula must be of the form 
+<code>cbind(y, n - y)</code> where the modelled probability is <code>y/n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>The link function for the mean <code class="reqn">p</code>: “logit” or “cloglog”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the response (<code>n</code> and <code>y</code>) and explanatory variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>When <code>phi</code> is NULL (the default), the overdispersion parameter <code class="reqn">\phi</code> is estimated from the data. 
+Otherwise, its value is considered as fixed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A positive scalar (default to 0.001). The algorithm stops at iteration <code class="reqn">r + 1</code> when the condition
+<code class="reqn">\chi{^2}[r+1] - \chi{^2}[r] &lt;= tol</code> is met by the <code class="reqn">\chi^2</code> statistics .</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a given cluster <code class="reqn">(n, y)</code>, the model is:
+</p>
+<p style="text-align: center;"><code class="reqn">y~|~\lambda \sim Binomial(n,~\lambda)</code>
+</p>
+
+<p>with <code class="reqn">\lambda</code> a random variable of mean <code class="reqn">E[\lambda] = p</code>
+and variance <code class="reqn">Var[\lambda] = \phi * p * (1 - p)</code>.<br>
+The marginal mean and variance are:
+</p>
+<p style="text-align: center;"><code class="reqn">E[y] = p</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[y] = p * (1 - p) * [1 + (n - 1) * \phi]</code>
+</p>
+
+<p>The overdispersion parameter <code class="reqn">\phi</code> corresponds to the intra-cluster correlation coefficient,
+which is here restricted to be positive.<br>
+The function uses the function <code>glm</code> and the parameterization: <code class="reqn">p = h(X b) = h(\eta)</code>, where <code class="reqn">h</code> is the
+inverse of a given link function, <code class="reqn">X</code> is a design-matrix, <code class="reqn">b</code> is a vector of fixed effects and <code class="reqn">\eta = X b</code>
+is the linear predictor. <br>
+The estimate of <code class="reqn">b</code> maximizes the quasi log-likelihood of the marginal model.
+The parameter <code class="reqn">\phi</code> is estimated with the moment method or can be set to a constant
+(a regular <em>glim</em> is fitted when <code class="reqn">\phi</code> is set to zero). The literature recommends to estimate <code class="reqn">\phi</code>
+from the saturated model. Several explanatory variables are allowed in <code class="reqn">b</code>. None is allowed in <code class="reqn">\phi</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of formal class “glimQL”: see <code>glimQL-class</code> for details.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthieu Lesnoff <a href="mailto:matthieu.lesnoff@cirad.fr">matthieu.lesnoff@cirad.fr</a>, Renaud Lancelot <a href="mailto:renaud.lancelot@cirad.fr">renaud.lancelot@cirad.fr</a> </p>
+
+
+<h3>References</h3>
+
+<p>Moore, D.F., 1987, <em>Modelling the extraneous variance in the presence of extra-binomial variation</em>. 
+Appl. Statist. 36, 8-14.<br>
+Williams, D.A., 1982, <em>Extra-binomial variation in logistic linear models</em>. Appl. Statist. 31, 144-148.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code>, <code>geese</code> in the contributed package <span class="pkg">geepack</span>, 
+<code>glm.binomial.disp</code> in the contributed package <span class="pkg">dispmod</span>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(orob2) 
+  fm1 &lt;- glm(cbind(y, n - y) ~ seed * root,
+             family = binomial, data = orob2)
+  fm2 &lt;- quasibin(cbind(y, n - y) ~ seed * root,
+                  data = orob2, phi = 0)
+  fm3 &lt;- quasibin(cbind(y, n - y) ~ seed * root,
+                  data = orob2)
+  rbind(fm1 = coef(fm1), fm2 = coef(fm2), fm3 = coef(fm3))
+  # show the model
+  fm3
+  # dispersion parameter and goodness-of-fit statistic
+  c(phi = fm3@phi, 
+    X2 = sum(residuals(fm3, type = "pearson")^2))
+  # model predictions
+  predfm1 &lt;- predict(fm1, type = "response", se = TRUE)
+  predfm3 &lt;- predict(fm3, type = "response", se = TRUE)
+  New &lt;- expand.grid(seed = levels(orob2$seed),
+                     root = levels(orob2$root))
+  predict(fm3, New, se = TRUE, type = "response")
+  data.frame(orob2, p1 = predfm1$fit, 
+                    se.p1 = predfm1$se.fit,
+                    p3 = predfm3$fit,
+                    se.p3 = predfm3$se.fit)
+  fm4 &lt;- quasibin(cbind(y, n - y) ~ seed + root,
+                  data = orob2, phi = fm3@phi)
+  # Pearson's chi-squared goodness-of-fit statistic
+  # compare with fm3's X2
+  sum(residuals(fm4, type = "pearson")^2)
+  </code></pre>
+
+
+</div>

@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addBacktransforms.alldiffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds or recalculates the backtransforms component of an <code>alldiffs.object</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Given an <code>alldiffs.object</code>, adds or recalculate its <code>backtransforms</code> component. 
+The values of <code>transform.power</code>, <code>offset</code>, <code>scale</code> and <code>transform.function</code> 
+from the <code>backtransforms</code> component will be used, unless this component is <code>NULL</code> 
+when the values supplied in the call will be used.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'alldiffs'
+addBacktransforms(alldiffs.obj, 
+                  transform.power = 1, offset = 0, scale = 1, 
+                  transform.function =  "identity", ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alldiffs.obj</code></td>
+<td>
+<p>An <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.power</code></td>
+<td>
+<p>A <code>numeric</code> specifying the power of a transformation, if 
+one has been applied to the response variable. Unless it is equal 
+to 1, the default, back-transforms of the predictions will be 
+obtained and presented in tables or graphs as appropriate. 
+The back-transformation raises the predictions to the power equal 
+to the reciprocal of <code>transform.power</code>, unless it equals 0 in 
+which case the exponential of the predictions is taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>A <code>numeric</code> that has been added to each value of the 
+response after any scaling and before applying any power transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A <code>numeric</code> by which each value of the response has been multiplied 
+before adding any offset and applying any power transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.function</code></td>
+<td>
+<p>A <code>character</code> giving the name of a function that 
+specifies the scale on which the predicted values are defined. This may be the 
+result of a transformation of the data using the function or the use of the 
+function as a link function in the fitting of a generalized linear (mixed) 
+model (GL(M)M). The possible <code>transform.function</code>s are 
+<code>identity</code>, <code>log</code>, <code>inverse</code>, <code>sqrt</code>, <code>logit</code>, 
+<code>probit</code>, and <code>cloglog</code>.  The <code>predicted.values</code> and 
+<code>error.intervals</code>, if not <code>StandardError</code> intervals, will be 
+back-transformed using the inverse function of the <code>transform.function</code>. 
+The <code>standard.error</code> column will be set to <code>NA</code>, unless (i) 
+<code>asreml</code> returns columns named <code>transformed.value</code> and 
+<code>approx.se</code>, as well as those called <code>predicted.values</code> and 
+<code>standard.error</code> (such as when a GLM is fitted) and 
+(ii) the values in <code>transformed.value</code> are equal to those obtained by 
+backtransforming the <code>predicted.value</code>s using the inverse function 
+of the <code>transform.function</code>. Then, the <code>approx.se</code> values will be 
+saved in the <code>standard.error</code> column of the <code>backtransforms</code> 
+component of the returned <code>alldiffs.obj</code>. Also, the 
+<code>transformed.value</code> and <code>approx.se</code> columns are removed from both 
+the <code>predictions</code> and <code>backtransforms</code> components of the 
+<code>alldiffs.obj</code>. Note that the values that end up in the <code>standard errors</code> 
+column are approximate for the backtransformed values and are not used in 
+calculating <code>error.intervals</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Provision for passing arguments to functions called internally - 
+not used at present.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>alldiffs.object</code> with components 
+<code>predictions</code>, <code>vcov</code>, <code>differences</code>, <code>p.differences</code>, 
+<code>sed</code>, <code>LSD</code> and <code>backtransforms</code>.
+</p>
+<p>The <code>backtransforms</code> component will have the attributes (i) <code>LSDtype</code>, 
+<code>LSDby</code> and <code>LSDstatistic</code> added from the <code>predictions</code> component and 
+(ii) <code>transform.power</code>, <code>offset</code>, <code>scale</code>, and <code>link</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asremlPlus-package</code>, <code>as.alldiffs</code>, <code>sort.alldiffs</code>, 
+<code>subset.alldiffs</code>, <code>print.alldiffs</code>,  <br><code>renewClassify.alldiffs</code>, <code>redoErrorIntervals.alldiffs</code>,  
+<code>plotPredictions.data.frame</code>, <br><code>predictPlus.asreml</code>, <code>predictPresent.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+##Subset WaterRunoff data to reduce time to execute
+data(WaterRunoff.dat)
+tmp &lt;- subset(WaterRunoff.dat, Date == "05-18" &amp; Benches != "3")
+
+##Use asreml to get predictions and associated statistics
+
+## Not run: 
+asreml.options(keep.order = TRUE) #required for asreml-R4 only
+current.asr &lt;- asreml(fixed = log.Turbidity ~ Benches + (Sources * (Type + Species)), 
+                      random = ~ Benches:MainPlots,
+                      keep.order=TRUE, data= tmp)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+TS.diffs &lt;- predictPlus(classify = "Sources:Type", 
+                        asreml.obj = current.asr, 
+                        wald.tab = current.asrt$wald.tab, 
+                        present = c("Sources", "Type", "Species"))
+
+## End(Not run)
+
+##Use lmeTest and emmmeans to get predictions and associated statistics
+
+if (requireNamespace("lmerTest", quietly = TRUE) &amp;&amp; 
+    requireNamespace("emmeans", quietly = TRUE))
+{
+  m1.lmer &lt;- lmerTest::lmer(log.Turbidity ~ Benches + (Sources * (Type + Species)) + 
+                              (1|Benches:MainPlots),
+                            data=tmp)
+  TS.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Sources:Species)
+  TS.preds &lt;- summary(TS.emm)
+  den.df &lt;- min(TS.preds$df, na.rm = TRUE)
+  ## Modify TS.preds to be compatible with a predictions.frame
+  TS.preds &lt;- as.predictions.frame(TS.preds, predictions = "emmean", 
+                                   se = "SE", interval.type = "CI", 
+                                   interval.names = c("lower.CL", "upper.CL"))
+  
+  ## Form an all.diffs object and check its validity
+  TS.vcov &lt;- vcov(TS.emm)
+  TS.diffs &lt;- allDifferences(predictions = TS.preds, classify = "Sources:Species", 
+                             vcov = TS.vcov, tdf = den.df)
+  validAlldiffs(TS.diffs)
+}  
+
+## Recalculate the back-transforms of the predictions obtained using asreml or lmerTest
+if (exists("TS.diffs"))
+{
+  TS.diffs &lt;- addBacktransforms.alldiffs(TS.diffs, transform.power = 0)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>misst</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multivariate Interval Singular Spectrum Trendlines</h2>
+
+<h3>Description</h3>
+
+<p>Computes a trendline for multivariate interval data using singular
+spectrum analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">misst(y, l= 'automatic' , m = 'automatic', vertical = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>object of class <code>mitsframe</code> (multivariate interval time series data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>window length; the string <code>"automatic"</code> sets
+the default option <br><code>l = ceiling(y$n + 1) / (y$D+1)</code> for
+<code>vertical</code> and <code>ceiling(D * (y$n + 1) / (y$D + 1))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>number of leading eigentriples. An automatic
+criterion based on the cumulative periodogram of the residuals is
+provided by default by using the string <code>"automatic"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vertical</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the trajectory matrices are
+stacked vertically, otherwise the bind is horizontal.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multivariate singular spectrum analysis is used to decompose interval time
+series data (<code>y</code>) into principal components, and a cumulative
+periodogram-based criterion automatically learns about what elementary
+reconstructed components (<code>erc</code>) contribute to the signal; see de
+Carvalho and Martos (2018) for details. The trendline results from
+adding elementary reconstructed components selected by the cumulative
+periodogram of the residuals. The <code>plot</code> method depicts the
+trendlines, and the <code>print</code> method reports the trendlines along
+with the components selected by the cumulative periodogram-based
+criterion.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trendline</code></td>
+<td>
+<p>mitsframe object with interval trendline estimation from targeted grouping based on a cumulative periodogram criterion (or according to the number of components specified in vector <code>m</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>window length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>vector with number of components selected on each dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vertical</code></td>
+<td>
+<p>flag indicating if the trajectory matrices where stacked vertically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>mitsframe object with the interval residuals from targeted grouping based on a cumulative periodogram criterion (or according to the number of components specified in vector <code>m</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svd</code></td>
+<td>
+<p>the Singular Value Decomposition of the trajectory matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>erc</code></td>
+<td>
+<p>list with elementary reconstructed components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observations</code></td>
+<td>
+<p>mitsframe object with the raw data <code>y</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>de Carvalho, M. and Martos, G. (2020). Modeling Interval Trendlines: Symbolic Singular Spectrum Analysis for Interval Time Series. Submitted (available on arXiv).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>msst</code> for a similar routine yielding trendlines for
+standard multivariate time series of data.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">muX.a = function(t){ 8 + t + sin(pi*t) }    ;    muX.b = function(t){ muX.a(t) + 2 } 
+muY.a = function(t){sqrt(t) + cos(pi*t/2) }    ;  muY.b = function(t){ 2*muY.a(t) + 2 }
+N = 100; t=seq(0.1,2*pi,length = N);
+set.seed(1)
+e.x = rnorm(100); e.y = rnorm(100);
+a.X = muX.a(t) + e.x; b.X = a.X + 2
+a.Y = muY.a(t) + e.y        ; b.Y = 2*a.Y + 2
+
+A &lt;- cbind(a.X, a.Y); B &lt;- cbind(b.X, b.Y)
+y &lt;- mitsframe(dates=t, A=A, B = B)
+
+fit &lt;- misst(y)
+fit$l; 
+fit$m; 
+fit$vertical
+
+# Estimated trendlines:
+head(fit$trendlines$A,5) 
+head(fit$trendlines$B,5) 
+
+## Estimated interval trendlines
+plot(fit)
+
+## Scree-plot
+plot(fit, options = list(type = "screeplots"))
+
+## Per
+plot(fit, options = list(type = "cpgrams"))
+
+## ERC
+plot(fit, options=list(type='components',ncomp=1:3))
+
+
+
+##################################
+### Forecasting with misst     ###
+##################################
+pred = predict(fit, p = 5)
+pred$forecasts # Forecast organized in an array.
+# End
+</code></pre>
+
+
+</div>

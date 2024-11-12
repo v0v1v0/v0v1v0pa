@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>splitSample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Select samples from along an environmental gradient
+</h2>
+
+<h3>Description</h3>
+
+<p>Select samples from along an environmental gradient by splitting
+the gradient into discrete chunks and sample within each chunk. This
+allows a test set to be selected which covers the environmental
+gradient of the training set, for example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">splitSample(env, chunk = 10, take, nchunk,
+            fill = c("head", "tail", "random"),
+            maxit = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>numeric; vector of samples representing the gradient values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk</code></td>
+<td>
+<p>numeric; number of chunks to split the gradient into.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>take</code></td>
+<td>
+<p>numeric; how many samples to take from the gradient. Can
+not be missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchunk</code></td>
+<td>
+<p>numeric; number of samples per chunk. Must be a vector
+of length <code>chunk</code> and <code>sum(chunk)</code> must equal
+<code>take</code>. Can be missing (the default), in which case some simple
+heuristics are used to determine the number of samples chosen per
+chunk. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>character; the type of filling of chunks to perform. See
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>numeric; maximum number of iterations in which to try to
+sample <code>take</code> observations. Basically here to stop the loop
+going on forever.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The gradient is split into <code>chunk</code> sections and samples are
+selected from each chunk to result in a sample of length
+<code>take</code>. If <code>take</code> is divisible by <code>chunk</code> without
+remainder then there will an equal number of samples selected from
+each chunk. Where <code>chunk</code> is not a multiple of <code>take</code> and
+<code>nchunk</code> is not specified then extra samples have to be allocated
+to some of the chunks to reach the required number of samples
+selected.
+</p>
+<p>An additional complication is that some chunks of the gradient may
+have fewer than <code>nchunk</code> samples and therefore more samples need
+to be selected from the remaining chunks until <code>take</code> samples are
+chosen.
+</p>
+<p>If <code>nchunk</code> is supplied, it must be a vector stating exactly how
+many samples to select from each chunk. If <code>chunk</code> is not
+supplied, then the number of samples per chunk is determined as
+follows:
+</p>
+
+<ol>
+<li>
+<p> An intial allocation of <code>floor(take / chunk)</code> is assigned
+to each chunk
+</p>
+</li>
+<li>
+<p> If any chunks have fewer samples than this initial allocation,
+these elements of <code>nchunk</code> are reset to the number of  samples
+in those chunks
+</p>
+</li>
+<li>
+<p> Sequentially an extra sample is allocated to each chunk with
+sufficient available samples until <code>take</code> samples are
+selected.
+</p>
+</li>
+</ol>
+<p>Argument <code>fill</code> controls the order in which the chunks are
+filled. <code>fill = "head"</code> fills from the low to the high end of the
+gradient, whilst <code>fill = "tail"</code> fills in the opposite
+direction. Chunks are filled in random order if <code>fill =
+  "random"</code>. In all cases no chunk is filled by more than one extra
+sample until all chunks that can supply one extra sample are
+filled. In the case of <code>fill = "head"</code> or <code>fill = "tail"</code>
+this entails moving along the gradient from one end to the other
+allocating an extra sample to available chunks before starting along
+the gradient again. For <code>fill = "random"</code>, a random order of
+chunks to fill is determined, if an extra sample is allocated to each
+chunk in the random order and <code>take</code> samples are still not
+selected, filling begins again using the same random ordering. In
+other words, the random order of chunks to fill is chosen only once.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector of indices of selected samples. This vector has
+attribute <code>lengths</code> which indicates how many samples were
+actually chosen from each chunk.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(swappH)
+
+## take a test set of 20 samples along the pH gradient
+test1 &lt;- splitSample(swappH, chunk = 10, take = 20)
+test1
+swappH[test1]
+
+## take a larger sample where some chunks don't have many samples
+## do random filling
+set.seed(3)
+test2 &lt;- splitSample(swappH, chunk = 10, take = 70, fill = "random")
+test2
+swappH[test2]
+</code></pre>
+
+
+</div>

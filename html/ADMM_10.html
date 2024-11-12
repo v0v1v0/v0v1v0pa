@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>admm.spca</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sparse PCA</h2>
+
+<h3>Description</h3>
+
+<p>Sparse Principal Component Analysis aims at finding a sparse vector by solving
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{max}_x~x^T\Sigma x \quad \textrm{s.t.} \quad \|x\|_2\le 1,~\|x\|_0\le K</code>
+</p>
+
+<p>where <code class="reqn">\|x\|_0</code> is the number of non-zero elements in a vector <code class="reqn">x</code>. A convex relaxation
+of this problem was proposed to solve the following problem,
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{max}_X~&lt;\Sigma,X&gt; ~\textrm{s.t.} \quad Tr(X)=1,~\|X\|_0 \le K^2, ~X\ge 0,~\textrm{rank}(X)=1</code>
+</p>
+
+<p>where <code class="reqn">X=xx^T</code> is a <code class="reqn">(p\times p)</code> matrix that is outer product of a vector <code class="reqn">x</code> by itself,
+and <code class="reqn">X\ge 0</code> means the matrix <code class="reqn">X</code> is positive semidefinite.
+With the rank condition dropped, it can be restated as
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{max}_X~ &lt;\Sigma,X&gt;-\rho\|X\|_1 \quad \textrm{s.t.}\quad Tr(X)=1,X\ge 0.</code>
+</p>
+
+<p>After acquiring each principal component vector, an iterative step based on Schur complement deflation method
+is applied to regress out the impact of previously-computed projection vectors. It should be noted that
+those sparse basis may <em>not be orthonormal</em>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">admm.spca(
+  Sigma,
+  numpc,
+  mu = 1,
+  rho = 1,
+  abstol = 1e-04,
+  reltol = 0.01,
+  maxiter = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>a <code class="reqn">(p\times p)</code> (sample) covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numpc</code></td>
+<td>
+<p>number of principal components to be extracted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>an augmented Lagrangian parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>a regularization parameter for sparsity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abstol</code></td>
+<td>
+<p>absolute tolerance stopping criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>relative tolerance stopping criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>basis</dt>
+<dd>
+<p>a <code class="reqn">(p\times numpc)</code> matrix whose columns are sparse principal components.</p>
+</dd>
+<dt>history</dt>
+<dd>
+<p>a length-<code>numpc</code> list of dataframes recording iteration numerics. See the section for more details.</p>
+</dd>
+</dl>
+<h3>Iteration History</h3>
+
+<p>For SPCA implementation, main computation is sequentially performed for each projection vector. The <code>history</code>
+field is a list of length <code>numpc</code>, where each element is a data frame containing iteration history recording
+following fields over iterates,
+</p>
+
+<dl>
+<dt>r_norm</dt>
+<dd>
+<p>norm of primal residual</p>
+</dd>
+<dt>s_norm</dt>
+<dd>
+<p>norm of dual residual</p>
+</dd>
+<dt>eps_pri</dt>
+<dd>
+<p>feasibility tolerance for primal feasibility condition</p>
+</dd>
+<dt>eps_dual</dt>
+<dd>
+<p>feasibility tolerance for dual feasibility condition</p>
+</dd>
+</dl>
+<p>In accordance with the paper, iteration stops when both <code>r_norm</code> and <code>s_norm</code> values
+become smaller than <code>eps_pri</code> and <code>eps_dual</code>, respectively.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ma S (2013).
+“Alternating Direction Method of Multipliers for Sparse Principal Component Analysis.”
+<em>Journal of the Operations Research Society of China</em>, <b>1</b>(2), 253–274.
+ISSN 2194-668X, 2194-6698, doi: <a href="https://doi.org/10.1007/s40305-013-0016-9">10.1007/s40305-013-0016-9</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## generate a random matrix and compute its sample covariance
+X    = matrix(rnorm(1000*5),nrow=1000)
+covX = stats::cov(X)
+
+## compute 3 sparse basis
+output = admm.spca(covX, 3)
+
+</code></pre>
+
+
+</div>

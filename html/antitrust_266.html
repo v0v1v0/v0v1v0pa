@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Linear-Functions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear and Log-Linear Demand Calibration and Merger Simulation</h2>
+
+<h3>Description</h3>
+
+<p>Calibrates consumer demand using either a
+linear or log-linear demand system and then simulates
+the prices effect of a merger between two firms
+under the assumption that all firms in the market
+are playing a differentiated products Bertrand game.
+</p>
+<p>Let k denote the number of products produced by all firms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">linear(
+  prices,
+  quantities,
+  margins,
+  diversions,
+  symmetry = TRUE,
+  ownerPre,
+  ownerPost,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceStart = prices,
+  control.slopes,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+
+loglinear(
+  prices,
+  quantities,
+  margins,
+  diversions,
+  ownerPre,
+  ownerPost,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceStart = prices,
+  control.equ,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>prices</code></td>
+<td>
+<p>A length k vector product prices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantities</code></td>
+<td>
+<p>A length k vector of product quantities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margins</code></td>
+<td>
+<p>A length k vector of product margins. All margins must
+be either be between 0 and 1, or NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diversions</code></td>
+<td>
+<p>A k x k matrix of diversion ratios with diagonal
+elements equal to -1. Default is missing, in which case diversion
+according to quantity share is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symmetry</code></td>
+<td>
+<p>If TRUE, requires the matrix of demand slope coefficients
+to be symmetric and homogeneous of degree 0 in prices, both of which
+suffice to make demand consistent with utility maximization theory.
+Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPre</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product pre-merger OR
+a k x k matrix of pre-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPost</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product after the merger OR
+a k x k matrix of post-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcDelta</code></td>
+<td>
+<p>A length k vector where each element equals the
+proportional change in a product's marginal costs due to
+the merger. Default is 0, which assumes that the merger does not
+affect any products' marginal cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A vector of length k where each element equals TRUE if
+the product indexed by that element should be included in the
+post-merger simulation and FALSE if it should be excluded.Default is a
+length k vector of TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceStart</code></td>
+<td>
+<p>A length k vector of prices used as the initial guess
+in the nonlinear equation solver. Default is ‘prices’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.slopes</code></td>
+<td>
+<p>A list of  <code>optim</code>  control parameters
+passed to the calibration routine optimizer (typically the <code>calcSlopes</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A k-length vector of labels. Default is "Prod#", where
+‘#’ is a number between 1 and the length of ‘prices’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional options to feed to the solver. See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.equ</code></td>
+<td>
+<p>A list of  <code>BBsolve</code> control parameters
+passed to the non-linear equation solver (typically the <code>calcPrices</code> method).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Using price, quantity, and diversion information for all products
+in a market, as well as margin information for (at least) all the
+products of any firm, <code>linear</code> is able to
+recover the slopes and intercepts in a Linear demand
+system and then uses these demand parameters to simulate the price
+effects of a merger between
+two firms under the assumption that the firms are playing a
+differentiated Bertrand pricing game.
+</p>
+<p><code>loglinear</code> uses the same information as <code>linear</code> to uncover the
+slopes and intercepts in a Log-Linear demand system, and then uses these
+demand parameters to simulate the price effects of a merger of two firms under the
+assumption that the firms are playing a
+differentiated Bertrand pricing game.
+</p>
+<p>‘diversions’ must be a square matrix whose off-diagonal elements [i,j] estimate the diversion ratio from product i to product j
+(i.e. the estimated fraction of i's sales that go to j due to a small
+increase in i's price). Off-diagonal elements are restricted to be
+non-negative (products are assumed to be substitutes), diagonal elements
+must equal -1, and rows must sum to 0 (negative if you wish to include an outside good) . If ‘diversions’ is missing, then diversion according to quantity share is assumed.
+</p>
+<p>‘ownerPre’ and ‘ownerPost’ values will typically be equal to either 0
+(element [i,j] is not commonly owned) or 1 (element [i,j] is commonly
+owned), though these matrices may take on any value between 0 and 1 to
+account for partial ownership.
+</p>
+<p>Under linear demand, an analytic solution to the Bertrand pricing game
+exists. However, this solution can at times produce negative
+equilibrium quantities. To accommodate this issue, <code>linear</code>
+uses <code>constrOptim</code>  to
+find equilibrium prices with non-negative quantities. <code>...</code> may
+be used to change the default options for constrOptim.
+</p>
+<p><code>loglinear</code> uses the non-linear equation solver
+<code>BBsolve</code> to find equilibrium prices.  <code>...</code> may
+be used to change the default options for <code>BBsolve</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>linear</code> returns an instance of class <code>Linear</code>.
+<code>loglinear</code> returns an instance of <code>LogLin</code>, a
+child class of <code>Linear</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Charles Taragin <a href="mailto:ctaragin+antitrustr@gmail.com">ctaragin+antitrustr@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>von Haefen, Roger (2002).
+“A Complete Characterization Of The Linear, Log-Linear, And Semi-Log
+Incomplete Demand System Models.”
+<em>Journal of Agricultural and Resource Economics</em>, <b>27</b>(02).
+doi: <a href="https://doi.org/10.22004/ag.econ.31118">10.22004/ag.econ.31118</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aids</code> for a demand system based on revenue shares rather than quantities.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate a merger between two single-product firms in a
+## three-firm market with linear demand with diversions
+## that are proportional to shares.
+## This example assumes that the merger is between
+## the first two firms
+
+
+
+n &lt;- 3 #number of firms in market
+price    &lt;- c(2.9,3.4,2.2)
+quantity &lt;- c(650,998,1801)
+margin &lt;- c(.435,.417,.370)
+
+
+#simulate merger between firms 1 and 2
+owner.pre &lt;- diag(n)
+owner.post &lt;- owner.pre
+owner.post[1,2] &lt;- owner.post[2,1] &lt;- 1
+
+
+
+result.linear &lt;- linear(price,quantity,margin,ownerPre=owner.pre,ownerPost=owner.post)
+
+print(result.linear)           # return predicted price change
+summary(result.linear)         # summarize merger simulation
+
+elast(result.linear,TRUE)      # returns premerger elasticities
+elast(result.linear,FALSE)     # returns postmerger elasticities
+
+diversion(result.linear,TRUE)  # returns premerger diversion ratios
+diversion(result.linear,FALSE) # returns postmeger diversion ratios
+
+cmcr(result.linear)            # returns the compensating marginal cost reduction
+
+CV(result.linear)              # returns representative agent compensating variation
+
+
+## Implement the Hypothetical Monopolist Test
+## for products 1 and 2 using a 5\% SSNIP
+
+#HypoMonTest(result.linear,prodIndex=1:2)
+
+
+## Get a detailed description of the 'Linear' class slots
+showClass("Linear")
+
+## Show all methods attached to the 'Linear' Class
+showMethods(classes="Linear")
+
+## Show which class have their own 'elast' method
+showMethods("elast")
+
+## Show the method definition for 'elast' and Class 'Linear'
+getMethod("elast","Linear")
+
+</code></pre>
+
+
+</div>

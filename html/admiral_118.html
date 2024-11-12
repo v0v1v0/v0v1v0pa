@@ -1,0 +1,346 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_trtemfl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Treatment-emergent Flag</h2>
+
+<h3>Description</h3>
+
+<p>Derive treatment emergent analysis flag (e.g., <code>TRTEMFL</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_trtemfl(
+  dataset,
+  new_var = TRTEMFL,
+  start_date = ASTDTM,
+  end_date = AENDTM,
+  trt_start_date = TRTSDTM,
+  trt_end_date = NULL,
+  end_window = NULL,
+  ignore_time_for_trt_end = TRUE,
+  initial_intensity = NULL,
+  intensity = NULL,
+  group_var = NULL,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by <code>start_date</code>, <code>end_date</code>, <code>trt_start_date</code>,
+<code>trt_end_date</code>, <code>initial_intensity</code>, and <code>intensity</code> are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>New variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Event start date
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a date or datetime variable of
+the input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>Event end date
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a date or datetime variable of
+the input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt_start_date</code></td>
+<td>
+<p>Treatment start date
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a date or datetime variable of
+the input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt_end_date</code></td>
+<td>
+<p>Treatment end date
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a date or datetime variable of
+the input dataset or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_window</code></td>
+<td>
+<p>If the argument is specified (in 'days'), events starting more than the specified
+number of days after end of treatment, are not flagged.
+</p>
+<p><em>Permitted Values:</em> A non-negative integer or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_time_for_trt_end</code></td>
+<td>
+<p>If the argument is set to <code>TRUE</code>, the time part is ignored for checking if
+the event occurred more than <code>end_window</code> days after end of treatment.
+</p>
+<p><em>Permitted Values:</em> <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial_intensity</code></td>
+<td>
+<p>Initial severity/intensity or toxicity
+</p>
+<p><code>initial_intensity</code> is ignored when <code>group_var</code> is specified.
+</p>
+<p>If this argument is specified and <code>group_var</code> is <code>NULL</code>, events which start
+before treatment start and end after treatment start (or are ongoing) and
+worsened (i.e., the intensity is greater than the initial intensity), are
+flagged.
+</p>
+<p>The values of the specified variable must be comparable with the usual
+comparison operators. I.e., if the intensity is greater than the initial
+intensity <code>initial_intensity &lt; intensity</code> must evaluate to <code>TRUE</code>.
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a variable of the input dataset
+or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensity</code></td>
+<td>
+<p>Severity/intensity or toxicity
+</p>
+<p>If the argument is specified, events which start before treatment start and
+end after treatment start (or are ongoing) and worsened (i.e., the
+intensity is greater than the initial intensity), are flagged.
+</p>
+<p>The values of the specified variable must be comparable with the usual
+comparison operators. I.e., if the intensity is greater than the initial
+intensity <code>initial_intensity &lt; intensity</code> must evaluate to <code>TRUE</code>.
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a variable of the input dataset
+or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_var</code></td>
+<td>
+<p>Grouping variable
+</p>
+<p>If the argument is specified, it assumes that AEs are recorded as one episode
+of AE with multiple lines using a grouping variable.
+</p>
+<p>Events starting during treatment or before treatment and worsening afterward
+are flagged. Once an AE record in a group is flagged, all subsequent records
+in the treatment window are flagged regardless of severity.
+</p>
+<p><em>Permitted Values:</em> A symbol referring to a variable of the input dataset
+or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject.
+</p>
+<p>A list of symbols created using <code>exprs()</code> is expected. This argument is only
+used when <code>group_var</code> is specified.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For the derivation of the new variable the following cases are
+considered in this order. The first case which applies, defines the value
+of the variable.
+</p>
+
+<ul>
+<li> <p><em>not treated</em>: If <code>trt_start_date</code> is <code>NA</code>, it is set to <code>NA_character_</code>.
+</p>
+</li>
+<li> <p><em>event before treatment</em>: If <code>end_date</code> is before <code>trt_start_date</code> (and
+<code>end_date</code> is not <code>NA</code>), it is set to <code>NA_character_</code>.
+</p>
+</li>
+<li> <p><em>no event date</em>: If <code>start_date</code> is <code>NA</code>, it is set to <code>"Y"</code> as in such
+cases it is usually considered more conservative to assume the event was
+treatment-emergent.
+</p>
+</li>
+<li> <p><em>event started during treatment</em>:
+</p>
+
+<ul>
+<li>
+<p> if <code>end_window</code> is not specified:
+if <code>start_date</code> is on or after <code>trt_start_date</code>, it is set to <code>"Y"</code>,
+</p>
+</li>
+<li>
+<p> if <code>end_window</code> is specified:
+if <code>start_date</code> is on or after <code>trt_start_date</code> and <code>start_date</code> is on
+or before <code>trt_end_date</code> + <code>end_window</code> days, it is set to <code>"Y"</code>,
+</p>
+</li>
+</ul>
+</li>
+<li> <p><em>event started before treatment and (possibly) worsened on treatment</em>:
+</p>
+
+<ul>
+<li>
+<p> if <code>initial_intensity</code>, <code>intensity</code> is specified and <code>group_var</code> is not specified:
+if <code>initial_intensity &lt; intensity</code> and <code>start_date</code> is before <code>trt_start_date</code>
+and <code>end_date</code> is on or after <code>trt_start_date</code> or <code>end_date</code> is <code>NA</code>, it
+is set to <code>"Y"</code>;
+</p>
+</li>
+<li>
+<p> if <code>group_var</code> is specified:
+if previous <code>intensity</code> &lt; <code>intensity</code> and <code>start_date</code> is after <code>trt_start_date</code>
+and <code>end_date</code> is on or after <code>trt_start_date</code> or <code>end_date</code> is <code>NA</code>, it
+is set to <code>"Y"</code>;
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Otherwise it is set to <code>NA_character_</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The input dataset with the variable specified by <code>new_var</code> added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>OCCDS Functions: 
+<code>derive_vars_atc()</code>,
+<code>derive_vars_query()</code>,
+<code>get_terms_from_db()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate)
+
+adae &lt;- tribble(
+  ~USUBJID, ~ASTDTM,            ~AENDTM,            ~AEITOXGR, ~AETOXGR,
+  # before treatment
+  "1",      "2021-12-13T20:15", "2021-12-15T12:45", "1",       "1",
+  "1",      "2021-12-14T20:15", "2021-12-14T22:00", "1",       "3",
+  # starting before treatment and ending during treatment
+  "1",      "2021-12-30T20:00", "2022-01-14T11:00", "1",       "3",
+  "1",      "2021-12-31T20:15", "2022-01-01T01:23", "1",       "1",
+  # starting during treatment
+  "1",      "2022-01-01T12:00", "2022-01-02T23:25", "3",       "4",
+  # after treatment
+  "1",      "2022-05-10T11:00", "2022-05-10T13:05", "2",       "2",
+  "1",      "2022-05-11T11:00", "2022-05-11T13:05", "2",       "2",
+  # missing dates
+  "1",      "",                 "",                 "3",       "4",
+  "1",      "2021-12-30T09:00", "",                 "3",       "4",
+  "1",      "2021-12-30T11:00", "",                 "3",       "3",
+  "1",      "",                 "2022-01-04T09:00", "3",       "4",
+  "1",      "",                 "2021-12-24T19:00", "3",       "4",
+  "1",      "",                 "2022-06-04T09:00", "3",       "4",
+  # without treatment
+  "2",      "",                 "2021-12-03T12:00", "1",       "2",
+  "2",      "2021-12-01T12:00", "2021-12-03T12:00", "1",       "2",
+  "2",      "2021-12-06T18:00", "",                 "1",       "2"
+) %&gt;%
+  mutate(
+    ASTDTM = ymd_hm(ASTDTM),
+    AENDTM = ymd_hm(AENDTM),
+    TRTSDTM = if_else(USUBJID == "1", ymd_hm("2022-01-01T01:01"), ymd_hms("")),
+    TRTEDTM = if_else(USUBJID == "1", ymd_hm("2022-04-30T23:59"), ymd_hms(""))
+  )
+
+# derive TRTEMFL without considering treatment end and worsening
+derive_var_trtemfl(adae) %&gt;% select(ASTDTM, AENDTM, TRTSDTM, TRTEMFL)
+
+# derive TRTEM2FL taking treatment end and worsening into account
+derive_var_trtemfl(
+  adae,
+  new_var = TRTEM2FL,
+  trt_end_date = TRTEDTM,
+  end_window = 10,
+  initial_intensity = AEITOXGR,
+  intensity = AETOXGR
+) %&gt;% select(ASTDTM, AENDTM, AEITOXGR, AETOXGR, TRTEM2FL)
+
+adae2 &lt;- tribble(
+  ~USUBJID, ~ASTDTM, ~AENDTM, ~AEITOXGR, ~AETOXGR, ~AEGRPID,
+  # before treatment
+  "1", "2021-12-13T20:15", "2021-12-15T12:45", "1", "1", "1",
+  "1", "2021-12-14T20:15", "2021-12-14T22:00", "1", "3", "1",
+  # starting before treatment and ending during treatment
+  "1", "2021-12-30T20:15", "2022-01-14T01:23", "3", "3", "2",
+  "1", "2022-01-05T20:00", "2022-06-01T11:00", "3", "1", "2",
+  "1", "2022-01-10T20:15", "2022-01-11T01:23", "3", "2", "2",
+  "1", "2022-01-13T20:15", "2022-03-01T01:23", "3", "1", "2",
+  # starting during treatment
+  "1", "2022-01-01T12:00", "2022-01-02T23:25", "4", "4", "3",
+
+  # after treatment
+  "1", "2022-05-10T11:00", "2022-05-10T13:05", "2", "2", "4",
+  "1", "2022-05-10T12:00", "2022-05-10T13:05", "2", "2", "4",
+  "1", "2022-05-11T11:00", "2022-05-11T13:05", "2", "2", "4",
+  # missing dates
+  "1", "", "", "3", "4", "5",
+  "1", "2021-12-30T09:00", "", "3", "4", "5",
+  "1", "2021-12-30T11:00", "", "3", "3", "5",
+  "1", "", "2022-01-04T09:00", "3", "4", "5",
+  "1", "", "2021-12-24T19:00", "3", "4", "5",
+  "1", "", "2022-06-04T09:00", "3", "4", "5",
+  # without treatment
+  "2", "", "2021-12-03T12:00", "1", "2", "1",
+  "2", "2021-12-01T12:00", "2021-12-03T12:00", "1", "2", "2",
+  "2", "2021-12-06T18:00", "", "1", "2", "3"
+) %&gt;%
+  mutate(
+    STUDYID = "ABC12345",
+    ASTDTM = ymd_hm(ASTDTM),
+    AENDTM = ymd_hm(AENDTM),
+    TRTSDTM = if_else(USUBJID == "1", ymd_hm("2022-01-01T01:01"), ymd_hms("")),
+    TRTEDTM = if_else(USUBJID == "1", ymd_hm("2022-04-30T23:59"), ymd_hms(""))
+  )
+# derive TRTEMFL taking treatment end and worsening into account within a grouping variable
+derive_var_trtemfl(
+  adae2,
+  new_var = TRTEMFL,
+  trt_end_date = TRTEDTM,
+  end_window = 10,
+  intensity = AETOXGR,
+  group_var = AEGRPID
+) %&gt;% select(ASTDTM, AENDTM, AEITOXGR, AETOXGR, AEGRPID, TRTEMFL)
+</code></pre>
+
+
+</div>

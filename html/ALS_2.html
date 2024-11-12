@@ -1,0 +1,303 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>als</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>alternating least squares multivariate curve resolution (MCR-ALS)</h2>
+
+<h3>Description</h3>
+
+<p>This is an implementation of alternating least squares
+multivariate curve resolution (MCR-ALS).  Given a dataset in matrix
+form <code>d1</code>, the dataset is decomposed as <code>d1=C %*% t(S)</code>
+where the columns of <code>C</code> and <code>S</code> represent components
+contributing to the data in each of the 2-ways that the matrix is
+resolved.  In forming the decomposition, the components in each way
+many be constrained with e.g., non-negativity, uni-modality,
+selectivity, normalization of <code>S</code> and closure of <code>C</code>.  Note
+that if more than one dataset is to be analyzed simultaneously, then
+the matrix <code>S</code> is assumed to be the same for every dataset in the
+bilinear decomposition of each dataset into matrices <code>C</code> and
+<code>S</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">als(CList, PsiList, S=matrix(), WList=list(),
+thresh =.001, maxiter=100, forcemaxiter = FALSE,
+optS1st=TRUE, x=1:nrow(CList[[1]]), x2=1:nrow(S),
+baseline=FALSE, fixed=vector("list", length(PsiList)),
+uniC=FALSE, uniS=FALSE, nonnegC = TRUE, nonnegS = TRUE,
+normS=0, closureC=list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>CList</code></td>
+<td>
+<p>list with the same length as <code>PsiList</code> where each
+element is a matrix of dimension <code>m</code> by <code>comp</code> and
+represents the matrix <code>C</code> for each dataset </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PsiList</code></td>
+<td>
+<p>list of datasets, where each dataset is a matrix of dimension
+<code>m</code> by <code>n</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>matrix with <code>n</code> rows and <code>comp</code> columns,
+often representing (mass) spectra</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WList</code></td>
+<td>
+<p>An optional list with the same length as <code>PsiList</code>,
+where each element is a matrix of dimension <code>m</code> by <code>n</code> giving
+the weight of that datapoint; note that if closure or normalization
+constraints are applied, then both are applied after the application
+of weights. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>numeric value that defaults to .001; if
+<code>((oldrss - rss) / oldrss) &lt; thresh</code> then the optimization stops,
+where <code>oldrss</code> is the residual sum of squares at iteration
+<code>x-1</code> and <code>rss</code> is the residual sum of squares at iteration
+<code>x</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations to perform (where an
+iteration is optimization of either <code>AList</code> and <code>C</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forcemaxiter</code></td>
+<td>
+<p>Logical indicating whether <code>maxiter</code>
+iterations should be performed even if the residual difference
+drops below <code>thresh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optS1st</code></td>
+<td>
+<p>logical indicating whether the first constrained least
+squares regression should estimate <code>S</code> or <code>CList</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>optional vector of labels for the rows of <code>C</code>, which are
+used in the application of unimodality constraints.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x2</code></td>
+<td>
+<p>optional vector of labels for the rows of <code>S</code>, which are
+used in the application of unimodality constraints.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>baseline</code></td>
+<td>
+<p>logical indicating whether a baseline component is
+present; if <code>baseline=TRUE</code> then this component is exempt from 
+constraints unimodality or non-negativity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>list with the same length as <code>PsiList</code> in which each
+element is a vector of the indices of the components to fix to zero
+in each dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonnegS</code></td>
+<td>
+<p>logical indicating whether the components (columns) of
+the matrix <code>S</code> should be constrained to non-negative values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonnegC</code></td>
+<td>
+<p>logical indicating whether the components (columns) of
+the matrix <code>C</code> should be constrained to non-negative values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniC</code></td>
+<td>
+<p>logical indicating whether unimodality constraints should be
+applied to the columns of <code>C</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniS</code></td>
+<td>
+<p>logical indicating whether unimodality constraints should be
+applied to the columns of <code>S</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normS</code></td>
+<td>
+<p>numeric indicating whether the spectra are normalized; if
+<code>normS&gt;0</code>, the spectra are normalized.  If <code>normS==1</code> the
+maximum of the spectrum of each component is constrained to be equal
+to one; if <code>normS &gt; 0 &amp;&amp; normS!=1</code> then the norm of the
+spectrum of each component is constrained to be equal to one.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closureC</code></td>
+<td>
+<p>list; if the length is zero, then
+no closure constraints are applied.  If the length is not zero, it
+should be equal to the number of datasets in the analysis, and contain
+numeric vectors consisting of the desired value of
+the sum of each row of the concentration matrix.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>CList</code></td>
+<td>
+<p>A list with the same length as the number of datasets,
+containing the optimized matrix <code>C</code> at termination scaled by
+the optimized amplitudes for that dataset from <code>AList</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>The matrix <code>S</code> given as input. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rss</code></td>
+<td>
+<p>The residual sum of squares at termination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid</code></td>
+<td>
+<p>A list with the same length as the number of datasets,
+containing the residual matrix for each dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>The number of iterations performed before termination. </p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This function was used to solve problems described in
+</p>
+<p>van Stokkum IHM, Mullen KM, Mihaleva VV.  Global analysis of multiple
+gas chromatography-mass spectrometry (GS/MS) data sets: A method for
+resolution of co-eluting components with comparison to MCR-ALS.
+Chemometrics and Intelligent Laboratory Systems 2009; 95(2): 150-163.
+</p>
+<p>in conjunction with the package TIMP.  For the code to reproduce
+the examples in this paper, see examples_chemo.zip included in the
+<code>inst</code> directory of the package source code. .
+</p>
+
+
+<h3>References</h3>
+
+<p>Garrido M, Rius FX, Larrechi MS. Multivariate curve resolution
+alternating least squares (MCR-ALS) applied to spectroscopic data from
+monitoring chemical reactions processes. Journal Analytical and
+Bioanalytical Chemistry 2008; 390:2059-2066.
+</p>
+<p>Jonsson P, Johansson A, Gullberg J, Trygg J, A J, Grung B, Marklund S,
+Sjostrom M, Antti H, Moritz T. High-throughput data analysis for
+detecting and identifying differences between samples in GC/MS-based
+metabolomic analyses. Analytical Chemistry 2005; 77:5635-5642.
+</p>
+<p>Tauler R. Multivariate curve resolution applied to second order data.
+Chemometrics and Intelligent Laboratory Systems 1995; 30:133-146.
+</p>
+<p>Tauler R, Smilde A, Kowalski B. Selectivity, local rank, three-way data
+analysis and ambiguity in multivariate curve resolution. Journal of
+Chemometrics 1995; 9:31-58.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>matchFactor</code>,<code>multiex</code>,<code>multiex1</code>,
+<code>plotS</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load 2 matrix datasets into variables d1 and d2
+## load starting values for elution profiles
+## into variables Cstart1 and Cstart2
+## load time labels as x, m/z values as x2
+data(multiex)
+
+## starting values for elution profiles
+matplot(x,Cstart1,type="l")
+matplot(x,Cstart2,type="l",add=TRUE)
+
+## using MCR-ALS, improve estimates for mass spectra S and the two
+## matrices of elution profiles
+## apply unimodality constraints to the elution profile estimates
+## note that the starting estimates for S just contain a dummy matrix
+
+test0 &lt;- als(CList=list(Cstart1,Cstart2),S=matrix(1,nrow=400,ncol=2),
+PsiList=list(d1,d2), x=x, x2=x2, uniC=TRUE, normS=0)
+
+## plot the estimated mass spectra 
+plotS(test0$S,x2)
+
+## the known mass spectra are contained in the variable S
+## can compare the matching factor of each estimated spectrum to
+## that in S
+matchFactor(S[,1],test0$S[,1])
+matchFactor(S[,2],test0$S[,2])
+ 
+## plot the estimated elution profiles
+## this shows the relative abundance of the 2nd component is low 
+matplot(x,test0$CList[[1]],type="l")
+matplot(x,test0$CList[[2]],type="l",add=TRUE)
+</code></pre>
+
+
+</div>

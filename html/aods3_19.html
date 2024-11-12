@@ -1,0 +1,261 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aodql</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>QL/MM Estimation of Generalized Linear Models for Overdispersed Count Data</h2>
+
+<h3>Description</h3>
+
+<p>From clustered data, the function fits generalized linear models containing an over-dispersion parameter <code class="reqn">\Phi</code> using quasi-likelihood estimating equations for the mean <code class="reqn">\mu</code> and a moment estimator for <code class="reqn">\Phi</code>.<br></p>
+<p>For binomial-type models, data have the form {<code class="reqn">(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)</code>}, where <code class="reqn">n_i</code> is the size of cluster <code class="reqn">i</code>, <code class="reqn">m_i</code> the number of “successes”, and <code class="reqn">N</code> the number of clusters. The response is the proportion <code class="reqn">y = m/n</code>. <br></p>
+<p>For Poisson-type models, data can be of two forms. When modeling “simple counts”, data have the form {<code class="reqn">m_1, m_2, ..., m_N</code>}, where <code class="reqn">m_i</code> is the number of occurences of the event under study. When modeling rates (e.g. hazard rates), data have the same form as for the BB model, where <code class="reqn">n_i</code> is the denominator of the rate for cluster <code class="reqn">i</code> (considered as an “offset”, i.e. a constant known value) and <code class="reqn">m_i</code> the number of occurences of the event. For both forms of data, the response is the count <code class="reqn">y = m</code>. </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  aodql(formula,
+        data,
+        family = c("qbin", "qpois"),
+        link = c("logit", "cloglog", "probit"),
+        method = c("chisq", "dev"),
+        phi = NULL,
+        tol = 1e-5, ...)
+        
+  ## S3 method for class 'aodql'
+anova(object, ...)
+  ## S3 method for class 'aodql'
+coef(object, ...)
+  ## S3 method for class 'aodql'
+deviance(object, ...)
+  ## S3 method for class 'aodql'
+df.residual(object, ...)
+  ## S3 method for class 'aodql'
+fitted(object, ...)
+  ## S3 method for class 'aodql'
+logLik(object, ...)
+  ## S3 method for class 'aodql'
+predict(object, ...)
+  ## S3 method for class 'aodql'
+print(x, ...)
+  ## S3 method for class 'aodql'
+residuals(object, ...)
+  ## S3 method for class 'aodql'
+summary(object, ...)
+  ## S3 method for class 'aodql'
+vcov(object, ...)  
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula for the mean <code class="reqn">\mu</code>, defining the parameter vector <code class="reqn">b</code> (see details). For binomial-type models, the left-hand side of the formula must be of the form <code>cbind(m, n - m) ~ ...</code> where the fitted proportion is <code>m/n</code>. For Poisson-type models, the left-hand side of the formula must be of the form <code>m ~ ...</code> where the fitted count is <code>m</code>. To fit a rate, argument <code>offset</code> must be used in the right-hand side of the formula (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the response (<code>m</code> and, optionnally, <code>n</code>) and the explanatory variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Define the model which is fitted: “qbin” for binomial-type models and “qpois” for Poisson-type models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>For binomial-type models only. Define the link function <code class="reqn">g</code> for the mean <code class="reqn">\mu</code>: “cloglog”, “logit” (default) or “probit”. For Poisson-type models, <code>link</code> is automatically set to “log”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>For function <code>aodql</code>, define the statistics used for the moment estimation of <code class="reqn">phi</code>; legal values are “chisq” (default) for the chi-squared statistics or “dev” for the deviance statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>An optional value defining the over-dispersion parameter <code class="reqn">\Phi</code> if it is set as constant. Default to NULL (in that case, <code class="reqn">\Phi</code> is estimated).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A positive scalar (default to 0.001). The algorithm stops at iteration <code class="reqn">r + 1</code> when the condition
+<code class="reqn">\chi{^2}[r+1] - \chi{^2}[r] &lt;= tol</code> is met by the <code class="reqn">\chi^2</code> statistics .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to passed to the appropriate functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class “aodql”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class “aodql”.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>Binomial-type models</b><br></p>
+<p>For a given cluster <code class="reqn">(n, m)</code>, the model is
+</p>
+<p style="text-align: center;"><code class="reqn">m | \lambda,n \sim Binomial(n, \lambda)</code>
+</p>
+
+<p>where <code class="reqn">\lambda</code> follows a random variable of mean <code class="reqn">E[\lambda] = \mu</code> and variance <code class="reqn">Var[\lambda] = \Phi * \mu * (1 - \mu)</code>. The marginal mean and variance of <code class="reqn">m</code> are
+</p>
+<p style="text-align: center;"><code class="reqn">E[m] = n * \mu</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[m] = n * \mu * (1 - \mu) * (1 + (n - 1) * \Phi)</code>
+</p>
+
+<p>The response in <code>aodql</code> is <code class="reqn">y = m/n</code>.  The mean is <code class="reqn">E[y] = \mu</code>, defined such as <code class="reqn">\mu = g^{-1}(X * b) =  g^{-1}(\nu)</code>, where <code class="reqn">g</code> is the link function, <code class="reqn">X</code> is a design-matrix, <code class="reqn">b</code> a vector of fixed effects and <code class="reqn">\nu = X * b</code> is the corresponding linear predictor. The variance is <code class="reqn">Var[y] = (1 / n) * \mu * (1 - \mu) * (1 + (n - 1) * \Phi)</code>.<br></p>
+<p><b>Poisson-type models</b><br></p>
+<p><em>—— Simple counts (model with no offset)</em><br></p>
+<p>For a given cluster <code class="reqn">(m)</code>, the model is
+</p>
+<p style="text-align: center;"><code class="reqn">y | \lambda \sim Poisson(\lambda)</code>
+</p>
+
+<p>where <code class="reqn">\lambda</code> follows a random distribution of mean <code class="reqn">\mu</code> and variance <code class="reqn">\Phi * \mu^2</code>. The mean and variance of the marginal distribution of <code class="reqn">m</code> are
+</p>
+<p style="text-align: center;"><code class="reqn">E[m] = \mu</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[m] = \mu + \Phi * \mu^2</code>
+</p>
+
+<p>The response in <code>aodql</code> is <code class="reqn">y = m</code>. The mean is <code class="reqn">E[y] = \mu</code>, defined such as <code class="reqn">\mu = exp(X * b) =  exp(\nu)</code>. The variance is <code class="reqn">Var[y] = \mu + \Phi * \mu^2</code>.<br></p>
+<p><em>—— Rates (model with offset)</em><br></p>
+<p>For a given cluster <code class="reqn">(n, m)</code>, the model is
+</p>
+<p style="text-align: center;"><code class="reqn">m | \lambda,n \sim Poisson(\lambda)</code>
+</p>
+
+<p>where <code class="reqn">\lambda</code> follows the same random distribution as for the case with no offset. The marginal mean and variance are
+</p>
+<p style="text-align: center;"><code class="reqn">E[m | n] = \mu</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[m | n] = \mu + \Phi * \mu^2</code>
+</p>
+
+<p>The response in <code>aodql</code> is <code class="reqn">y = m</code>. The mean is <code class="reqn">E[y] = \mu</code>, defined such as <code class="reqn">\mu = exp(X * b + log(n)) =  exp(\nu + log(n)) = exp(\eta)</code>, where <code class="reqn">log(n)</code> is the offset. The variance is <code class="reqn">Var[y] = \mu + \Phi * \mu^2</code>.<br></p>
+<p><b>Other details</b><br></p>
+<p>Vector <code class="reqn">b</code> and parameter <code class="reqn">\Phi</code> are estimated iteratively, using procedures referred to as "Model I" in Williams (1982) for binomial-type models, and "Procedure II" in Breslow (1984) for Poisson-type models.<br></p>
+<p>Iterations are as follows. Quasi-likelihood estimating equations (McCullagh &amp; Nelder, 1989) are used to estimate <code class="reqn">b</code> (using function <code>glm</code> and its <code>weights</code> argument), <code class="reqn">\Phi</code> being set to a constant value. Then, <code class="reqn">\Phi</code> is calculated by the moment estimator, obtained by equalizing the goodness-of-fit statistic (chi-squared <code>X2</code> or deviance <code>D</code>) of the model to its degrees of freedom.<br>
+Parameter <code class="reqn">\Phi</code> can be set as constant, using argument <code>phi</code>. In that case, only <code class="reqn">b</code>  is estimated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>aodql</code>, printed and summarized by various functions.</p>
+
+
+<h3>References</h3>
+
+<p>Breslow, N.E., 1984. <em>Extra-Poisson variation in log-linear models</em>. Appl. Statist. 33, 38-44.<br>
+Moore, D.F., 1987, <em>Modelling the extraneous variance in the presence of extra-binomial variation</em>. 
+Appl. Statist. 36, 8-14.<br>
+Moore, D.F., Tsiatis, A., 1991. <em>Robust estimation of the variance in moment methods for extra-binomial
+and extra-poisson variation</em>. Biometrics 47, 383-401.
+McCullagh, P., Nelder, J. A., 1989, 2nd ed. <em>Generalized linear models</em>. New York, USA: Chapman and Hall.<br>
+Williams, D.A., 1982, <em>Extra-binomial variation in logistic linear models</em>. Appl. Statist. 31, 144-148.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#------ Binomial-type models
+
+data(orob2)
+fm &lt;- aodql(cbind(m, n - m) ~ seed, data = orob2, family = "qbin")
+coef(fm)
+vcov(fm)
+summary(fm)
+# chi2 tests of the seed factor in fm
+wald.test(b = coef(fm), varb = vcov(fm), Terms = 2)
+
+# chi-2 vs. deviance statistic to estimate phi
+fm1 &lt;- aodql(cbind(m, n - m) ~ seed + root, data = orob2, family = "qbin")
+fm2 &lt;- aodql(cbind(m, n - m) ~ seed + root, data = orob2, family = "qbin", method = "dev")
+coef(fm1)
+coef(fm2)
+fm1$phi
+fm2$phi
+vcov(fm1)
+vcov(fm2)
+gof(fm1)
+gof(fm2)
+
+# estimate with fixed phi
+fm &lt;- aodql(cbind(m, n - m) ~ seed, data = orob2, family = "qbin", phi = 0.05)
+coef(fm)
+vcov(fm)
+summary(fm)
+
+#------ Poisson-type models
+
+data(salmonella)
+fm &lt;- aodql(m ~ log(dose + 10) + dose, data = salmonella, family = "qpois")
+coef(fm)
+vcov(fm)
+summary(fm)
+# chi2 tests of the "log(dose + 10) + dose" factors
+wald.test(b = coef(fm), varb = vcov(fm), Terms = 2:3)
+
+# chi-2 vs. deviance statistic to estimate phi
+fm1 &lt;- aodql(m ~ log(dose + 10) + dose, data = salmonella, family = "qpois")
+fm2 &lt;- aodql(m ~ log(dose + 10) + dose, data = salmonella, family = "qpois", method = "dev")
+coef(fm1)
+coef(fm2)
+fm1$phi
+fm2$phi
+vcov(fm1)
+vcov(fm2)
+gof(fm1)
+gof(fm2)
+
+# estimate with fixed phi
+fm &lt;- aodql(m ~ log(dose + 10) + dose, data = salmonella, family = "qpois", phi = 0.05)
+coef(fm)
+vcov(fm)
+summary(fm)
+
+# modelling a rate
+data(dja)
+# rate "m / trisk"
+fm &lt;- aodql(formula = m ~ group + offset(log(trisk)), data = dja, family = "qpois")
+summary(fm)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>admm.bp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Basis Pursuit</h2>
+
+<h3>Description</h3>
+
+<p>For an underdetermined system, Basis Pursuit
+aims to find a sparse solution that solves
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{min}_x ~  \|x\|_1 \quad \textrm{s.t} \quad Ax=b</code>
+</p>
+
+<p>which is a relaxed version of strict non-zero support finding problem.
+The implementation is borrowed from Stephen Boyd's
+<a href="https://web.stanford.edu/~boyd/papers/admm/basis_pursuit/basis_pursuit.html">MATLAB code</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">admm.bp(
+  A,
+  b,
+  xinit = NA,
+  rho = 1,
+  alpha = 1,
+  abstol = 1e-04,
+  reltol = 0.01,
+  maxiter = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>an <code class="reqn">(m \times n)</code> regressor matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>a length-<code class="reqn">m</code> response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xinit</code></td>
+<td>
+<p>a length-<code class="reqn">n</code> vector for initial value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>an augmented Lagrangian parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>an overrelaxation parameter in [1,2]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abstol</code></td>
+<td>
+<p>absolute tolerance stopping criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>relative tolerance stopping criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>x</dt>
+<dd>
+<p>a length-<code class="reqn">n</code> solution vector</p>
+</dd>
+<dt>history</dt>
+<dd>
+<p>dataframe recording iteration numerics. See the section for more details.</p>
+</dd>
+</dl>
+<h3>Iteration History</h3>
+
+<p>When you run the algorithm, output returns not only the solution, but also the iteration history recording
+following fields over iterates,
+</p>
+
+<dl>
+<dt>objval</dt>
+<dd>
+<p>object (cost) function value</p>
+</dd>
+<dt>r_norm</dt>
+<dd>
+<p>norm of primal residual</p>
+</dd>
+<dt>s_norm</dt>
+<dd>
+<p>norm of dual residual</p>
+</dd>
+<dt>eps_pri</dt>
+<dd>
+<p>feasibility tolerance for primal feasibility condition</p>
+</dd>
+<dt>eps_dual</dt>
+<dd>
+<p>feasibility tolerance for dual feasibility condition</p>
+</dd>
+</dl>
+<p>In accordance with the paper, iteration stops when both <code>r_norm</code> and <code>s_norm</code> values
+become smaller than <code>eps_pri</code> and <code>eps_dual</code>, respectively.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## generate sample data
+n = 30
+m = 10
+
+A = matrix(rnorm(n*m), nrow=m)    # design matrix
+x = c(stats::rnorm(3),rep(0,n-3)) # coefficient
+x = base::sample(x)
+b = as.vector(A%*%x)              # response
+
+## run example
+output  = admm.bp(A, b)
+niter   = length(output$history$s_norm)
+history = output$history
+
+## report convergence plot
+opar &lt;- par(no.readonly=TRUE)
+par(mfrow=c(1,3))
+plot(1:niter, history$objval, "b", main="cost function")
+plot(1:niter, history$r_norm, "b", main="primal residual")
+plot(1:niter, history$s_norm, "b", main="dual residual")
+par(opar)
+
+</code></pre>
+
+
+</div>

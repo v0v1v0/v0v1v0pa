@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_spatial_references</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ESRI (ArcGIS) Spatial Reference data base</h2>
+
+<h3>Description</h3>
+
+<p>Database of available spatial references (CRS) in <code>tibble</code>
+format.
+</p>
+
+
+<h3>Format</h3>
+
+<p>A <code>tibble</code> with
+9,364 rows
+and fields:
+</p>
+
+<dl>
+<dt>projtype</dt>
+<dd>
+<p>Projection type (<code style="white-space: pre;">⁠"ProjectedCoordinateSystems", "GeographicCoordinateSystems","VerticalCoordinateSystems"⁠</code>)</p>
+</dd>
+<dt>wkid</dt>
+<dd>
+<p>Well-Known ID</p>
+</dd>
+<dt>latestWkid</dt>
+<dd>
+<p>Most recent <code>wkid</code>, in case that <code>wkid</code> is deprecated</p>
+</dd>
+<dt>authority</dt>
+<dd>
+<p><code>wkid</code> authority (Esri or EPSG)</p>
+</dd>
+<dt>deprecated</dt>
+<dd>
+<p>Logical indicating if <code>wkid</code> is deprecated</p>
+</dd>
+<dt>description</dt>
+<dd>
+<p>Human-readable description of the <code>wkid</code></p>
+</dd>
+<dt>areaname</dt>
+<dd>
+<p>Use area of the <code>wkid</code></p>
+</dd>
+<dt>wkt</dt>
+<dd>
+<p>Representation of <code>wkid</code> in Well-Known Text (WKT). Useful when
+working with <a href="https://CRAN.R-project.org/package=sf"><span class="pkg">sf</span></a> or <a href="https://CRAN.R-project.org/package=terra"><span class="pkg">terra</span></a></p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>This data base is useful when using the <code>outsr</code> parameter of the functions.
+</p>
+<p>Some projections ids have changed over time, for example Web Mercator is
+<code>wkid  = 102100</code> is deprecated and currently is <code>wkid = 3857</code>. However, both
+values would work, and they would return similar results.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Data extracted on <strong>14 January 2023</strong>.
+</p>
+
+
+<h3>Source</h3>
+
+<p><a href="https://github.com/Esri/projection-engine-db-doc">ESRI Projection Engine factory</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sf::st_crs()</code>
+</p>
+<p>Other datasets: 
+<code>arc_categories</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Get all possible valuesdata("arc_spatial_references")
+arc_spatial_references
+
+# Request with deprecated Web Mercator
+library(dplyr)
+wkid &lt;- arc_spatial_references %&gt;%
+  filter(latestWkid == 3857 &amp; deprecated == TRUE) %&gt;%
+  slice(1)
+
+glimpse(wkid)
+
+add &lt;- arc_geo("London, United Kingdom", outsr = wkid$wkid)
+
+# Note values lat, lon and wkid. latestwkid give the current valid wkid
+add %&gt;%
+  select(lat, lon, wkid, latestWkid) %&gt;%
+  glimpse()
+
+# See with sf
+
+try(sf::st_crs(wkid$wkid))
+
+# But
+try(sf::st_crs(wkid$latestWkid))
+
+# or
+try(sf::st_crs(wkid$wkt))
+
+
+</code></pre>
+
+
+</div>

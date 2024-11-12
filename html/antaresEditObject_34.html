@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createBindingConstraintBulk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create multiple binding constraint at once.</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+<img src="../help/figures/badge_api_no.svg" alt="Antares API NO"></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">createBindingConstraintBulk(constraints, opts = antaresRead::simOptions())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>constraints</code></td>
+<td>
+<p>A <code>list</code> of several named <code>list</code> containing data to create binding constraints.
+<strong>Warning</strong> all arguments for creating a binding constraints must be provided, see examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>List of simulation parameters returned by the function
+<code>antaresRead::setSimulationPath()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>According to Antares version, usage may vary :
+</p>
+<p><strong>&gt;= v8.7.0</strong> :
+</p>
+
+<ul>
+<li>
+<p> For each constraint name, one file .txt containing <code style="white-space: pre;">⁠&lt;id&gt;_lt.txt, &lt;id&gt;_gt.txt, &lt;id&gt;_eq.txt⁠</code>.
+</p>
+</li>
+<li>
+<p> Parameter <code>values</code> must be named <code>list</code> ("lt", "gt", "eq") containing <code>data.frame</code> scenarized.
+</p>
+</li>
+<li>
+<p> Add parameter <code>group</code> in input list <code>constraints</code>
+</p>
+</li>
+</ul>
+<p>see example section below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An updated list containing various information about the simulation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other binding constraints functions: 
+<code>createBindingConstraint()</code>,
+<code>editBindingConstraint()</code>,
+<code>removeBindingConstraint()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# For Study version &lt; v8.7.0
+# Create multiple constraints
+
+# Prepare data for constraints 
+bindings_constraints &lt;- lapply(
+  X = seq_len(100),
+  FUN = function(i) {
+    # use arguments of createBindingConstraint()
+    # all arguments must be provided !
+    list(
+      name = paste0("constraints", i), 
+      id = paste0("constraints", i), 
+      values = matrix(data = rep(0, 8760 * 3), ncol = 3), 
+      enabled = FALSE, 
+      timeStep = "hourly",
+      operator = "both",
+      coefficients = list("area1%area2" = 1),
+      overwrite = TRUE
+    )
+  }
+)
+# create all constraints
+createBindingConstraintBulk(bindings_constraints)
+
+# For Study version &gt;= v8.7.0 (add parameter `group`)
+
+# data values (hourly)
+df &lt;- matrix(data = rep(0, 8760 * 3), ncol = 3)
+values_data &lt;- list(lt=df, 
+                    gt= df)   
+
+# create multiple constraints
+bindings_constraints &lt;- lapply(
+  X = seq_len(10),
+  FUN = function(i) {
+    # use arguments of createBindingConstraint()
+    # all arguments must be provided !
+    list(
+      name = paste0("constraints_bulk", i), 
+      id = paste0("constraints_bulk", i), 
+      values = values_data, 
+      enabled = FALSE, 
+      timeStep = "hourly",
+      operator = "both",
+      coefficients = list("at%fr" = 1),
+      group= "group_bulk",
+     overwrite = TRUE
+   )
+  }
+)
+ 
+createBindingConstraintBulk(bindings_constraints)  
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

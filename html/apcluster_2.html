@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggExCluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exemplar-based Agglomerative Clustering</h2>
+
+<h3>Description</h3>
+
+<p>Runs exemplar-based agglomerative clustering
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'matrix,missing'
+aggExCluster(s, x, includeSim=FALSE)
+## S4 method for signature 'matrix,ExClust'
+aggExCluster(s, x, includeSim=FALSE)
+## S4 method for signature 'Matrix,missing'
+aggExCluster(s, x, includeSim=FALSE)
+## S4 method for signature 'Matrix,ExClust'
+aggExCluster(s, x, includeSim=FALSE)
+## S4 method for signature 'missing,ExClust'
+aggExCluster(s, x, includeSim=TRUE)
+## S4 method for signature 'function,ANY'
+aggExCluster(s, x, includeSim=TRUE, ...)
+## S4 method for signature 'character,ANY'
+aggExCluster(s, x, includeSim=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>an <code class="reqn">l\times l</code> similarity matrix or a similarity
+function either specified as the name of a package-provided
+similarity function as character string or a user provided
+function object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>either a prior clustering of class <code>ExClust</code> (or
+<code>APResult</code>) or, if called with <code>s</code> being a
+function or function name, input data to be clustered (see
+<code>apcluster</code> for a detailed specification)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>includeSim</code></td>
+<td>
+<p>if <code>TRUE</code>, the similarity matrix (either computed
+internally or passed via the <code>s</code> argument) is stored to the
+slot <code>sim</code> of the returned
+<code>AggExResult</code> object. The default is <code>FALSE</code>
+if <code>aggExCluster</code> has been called for a similarity matrix,
+otherwise the default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>all other arguments are passed to the selected 
+similarity function as they are.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>aggExCluster</code> performs agglomerative clustering.
+Unlike other methods, e.g., the ones implemented in <code>hclust</code>,
+<code>aggExCluster</code> is computing exemplars for each cluster and
+its merging objective is geared towards the identification of
+meaningful exemplars, too.
+</p>
+<p>For each pair of clusters, the merging objective is computed as
+follows:
+</p>
+
+<ol>
+<li>
+<p>An intermediate cluster is created as the union
+of the two clusters.
+</p>
+</li>
+<li>
+<p>The potential exemplar is selected from the intermediate
+cluster as the sample that has the largest average similarity
+to all other samples in the intermediate cluster.
+</p>
+</li>
+<li>
+<p>Then the average similarity of the exemplar with all
+samples in the first cluster and the average similarity with
+all samples in the second cluster is computed. These two values
+measure how well the joint exemplar describes the samples in the
+two clusters.
+</p>
+</li>
+<li>
+<p>The merging objective is finally computed as the
+average of the two measures above. Hence, we can consider the
+merging objective as some kind of “balanced average
+similarity to the joint exemplar”.
+</p>
+</li>
+</ol>
+<p>In each step, all pairs of clusters are considered and
+the pair with the largest merging objective is actually merged.
+The joint exemplar is then chosen as the exemplar of the merged
+cluster.
+</p>
+<p><code>aggExCluster</code> can be used in two ways, either by performing
+agglomerative clustering of an entire data set or by performing
+agglomerative clustering of data previously clustered by
+affinity propagation or another clustering algorithm.
+</p>
+
+<ol>
+<li>
+<p>Agglomerative clustering of an entire data set can be
+accomplished either by calling <code>aggExCluster</code> on a
+quadratic similarity matrix without further argument or by
+calling <code>aggExCluster</code> for a function or function name
+along with data to be clustered (as argument <code>x</code>).
+A full agglomeration run is performed that starts from <code>l</code>
+clusters (all samples in separate one-element clusters) and ends
+with one cluster (all samples in one single cluster).  
+</p>
+</li>
+<li>
+<p>Agglomerative clustering starting from a given clustering
+result can be accomplished by calling <code>aggExCluster</code> for
+an <code>APResult</code> or <code>ExClust</code>
+object passed as parameter <code>x</code>. The similarity matrix
+can either be passed as argument <code>s</code> or, if missing,
+<code>aggExCluster</code> looks if the similarity matrix is
+included in the clustering object <code>x</code>. A cluster hierarchy
+with numbers of clusters ranging from the
+number of clusters in <code>x</code> down to 1 is created.  
+</p>
+</li>
+</ol>
+<p>The result is stored in an <code>AggExResult</code> object.
+The slot <code>height</code> is filled with the merging
+objective of each of the <code>maxNoClusters-1</code> merges. The slot
+<code>order</code> contains a permutation of the samples/clusters for
+dendrogram plotting. The algorithm for computing this permutation
+is the same as the one used in <code>hclust</code>. If <code>aggExCluster</code>
+was called for an entire data set, the slot <code>label</code>
+contains the names of the objects to be clustered (if available,
+otherwise the indices are used). If <code>aggExCluster</code> was called
+for a prior clustering, then labels are set to ‘Cluster 1’,
+‘Cluster 2’, etc.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Upon successful completion, the function returns an
+<code>AggExResult</code> object.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Similarity matrices can be supplied in dense or sparse
+format. Note, however, that sparse matrices are converted to full
+dense matrices before clustering which may lead to memory and/or
+performance bottlenecks for larger data sets.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ulrich Bodenhofer, Johannes Palme, and Nikola Kostic</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://github.com/UBod/apcluster">https://github.com/UBod/apcluster</a>
+</p>
+<p>Bodenhofer, U., Kothmeier, A., and Hochreiter, S. (2011)
+APCluster: an R package for affinity propagation clustering.
+<em>Bioinformatics</em> <b>27</b>, 2463-2464.
+DOI: <a href="https://doi.org/10.1093/bioinformatics/btr406">doi:10.1093/bioinformatics/btr406</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AggExResult</code>, <code>apcluster-methods</code>,  
+<code>plot-methods</code>, <code>heatmap-methods</code>,
+<code>cutree-methods</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## create two Gaussian clouds
+cl1 &lt;- cbind(rnorm(50, 0.2, 0.05), rnorm(50, 0.8, 0.06))
+cl2 &lt;- cbind(rnorm(50, 0.7, 0.08), rnorm(50, 0.3, 0.05))
+x &lt;- rbind(cl1, cl2)
+
+## compute agglomerative clustering from scratch
+aggres1 &lt;- aggExCluster(negDistMat(r=2), x)
+
+## show results
+show(aggres1)
+
+## plot dendrogram
+plot(aggres1)
+
+## plot heatmap along with dendrogram
+heatmap(aggres1)
+
+## plot level with two clusters
+plot(aggres1, x, k=2)
+
+## run affinity propagation
+apres &lt;- apcluster(negDistMat(r=2), x, q=0.7)
+
+## create hierarchy of clusters determined by affinity propagation
+aggres2 &lt;- aggExCluster(x=apres)
+
+## show results
+show(aggres2)
+
+## plot dendrogram
+plot(aggres2)
+plot(aggres2, showSamples=TRUE)
+
+## plot heatmap
+heatmap(aggres2)
+
+## plot level with two clusters
+plot(aggres2, x, k=2)
+</code></pre>
+
+
+</div>

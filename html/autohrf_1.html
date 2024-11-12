@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autohrf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>autohrf</h2>
+
+<h3>Description</h3>
+
+<p>A function that automatically finds the parameters of model's
+that best match the underlying data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autohrf(
+  d,
+  model_constraints,
+  tr,
+  roi_weights = NULL,
+  allow_overlap = FALSE,
+  population = 100,
+  iter = 100,
+  mutation_rate = 0.1,
+  mutation_factor = 0.05,
+  elitism = 0.1,
+  hrf = "spm",
+  t = 32,
+  p_boynton = c(2.25, 1.25, 2),
+  p_spm = c(6, 16, 1, 1, 6, 0),
+  f = 100,
+  cores = NULL,
+  autohrf = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A dataframe with the signal data: roi, t and y. ROI is the name of
+the region, t is the timestamp and y the value of the signal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_constraints</code></td>
+<td>
+<p>A list of model specifications to use for fitting.
+Each specification is represented as a data frame containing information
+about it (event, start_time, end_time, min_duration and max_duration).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tr</code></td>
+<td>
+<p>MRI's repetition time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roi_weights</code></td>
+<td>
+<p>A data frame with ROI weights: roi, weight. ROI is the
+name of the region, weight a number that defines the importance of that roi,
+the default weight for a ROI is 1. If set to 2 for a particular ROI that ROI
+will be twice as important.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_overlap</code></td>
+<td>
+<p>Whether to allow overlap between events.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>population</code></td>
+<td>
+<p>The size of the population in the genetic algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of iterations in the genetic algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutation_rate</code></td>
+<td>
+<p>The mutation rate in the genetic algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mutation_factor</code></td>
+<td>
+<p>The mutation factor in the genetic algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elitism</code></td>
+<td>
+<p>The degree of elitism (promote a percentage of the best
+solutions) in the genetic algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hrf</code></td>
+<td>
+<p>Method to use for HRF generation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>The t parameter for Boynton or SPM HRF generation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_boynton</code></td>
+<td>
+<p>Parameters for the Boynton's HRF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_spm</code></td>
+<td>
+<p>Parameters for the SPM HRF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Upsampling factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>Number of cores to use for parallel processing. Set to the
+number of provided model constraints by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>autohrf</code></td>
+<td>
+<p>Results of a previous autohrf run to continue.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether to print progress of the fitting process.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing model fits for each of the provided model
+specifications.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># prepare model specs
+model3 &lt;- data.frame(
+  event        = c("encoding", "delay", "response"),
+  start_time   = c(0,          2.65,     12.5),
+  end_time     = c(3,          12.5,     16)
+)
+
+model4 &lt;- data.frame(
+  event        = c("fixation", "target", "delay", "response"),
+  start_time   = c(0,          2.5,      2.65,    12.5),
+  end_time     = c(2.5,        3,        12.5,    15.5)
+)
+
+model_constraints &lt;- list(model3, model4)
+
+# run autohrf
+df &lt;- flanker
+autofit &lt;- autohrf(df, model_constraints, tr = 2.5,
+                   population = 2, iter = 2, cores = 1)
+
+</code></pre>
+
+
+</div>

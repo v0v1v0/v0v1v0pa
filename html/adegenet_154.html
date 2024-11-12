@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>export_to_mvmapper</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Export analysis for mvmapper visualisation</h2>
+
+<h3>Description</h3>
+
+<p><code>mvmapper</code> is an interactive tool for visualising outputs of a
+multivariate analysis on a map from a web browser. The function
+<code>export_to_mvmapper</code> is a generic with methods for several standard
+classes of analyses in <code>adegenet</code> and <code>ade4</code>. Information on
+individual locations, as well as any other relevant data, is passed through
+the second argument <code>info</code>. By default, the function returns a formatted
+<code>data.frame</code> and writes the output to a .csv file.<br></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">export_to_mvmapper(x, ...)
+
+## Default S3 method:
+export_to_mvmapper(x, ...)
+
+## S3 method for class 'dapc'
+export_to_mvmapper(x, info, write_file = TRUE, out_file = NULL, ...)
+
+## S3 method for class 'dudi'
+export_to_mvmapper(x, info, write_file = TRUE, out_file = NULL, ...)
+
+## S3 method for class 'spca'
+export_to_mvmapper(x, info, write_file = TRUE, out_file = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The analysis to be exported. Can be a <code>dapc</code>, <code>spca</code>, or a
+<code>dudi</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to pass to other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>A <code>data.frame</code> with additional information containing at
+least the following columns: <code>key</code> (unique individual identifier),
+<code>lat</code> (latitude), and <code>lon</code> (longitude). Other columns will be
+exported as well, but are optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write_file</code></td>
+<td>
+<p>A <code>logical</code> indicating if the output should be written
+out to a .csv file. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out_file</code></td>
+<td>
+<p>A character string indicating the file to which the output
+should be written. If NULL, the file used will be named
+<code>'mvmapper_data_[date and time].csv'</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>mvmapper</code> can be found at:
+<a href="https://popphylotools.github.io/mvMapper/">https://popphylotools.github.io/mvMapper/</a>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> which can serve as input to <code>mvmapper</code>,
+containing at least the following columns:
+</p>
+
+<ul>
+<li> <p><code>key</code>: unique individual identifiers
+</p>
+</li>
+<li> <p><code>PC1</code>: first principal component; further principal components are
+optional, but if provided will be numbered and follow <code>PC1</code>.
+</p>
+</li>
+<li> <p><code>lat</code>: latitude for each individual
+</p>
+</li>
+<li> <p><code>lon</code>: longitude for each individual
+</p>
+</li>
+</ul>
+<p>In addition, specific information is added for some analyses:
+</p>
+
+<ul>
+<li> <p><code>spca</code>: <code>Lag_PC</code> columns contain the lag-vectors of the
+principal components; the lag operator computes, for each individual, the
+average score of neighbouring individuals; it is useful for clarifying
+patches and clines.
+</p>
+</li>
+<li> <p><code>dapc</code>: <code>grp</code> is the group used in the analysis;
+<code>assigned_grp</code> is the group assignment based on the discriminant
+functions; <code>support</code> is the statistical support (i.e. assignment
+probability) for <code>assigned_grp</code>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:thibautjombart@gmail.com">thibautjombart@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mvmapper</code> is available at:
+<a href="https://popphylotools.github.io/mvMapper/">https://popphylotools.github.io/mvMapper/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# An example using the microsatellite dataset of Dupuis et al. 2016 (781
+# individuals, 10 loci, doi: 10.1111/jeb.12931)
+
+# Reading input file from adegenet
+
+input_data &lt;- system.file("data/swallowtails.rda", package="adegenet")
+data(swallowtails)
+
+
+# conducting a DAPC (n.pca determined using xvalDapc, see ??xvalDapc)
+
+dapc1 &lt;- dapc(swallowtails, n.pca=40, n.da=200)
+
+
+# read in swallowtails_loc.csv, which contains "key", "lat", and "lon"
+# columns with column headers (this example contains additional columns
+# containing species identifications, locality descriptions, and COI
+# haplotype clades)
+
+input_locs &lt;- system.file("files/swallowtails_loc.csv", package = "adegenet")
+loc &lt;- read.csv(input_locs, header = TRUE)
+
+
+# generate mvmapper input file, automatically write the output to a csv, and
+# name the output csv "mvMapper_Data.csv"
+out_dir &lt;- tempdir()
+out_file &lt;- file.path(out_dir, "mvMapper_Data.csv")
+
+out &lt;- export_to_mvmapper(dapc1, loc, write_file = TRUE, out_file = out_file)
+
+</code></pre>
+
+
+</div>

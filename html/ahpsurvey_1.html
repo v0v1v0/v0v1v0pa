@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Canned routine for AHP</h2>
+
+<h3>Description</h3>
+
+<p><code>ahp</code> is a canned routine that returns a <code>data.frame</code> of individuals' priorities (based on ahp.indpref), number of missing values, consistency ratios, and top three pairs of inconsistent pairwise comparisons. An optional argument <code>agg</code> allows the user to generate a data.frame of aggregated priorities alongside individual priorities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahp(
+  df,
+  atts,
+  negconvert = FALSE,
+  reciprocal = TRUE,
+  method = "eigen",
+  aggmethod = "geometric",
+  qt = 0,
+  censorcr = Inf,
+  agg = FALSE,
+  ID = NULL,
+  col = NULL,
+  suppress = "none"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>a dataframe, each row corresponding to one decision-maker, with columns ordered according to  <code>atts</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atts</code></td>
+<td>
+<p>a list of attributes in the correct order</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negconvert</code></td>
+<td>
+<p>logical, whether to convert all positive values to
+negative. In the pairwise comparison A_B, if -6 denotes A is more
+important than B by 6 units, set <code>negconvert = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reciprocal</code></td>
+<td>
+<p>logical, whether to convert negative values (after <code>negconvert</code>) to its reciprocal. If the comparison A_B where B is more important than A was already entered in its reciprocal (e.g. 1/6), choose <code>reciprocal = FALSE</code>. When <code>reciprocal = FALSE</code>, do not set <code>negconvert = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>if <code>method = "eigen"</code>, the individual priority weights are computed using the Dominant Eigenvalues method described in Saaty (2003). Otherwise, then the priorities are computed based on the averages of normalized values. Basically it normalizes the matrices so that all of the columns add up to 1, and then computes the averages of the row as the priority weights of each attribute. Three modes of finding the averages are available:  <code>arithmetic</code>: the arithmetic mean; <code>geometric</code>: the geometric mean (the default); <code>rootmean</code>: the square root of the sum of the squared value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggmethod</code></td>
+<td>
+<p>how to aggregate the individual priorities. By default <code>aggmethod = method</code>. Apart from the methods offered in <code>method</code>, <code>aggmethod</code> also permits three other options: <code>tmean</code> computes the trimmed arithmetic mean, <code>tgmean</code> computes the trimmed geometric mean (both with quantiles trimmed based on <code>qt</code>), and <code>sd</code> computes the standard deviation from the arithmetic mean. If <code>method = "eigen"</code> and <code>aggmethod</code> is not specified, <code>aggmethod</code> defaults to <code>"geometric"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qt</code></td>
+<td>
+<p>specifies the quantile which the top <strong>and</strong> bottom priority weights are trimmed. Used only if <code>aggmethod = 'tmean'</code> or <code>aggmethod = 'tgmean'</code>. For example, <code>qt = 0.25</code> specifies that the aggregation is the arithmetic mean of the values from the 25 to 75 percentile. By default <code>qt = 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censorcr</code></td>
+<td>
+<p>the threshold of censoring observations. All observations with a consistency ratio higher than the specified CR will be dropped from the routine. By default, <code>censorcr = Inf</code>, i.e. drops no observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg</code></td>
+<td>
+<p>by default, <code>agg = FALSE</code>, which suppresses the output of Aggregated priorities. If <code>agg = TRUE</code>, the output will be a list where <code style="white-space: pre;">⁠$AggPref⁠</code> contains the Aggregated priorities and Standard Deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>the column name, or a vector of column names, of variables in <code>df</code>, which are used to indicate specific observations. For example, if a survey dataset comes with an identifier/ multiple identified for each observation, use this so that the output dataframe would contain this identifier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>a list of column names which contains the columns for the pairwise comparison matrix in chronological order, as specified in <code>atts</code>. For example, if <code>atts</code> is <code>c("A","B","C")</code>, then <code>col</code> would be <code>c("A_B","A_C","B_C")</code>, with <code>"A_B"</code> being a pairwise comparison of attribute A and B. <code>col = NULL</code> by default, indicating that the dataframe specified already contained the pairwise comparisons in correct order and nothing else except of what is inside <code>ID</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress</code></td>
+<td>
+<p>Suppresses the supplementary indices. Can take the values of "all" (suppresses all indices), "pwerror" (suppresses pwerror), or "cr" (suppresses consistency ratio).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>agg = TRUE</code>, returns a list of the results with two elements, <code>indpref</code> and <code>aggpref</code>. <code style="white-space: pre;">⁠$indpref⁠</code> contains individual preference weight (same as <code>ahp.indpref</code>), consistency ratios, and the top three most inconsistent pairwise comparisons (same as <code>ahp.pwerror</code>). <code style="white-space: pre;">⁠$aggpref⁠</code> contains the Aggregated Priorities and Standard Deviations. Otherwise (i.e. default setting), outputs a <code>data.frame</code> with only <code style="white-space: pre;">⁠$indpref⁠</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Frankie Cho
+</p>
+
+
+<h3>References</h3>
+
+<p>Saaty TL (2004).
+“Decision making — the Analytic Hierarchy and Network Processes (AHP/ANP).”
+<em>Journal of Systems Science and Systems Engineering</em>, <b>13</b>(1), 1–35.
+ISSN 1861-9576, doi: <a href="https://doi.org/10.1007/s11518-006-0151-5">10.1007/s11518-006-0151-5</a>, <a href="https://doi.org/10.1007/s11518-006-0151-5">https://doi.org/10.1007/s11518-006-0151-5</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(city200)
+ahp(df = city200, atts = c('cult', 'fam', 'house', 'jobs', 'trans'), negconvert = TRUE)
+
+</code></pre>
+
+
+</div>

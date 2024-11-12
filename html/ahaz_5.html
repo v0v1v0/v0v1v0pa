@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahazisis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Independent screening for the semiparametric
+additive hazards model</h2>
+
+<h3>Description</h3>
+
+<p>Fast and scalable model selection for the semiparametric additive hazards
+model via univariate screening combined with penalized regression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahazisis(surv, X, weights, standardize=TRUE,
+        nsis=floor(nobs/1.5/log(nobs)), do.isis=TRUE,
+        maxloop=5, penalty=sscad.control(), tune=cv.control(),
+        rank=c("FAST","coef","z","crit"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censored
+and counting process format (left-truncation) is supported. Tied
+survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1 for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Logical flag for variable standardization, prior to
+model fitting. Estimates are always returned on
+the original scale. Default is <code>standardize=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsis</code></td>
+<td>
+<p>Number of covariates to recruit initially. If
+<code>do.isis=TRUE</code>, then this is also the maximal number of variables
+that the algorithm will recruit.  Default is
+<code>nsis=floor(nobs/log(nobs)/1.5)</code></p>
+</td>
+</tr>
+</table>
+<p>. 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>do.isis</code></td>
+<td>
+<p>Perform iterated independent screening?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxloop</code></td>
+<td>
+<p>Maximal number of iterations of the algorithm if <code>do.isis=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>Method to use for (re)recruitment of variables. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>A description of the penalty function to be used for
+the variable selection part. This can be a character string naming a penalty
+function  (currently <code>"lasso"</code> or stepwise SCAD, <code>"sscad"</code>)
+or a call to the penalty function. Default is
+<code>penalty=sscad.control()</code>. See <code>ahazpen</code> and
+<code>ahazpen.pen.control</code> for more options and examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune</code></td>
+<td>
+<p>A description of the tuning method to be used for the
+variable selection part. This can be
+a character string naming a tuning control
+function (currently <code>"cv"</code> or <code>"bic"</code>) or a call to the tuning control function. Default is
+<code>tune=cv.control()</code>.  See <code>ahaz.tune.control</code> for options
+and examples.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function is a basic implementation of the iterated sure
+independent screening method described
+in Gorst-Rasmussen &amp; Scheike (2011). Briefly, the algorithm does the following:
+</p>
+
+<ol>
+<li>
+<p> Recruits the <code>nsis</code> most relevant covariates by ranking them according to the univariate ranking
+method described by <code>rank</code>.
+</p>
+</li>
+<li>
+<p> Selects, using <code>ahazpen</code> with penalty function described
+in <code>penalty</code>, a model among the
+top two thirds  of the <code>nsis</code> most relevant covariates. Call the
+size of this model <code class="reqn">m</code>.
+</p>
+</li>
+<li>
+<p> Recruits '<code>nsis</code> minus <code class="reqn">m</code>' new covariates among the non-selected
+covariates by ranking their relevance according to the univariate
+ranking method described in <code>rank</code>, adjusted for the already
+selected variables (using an unpenalized semiparametric additive
+hazards model).
+</p>
+</li>
+</ol>
+<p>Steps 2-3 are iterated for  <code>maxloop</code> times, or until <code>nsis</code> covariates has been recruited, or until the
+set of selected covariate is stable between two iterations; whichever
+comes first.
+</p>
+<p>The following choices of ranking method exist:
+</p>
+
+<ul>
+<li>  <p><code>rank="FAST"</code> corresponds to ranking, in the initial
+recruitment step only, by the basic FAST- statistic
+described in Gorst-Rasmussen &amp; Scheike (2011). If <code>do.isis=TRUE</code>
+then the algorithm sets <code>rank="z"</code> for subsequent rankings.
+</p>
+</li>
+<li> <p><code>rank="coef"</code> corresponds to ranking by absolute value of
+(univariate) regression coefficients, obtained via <code>ahaz</code> 
+
+</p>
+</li>
+<li>  <p><code>rank="z"</code> corresponds to ranking by the <code class="reqn">|Z|</code>-statistic of
+the (univariate) regression coefficients, obtained via <code>ahaz</code>
+</p>
+</li>
+<li> <p><code>rank="crit"</code> corresponds to ranking by the size
+of the decrease in
+the (univariate) natural loss function used for estimation by <code>ahaz</code>.
+
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ahazisis"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initRANKorder</code></td>
+<td>
+<p>The initial ranking order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail.pickind</code></td>
+<td>
+<p>List (of length at most <code>maxloop</code>) listing
+the covariates
+selected in each recruitment step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail.ISISind</code></td>
+<td>
+<p>List (of length at most <code>maxloop</code>) listing
+the covariates
+selected in each variable selection step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail.ISIScoef</code></td>
+<td>
+<p>List (of length at most <code>maxloop</code>)
+listing the estimated penalized regression coefficients corresponding to
+the indices in <code>detail.ISISind</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SISind</code></td>
+<td>
+<p>Indices of covariates selected in the
+initial recruitment step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ISISind</code></td>
+<td>
+<p>Indices of the final set of covariates selected by the
+iterated algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ISIScoef</code></td>
+<td>
+<p>Vector of the penalized regression coefficients of the
+covariates in  <code>ISISind</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsis</code></td>
+<td>
+<p>The argument <code>nsis</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.isis</code></td>
+<td>
+<p>The argument <code>do.isis</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxloop</code></td>
+<td>
+<p>The argument <code>maxloop</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gorst-Rasmussen, A. &amp; Scheike, T. H. (2011). <em>Independent screening for
+single-index hazard rate models with ultra-high dimensional features.</em>
+Technical report R-2011-06, Department of Mathematical Sciences, Aalborg University.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.ahazisis</code>, <code>ahazpen</code>, <code>ahaz.adjust</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Basic ISIS/SIS with a single step
+set.seed(10101)
+m1 &lt;- ahazisis(surv,X,maxloop=1,rank="coef")
+m1
+# Indices of the variables from the initial recruitment step
+m1$SISind
+# Indices of selected variables
+m1$ISISind
+# Check fit
+score &lt;- X[,m1$ISISind]%*%m1$ISIScoef
+plot(survfit(surv~I(score&gt;median(score))))
+
+</code></pre>
+
+
+</div>

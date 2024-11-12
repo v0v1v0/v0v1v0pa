@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dataCar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+data Car
+</h2>
+
+<h3>Description</h3>
+
+<p>This data set is taken from the <code>dataCar</code> data set of the <code>insuranceData</code> package and slightly adjusted (see the code in examples for reproducing this data set).
+The original data set is based on  one-year vehicle insurance policies taken    out in 2004 or 2005. There are 67566 policies, of which  4589 (6.8%) had at least one claim.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(dataCar)</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 67566 observations on the following 15 variables.
+</p>
+
+<dl>
+<dt><code>veh_value</code></dt>
+<dd>
+<p>vehicle value, in $10,000s</p>
+</dd>
+<dt><code>exposure</code></dt>
+<dd>
+<p>0-1</p>
+</dd>
+<dt><code>clm</code></dt>
+<dd>
+<p>occurrence of claim (0 = no, 1 = yes)</p>
+</dd>
+<dt><code>numclaims</code></dt>
+<dd>
+<p>number of claims</p>
+</dd>
+<dt><code>claimcst0</code></dt>
+<dd>
+<p>claim amount (0 if no claim)</p>
+</dd>
+<dt><code>veh_body</code></dt>
+<dd>
+<p>vehicle body, coded as <code>BUS</code> <code>CONVT</code> <code>COUPE</code> <code>HBACK</code> <code>HDTOP</code> <code>MCARA</code> <code>MIBUS</code> <code>PANVN</code> <code>RDSTR</code> <code>SEDAN</code> <code>STNWG</code> <code>TRUCK</code> <code>UTE</code></p>
+</dd>
+<dt><code>veh_age</code></dt>
+<dd>
+<p>1 (youngest), 2, 3, 4</p>
+</dd>
+<dt><code>gender</code></dt>
+<dd>
+<p>a factor with levels <code>F</code> <code>M</code></p>
+</dd>
+<dt><code>area</code></dt>
+<dd>
+<p>a factor with levels <code>A</code> <code>B</code> <code>C</code> <code>D</code> <code>E</code> <code>F</code></p>
+</dd>
+<dt><code>agecat</code></dt>
+<dd>
+<p>1 (youngest), 2, 3, 4, 5, 6</p>
+</dd>
+<dt><code>X_OBSTAT_</code></dt>
+<dd>
+<p>a factor with levels <code>01101    0    0    0</code></p>
+</dd>
+<dt><code>Y</code></dt>
+<dd>
+<p>the loss ratio, defined as the number of claims divided by the exposure</p>
+</dd>
+<dt><code>w</code></dt>
+<dd>
+<p>the exposure, identical to <code>exposure</code></p>
+</dd>
+<dt><code>VehicleType</code></dt>
+<dd>
+<p>type of vehicle, <code>common vehicle</code> or <code>uncommon vehicle</code></p>
+</dd>
+<dt><code>VehicleBody</code></dt>
+<dd>
+<p>vehicle body, identical to <code>veh_body</code></p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>Adjusted data set <code>dataCar</code>, where we removed claims with a loss ratio larger than 1 000 000. In addition, we summed the exposure per vehicle body and removed those where
+the summed exposure was less than 100. Hereby, we ensure that there is sufficient exposure for each vehicle body category.</p>
+
+
+<h3>Source</h3>
+
+<p>http://www.acst.mq.edu.au/GLMsforInsuranceData</p>
+
+
+<h3>References</h3>
+
+<p>De Jong P., Heller G.Z. (2008), Generalized linear models for insurance data,
+Cambridge University Press
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # How to construct the data set using the original dataCar data set from the insuranceData package
+  library(plyr)
+  library(magrittr)
+  data("dataCar", package = "insuranceData")
+  dataCar$Y = with(dataCar, claimcst0 / exposure)
+  dataCar$w = dataCar$exposure
+  dataCar   = dataCar[which(dataCar$Y &lt; 1e6), ]
+  Yw = ddply(dataCar, .(veh_body), function(x) c(crossprod(x$Y, x$w) / sum(x$w), sum(x$w)))
+  dataCar = dataCar[!dataCar$veh_body %in% Yw[Yw$V2 &lt; 1e2, "veh_body"], ]
+  dataCar$veh_body %&lt;&gt;% droplevels()
+  dataCar$VehicleType = sapply(tolower(dataCar$veh_body), function(x) {
+    if(x %in% c("sedan", "ute", "hback"))
+      "Common vehicle"
+    else
+      "Uncommon vehicle"
+  })
+  dataCar$VehicleBody = dataCar$veh_body
+</code></pre>
+
+
+</div>

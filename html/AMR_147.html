@@ -1,0 +1,365 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.mo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform Arbitrary Input to Valid Microbial Taxonomy</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to get a valid microorganism code (<code>mo</code>) based on arbitrary user input. Determination is done using intelligent rules and the complete taxonomic tree of the kingdoms Animalia, Archaea, Bacteria, and Protozoa, and most microbial species from the kingdom Fungi (see <em>Source</em>). The input can be almost anything: a full name (like <code>"Staphylococcus aureus"</code>), an abbreviated name (such as <code>"S. aureus"</code>), an abbreviation known in the field (such as <code>"MRSA"</code>), or just a genus. See <em>Examples</em>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.mo(
+  x,
+  Becker = FALSE,
+  Lancefield = FALSE,
+  minimum_matching_score = NULL,
+  keep_synonyms = getOption("AMR_keep_synonyms", FALSE),
+  reference_df = get_mo_source(),
+  ignore_pattern = getOption("AMR_ignore_pattern", NULL),
+  cleaning_regex = getOption("AMR_cleaning_regex", mo_cleaning_regex()),
+  language = get_AMR_locale(),
+  info = interactive(),
+  ...
+)
+
+is.mo(x)
+
+mo_uncertainties()
+
+mo_renamed()
+
+mo_failures()
+
+mo_reset_session()
+
+mo_cleaning_regex()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a character vector or a data.frame with one or two columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Becker</code></td>
+<td>
+<p>a logical to indicate whether staphylococci should be categorised into coagulase-negative staphylococci ("CoNS") and coagulase-positive staphylococci ("CoPS") instead of their own species, according to Karsten Becker <em>et al.</em> (see <em>Source</em>). Please see <em>Details</em> for a full list of staphylococcal species that will be converted.
+</p>
+<p>This excludes <em>Staphylococcus aureus</em> at default, use <code>Becker = "all"</code> to also categorise <em>S. aureus</em> as "CoPS".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lancefield</code></td>
+<td>
+<p>a logical to indicate whether a beta-haemolytic <em>Streptococcus</em> should be categorised into Lancefield groups instead of their own species, according to Rebecca C. Lancefield (see <em>Source</em>). These streptococci will be categorised in their first group, e.g. <em>Streptococcus dysgalactiae</em> will be group C, although officially it was also categorised into groups G and L. . Please see <em>Details</em> for a full list of streptococcal species that will be converted.
+</p>
+<p>This excludes enterococci at default (who are in group D), use <code>Lancefield = "all"</code> to also categorise all enterococci as group D.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum_matching_score</code></td>
+<td>
+<p>a numeric value to set as the lower limit for the MO matching score. When left blank, this will be determined automatically based on the character length of <code>x</code>, its taxonomic kingdom and human pathogenicity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_synonyms</code></td>
+<td>
+<p>a logical to indicate if old, previously valid taxonomic names must be preserved and not be corrected to currently accepted names. The default is <code>FALSE</code>, which will return a note if old taxonomic names were processed. The default can be set with the package option <code>AMR_keep_synonyms</code>, i.e. <code>options(AMR_keep_synonyms = TRUE)</code> or <code>options(AMR_keep_synonyms = FALSE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_df</code></td>
+<td>
+<p>a data.frame to be used for extra reference when translating <code>x</code> to a valid <code>mo</code>. See <code>set_mo_source()</code> and <code>get_mo_source()</code> to automate the usage of your own codes (e.g. used in your analysis or organisation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_pattern</code></td>
+<td>
+<p>a Perl-compatible regular expression (case-insensitive) of which all matches in <code>x</code> must return <code>NA</code>. This can be convenient to exclude known non-relevant input and can also be set with the package option <code>AMR_ignore_pattern</code>, e.g. <code>options(AMR_ignore_pattern = "(not reported|contaminated flora)")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cleaning_regex</code></td>
+<td>
+<p>a Perl-compatible regular expression (case-insensitive) to clean the input of <code>x</code>. Every matched part in <code>x</code> will be removed. At default, this is the outcome of <code>mo_cleaning_regex()</code>, which removes texts between brackets and texts such as "species" and "serovar". The default can be set with the package option <code>AMR_cleaning_regex</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>language</code></td>
+<td>
+<p>language to translate text like "no growth", which defaults to the system language (see <code>get_AMR_locale()</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>a logical to indicate if a progress bar should be printed if more than 25 items are to be coerced - the default is <code>TRUE</code> only in interactive mode</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed on to functions</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A microorganism (MO) code from this package (class: <code>mo</code>) is human readable and typically looks like these examples:
+</p>
+<div class="sourceCode"><pre>  Code               Full name
+  ---------------    --------------------------------------
+  B_KLBSL            Klebsiella
+  B_KLBSL_PNMN       Klebsiella pneumoniae
+  B_KLBSL_PNMN_RHNS  Klebsiella pneumoniae rhinoscleromatis
+  |   |    |    |
+  |   |    |    |
+  |   |    |    \---&gt; subspecies, a 3-5 letter acronym
+  |   |    \----&gt; species, a 3-6 letter acronym
+  |   \----&gt; genus, a 4-8 letter acronym
+  \----&gt; taxonomic kingdom: A (Archaea), AN (Animalia), B (Bacteria),
+                            F (Fungi), PL (Plantae), P (Protozoa)
+</pre></div>
+<p>Values that cannot be coerced will be considered 'unknown' and will be returned as the MO code <code>UNKNOWN</code> with a warning.
+</p>
+<p>Use the <code>mo_*</code> functions to get properties based on the returned code, see <em>Examples</em>.
+</p>
+<p>The <code>as.mo()</code> function uses a novel matching score algorithm (see <em>Matching Score for Microorganisms</em> below) to match input against the available microbial taxonomy in this package. This will lead to the effect that e.g. <code>"E. coli"</code> (a microorganism highly prevalent in humans) will return the microbial ID of <em>Escherichia coli</em> and not <em>Entamoeba coli</em> (a microorganism less prevalent in humans), although the latter would alphabetically come first.
+</p>
+<p>With <code>Becker = TRUE</code>, the following 85 staphylococci will be converted to the <strong>coagulase-negative group</strong>: <em>S. argensis</em>, <em>S. arlettae</em>, <em>S. auricularis</em>, <em>S. borealis</em>, <em>S. caeli</em>, <em>S. caledonicus</em>, <em>S. canis</em>, <em>S. capitis</em>, <em>S. capitis capitis</em>, <em>S. capitis urealyticus</em>, <em>S. capitis ureolyticus</em>, <em>S. caprae</em>, <em>S. carnosus</em>, <em>S. carnosus carnosus</em>, <em>S. carnosus utilis</em>, <em>S. casei</em>, <em>S. caseolyticus</em>, <em>S. chromogenes</em>, <em>S. cohnii</em>, <em>S. cohnii cohnii</em>, <em>S. cohnii urealyticum</em>, <em>S. cohnii urealyticus</em>, <em>S. condimenti</em>, <em>S. croceilyticus</em>, <em>S. debuckii</em>, <em>S. devriesei</em>, <em>S. durrellii</em>, <em>S. edaphicus</em>, <em>S. epidermidis</em>, <em>S. equorum</em>, <em>S. equorum equorum</em>, <em>S. equorum linens</em>, <em>S. felis</em>, <em>S. fleurettii</em>, <em>S. gallinarum</em>, <em>S. haemolyticus</em>, <em>S. hominis</em>, <em>S. hominis hominis</em>, <em>S. hominis novobiosepticus</em>, <em>S. jettensis</em>, <em>S. kloosii</em>, <em>S. lentus</em>, <em>S. lloydii</em>, <em>S. lugdunensis</em>, <em>S. massiliensis</em>, <em>S. microti</em>, <em>S. muscae</em>, <em>S. nepalensis</em>, <em>S. pasteuri</em>, <em>S. petrasii</em>, <em>S. petrasii croceilyticus</em>, <em>S. petrasii jettensis</em>, <em>S. petrasii petrasii</em>, <em>S. petrasii pragensis</em>, <em>S. pettenkoferi</em>, <em>S. piscifermentans</em>, <em>S. pragensis</em>, <em>S. pseudoxylosus</em>, <em>S. pulvereri</em>, <em>S. ratti</em>, <em>S. rostri</em>, <em>S. saccharolyticus</em>, <em>S. saprophyticus</em>, <em>S. saprophyticus bovis</em>, <em>S. saprophyticus saprophyticus</em>, <em>S. schleiferi</em>, <em>S. schleiferi schleiferi</em>, <em>S. sciuri</em>, <em>S. sciuri carnaticus</em>, <em>S. sciuri lentus</em>, <em>S. sciuri rodentium</em>, <em>S. sciuri sciuri</em>, <em>S. simulans</em>, <em>S. stepanovicii</em>, <em>S. succinus</em>, <em>S. succinus casei</em>, <em>S. succinus succinus</em>, <em>S. taiwanensis</em>, <em>S. urealyticus</em>, <em>S. ureilyticus</em>, <em>S. veratri</em>, <em>S. vitulinus</em>, <em>S. vitulus</em>, <em>S. warneri</em>, and <em>S. xylosus</em>.<br> The following 16 staphylococci will be converted to the <strong>coagulase-positive group</strong>: <em>S. agnetis</em>, <em>S. argenteus</em>, <em>S. coagulans</em>, <em>S. cornubiensis</em>, <em>S. delphini</em>, <em>S. hyicus</em>, <em>S. hyicus chromogenes</em>, <em>S. hyicus hyicus</em>, <em>S. intermedius</em>, <em>S. lutrae</em>, <em>S. pseudintermedius</em>, <em>S. roterodami</em>, <em>S. schleiferi coagulans</em>, <em>S. schweitzeri</em>, <em>S. simiae</em>, and <em>S. singaporensis</em>.
+</p>
+<p>With <code>Lancefield = TRUE</code>, the following streptococci will be converted to their corresponding Lancefield group: <em>S. agalactiae</em> (Group B), <em>S. anginosus anginosus</em> (Group F), <em>S. anginosus whileyi</em> (Group F), <em>S. anginosus</em> (Group F), <em>S. canis</em> (Group G), <em>S. dysgalactiae dysgalactiae</em> (Group C), <em>S. dysgalactiae equisimilis</em> (Group C), <em>S. dysgalactiae</em> (Group C), <em>S. equi equi</em> (Group C), <em>S. equi ruminatorum</em> (Group C), <em>S. equi zooepidemicus</em> (Group C), <em>S. equi</em> (Group C), <em>S. pyogenes</em> (Group A), <em>S. salivarius salivarius</em> (Group K), <em>S. salivarius thermophilus</em> (Group K), <em>S. salivarius</em> (Group K), and <em>S. sanguinis</em> (Group H).
+</p>
+
+
+<h4>Coping with Uncertain Results</h4>
+
+<p>Results of non-exact taxonomic input are based on their matching score. The lowest allowed score can be set with the <code>minimum_matching_score</code> argument. At default this will be determined based on the character length of the input, and the taxonomic kingdom and human pathogenicity of the taxonomic outcome. If values are matched with uncertainty, a message will be shown to suggest the user to evaluate the results with <code>mo_uncertainties()</code>, which returns a data.frame with all specifications.
+</p>
+<p>To increase the quality of matching, the <code>cleaning_regex</code> argument can be used to clean the input (i.e., <code>x</code>). This must be a regular expression that matches parts of the input that should be removed before the input is matched against the available microbial taxonomy. It will be matched Perl-compatible and case-insensitive. The default value of <code>cleaning_regex</code> is the outcome of the helper function <code>mo_cleaning_regex()</code>.
+</p>
+<p>There are three helper functions that can be run after using the <code>as.mo()</code> function:
+</p>
+
+<ul>
+<li>
+<p> Use <code>mo_uncertainties()</code> to get a data.frame that prints in a pretty format with all taxonomic names that were guessed. The output contains the matching score for all matches (see <em>Matching Score for Microorganisms</em> below).
+</p>
+</li>
+<li>
+<p> Use <code>mo_failures()</code> to get a character vector with all values that could not be coerced to a valid value.
+</p>
+</li>
+<li>
+<p> Use <code>mo_renamed()</code> to get a data.frame with all values that could be coerced based on old, previously accepted taxonomic names.
+</p>
+</li>
+</ul>
+<h4>Microbial Prevalence of Pathogens in Humans</h4>
+
+<p>The coercion rules consider the prevalence of microorganisms in humans, which is available as the <code>prevalence</code> column in the microorganisms data set. The grouping into human pathogenic prevalence is explained in the section <em>Matching Score for Microorganisms</em> below.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A character vector with additional class <code>mo</code>
+</p>
+
+
+<h3>Source</h3>
+
+
+<ol>
+<li>
+<p> Berends MS <em>et al.</em> (2022). <strong>AMR: An R Package for Working with Antimicrobial Resistance Data</strong>. <em>Journal of Statistical Software</em>, 104(3), 1-31; <a href="https://doi.org/10.18637/jss.v104.i03">doi:10.18637/jss.v104.i03</a>
+</p>
+</li>
+<li>
+<p> Becker K <em>et al.</em> (2014). <strong>Coagulase-Negative Staphylococci.</strong> <em>Clin Microbiol Rev.</em> 27(4): 870-926; <a href="https://doi.org/10.1128/CMR.00109-13">doi:10.1128/CMR.00109-13</a>
+</p>
+</li>
+<li>
+<p> Becker K <em>et al.</em> (2019). <strong>Implications of identifying the recently defined members of the <em>S. aureus</em> complex, <em>S. argenteus</em> and <em>S. schweitzeri</em>: A position paper of members of the ESCMID Study Group for staphylococci and Staphylococcal Diseases (ESGS).</strong> <em>Clin Microbiol Infect</em>; <a href="https://doi.org/10.1016/j.cmi.2019.02.028">doi:10.1016/j.cmi.2019.02.028</a>
+</p>
+</li>
+<li>
+<p> Becker K <em>et al.</em> (2020). <strong>Emergence of coagulase-negative staphylococci.</strong> <em>Expert Rev Anti Infect Ther.</em> 18(4):349-366; <a href="https://doi.org/10.1080/14787210.2020.1730813">doi:10.1080/14787210.2020.1730813</a>
+</p>
+</li>
+<li>
+<p> Lancefield RC (1933). <strong>A serological differentiation of human and other groups of hemolytic streptococci.</strong> <em>J Exp Med.</em> 57(4): 571-95; <a href="https://doi.org/10.1084/jem.57.4.571">doi:10.1084/jem.57.4.571</a>
+</p>
+</li>
+<li>
+<p> Berends MS <em>et al.</em> (2022). <strong>Trends in Occurrence and Phenotypic Resistance of Coagulase-Negative Staphylococci (CoNS) Found in Human Blood in the Northern Netherlands between 2013 and 2019/</strong> <em>Micro.rganisms</em> 10(9), 1801; <a href="https://doi.org/10.3390/microorganisms10091801">doi:10.3390/microorganisms10091801</a>
+</p>
+</li>
+<li>
+<p> Parte, AC <em>et al.</em> (2020). <strong>List of Prokaryotic names with Standing in Nomenclature (LPSN) moves to the DSMZ.</strong> International Journal of Systematic and Evolutionary Microbiology, 70, 5607-5612; <a href="https://doi.org/10.1099/ijsem.0.004332">doi:10.1099/ijsem.0.004332</a>. Accessed from <a href="https://lpsn.dsmz.de">https://lpsn.dsmz.de</a> on December 11th, 2022.
+</p>
+</li>
+<li>
+<p> GBIF Secretariat (2022). GBIF Backbone Taxonomy. Checklist dataset <a href="https://doi.org/10.15468/39omei">doi:10.15468/39omei</a>. Accessed from <a href="https://www.gbif.org">https://www.gbif.org</a> on December 11th, 2022.
+</p>
+</li>
+<li>
+<p> Reimer, LC <em>et al.</em> (2022). <strong><em>BacDive</em> in 2022: the knowledge base for standardized bacterial and archaeal data.</strong> Nucleic Acids Res., 50(D1):D741-D74; <a href="https://doi.org/10.1093/nar/gkab961">doi:10.1093/nar/gkab961</a>. Accessed from <a href="https://bacdive.dsmz.de">https://bacdive.dsmz.de</a> on May 12th, 2023.
+</p>
+</li>
+<li>
+<p> Public Health Information Network Vocabulary Access and Distribution System (PHIN VADS). US Edition of SNOMED CT from 1 September 2020. Value Set Name 'Microorganism', OID 2.16.840.1.114222.4.11.1009 (v12). URL: <a href="https://phinvads.cdc.gov">https://phinvads.cdc.gov</a>
+</p>
+</li>
+<li>
+<p> Bartlett A <em>et al.</em> (2022). <strong>A comprehensive list of bacterial pathogens infecting humans</strong> <em>Microbiology</em> 168:001269; <a href="https://doi.org/10.1099/mic.0.001269">doi:10.1099/mic.0.001269</a>
+</p>
+</li>
+</ol>
+<h3>Matching Score for Microorganisms</h3>
+
+<p>With ambiguous user input in <code>as.mo()</code> and all the <code>mo_*</code> functions, the returned results are chosen based on their matching score using <code>mo_matching_score()</code>. This matching score <code class="reqn">m</code>, is calculated as:
+</p>
+
+<p><img src="../help/figures/mo_matching_score.png" width="300" alt="mo matching score"></p>
+<p>where:
+</p>
+
+<ul>
+<li> <p><code class="reqn">x</code> is the user input;
+</p>
+</li>
+<li> <p><code class="reqn">n</code> is a taxonomic name (genus, species, and subspecies);
+</p>
+</li>
+<li> <p><code class="reqn">l_n</code> is the length of <code class="reqn">n</code>;
+</p>
+</li>
+<li> <p><code class="reqn">lev</code> is the <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance function</a> (counting any insertion as 1, and any deletion or substitution as 2) that is needed to change <code class="reqn">x</code> into <code class="reqn">n</code>;
+</p>
+</li>
+<li> <p><code class="reqn">p_n</code> is the human pathogenic prevalence group of <code class="reqn">n</code>, as described below;
+</p>
+</li>
+<li> <p><code class="reqn">k_n</code> is the taxonomic kingdom of <code class="reqn">n</code>, set as Bacteria = 1, Fungi = 1.25, Protozoa = 1.5, Archaea = 2, others = 3.
+</p>
+</li>
+</ul>
+<p>The grouping into human pathogenic prevalence <code class="reqn">p</code> is based on recent work from Bartlett <em>et al.</em> (2022, <a href="https://doi.org/10.1099/mic.0.001269">doi:10.1099/mic.0.001269</a>) who extensively studied medical-scientific literature to categorise all bacterial species into these groups:
+</p>
+
+<ul>
+<li> <p><strong>Established</strong>, if a taxonomic species has infected at least three persons in three or more references. These records have <code>prevalence = 1.0</code> in the microorganisms data set;
+</p>
+</li>
+<li> <p><strong>Putative</strong>, if a taxonomic species has fewer than three known cases. These records have <code>prevalence = 1.25</code> in the microorganisms data set.
+</p>
+</li>
+</ul>
+<p>Furthermore,
+</p>
+
+<ul>
+<li>
+<p> Any genus present in the <strong>established</strong> list also has <code>prevalence = 1.0</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any other genus present in the <strong>putative</strong> list has <code>prevalence = 1.25</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any other species or subspecies of which the genus is present in the two aforementioned groups, has <code>prevalence = 1.5</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any <em>non-bacterial</em> genus, species or subspecies of which the genus is present in the following list, has <code>prevalence = 1.25</code> in the microorganisms data set: <em>Absidia</em>, <em>Acanthamoeba</em>, <em>Acremonium</em>, <em>Aedes</em>, <em>Alternaria</em>, <em>Amoeba</em>, <em>Ancylostoma</em>, <em>Angiostrongylus</em>, <em>Anisakis</em>, <em>Anopheles</em>, <em>Apophysomyces</em>, <em>Aspergillus</em>, <em>Aureobasidium</em>, <em>Basidiobolus</em>, <em>Beauveria</em>, <em>Blastocystis</em>, <em>Blastomyces</em>, <em>Candida</em>, <em>Capillaria</em>, <em>Chaetomium</em>, <em>Chrysonilia</em>, <em>Cladophialophora</em>, <em>Cladosporium</em>, <em>Conidiobolus</em>, <em>Contracaecum</em>, <em>Cordylobia</em>, <em>Cryptococcus</em>, <em>Curvularia</em>, <em>Demodex</em>, <em>Dermatobia</em>, <em>Dientamoeba</em>, <em>Diphyllobothrium</em>, <em>Dirofilaria</em>, <em>Echinostoma</em>, <em>Entamoeba</em>, <em>Enterobius</em>, <em>Exophiala</em>, <em>Exserohilum</em>, <em>Fasciola</em>, <em>Fonsecaea</em>, <em>Fusarium</em>, <em>Giardia</em>, <em>Haloarcula</em>, <em>Halobacterium</em>, <em>Halococcus</em>, <em>Hendersonula</em>, <em>Heterophyes</em>, <em>Histomonas</em>, <em>Histoplasma</em>, <em>Hymenolepis</em>, <em>Hypomyces</em>, <em>Hysterothylacium</em>, <em>Leishmania</em>, <em>Malassezia</em>, <em>Malbranchea</em>, <em>Metagonimus</em>, <em>Meyerozyma</em>, <em>Microsporidium</em>, <em>Microsporum</em>, <em>Mortierella</em>, <em>Mucor</em>, <em>Mycocentrospora</em>, <em>Necator</em>, <em>Nectria</em>, <em>Ochroconis</em>, <em>Oesophagostomum</em>, <em>Oidiodendron</em>, <em>Opisthorchis</em>, <em>Pediculus</em>, <em>Penicillium</em>, <em>Phlebotomus</em>, <em>Phoma</em>, <em>Pichia</em>, <em>Piedraia</em>, <em>Pithomyces</em>, <em>Pityrosporum</em>, <em>Pneumocystis</em>, <em>Pseudallescheria</em>, <em>Pseudoterranova</em>, <em>Pulex</em>, <em>Rhizomucor</em>, <em>Rhizopus</em>, <em>Rhodotorula</em>, <em>Saccharomyces</em>, <em>Sarcoptes</em>, <em>Scolecobasidium</em>, <em>Scopulariopsis</em>, <em>Scytalidium</em>, <em>Spirometra</em>, <em>Sporobolomyces</em>, <em>Stachybotrys</em>, <em>Strongyloides</em>, <em>Syngamus</em>, <em>Taenia</em>, <em>Talaromyces</em>, <em>Toxocara</em>, <em>Trichinella</em>, <em>Trichobilharzia</em>, <em>Trichoderma</em>, <em>Trichomonas</em>, <em>Trichophyton</em>, <em>Trichosporon</em>, <em>Trichostrongylus</em>, <em>Trichuris</em>, <em>Tritirachium</em>, <em>Trombicula</em>, <em>Trypanosoma</em>, <em>Tunga</em>, or <em>Wuchereria</em>;
+</p>
+</li>
+<li>
+<p> All other records have <code>prevalence = 2.0</code> in the microorganisms data set.
+</p>
+</li>
+</ul>
+<p>When calculating the matching score, all characters in <code class="reqn">x</code> and <code class="reqn">n</code> are ignored that are other than A-Z, a-z, 0-9, spaces and parentheses.
+</p>
+<p>All matches are sorted descending on their matching score and for all user input values, the top match will be returned. This will lead to the effect that e.g., <code>"E. coli"</code> will return the microbial ID of <em>Escherichia coli</em> (<code class="reqn">m = 0.688</code>, a highly prevalent microorganism found in humans) and not <em>Entamoeba coli</em> (<code class="reqn">m = 0.381</code>, a less prevalent microorganism in humans), although the latter would alphabetically come first.
+</p>
+
+
+<h3>Reference Data Publicly Available</h3>
+
+<p>All data sets in this <code>AMR</code> package (about microorganisms, antibiotics, SIR interpretation, EUCAST rules, etc.) are publicly and freely available for download in the following formats: R, MS Excel, Apache Feather, Apache Parquet, SPSS, SAS, and Stata. We also provide tab-separated plain text files that are machine-readable and suitable for input in any software program, such as laboratory information systems. Please visit <a href="https://msberends.github.io/AMR/articles/datasets.html">our website for the download links</a>. The actual files are of course available on <a href="https://github.com/msberends/AMR/tree/main/data-raw">our GitHub repository</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>microorganisms for the data.frame that is being used to determine ID's.
+</p>
+<p>The <code>mo_*</code> functions (such as <code>mo_genus()</code>, <code>mo_gramstain()</code>) to get properties based on the returned code.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# These examples all return "B_STPHY_AURS", the ID of S. aureus:
+as.mo(c(
+  "sau", # WHONET code
+  "stau",
+  "STAU",
+  "staaur",
+  "S. aureus",
+  "S aureus",
+  "Sthafilokkockus aureus", # handles incorrect spelling
+  "Staphylococcus aureus (MRSA)",
+  "MRSA", # Methicillin Resistant S. aureus
+  "VISA", # Vancomycin Intermediate S. aureus
+  "VRSA", # Vancomycin Resistant S. aureus
+  115329001 # SNOMED CT code
+))
+
+# Dyslexia is no problem - these all work:
+as.mo(c(
+  "Ureaplasma urealyticum",
+  "Ureaplasma urealyticus",
+  "Ureaplasmium urealytica",
+  "Ureaplazma urealitycium"
+))
+
+# input will get cleaned up with the input given in the `cleaning_regex` argument,
+# which defaults to `mo_cleaning_regex()`:
+cat(mo_cleaning_regex(), "\n")
+
+as.mo("Streptococcus group A")
+
+as.mo("S. epidermidis") # will remain species: B_STPHY_EPDR
+as.mo("S. epidermidis", Becker = TRUE) # will not remain species: B_STPHY_CONS
+
+as.mo("S. pyogenes") # will remain species: B_STRPT_PYGN
+as.mo("S. pyogenes", Lancefield = TRUE) # will not remain species: B_STRPT_GRPA
+
+# All mo_* functions use as.mo() internally too (see ?mo_property):
+mo_genus("E. coli")
+mo_gramstain("ESCO")
+mo_is_intrinsic_resistant("ESCCOL", ab = "vanco")
+
+</code></pre>
+
+
+</div>

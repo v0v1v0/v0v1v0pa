@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>c.fun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Correlations between points in parameter space</h2>
+
+<h3>Description</h3>
+
+<p>Correlation matrices between (sets of) points in parameter space, both
+prior (<code>c_fun()</code>) and posterior (<code>cdash.fun()</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">c_fun(x, xdash=x, subsets, hpa)
+cdash.fun(x, xdash=x, V=NULL, Vinv=NULL, D1, subsets, basis, hpa, method=2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x,xdash</code></td>
+<td>
+<p>Points in parameter space; or, if a matrix,
+interpret the rows as points in parameter space.  Note that the
+default value of <code>xdash</code> (viz <code>x</code>) will return the
+variance-covariance matrix of a set of points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D1</code></td>
+<td>
+<p>Design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subsets</code></td>
+<td>
+<p>Subset object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpa</code></td>
+<td>
+<p>hyperparameter object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis</code></td>
+<td>
+<p>Basis function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V,Vinv</code></td>
+<td>
+<p>In function <code>cdash.fun()</code>, the data covariance
+matrix and its inverse.  If
+<code>NULL</code>, the matrix will be calculated from scratch.  Supplying
+a precalculated value for <code>V</code>, and especially <code>Vinv</code>,
+makes for very much faster execution (edepending on <code>method</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Integer specifying which of several algebraically
+identical methods to use.  See the source code for details, but
+default option 2 seems to be the best.  Bear in mind that option 3
+does not require inversion of a matrix, but is not faster in
+practice</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a matrix of covariances
+</p>
+
+
+<h3>Note</h3>
+
+<p>Do not confuse function <code>c_fun()</code>, which computes <code class="reqn">c(x,x')</code>
+defined just below equation 7 on page 4 with <code class="reqn">c_t(x,x')</code> defined
+in equation 3 on page 3.
+</p>
+<p>Consider the example given for two levels on page 4 just after
+equation 7:
+<code class="reqn">c(x,x')=c_2(x,x')+\rho_1^2c_1(x,x')</code>
+is a kind of prior covariance matrix.  Matrix <code class="reqn">c'(x,x')</code> is a
+posterior covariance matrix, conditional on the code observations.
+</p>
+<p>Function <code>Afun()</code> evaluates <code class="reqn">c_t(x,x')</code> in a nice vectorized way.
+</p>
+<p>Equation 7 of KOH2000 contains a typo.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin K. S. Hankin</p>
+
+
+<h3>References</h3>
+
+<p>KOH2000</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Afun</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(toyapps)
+
+x &lt;- latin.hypercube(4,3)
+rownames(x) &lt;- c("ash" , "elm" , "oak", "pine")
+xdash &lt;- latin.hypercube(7,3)
+rownames(xdash) &lt;- c("cod","bream","skate","sole","eel","crab","squid")
+
+cdash.fun(x=x,xdash=xdash, D1=D1.toy, basis=basis.toy,subsets=subsets.toy, hpa=hpa.toy)
+
+# Now add a point whose top-level value is known:
+x &lt;- rbind(x,D1.toy[subsets.toy[[4]][1],])
+
+cdash.fun(x=x,xdash=xdash, D1=D1.toy, basis=basis.toy,subsets=subsets.toy, hpa=hpa.toy)
+# Observe how the bottom row is zero (up to rounding error)
+</code></pre>
+
+
+</div>

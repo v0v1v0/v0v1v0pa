@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>countCloneSizes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>count the number of clonotype sizes in a seurat object combined with a
+VDJ library overall or by cluster</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+<p>Get clonotype frequencies from a seurat object's metadata, either as one
+whole table, or in a list of tables, based on the current / some custom
+ident of each cell. Note that depending on the ident (indicated by the
+<code>by_cluster</code> argument) there may be more or less clonotypes counted based
+on the number of rows containing NA for that column of that ident if it
+isn't the active ident.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">countCloneSizes(
+  seurat_obj,
+  clonecall = "strict",
+  extra_filter = NULL,
+  ...,
+  by_cluster = TRUE,
+  sort_decreasing = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>seurat_obj</code></td>
+<td>
+<p>a seurat object combined with a VDJ library with
+<code>scRepertoire</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clonecall</code></td>
+<td>
+<p>character. The column name in the seurat object metadata to
+use. See <code>scRepertoire</code> documentation for more information about this
+parameter that is central to both packages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extra_filter</code></td>
+<td>
+<p>character. An additional string that should be formatted
+<em>exactly</em> like a statement one would pass into dplyr::filter that does
+<em>additional</em> filtering to cells in the seurat object - on top of the other
+keyword arguments - based on the metadata. This means that it will be
+logically AND'ed with any keyword argument filters. This is a more flexible
+alternative / addition to the filtering keyword arguments. For example, if
+one wanted to filter by the length of the amino acid sequence of TCRs, one
+could pass in something like <code>extra_filter = "nchar(CTaa) - 1 &gt; 10"</code>. When
+involving characters, ensure to enclose with single quotes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional "subsetting" keyword arguments indicating the rows
+corresponding to elements in the seurat object metadata that should be
+filtered by. E.g., <code>seurat_clusters = c(1, 9, 10)</code> will filter the cells to
+those in the <code>seurat_clusters</code> column with any of the values 1, 9, and 10.
+Unfortunately, column names in the seurat object metadata cannot
+conflict with the keyword arguments. <em><strong>MAJOR NOTE</strong></em> if any subsetting
+keyword arguments are a <em>prefix</em> of any preceding argument names (e.g. a
+column named <code>reduction</code> is a prefix of the <code>reduction_base</code> argument)
+R will interpret it as the same argument unless <em>both</em> arguments
+are named. Additionally, this means any subsequent arguments <em>must</em> be named.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_cluster</code></td>
+<td>
+<p>Logical or Character. If <code>TRUE</code>, will output a list of
+table objects, with the table at each index corresponding to level in
+Idents(). Each table's names are the clonotype name indicated by <code>clonecall</code>
+after filtering, while the values are the actual clone sizes. If <code>FALSE</code>,
+outputs just the aggregate clone sizes for all cells. Note that if <code>FALSE</code>,
+the output should be identical to that produced by
+<code>mergeCloneSizes(countCloneSizes(..., by_cluster = TRUE))</code>. Otherwise, this
+argument can also be a character indicating some column in the seurat object
+metadata to use a cell identity guiding (e.g. <code>"seurat_clusters"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_decreasing</code></td>
+<td>
+<p>a logical or NULL. If <code>TRUE</code>/<code>FALSE</code>, sorts each/the
+table by clonotype frequency with largest/smallest clones first with a stable
+sorting algorithm, and if NULL, no order is guaranteed but the output is
+deterministic.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of tables or a single table depending on <code>by_cluster</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>mergeCloneSizes
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("combined_pbmc")
+
+countCloneSizes(combined_pbmc)
+countCloneSizes(combined_pbmc, "aa")
+countCloneSizes(combined_pbmc, "nt", orig.ident = c("P17B", "P17L"))
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_wbc_abs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a parameter for lab differentials converted to absolute values</h2>
+
+<h3>Description</h3>
+
+<p>Add a parameter by converting lab differentials from fraction or percentage to absolute values
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_wbc_abs(
+  dataset,
+  by_vars,
+  set_values_to,
+  get_unit_expr,
+  wbc_unit = "10^9/L",
+  wbc_code = "WBC",
+  diff_code,
+  diff_type = "fraction"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.
+<code>PARAMCD</code>, and <code>AVAL</code> are expected as well.
+</p>
+<p>The variable specified by <code>by_vars</code> and <code>PARAMCD</code> must be a unique key of
+the input dataset, and to the parameters specified by <code>wbc_code</code> and <code>diff_code</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the variables to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "LYMPH", PARAM = "Lymphocytes Abs (10^9/L)")</code> is
+expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get_unit_expr</code></td>
+<td>
+<p>An expression providing the unit of the parameter
+</p>
+<p>The result is used to check the units of the input parameters.
+</p>
+<p>Permitted Values: a variable containing unit from the input dataset, or a function call,
+for example, <code>get_unit_expr = extract_unit(PARAM)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wbc_unit</code></td>
+<td>
+<p>A string containing the required unit of the WBC parameter
+</p>
+<p>Default: <code>"10^9/L"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wbc_code</code></td>
+<td>
+<p>White Blood Cell (WBC) parameter
+</p>
+<p>The observations where <code>PARAMCD</code> equals the specified value are considered
+as the WBC absolute results to use for converting the differentials.
+</p>
+<p>Default: <code>"WBC"</code>
+</p>
+<p>Permitted Values: character value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff_code</code></td>
+<td>
+<p>white blood differential parameter
+</p>
+<p>The observations where <code>PARAMCD</code> equals the specified value are considered
+as the white blood differential lab results in fraction or percentage value to be converted
+into absolute value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff_type</code></td>
+<td>
+<p>A string specifying the type of differential
+</p>
+<p>Permitted Values: <code>"percent"</code>, <code>"fraction"</code>
+Default: <code>fraction</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>diff_type</code> is <code>"percent"</code>, the analysis value of the new parameter is derived as
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{White Blood Cell Count  * Percentage Value}{100}</code>
+</p>
+
+<p>If <code>diff_type</code> is <code>"fraction"</code>, the analysis value of the new parameter is derived as
+</p>
+<p style="text-align: center;"><code class="reqn">White Blood Cell Count  * Fraction Value</code>
+</p>
+
+<p>New records are created for each group of records (grouped by <code>by_vars</code>) if 1) the white blood
+cell component in absolute value is not already available from the input dataset, and 2) the
+white blood cell absolute value (identified by <code>wbc_code</code>) and the white blood cell differential
+(identified by <code>diff_code</code>) are both present.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the new parameter added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+test_lb &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~AVAL, ~PARAM, ~VISIT,
+  "P01", "WBC", 33, "Leukocyte Count (10^9/L)", "CYCLE 1 DAY 1",
+  "P01", "WBC", 38, "Leukocyte Count (10^9/L)", "CYCLE 2 DAY 1",
+  "P01", "LYMLE", 0.90, "Lymphocytes (fraction of 1)", "CYCLE 1 DAY 1",
+  "P01", "LYMLE", 0.70, "Lymphocytes (fraction of 1)", "CYCLE 2 DAY 1",
+  "P01", "ALB", 36, "Albumin (g/dL)", "CYCLE 2 DAY 1",
+  "P02", "WBC", 33, "Leukocyte Count (10^9/L)", "CYCLE 1 DAY 1",
+  "P02", "LYMPH", 29, "Lymphocytes Abs (10^9/L)", "CYCLE 1 DAY 1",
+  "P02", "LYMLE", 0.87, "Lymphocytes (fraction of 1)", "CYCLE 1 DAY 1",
+  "P03", "LYMLE", 0.89, "Lymphocytes (fraction of 1)", "CYCLE 1 DAY 1"
+)
+
+derive_param_wbc_abs(
+  dataset = test_lb,
+  by_vars = exprs(USUBJID, VISIT),
+  set_values_to = exprs(
+    PARAMCD = "LYMPH",
+    PARAM = "Lymphocytes Abs (10^9/L)",
+    DTYPE = "CALCULATION"
+  ),
+  get_unit_expr = extract_unit(PARAM),
+  wbc_code = "WBC",
+  diff_code = "LYMLE",
+  diff_type = "fraction"
+)
+</code></pre>
+
+
+</div>

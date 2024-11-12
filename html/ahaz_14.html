@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahazpen.pen.control</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalty controls for ahazpen</h2>
+
+<h3>Description</h3>
+
+<p>Describe the penalty function to be used in the penalized
+semiparametric additive hazards model. Typically only used in a call
+to <code>ahazpen</code> or <code>tune.ahazpen</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"># (Adaptive) lasso/elasticnet
+lasso.control(alpha=1, ada.wgt=NULL)
+
+# Stepwise SCAD
+sscad.control(a=3.7, nsteps=1, init.sol=NULL, c=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Elasticnet penalty parameter with default
+<code>alpha=1</code> corresponding to the standard lasso; see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ada.wgt</code></td>
+<td>
+<p>Optional covariate weights used for fitting the adaptive
+lasso. Default is <em>not</em> to use weights, i.e. fit the standard lasso. A
+user-specified <code>init.sol</code>
+can be a nonnegative vector of length corresponding to the number of covariates in the
+model. <br> For advanced use it may also be specified as a function with
+arguments  <code>surv</code>, <code>X</code> and <code>weights</code> precisely;
+see the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>Parameter of the stepwise SCAD penalty, see details. Default
+is <code>a=3.7</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsteps</code></td>
+<td>
+<p>Number of steps in stepwise SCAD. Default is
+<code>nsteps=1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.sol</code></td>
+<td>
+<p>Optional initial solution for stepwise SCAD
+consisting of  a numerical vector of length corresponding to the number of covariates in the
+model. Default
+is a vector of regression coefficients obtained from
+<code>ahaz</code> if there are more observations than covariates, zero
+otherwise. 
+For advanced use, <code>initsol</code> it can also be specified as a <b>function</b> with
+arguments  <code>surv</code>, <code>X</code> and <code>weights</code> precisely;
+see the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>Optional scaling factor for stepwise SCAD. Usually it is not
+necessary to change supply this; see the details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The lasso/elasticnet penalty function takes the form
+</p>
+<p style="text-align: center;"><code class="reqn">p_\lambda(\beta)=\lambda((1-\alpha)\|\beta\|_2 +
+    \alpha\|\beta\|_1)</code>
+</p>
+
+<p>where <code class="reqn">0 &lt;\alpha \leq 1</code>. Choosing <code class="reqn">\alpha&lt;1</code> encourages joint selection of correlated covariates and may
+improve the fit when there are substantial correlations among
+covariates. 
+</p>
+<p>The stepwise SCAD penalty function takes the form </p>
+<p style="text-align: center;"><code class="reqn">
+  p_\lambda(\beta)=w_\lambda(c|b_1|)|\beta_1|+\ldots+
+  w_\lambda(c|b_{nvars}|)|\beta_{nvars}|</code>
+</p>
+
+<p>where <code class="reqn">b</code> is some
+initial estimate, <code class="reqn">c</code> is a scaling factor, and for
+<code class="reqn">I</code> the indicator function
+</p>
+<p style="text-align: center;"><code class="reqn">w_\lambda(x)=\lambda I(x \le \lambda) + \frac{(a\lambda
+   - x)_+}{a - 1}I(x&gt;\lambda)</code>
+</p>
+
+<p>The scaling factor <code class="reqn">c</code>  controls how ‘different’ the
+stepwise SCAD penalty is from the standard lasso penalty (and is
+also used to remove dependency of the penalty on the scaling of the time
+axis).
+</p>
+<p>The one-step SCAD method of Zou &amp; Li (2008) corresponds to taking
+<code class="reqn">b</code> equal to the estimator derived from <code>ahaz</code>. See
+Gorst-Rasmussen &amp; Scheike (2011) for details. By iterating such
+one-step SCAD and updating the initial solution <code class="reqn">b</code> accordingly,
+the algorithm approximates the solution obtained using full SCAD. Note
+that calculating the full SCAD solution generally leads to a nonconvex
+optimization problem: multiple solutions and erratic behavior of
+solution paths can be an issue.
+</p>
+<p>The arguments <code>ada.wgt</code> and <code>init.sol</code> can be specified as
+functions of the observations. This is convenient, for example, when
+using cross-validation for tuning parameter selection. Such a function
+<strong>must</strong> be specified precisely with the arguments <code>surv</code>,
+<code>X</code> and <code>weights</code> and <strong>must</strong> output a numeric vector
+of length corresponding to the number of covariates. <code>ahazpen</code>
+will take care of scaling so the function should produce output on the
+original scale. See the examples here as well as the examples for
+<code>tune.ahazpen</code> for usage of this feature in practice.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ahaz.pen.control"</code>. 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.sol</code></td>
+<td>
+<p>Function specifying the initial solution, if applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value of <code>alpha</code>, if applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsteps</code></td>
+<td>
+<p>Number of steps for stepwise SCAD penalty, if
+applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>Parameter for stepwise SCAD penalty, if applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>Scaling factor for stepwise SCAD penalty, if applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ada.wgt</code></td>
+<td>
+<p>Function specifying the weights for the adaptive lasso penalty, if applicable.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gorst-Rasmussen, A. &amp; Scheike, T. H. (2011). <em>Independent screening for
+single-index hazard rate models with ultra-high dimensional features.</em>
+Technical report R-2011-06, Department of Mathematical Sciences, Aalborg
+University.
+</p>
+<p>Leng, C. &amp; Ma, S. (2007). <em>Path consistent model selection in
+additive risk model via Lasso</em>. Statistics in Medicine; <b>26</b>:3753-3770.
+</p>
+<p>Martinussen, T. &amp; Scheike, T. H. (2008). <em>Covariate selection
+for the semiparametric additive risk model.</em> Scandinavian Journal of
+Statistics; <b>36</b>:602-619.
+</p>
+<p>Zou, H. &amp; Li, R. (2008). <em>One-step sparse estimates in nonconcave
+penalized likelihood models</em>, Annals of Statistics; <b>36</b>:1509-1533.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ahazpen</code>, <code>tune.ahazpen</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Fit additive hazards regression model with elasticnet penalty
+model &lt;- ahazpen(surv,X,penalty=lasso.control(alpha=0.1),dfmax=30)
+plot(model)
+
+# Adaptive lasso with weights 1/|beta_i|^0.5. Note that, although
+# we do not use 'weights', it MUST be included as an argument
+adafun &lt;- function(surv,X,weights)
+ return(1/abs(coef(ahaz(surv,X)))^.5)
+model &lt;- ahazpen(surv,X[,1:50],penalty=lasso.control(ada.wgt=adafun))
+plot(model)
+
+# One-step SCAD with initial solution derived from univariate regressions
+scadfun &lt;- function(surv,X,weights){
+ fit &lt;- ahaz(surv,X,univariate=TRUE)
+ return(coef(fit))
+}
+set.seed(10101)
+model.ssc &lt;- tune.ahazpen(surv,X,dfmax=30,penalty=sscad.control(init.sol=scadfun))
+plot(model.ssc)
+</code></pre>
+
+
+</div>

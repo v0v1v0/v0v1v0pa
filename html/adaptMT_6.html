@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>corr_lfdr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantifying Information Loss of Adaptive P-Value Thresholding</h2>
+
+<h3>Description</h3>
+
+<p><code>corr_lfdr</code> computes the oracle local FDR estimate, by using revealing all p-values, and computes the Pearson correlation between it and the estimate within each step of <code>adapt</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">corr_lfdr(obj, x, pvals, model = NULL, niter_oracle = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>an 'adapt' object. Output of <code>adapt</code> function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>covariates (i.e. side-information). Should be compatible to <code>models</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvals</code></td>
+<td>
+<p>a vector of values in [0, 1]. P-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>an optional argument. If <code>model = NULL</code> then the last model in <code>obj$models</code> is used for fitting the oracle model (i.e. with all p-values revealed). Otherwise it should be an 'adapt_model' object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter_oracle</code></td>
+<td>
+<p>an positive integer. Number of iterations in EM algorithm</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+
+<ul>
+<li>
+<p>corra vector of values in [0, 1]. Pearson correlation of oracle local FDR estimate and the estimates within each step. Each value corresponds to an entry of <code>obj$params</code>
+</p>
+</li>
+<li>
+<p>oracle_lfdra vector of values in [0, 1]. Oracle local FDR estimate
+</p>
+</li>
+<li>
+<p>lfdra matrix of values in [0, 1]. Local FDR estimates within each step.
+</p>
+</li>
+<li>
+<p>alphasa vector of values in [0, 1]. The target FDR levels corresponding to each local FDR estimate
+</p>
+</li>
+<li>
+<p>nmasksa vector of integers. The number of masked p-values corresponding to each local FDR estimate
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load estrogen data
+data(estrogen)
+pvals &lt;- as.numeric(estrogen$pvals)
+x &lt;- data.frame(x = as.numeric(estrogen$ord_high))
+dist &lt;- beta_family()
+
+# Subsample the data for convenience
+inds &lt;- (x$x &lt;= 5000)
+pvals &lt;- pvals[inds]
+x &lt;- x[inds,,drop = FALSE]
+
+# Run adapt_glm
+library("splines")
+formulas &lt;- paste0("ns(x, df = ", 6:10, ")")
+res &lt;- adapt_glm(x = x, pvals = pvals, pi_formulas = formulas,
+                 mu_formulas = formulas, dist = dist, nfits = 10)
+
+# Run corr_lfdr
+obj &lt;- corr_lfdr(res, x, pvals)
+obj$corr
+
+
+</code></pre>
+
+
+</div>

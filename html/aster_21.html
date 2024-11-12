@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>families</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Families for Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Families (response models) known to the package.
+These functions construct simple family specifications used
+in specifying models for <code>aster</code> and <code>mlogl</code>.
+They are mostly for convenience, since the specifications are easy
+to construct by hand.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fam.bernoulli()
+fam.poisson()
+fam.truncated.poisson(truncation)
+fam.negative.binomial(size)
+fam.truncated.negative.binomial(size, truncation)
+fam.normal.location(sd)
+fam.default()
+famfun(fam, deriv, theta)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>truncation</code></td>
+<td>
+<p>the truncation point, called <code class="reqn">k</code> in the details
+section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>the sample size.  May be non-integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd</code></td>
+<td>
+<p>the standard deviation.  May be non-integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam</code></td>
+<td>
+<p>a family specification, which is a list of class <code>"astfam"</code>
+containing, at least one element named <code>"name"</code> and perhaps other
+elements specifying hyperparameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>derivative wanted: 0, 1, or 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>value of the canonical parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Currently implemented families are
+</p>
+
+<dl>
+<dt><code>"bernoulli"</code></dt>
+<dd>
+<p>Bernoulli.  The mean value parameter
+<code class="reqn">\mu</code> is the success probability.  The canonical parameter is
+<code class="reqn">\theta = \log(\mu) - \log(1 - \mu)</code>,
+also called logit of <code class="reqn">\mu</code>.  The first derivative of the
+cumulant function has the value <code class="reqn">\mu</code> and the second derivative
+of the cumulant function has the value <code class="reqn">\mu (1 - \mu)</code>.</p>
+</dd>
+<dt><code>"poisson"</code></dt>
+<dd>
+<p>Poisson.  The mean value parameter
+<code class="reqn">\mu</code> is the mean of the Poisson distribution.
+The canonical parameter is <code class="reqn">\theta = \log(\mu)</code>.
+The first and second derivatives of the cumulant function both have
+the value <code class="reqn">\mu</code>.</p>
+</dd>
+<dt><code>"truncated.poisson"</code></dt>
+<dd>
+<p>Poisson conditioned on being
+strictly greater than <code class="reqn">k</code>, specified by
+the argument <code>truncation</code>.
+Let <code class="reqn">\mu</code> be the mean of the corresponding untruncated
+Poisson distribution.  Then the canonical parameters for both
+truncated and untruncated distributions are the same
+<code class="reqn">\theta = \log(\mu)</code>.
+Let <code class="reqn">Y</code> be a Poisson random variable having the same mean parameter
+as this distribution, and define
+</p>
+<p style="text-align: center;"><code class="reqn">\beta = \frac{\Pr\{Y &gt; k + 1\}}{\Pr\{Y = k + 1\}}</code>
+</p>
+
+<p>Then the mean value parameter and first derivative of the
+cumulant function of this distribution has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\tau = \mu + \frac{k + 1}{1 + \beta}</code>
+</p>
+
+<p>and the second derivative of the cumulant function has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\mu \left[ 1 - \frac{k + 1}{1 + \beta} \left( 1 - \frac{k + 1}{\mu} \cdot \frac{\beta}{1 + \beta} \right) \right]</code>
+</p>
+<p>.</p>
+</dd>
+<dt><code>"negative.binomial"</code></dt>
+<dd>
+<p>Negative binomial.  The size parameter
+<code class="reqn">\alpha</code> may be noninteger, meaning the cumulant function
+is <code class="reqn">\alpha</code> times the cumulant function of the geometric
+distribution.  The mean value parameter <code class="reqn">\mu</code> is the mean of
+the negative binomial distribution.  The success probability parameter
+is </p>
+<p style="text-align: center;"><code class="reqn">p = \frac{\alpha}{\mu + \alpha}.</code>
+</p>
+
+<p>The canonical parameter
+is <code class="reqn">\theta = \log(1 - p)</code>.
+Since <code class="reqn">1 - p &lt; 1</code>, the canonical parameter space is restricted,
+the set of <code class="reqn">\theta</code> such that <code class="reqn">\theta &lt; 0</code>.
+This is, however, a
+regular exponential family (the log likelihood goes to minus infinity
+as <code class="reqn">\theta</code> converges to the boundary of the parameter space,
+so the constraint <code class="reqn">\theta &lt; 0</code> plays no role in maximum
+likelihood estimation so long as the optimization software is not too
+stupid.  There will be no problems so long as the default optimizer
+(<code>trust</code>) is used.  Since zero is not in the canonical
+parameter space a negative default origin is used.  The first derivative
+of the cumulant function has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\mu = \alpha \frac{1 - p}{p}</code>
+</p>
+
+<p>and the second derivative has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha \frac{1 - p}{p^2}.</code>
+</p>
+</dd>
+<dt><code>"truncated.negative.binomial"</code></dt>
+<dd>
+<p>Negative binomial conditioned
+on being strictly greater than <code class="reqn">k</code>, specified by
+the argument <code>truncation</code>.
+Let <code class="reqn">p</code> be the success probability parameter of the corresponding
+untruncated negative binomial distribution.  Then the canonical
+parameters for both
+truncated and untruncated distributions are the same
+<code class="reqn">\theta = \log(1 - p)</code>, and consequently
+the canonical parameter spaces are the same,
+the set of <code class="reqn">\theta</code> such that <code class="reqn">\theta &lt; 0</code>,
+and both models are regular exponential families.
+Let <code class="reqn">Y</code> be an untruncated negative binomial random variable having
+the same size and success probability parameters as this distribution.
+and define
+</p>
+<p style="text-align: center;"><code class="reqn">\beta = \frac{\Pr\{Y &gt; k + 1\}}{\Pr\{Y = k + 1\}}</code>
+</p>
+
+<p>Then the mean value parameter and first derivative of the
+cumulant function of this distribution has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\tau = \mu + \frac{k + 1}{p (1 + \beta)}</code>
+</p>
+
+<p>and the second derivative is too complicated to write here (the
+formula can be found in the vignette <code>trunc.pdf</code>.</p>
+</dd>
+<dt><code>"normal.location"</code></dt>
+<dd>
+<p>Normal, unknown mean, known variance.
+The sd (standard deviation) parameter
+<code class="reqn">\sigma</code> may be noninteger, meaning the cumulant function
+is <code class="reqn">\sigma^2</code> times the cumulant function of the standard
+normal distribution.  The mean value parameter <code class="reqn">\mu</code> is the
+mean of the normal distribution.
+The canonical parameter
+is <code class="reqn">\theta = \mu / \sigma^2</code>.
+The first derivative of the cumulant function has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\mu = \sigma^2 \theta</code>
+</p>
+
+<p>and the second derivative has the value
+</p>
+<p style="text-align: center;"><code class="reqn">\sigma^2.</code>
+</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>For all but <code>fam.default</code>,
+a list of class <code>"astfam"</code> giving name and values of any
+hyperparameters.
+For <code>fam.default</code>,
+a list each element of which is of class <code>"astfam"</code>.
+The list of families which were hard coded in earlier versions of the
+package.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aster</code> and <code>mlogl</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### mean of poisson with mean 0.2
+famfun(fam.poisson(), 1, log(0.2))
+### variance of poisson with mean 0.2
+famfun(fam.poisson(), 2, log(0.2))
+### mean of poisson with mean 0.2 conditioned on being nonzero
+famfun(fam.truncated.poisson(trunc = 0), 1, log(0.2))
+### variance of poisson with mean 0.2 conditioned on being nonzero
+famfun(fam.truncated.poisson(trunc = 0), 2, log(0.2))
+</code></pre>
+
+
+</div>

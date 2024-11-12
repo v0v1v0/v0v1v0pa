@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ProteinInference</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Protein inference for aLFQ import data frame</h2>
+
+<h3>Description</h3>
+
+<p>Protein inference for aLFQ import data frame.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+ProteinInference(data, peptide_method = "top", peptide_topx = 2, 
+peptide_strictness = "strict",peptide_summary = "mean", transition_topx = 3, 
+transition_strictness = "strict",transition_summary = "sum", fasta = NA, 
+apex_model = NA, combine_precursors = FALSE, combine_peptide_sequences = FALSE, 
+consensus_proteins = TRUE, consensus_peptides = TRUE, 
+consensus_transitions = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a mandatory data frame containing the columns <code>"run_id"</code>, <code>"protein_id"</code>, <code>"protein_intensity"</code>, and <code>"concentration"</code> for quantification on the protein level. For quantification on the peptide level, the columns <code>"run_id"</code>, <code>"protein_id"</code>, <code>"peptide_id"</code>, <code>"peptide_sequence"</code>, <code>"precursor_charge"</code>, <code>"peptide_intensity"</code> and <code>"concentration"</code> are required. For quantification on the transition level, the columns <code>"protein_id"</code>, <code>"peptide_id"</code>, <code>"transition_id"</code>, <code>"peptide_sequence"</code>, <code>"precursor_charge"</code>, <code>"transition_intensity"</code> and <code>"concentration"</code> are required. The id columns can be defined in any format, while the <code>"_intensity"</code> and <code>"concentration"</code> columns need to be numeric and in non-log form. The data may contain calibration data (with numeric <code>"concentration"</code> and test data (with <code>"concentration"</code> = "?"))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_method</code></td>
+<td>
+<p>one of <code>"top"</code>, <code>"all"</code>, <code>"iBAQ"</code>, <code>"APEX"</code> or <code>"NSAF"</code> peptide to protein intensity estimation methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_topx</code></td>
+<td>
+<p>(<code>"top"</code> only:) a positive integer value of the top x peptides to consider for <code>"top"</code> methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_strictness</code></td>
+<td>
+<p>(<code>"top"</code> only:) whether <code>peptide_topx</code> should only consider proteins with the minimal peptide number (<code>"strict"</code>) or all (<code>"loose"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_summary</code></td>
+<td>
+<p>(<code>"top"</code> and <code>"all"</code> only:) how to summarize the peptide intensities: <code>"mean"</code>, <code>"median"</code>, <code>"sum"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_topx</code></td>
+<td>
+<p>a positive integer value of the top x transitions to consider for transition to peptide intensity estimation methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_strictness</code></td>
+<td>
+<p>whether <code>transition_topx</code> should only consider peptides with the minimal transition number (<code>"strict"</code>) or all (<code>"loose"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_summary</code></td>
+<td>
+<p>how to summarize the transition intensities: <code>"mean"</code>, <code>"median"</code>, <code>"sum"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fasta</code></td>
+<td>
+<p>(<code>"iBAQ"</code>, <code>"APEX"</code> and <code>"NSAF"</code>:) the path and filename to an amino acid fasta file containing the proteins of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apex_model</code></td>
+<td>
+<p>(<code>"APEX"</code> only:) The <code>"APEX"</code> model to use (see APEX).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_precursors</code></td>
+<td>
+<p>whether to sum all precursors of the same peptide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_peptide_sequences</code></td>
+<td>
+<p>whether to sum all variants (modifications) of the same peptide sequence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_proteins</code></td>
+<td>
+<p>if multiple runs are provided, select identical proteins among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_peptides</code></td>
+<td>
+<p>if multiple runs are provided, select identical peptides among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_transitions</code></td>
+<td>
+<p>if multiple runs are provided, select identical transitions among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>future extensions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The ProteinInference module provides functionality to infer protein quantities from the measured precursor or fragment intensities or peptide spectral counts. If the dataset contains targeted MS2-level data, the paired precursor and fragment ion signals, the transitions, are first summarized to the precursor level. Different methods for aggregation can be specified, e.g. sum, mean or median and a limit for the selection of the most intense transitions can be provided. It is further possible to exclude precursors, which do not have sufficient transitions to fulfill this boundary. To summarize precursor intensities or spectral counts to theoretical protein intensities, the mean, TopN (Silva et al., 2006; Malmstrom et al., 2009; Schmidt et al., 2011; Ludwig et al., 2012), APEX (Lu et al., 2006), iBAQ (Schwanhausser et al., 2011) and NSAF (Zybailov et al., 2006) protein intensity estimators are provided. For APEX, iBAQ and NSAF, the protein database in FASTA format needs to be supplied. In terms of targeted data acquisition, for both APEX and iBAQ methods all peptides of a protein must be targeted. The results are reported in the same unified data structure as from the previous step
+</p>
+
+
+<h3>Value</h3>
+
+<p>A standard aLFQ import data frame on protein level.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>George Rosenberger <a href="mailto:gr2578@cumc.columbia.edu">gr2578@cumc.columbia.edu</a></p>
+
+
+<h3>References</h3>
+
+<p>Silva, J. C., Gorenstein, M. V., Li, G.-Z., Vissers, Johannes P. C. &amp; Geromanos, S. J. <em>Absolute quantification of proteins by LCMSE: a virtue of parallel MS acquisition.</em> Mol. Cell Proteomics 5, 144-156 (2006).
+</p>
+<p>Malmstrom, J. et al. <em>Proteome-wide cellular protein concentrations of the human pathogen Leptospira interrogans.</em> Nature 460, 762-765 (2009).
+</p>
+<p>Schmidt, A. et al. <em>Absolute quantification of microbial proteomes at different states by directed mass spectrometry.</em> Molecular Systems Biology 7, 1-16 (2011).
+</p>
+<p>Ludwig, C., Claassen, M., Schmidt, A. &amp; Aebersold, R. <em>Estimation of Absolute Protein Quantities of Unlabeled Samples by Selected Reaction Monitoring Mass Spectrometry.</em> Molecular &amp; Cellular Proteomics 11, M111.013987-M111.013987 (2012).
+</p>
+<p>Lu, P., Vogel, C., Wang, R., Yao, X. &amp; Marcotte, E. M. <em>Absolute protein expression profiling estimates the relative contributions of transcriptional and translational regulation.</em> Nat Biotech 25, 117-124 (2006).
+</p>
+<p>Schwanhausser, B. et al. <em>Global quantification of mammalian gene expression control.</em> Nature 473, 337-342 (2011).
+</p>
+<p>Zybailov, B. et al. <em>Statistical Analysis of Membrane Proteome Expression Changes in Saccharomyces c erevisiae.</em> J. Proteome Res. 5, 2339-2347 (2006).
+</p>
+<p>Gerster S., Kwon T., Ludwig C., Matondo M., Vogel C., Marcotte E. M., Aebersold R., Buhlmann P. <em>Statistical approach to protein quantification.</em> Molecular &amp; Cellular Proteomics 13, M112.02445 (2014).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>import</code>, <code>AbsoluteQuantification</code>, <code>ALF</code>, <code>APEX</code>, <code>apexFeatures</code>, <code>proteotypic</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(UPS2MS)
+
+data_ProteinInference &lt;- ProteinInference(UPS2_SRM)
+print(data_ProteinInference)
+</code></pre>
+
+
+</div>

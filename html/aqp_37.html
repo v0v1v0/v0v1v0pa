@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>colorContrast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Metrics of Contrast Suitable for Comparing Soil Colors</h2>
+
+<h3>Description</h3>
+
+<p>Pair-wise comparisons of Munsell color specifications, based on the NCSS color contrast classes (Soil Survey Technical Note 2) and CIE delta-E 2000 metric.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">colorContrast(m1, m2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m1</code></td>
+<td>
+<p>vector of Munsell colors ('10YR 3/3')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m2</code></td>
+<td>
+<p>vector of Munsell colors ('10YR 3/6')</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is fully vectorized but expects input to be of the same length. Use <code>expand.grid()</code> to generate suitable input from 1:many or many:1 type comparisons. See <a href="http://ncss-tech.github.io/AQP/aqp/color-contrast.html">this tutorial</a> for an expanded discussion and more examples. Neutral colors are not mentioned in SSTN2: in this function any comparison to a neutral color (e.g. 'N 3/') are assigned a delta-hue of 1. Since SSTN2 expects hues to be counted clock wise from 5R, it possible to get very large delta-hue values for otherwise adjacent colors: '5R' vs. '2.5R'. This will be addressed in an update to the standards.
+</p>
+<p>The most meaningful representation of color contrast is the CIE2000 (dE00) metric.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>data.frame</code> with the following columns:
+</p>
+
+<ul>
+<li>
+<p> m1: Munsell color 1
+</p>
+</li>
+<li>
+<p> m2: Munsell color 2
+</p>
+</li>
+<li>
+<p> dH: delta-hue, as computed by <code>huePosition</code>
+</p>
+</li>
+<li>
+<p> dV: delta-value, absolute value of difference in Munsell value (m1 vs. m2)
+</p>
+</li>
+<li>
+<p> dc: delta-chroma, absolute value of difference in Munsell chroma (m1 vs. m2)
+</p>
+</li>
+<li>
+<p> dE00: delta-E00, e.g. the <a href="https://en.wikipedia.org/wiki/Color_difference#CIEDE2000">CIE delta-E as refined in 2000</a>
+</p>
+</li>
+<li>
+<p> cc: soil color contrast class, as specified in Soil Survey Technical Note 2.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>delta-E00 is computed by the <a href="https://CRAN.R-project.org/package=farver">farver package</a>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+
+<ol><li>
+<p> https://en.wikipedia.org/wiki/Color_difference
+</p>
+</li></ol>
+<h3>See Also</h3>
+
+<p>colorContrastPlot, huePosition, huePositionCircle
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+# two sets of colors to compare
+m1 &lt;- c('10YR 6/3', '7.5YR 3/3', '10YR 2/2', '7.5YR 3/4')
+m2 &lt;- c('5YR 3/4', '7.5YR 4/4', '2.5YR 2/2', '7.5YR 6/3')
+
+# contrast metrics
+colorContrast(m1, m2)
+
+# adjacent chips
+colorContrast('10YR 3/3', '10YR 3/4')
+colorContrast('10YR 3/3', '7.5YR 3/3')
+
+# highly contrasting colors
+# http://colour.granjow.net/fabercastell-polychromos.html
+colorContrastPlot('10B 4/13', '10YR 10/15',
+labels = c('helioblue-reddish', 'light cadmium yellow')
+)
+
+
+## Note: neutral hues aren't defined in TN2
+# approximation / extension of the concept
+colorContrast(m1 = 'N 3/', m2 = 'N 6/')
+
+#
+colorContrast(m1 = '10YR 3/3', m2 = 'N 3/')
+
+m1 &lt;- c('10YR 6/3', '7.5YR 3/3', '10YR 2/2', 'N 3/')
+m2 &lt;- c('5YR 3/4', '7.5YR 4/4', '2.5YR 2/2', '7.5YR 6/3')
+colorContrast(m1, m2)
+
+</code></pre>
+
+
+</div>

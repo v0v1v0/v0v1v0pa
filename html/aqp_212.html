@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>depthOf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get top or bottom depths of horizons matching a regular expression pattern</h2>
+
+<h3>Description</h3>
+
+<p>The <code>depthOf</code> family of functions calculate depth of occurrence of a horizon designation pattern, or any other value that can be coerced to character and matched with a regular expression.
+</p>
+<p>If you need all depths of occurrence for a particular pattern, <code>depthOf</code> is what you are looking for. <code>minDepthOf</code> and <code>maxDepthOf</code> are wrappers around <code>depthOf</code> that return the minimum and maximum depth. They are all set up to handle missing values and missing "contacts" with the target pattern.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">depthOf(
+  p,
+  pattern,
+  FUN = NULL,
+  top = TRUE,
+  hzdesgn = hzdesgnname(p, required = TRUE),
+  no.contact.depth = NULL,
+  no.contact.assigned = NA_real_,
+  na.rm = TRUE,
+  simplify = TRUE
+)
+
+maxDepthOf(
+  p,
+  pattern,
+  top = TRUE,
+  hzdesgn = hzdesgnname(p, required = TRUE),
+  no.contact.depth = NULL,
+  no.contact.assigned = NA,
+  na.rm = TRUE,
+  simplify = TRUE
+)
+
+minDepthOf(
+  p,
+  pattern,
+  top = TRUE,
+  hzdesgn = hzdesgnname(p, required = TRUE),
+  no.contact.depth = NULL,
+  no.contact.assigned = NA,
+  na.rm = TRUE,
+  simplify = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>a regular expression to match in the horizon designation column. See:<code>hzdesgn</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>a function that returns a single value, and takes argument <code>na.rm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top</code></td>
+<td>
+<p>should the top (TRUE) or bottom (FALSE) depth be returned for matching horizons? Default: <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hzdesgn</code></td>
+<td>
+<p>column name containing horizon designations. Default: <code>guessHzDesgnName(p)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no.contact.depth</code></td>
+<td>
+<p>depth to assume that contact did not occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no.contact.assigned</code></td>
+<td>
+<p>depth to assign when a contact did not occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>logical. Remove <code>NA</code>? (default: <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>logical. Return single profile results as vector (default: <code>TRUE</code>) or <code>data.frame</code> (<code>FALSE</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a numeric vector containing specified depth(s) of horizons matching a pattern. If <code>length(p) &gt; 1</code> then a <em>data.frame</em> containing profile ID, horizon ID, top or bottom depths, horizon designation and pattern.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># construct a fake profile
+spc &lt;- data.frame(id=1, taxsubgrp = "Lithic Haploxerepts",
+                  hzname   = c("A","AB","Bw","BC","R"),
+                  hzdept   = c(0,  20, 32, 42,  49),
+                  hzdepb   = c(20, 32, 42, 49, 200),
+                  clay     = c(19, 22, 22, 21,  NA),
+                  texcl    = c("l","l","l", "l","br"),
+                  d_value  = c(5,   5,  5,  6,  NA),
+                  m_value  = c(2.5, 3,  3,  4,  NA),
+                  m_chroma = c(2,   3,  4,  4,  NA))
+
+# promote to SoilProfileCollection
+depths(spc) &lt;- id ~ hzdept + hzdepb
+hzdesgnname(spc) &lt;- 'hzname'
+hztexclname(spc) &lt;- 'texcl'
+
+# multiple horizons contain B
+depthOf(spc, "B")
+
+# deepest top depth of horizon containing B
+maxDepthOf(spc, "B")
+
+# shallowest top depth
+minDepthOf(spc, "B")
+
+# deepest bottom depth
+maxDepthOf(spc, "B", top = FALSE)
+
+# deepest bottom depth above 35cm
+maxDepthOf(spc, "B", top = FALSE, no.contact.depth = 35)
+
+# assign infinity (Inf) if B horizon does not start within 10cm
+minDepthOf(spc, "B", no.contact.depth = 10, no.contact.assigned = Inf)
+
+</code></pre>
+
+
+</div>

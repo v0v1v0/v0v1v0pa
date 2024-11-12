@@ -1,0 +1,289 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>showQCTests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Show Real-Time QC Test Results For an Argo Object</h2>
+
+<h3>Description</h3>
+
+<p><code>showQCTests</code> prints a summary of the quality-control (QC) tests
+(if any) that were performed on an Argo profile in real-time
+(<strong>Caution</strong>: any tests completed and/or failed on delayed
+mode data are not recorded. This function also assumes tests performed
+or failed are recorded once, otherwise it produces
+a warning).  It uses
+<code>hexToBits()</code> to decode the hexadecimal  values that may
+be stored in <code>historyQCTest</code>. From there it pairs the determined
+test values with the appropriate actions, QC Tests performed or QC
+Tests failed, found in <code>historyAction</code> within the <code>metadata</code> slot
+of an individual Argo profile, as read directly with <code>oce::read.argo()</code>
+or indirectly with <code>readProfiles()</code>, the latter being illustrated in the
+“Examples” section below.  The “Details”
+section provides an explanation of how <code>showQCTests</code> works
+at a low level, as an adjunct to the Argo documentation.
+See section 3.3 of Kelley et al. (2021) for more on this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">showQCTests(x, style = "brief")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an oce::argo object, as read directly with <code>oce::read.argo()</code>
+or as extracted from the return value of a call to <code>readProfiles()</code>, as
+in the “Examples”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+<p>a character value governing the output printed by <code>showQCFlags</code>,
+either <code>"brief"</code> (the default) for a single line stating all the tests by
+numbers, followed by lines giving the number and description of all failed tests,
+or <code>"full"</code> for a listing of each test that was performed, with an indication
+of whether <code>x</code> passes or fails it.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The format used in the <code>historyQCTest</code> and <code>historyAction</code>
+elements of the <code>metadata</code> slot of an oce::argo object
+is mentioned in Sections 2.2.7, 2.3.7, 5.1, 5.3 and 5.4
+of reference 1, in which they are called
+<code>HISTORY_QCTEST</code> and <code>HISTORY_ACTION</code>, respectively.
+Both of these things are vectors of character values,
+with the entries within <code>historyAction</code> providing names for
+the entries within <code>historyQCTest</code>.
+</p>
+<p>In the context of <code>showQCTests</code>, the focus is on the element
+of <code>historyAction</code> that equals <code>"QCP$"</code> (which maps to the element
+of <code>historyQCTest</code> that specifies the QC tests that were
+performed) and <code>"QCF$"</code> (which maps to the results of those
+tests).  These mapped elements are character values providing
+hexadecimal digits that are decoded with <code>hexToBits()</code>, possibly after
+lengthening the <code>historyQCTest</code> value matching<code>"QCF$"</code> by adding <code>"0"</code> digits
+on the left to make the length be the same as that of the
+<code>historyQCTest</code> value matching '"QCP$".
+</p>
+<p>The bits decoded from the relevant elements of <code>historyQCTest</code>
+correspond to QC tests as indicated in the following table.
+This is based on Table 11 of reference 1,
+after correcting the "Number" for test 18 from
+261144 to 262144, because the former is not an
+integral power of 2, suggesting a typo
+in the manual (since the whole point of the numerical scheme
+is that the individual bits map to individual tests).</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   Test </td>
+<td style="text-align: left;"> Number </td>
+<td style="text-align: left;"> Meaning </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   1 </td>
+<td style="text-align: left;"> 2 </td>
+<td style="text-align: left;"> Platform Identification test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   2 </td>
+<td style="text-align: left;"> 4 </td>
+<td style="text-align: left;"> Impossible Date test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   3 </td>
+<td style="text-align: left;"> 8 </td>
+<td style="text-align: left;"> Impossible Location test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   4 </td>
+<td style="text-align: left;"> 16 </td>
+<td style="text-align: left;"> Position on Land test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   5 </td>
+<td style="text-align: left;"> 32 </td>
+<td style="text-align: left;"> Impossible Speed test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   6 </td>
+<td style="text-align: left;"> 64 </td>
+<td style="text-align: left;"> Global Range test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   7 </td>
+<td style="text-align: left;"> 128 </td>
+<td style="text-align: left;"> Regional Global Parameter test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   8 </td>
+<td style="text-align: left;"> 256 </td>
+<td style="text-align: left;"> Pressure Increasing test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   9 </td>
+<td style="text-align: left;"> 512 </td>
+<td style="text-align: left;"> Spike test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   10 </td>
+<td style="text-align: left;"> 1024 </td>
+<td style="text-align: left;"> Top and Bottom Spike test (obsolete) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   11 </td>
+<td style="text-align: left;"> 2048 </td>
+<td style="text-align: left;"> Gradient test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   12 </td>
+<td style="text-align: left;"> 4096 </td>
+<td style="text-align: left;"> Digit Rollover test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   13 </td>
+<td style="text-align: left;"> 8192 </td>
+<td style="text-align: left;"> Stuck Value test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   14 </td>
+<td style="text-align: left;"> 16384 </td>
+<td style="text-align: left;"> Density Inversion test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   15 </td>
+<td style="text-align: left;"> 32768 </td>
+<td style="text-align: left;"> Grey List test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   16 </td>
+<td style="text-align: left;"> 65536 </td>
+<td style="text-align: left;"> Gross Salinity or Temperature Sensor Drift test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   17 </td>
+<td style="text-align: left;"> 131072 </td>
+<td style="text-align: left;"> Visual QC test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   18 </td>
+<td style="text-align: left;"> 262144 </td>
+<td style="text-align: left;"> Frozen profile test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   19 </td>
+<td style="text-align: left;"> 524288 </td>
+<td style="text-align: left;"> Deepest pressure test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   20 </td>
+<td style="text-align: left;"> 1048576 </td>
+<td style="text-align: left;"> Questionable Argos position test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   21 </td>
+<td style="text-align: left;"> 2097152 </td>
+<td style="text-align: left;"> Near-surface unpumped CTD salinity test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   22 </td>
+<td style="text-align: left;"> 4194304 </td>
+<td style="text-align: left;"> Near-surface mixed air/water test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   23 </td>
+<td style="text-align: left;"> 8388608 </td>
+<td style="text-align: left;"> Interim rtqc flag scheme for data deeper than 2000 dbar </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   24 </td>
+<td style="text-align: left;"> 16777216 </td>
+<td style="text-align: left;"> Interim rtqc flag scheme for data from experimental sensors </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   25 </td>
+<td style="text-align: left;"> 33554432 </td>
+<td style="text-align: left;"> MEDD test </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns nothing; its action is in the printing
+of results.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jaimie Harbin and Dan Kelley
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Carval, Thierry, Bob Keeley, Yasushi Takatsuki, Takashi Yoshida, Stephen Loch,
+Claudia Schmid, and Roger Goldsmith. Argo User's Manual V3.3. Ifremer, 2019.
+<code>doi:10.13155/29825</code>
+</p>
+</li>
+<li>
+<p> Kelley, D. E., Harbin, J., &amp; Richards, C. (2021). argoFloats: An R package for analyzing
+Argo data. Frontiers in Marine Science, (8), 636922.
+<a href="https://doi.org/10.3389/fmars.2021.635922">doi:10.3389/fmars.2021.635922</a>
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(argoFloats)
+a &lt;- readProfiles(system.file("extdata", "D4900785_048.nc", package="argoFloats"))
+showQCTests(a[[1]])
+
+</code></pre>
+
+
+</div>

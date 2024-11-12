@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>slideCor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Identify optimal spatial/temporal shift to maximize correlation between two stratigraphic/time series.</h2>
+
+<h3>Description</h3>
+
+<p>Identify optimal spatial/temporal shift to maximize correlation between two stratigraphic/time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">slideCor(dat1,dat2,rev=F,cormethod=1,minpts=NULL,detrend=F,rmin=NULL,
+         output=T,genplot=T,verbose=T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat1</code></td>
+<td>
+<p>Stratigraphic series 1. First column should be location (e.g., depth), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat2</code></td>
+<td>
+<p>Stratigraphic series 2. First column should be location (e.g., depth), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rev</code></td>
+<td>
+<p>Reverse polarity of stratigraphic series 2 (multiply proxy data value by -1)? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cormethod</code></td>
+<td>
+<p>Method used for calculation of correlation coefficient (1=Pearson, 2=Spearman rank, 3=Kendall)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minpts</code></td>
+<td>
+<p>Minimum number of data points for calculation of correlation coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detrend</code></td>
+<td>
+<p>Remove linear trend from each window? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmin</code></td>
+<td>
+<p>Minimum r and r2 value shown on plots. By default all r and r2 values will be displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Output correlation coefficient results as a dataframe? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>slideCor is a general purpose tool to identify the optimal spatial/temporal correlation 
+between two data sets. A few example applications include:
+(1) stratigraphic correlation of data series from two locations (as in Preto et al., 2004), 
+(2) identification of the optimal spatial/temporal lag between two variables from the 
+same site, and (3) identification of the optimal fit between a floating astrochronology 
+and astronomical target (e.g, Mitchell et al., 2008). 
+</p>
+<p>Both series must be evenly sampled, but are not required to have the same sampling interval.
+If stratigraphic series of different duration/length are being compared, the shift (in 
+spatial or temporal units) should be interpreted as the location within the longer
+stratigraphic series where the shorter stratigraphic series begins.
+If both stratigraphic series are of the same duration/length, then the shift is the
+location within dat1 where dat2 begins.
+</p>
+<p>In some cases, it may be desirable to smooth or bandpass the data series before 
+implementing slideCor (e.g., functions noLow, noKernel, bandpass, taner, etc.).
+</p>
+
+
+<h3>References</h3>
+
+<p>Preto, N., Hinnov, L.A., De Zanche, V., Mietto, P., and Hardie, L.A., 2004, <em>The Milankovitch interpretation of the Latemar Platform cycles (Dolomites, Italy): Implications for geochronology, biostratigraphy, and Middle Triassic carbonate accumulation</em>, SEPM Special Publication 81.
+</p>
+<p>Mitchell, R.N., Bice, D.M., Montanari, A., Cleaveland, L.C., Christianson, K.T., Coccioni, R., and Hinnov, L.A., 2008, <em>Oceanic anoxic cycles? Orbital prelude to the Bonarelli Level (OAE 2)</em>, Earth Planet. Sci. Lett. 26, 1-16.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>surrogateCor</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: generate AR1 noise
+ex1 &lt;- ar1(npts=1000,dt=1)
+# isolate a section
+ex2 &lt;- iso(ex1,xmin=200,500)
+ex2[1] &lt;- ex2[1]-200
+
+res=slideCor(ex1,ex2)
+
+# Example 2: an astronomical signal
+ex1=etp(tmin=0,tmax=1000)
+# isolate a 200 ka section
+ex2=iso(ex1,xmin=400,xmax=600)
+# convert to a floating timescale (elapsed time)
+ex2[1] &lt;- ex2[1]-400
+
+res=slideCor(ex1,ex2)
+# now anchor the floating time scale
+anchor &lt;- ex1[res[which.max(res[,2]),1],1]
+ex2.anchor &lt;- anchorTime(dat=ex2, time=0, age=anchor, timeDir=2)
+</code></pre>
+
+
+</div>

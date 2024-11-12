@@ -1,0 +1,235 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateIniStates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creation of the IniStates object possibly required by the CreateRunOptions functions</h2>
+
+<h3>Description</h3>
+
+<p>Creation of the <em>IniStates</em> object possibly required by the <code>CreateRunOptions</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateIniStates(FUN_MOD, InputsModel,
+                IsHyst = FALSE, IsIntStore = FALSE,
+                ProdStore = 350, RoutStore = 90,
+                ExpStore = NULL, IntStore = NULL,
+                UH1 = NULL, UH2 = NULL,
+                GCemaNeigeLayers = NULL, eTGCemaNeigeLayers = NULL,
+                GthrCemaNeigeLayers = NULL, GlocmaxCemaNeigeLayers = NULL,
+                SD = NULL, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>FUN_MOD</code></td>
+<td>
+<p>[function] hydrological model function (e.g. RunModel_GR4J, RunModel_CemaNeigeGR4J)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <code>InputsModel</code>] see <code>CreateInputsModel</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IsHyst</code></td>
+<td>
+<p>[boolean] boolean indicating if the hysteresis version of CemaNeige is used. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IsIntStore</code></td>
+<td>
+<p>[boolean] boolean indicating if the interception store is used in GR5H. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ProdStore</code></td>
+<td>
+<p>[numeric] production store level [mm] for all GR models except GR1A</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RoutStore</code></td>
+<td>
+<p>[numeric] routing store level [mm] for all GR models except GR1A</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ExpStore</code></td>
+<td>
+<p>(optional) [numeric] series of exponential store level (negative) [mm] for the GR6J model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IntStore</code></td>
+<td>
+<p>(optional) [numeric] series of rainfall neutralisation or interception store level [mm] for the GR5H model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UH1</code></td>
+<td>
+<p>(optional) [numeric] unit hydrograph 1 levels [mm]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UH2</code></td>
+<td>
+<p>(optional) [numeric] unit hydrograph 2 levels [mm]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GCemaNeigeLayers</code></td>
+<td>
+<p>(optional) [numeric] snow pack [mm], possibly used to create the CemaNeige model initial state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eTGCemaNeigeLayers</code></td>
+<td>
+<p>(optional) [numeric] snow pack thermal state [°C], possibly used to create the CemaNeige model initial state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GthrCemaNeigeLayers</code></td>
+<td>
+<p>(optional) [numeric] melt threshold [mm], possibly used to create the CemaNeige model initial state in case the Linear Hysteresis version is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GlocmaxCemaNeigeLayers</code></td>
+<td>
+<p>(optional) [numeric] local melt threshold for hysteresis [mm], possibly used to create the CemaNeige model initial state in case the Linear Hysteresis version is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SD</code></td>
+<td>
+<p>(optional) [list] of [numeric] states of delayed upstream flows for semi-distributed models, the nature of the state and the unit depend on the model and the unit of the upstream flow</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the function is run in verbose mode or not, default = <code>TRUE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>20 numeric values are required for UH1 and 40 numeric values are required for UH2 if GR4J, GR5J or GR6J are used (respectively 20*24 and 40*24 for the hourly models GR4H and GR5H). Please note that depending on the X4 parameter value that will be provided when running the model, not all the values may be used (only the first int(X4)+1 values are used for UH1 and the first 2*int(X4)+1 for UH2). <br><code>GCemaNeigeLayers</code> and <code>eTGCemaNeigeLayers</code> require each numeric values as many as given in <code>CreateInputsModel</code> with the <code>NLayers</code> argument. <code>eTGCemaNeigeLayers</code> values can be negative.<br>
+The structure of the object of class <code>IniStates</code> returned is always exactly the same for all models (except for the unit hydrographs levels that contain more values with GR4H and GR5H), even if some states do not exist (e.g. <em>$UH$UH1</em> for GR2M).  <br>
+If CemaNeige is not used, <em>$CemaNeigeLayers$G</em>, <em>$CemaNeigeLayers$eTG</em> <em>$CemaNeigeLayers$GthrCemaNeigeLayers</em> and <em>$CemaNeigeLayers$GlocmaxCemaNeigeLayers</em> are set to <code>NA</code>. <br></p>
+<p>Nota: the <code>StateEnd</code> objects from the outputs of <code>RunModel*</code> functions already respect the format given by the <code>CreateIniStates</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[list] object of class <code>IniStates</code> containing the initial model internal states; it always includes the following:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <em>$Store          </em> </td>
+<td style="text-align: left;"> [numeric] list of store levels (<em>$Prod</em>, <em>$Rout</em> and <em>$Exp</em>) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$UH             </em> </td>
+<td style="text-align: left;"> [numeric] list of unit hydrographs levels (<em>$UH1</em> and <em>$UH2</em>) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$CemaNeigeLayers</em> </td>
+<td style="text-align: left;"> [numeric] list of CemaNeige variables (<em>$G</em>, <em>$eTG</em>, <em>$GthrCemaNeigeLayers</em> and <em>$GlocmaxCemaNeigeLayers</em>)
+  </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Olivier Delaigue
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CreateRunOptions</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+
+### preparation of the IniStates object with low values of ProdStore and RoutStore
+IniStates &lt;- CreateIniStates(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+                             ProdStore = 0, RoutStore = 0, ExpStore = NULL,
+                             UH1 = c(0.52, 0.54, 0.15, rep(0, 17)),
+                             UH2 = c(0.057, 0.042, 0.015, 0.005, rep(0, 36)),
+                             GCemaNeigeLayers = NULL, eTGCemaNeigeLayers = NULL,
+                             GthrCemaNeigeLayers = NULL, GlocmaxCemaNeigeLayers = NULL)
+str(IniStates)
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+                               IndPeriod_WarmUp = 0L,
+                               IndPeriod_Run = Ind_Run, IniStates = IniStates)
+
+## simulation
+Param &lt;- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
+OutputsModel &lt;- RunModel_GR4J(InputsModel = InputsModel,
+                              RunOptions = RunOptions, Param = Param)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+
+### preparation of the IniStates object with high values of ProdStore and RoutStore
+IniStates &lt;- CreateIniStates(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+                             ProdStore = 450, RoutStore = 100, ExpStore = NULL,
+                             UH1 = c(0.52, 0.54, 0.15, rep(0, 17)),
+                             UH2 = c(0.057, 0.042, 0.015, 0.005, rep(0, 36)),
+                             GCemaNeigeLayers = NULL, eTGCemaNeigeLayers = NULL,
+                             GthrCemaNeigeLayers = NULL, GlocmaxCemaNeigeLayers = NULL)
+str(IniStates)
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+                               IndPeriod_WarmUp = 0L,
+                               IndPeriod_Run = Ind_Run, IniStates = IniStates)
+
+## simulation
+Param &lt;- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
+OutputsModel &lt;- RunModel_GR4J(InputsModel = InputsModel,
+                              RunOptions = RunOptions, Param = Param)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+</code></pre>
+
+
+</div>

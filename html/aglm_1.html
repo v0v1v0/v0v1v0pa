@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aglm-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>aglm: Accurate Generalized Linear Model</h2>
+
+<h3>Description</h3>
+
+<p>Provides functions to fit Accurate Generalized Linear Model (AGLM) models,
+visualize them, and predict for new data. AGLM is defined as a regularized GLM
+which applies a sort of feature transformations using a discretization of numerical
+features and specific coding methodologies of dummy variables.
+For more information on AGLM, see
+<a href="https://www.institutdesactuaires.com/global/gene/link.php?doc_id=16273&amp;fg=1">Suguru Fujita, Toyoto Tanaka, Kenji Kondo and Hirokazu Iwasawa (2020)</a>.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The collection of functions provided by the <code>aglm</code> package has almost the same structure as the famous <code>glmnet</code> package,
+so users familiar with the <code>glmnet</code> package will be able to handle it easily.
+In fact, this structure is reasonable in implementation, because what the <code>aglm</code> package does is
+applying appropriate transformations to the given data and passing it to the <code>glmnet</code> package as a backend.
+</p>
+
+
+<h3>Fitting functions</h3>
+
+<p>The <code>aglm</code> package provides three different fitting functions, depending on how users want to handle hyper-parameters of AGLM models.
+</p>
+<p>Because AGLM is based on regularized GLM, the regularization term of the loss function can be expressed as follows:
+<script id="MathJax-script" async src="../../mathjaxr/doc/mathjax/es5/tex-chtml-full.js"></script>
+\[
+R(\lbrace \beta_{jk} \rbrace; \lambda, \alpha)
+= \lambda \left\lbrace
+(1 - \alpha)\sum_{j=1}^{p} \sum_{k=1}^{m_j}|\beta_{jk}|^2 + \alpha \sum_{j=1}^{p} \sum_{k=1}^{m_j} |\beta_{jk}|
+\right\rbrace,
+\]
+where <code class="reqn">\beta_jk</code> is the k-th coefficient of auxiliary variables for the j-th column in data,
+<code class="reqn">\alpha</code> is a weight which controls how L1 and L2 regularization terms are mixed,
+and <code class="reqn">\lambda</code> determines the strength of the regularization.
+</p>
+<p>Searching hyper-parameters <code class="reqn">\alpha</code> and <code class="reqn">\lambda</code> is often useful to get better results, but usually time-consuming.
+That's why the <code>aglm</code> package provides three fitting functions with different strategies for specifying hyper-parameters as follows:
+</p>
+
+<ul>
+<li> <p>aglm: A basic fitting function with given <code class="reqn">\alpha</code> and <code class="reqn">\lambda</code> (s).
+</p>
+</li>
+<li> <p>cv.aglm: A fitting function with given <code class="reqn">\alpha</code> and cross-validation for <code class="reqn">\lambda</code>.
+</p>
+</li>
+<li> <p>cva.aglm: A fitting function with cross-validation for both <code class="reqn">\alpha</code> and <code class="reqn">\lambda</code>.
+</p>
+</li>
+</ul>
+<p>Generally speaking, setting an appropriate <code class="reqn">\lambda</code> is often important to get meaningful results,
+and using <code>cv.aglm()</code> with default <code class="reqn">\alpha=1</code> (LASSO) is usually enough.
+Since <code>cva.aglm()</code> is much time-consuming than <code>cv.aglm()</code>, it is better to use it only if particularly better results are needed.
+</p>
+<p>The following S4 classes are defined to store results of the fitting functions.
+</p>
+
+<ul>
+<li> <p>AccurateGLM-class: A class for results of <code>aglm()</code> and <code>cv.aglm()</code>
+</p>
+</li>
+<li> <p>CVA_AccurateGLM-class: A class for results of <code>cva.aglm()</code>
+</p>
+</li>
+</ul>
+<h3>Using the fitted model</h3>
+
+<p>Users can use models obtained from fitting functions in various ways, by passing them to following functions:
+</p>
+
+<ul>
+<li> <p>predict: Make predictions for new data
+</p>
+</li>
+<li> <p>plot: Plot contribution of each variable and residuals
+</p>
+</li>
+<li> <p>print: Display textual information of the model
+</p>
+</li>
+<li> <p>coef: Get coefficients
+</p>
+</li>
+<li> <p>deviance: Get deviance
+</p>
+</li>
+<li> <p>residuals: Get residuals of various types
+</p>
+</li>
+</ul>
+<p>We emphasize that <code>plot()</code> is particularly useful to understand the fitted model,
+because it presents a visual representation of how variables in the original data are used by the model.
+</p>
+
+
+<h3>Other functions</h3>
+
+<p>The following functions are basically for internal use, but exported as utility functions for convenience.
+</p>
+
+<ul>
+<li>
+<p> Functions for creating feature vectors
+</p>
+
+<ul>
+<li> <p>getUDummyMatForOneVec
+</p>
+</li>
+<li> <p>getODummyMatForOneVec
+</p>
+</li>
+<li> <p>getLVarMatForOneVec
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Functions for binning
+</p>
+
+<ul>
+<li> <p>createEqualWidthBins
+</p>
+</li>
+<li> <p>createEqualFreqBins
+</p>
+</li>
+<li> <p>executeBinning
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+
+<ul>
+<li>
+<p> Kenji Kondo,
+</p>
+</li>
+<li>
+<p> Kazuhisa Takahashi and Hikari Banno (worked on L-Variable related features)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Suguru Fujita, Toyoto Tanaka, Kenji Kondo and Hirokazu Iwasawa. (2020)
+<em>AGLM: A Hybrid Modeling Method of GLM and Data Science Techniques</em>, <br><a href="https://www.institutdesactuaires.com/global/gene/link.php?doc_id=16273&amp;fg=1">https://www.institutdesactuaires.com/global/gene/link.php?doc_id=16273&amp;fg=1</a> <br><em>Actuarial Colloquium Paris 2020</em>
+</p>
+
+
+</div>

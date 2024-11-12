@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>subOrigData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Extract known origin sample data
+</h2>
+
+<h3>Description</h3>
+
+<p>This function subsets the known-origin isotope dataset included in this package and conducts optional transformations to convert isotope measurements to a common reference scale.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">subOrigData(marker = "d2H", taxon = NULL, group = NULL, dataset = NULL, 
+  age_code = NULL, mask = NULL, ref_scale = "VSMOW_H", niter = 5000, genplot = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>marker</code></td>
+<td>
+
+<p>character string. Column name for isotopic data to be extracted, either “d2H” or “d18O”.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxon</code></td>
+<td>
+
+<p>character string or string vector. Species name(s) for data to be extracted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+
+<p>character string or string vector. Taxonomic groups for data to be extracted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+
+<p>integer or integer vector. Dataset_ID(s) for data to be extracted. See <code>knownOrig</code> feature <em>sources</em>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_code</code></td>
+<td>
+
+<p>character string or string vector. Animal age code for data to be extracted. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+
+<p>SpatVector. Polygon layer used to constrain the geographic area from which data are extracted. If not provided, global.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_scale</code></td>
+<td>
+
+<p>character string. Text identifier for reference scale to which all isotope values will be transformed. See <code>stds</code>. Use “NULL” to obtain untransformed values on the originally reported scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+
+<p>integer. Number of random samples used to propagate uncertainty in calibration hierarchy transformations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+
+<p>logical. Plot results in R.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of class “subOrigData”, formatted for use in <code>calRaster</code> or <code>QA</code> functions.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>SpatVector including one point feature for each selected sample. Data fields are described in <code>knownOrig</code> feature <em>samples</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sources</code></td>
+<td>
+
+<p>data.frame. Information for all data sources for the selected samples. Fields are described in <code>knownOrig</code> feature <em>sources</em> 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chains</code></td>
+<td>
+
+<p>list. Each item is a character string vector containing the hierarchy of calibrations used in the transformation for a set of selected samples. See <code>stds</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marker</code></td>
+<td>
+
+<p>character string. The isotopic marker specified in the call to <code>subOrigData</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Magozzi, S. et al. (in press) Calibration chain transformation to improve the comparability of organic hydrogen and oxygen isotope data. <em>Methods in Ecology and Evolution</em>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## WITHOUT mask
+# extract d2H data for Jackdaw, Partridge and Willow Grouse, transformed
+# to the VSMOW/SLAP H reference scale by default
+d1 = subOrigData(taxon = c("Danaus plexippus", "Setophaga ruticilla", 
+  "Turdus migratorius"), niter = 100)
+summary(d1)
+
+# extract d2H data for insects and passerine birds without transformation
+d2 = subOrigData(group = c("Insect","Passerine"), ref_scale = NULL, genplot = FALSE)
+summary(d2)
+
+# extract d18O data for all humans, transformed to the VSMOW/SLAP O reference scale
+d3 = subOrigData(marker = "d18O", 
+  group = c("Modern human", "Indigenous human"), ref_scale = "VSMOW_O", 
+  niter = 100, genplot = FALSE)
+summary(d3)
+
+# extract d2H data for humans using taxon, transformed to the VSMOW/SLAP H reference scale
+d4 = subOrigData(marker = "d2H", taxon = "Homo sapiens", ref_scale = 
+  "VSMOW_H", niter = 100, genplot = FALSE)
+summary(d4)
+
+## WITH mask
+# error - no samples found
+## Not run: d5 = subOrigData(taxon = "Turdus philomelos", mask = naMap)
+# this works OK
+d6 = subOrigData(taxon = c("Danaus plexippus", "Setophaga ruticilla", 
+  "Turdus migratorius"), mask = naMap, genplot = FALSE)
+</code></pre>
+
+
+</div>

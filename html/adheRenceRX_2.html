@@ -1,0 +1,69 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calculate_pdc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Proportion Days Covered</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the proportion of days covered (PDC) from a pharmaceutical claims database. This function is suggested only  
+after one has properly adjusted their dates (<code>propagate_date()</code>) and identified gaps in therapy
+(<code>identify_gaps()</code>). This function calculates a length of total therapy as the first fill date to the last for a given grouping. 
+Finally, if you'd like to view adherence by episodes after you have used <code>rank_episodes()</code>, the function will re-adjust gaps for you so that the gap that defined the episode isn't included.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calculate_pdc(.data, .summarise = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.summarise</code></td>
+<td>
+<p>Logical value (defaulting to TRUE) indicating whether the output should be summarised or not</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a summarised tibble, by default, with proportion of days covered calculated
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adheRenceRX)
+library(dplyr)
+
+toy_claims %&gt;% 
+  group_by(ID) %&gt;% 
+  propagate_date(.date = date, .days_supply = days_supply) %&gt;% 
+  identify_gaps() %&gt;% 
+  calculate_pdc()
+  
+#OR, one could group by the ID and episode of care like...
+toy_claims %&gt;% 
+  group_by(ID) %&gt;% 
+  propagate_date(.date = date, .days_supply = days_supply) %&gt;% 
+  identify_gaps() %&gt;% 
+  rank_episodes(.permissible_gap = 30) %&gt;% 
+  ungroup() %&gt;% 
+  group_by(ID, episode) %&gt;% 
+  calculate_pdc()
+</code></pre>
+
+
+</div>

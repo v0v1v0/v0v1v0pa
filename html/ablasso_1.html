@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ablasso_mv_ss</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AB-LASSO Estimator with Random Sample Splitting for Multivariate Models</h2>
+
+<h3>Description</h3>
+
+<p>Implements the AB-LASSO estimation method for the multivariate model
+<code class="reqn">Y_{it} = \alpha_{i} + \gamma_{t} + \sum_{j=1}^{L} \beta_{j} Y_{i,t-j} + \theta_{0} D_{it} + \theta_{1} C_{i,t-1} + \varepsilon_{it}</code>, with random sample splitting. Note that <code class="reqn">D_{it}</code> and <code class="reqn">C_{it}</code> are predetermined with respect to <code class="reqn">\varepsilon_{it}</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ablasso_mv_ss(Y, D, C, lag = 1, Kf = 2, nboot = 100, seed = 202302)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A <code>P</code> x <code>N</code> (number of time periods x number of individuals) matrix containing the outcome/response variable <code>Y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>A <code>P</code> x <code>N</code> (number of time periods x number of individuals) matrix containing the policy variable/treatment <code>D</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>A list of <code>P</code> x <code>N</code> matrices containing other treatments and control variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag</code></td>
+<td>
+<p>The lag order of <code class="reqn">Y_{it}</code> included in the covariates, default is <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kf</code></td>
+<td>
+<p>The number of folds for K-fold cross-validation, with options being <code>2</code> or <code>5</code>, default is <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>The number of random sample splits, default is <code>100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Seed for random number generation, default <code>202302</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataframe that includes the estimated coefficients (<code class="reqn">\beta_{j}, \theta_{0}, \theta_{1}</code>), their standard errors, and T-statistics.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Use the Covid data
+N = length(unique(covid_data$fips))
+P = length(unique(covid_data$week))
+Y = matrix(covid_data$logdc, nrow = P, ncol = N)
+D = matrix(covid_data$dlogtests, nrow = P, ncol = N)
+C = list()
+C[[1]] = matrix(covid_data$school, nrow = P, ncol = N)
+C[[2]] = matrix(covid_data$college, nrow = P, ncol = N)
+C[[3]] = matrix(covid_data$pmask, nrow = P, ncol = N)
+C[[4]] = matrix(covid_data$pshelter, nrow = P, ncol = N)
+C[[5]] = matrix(covid_data$pgather50, nrow = P, ncol = N)
+
+results.kf2 &lt;- ablasso_mv_ss(Y = Y, D = D, C = C, lag = 4, nboot = 2)
+print(results.kf2)
+results.kf5 &lt;- ablasso_mv_ss(Y = Y, D = D, C = C, lag = 4, Kf = 5, nboot = 2)
+print(results.kf5)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apriori</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mining Associations with the Apriori Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Mine frequent itemsets, association rules or association hyperedges using
+the Apriori algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apriori(data, parameter = NULL, appearance = NULL, control = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>object of class transactions. Any data
+structure which can be coerced into transactions (e.g.,
+a binary matrix, a data.frame or a tibble) can also be specified and will be
+internally coerced to transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>object of class APparameter or named
+list.  The default behavior is to mine rules with minimum support of 0.1,
+minimum confidence of 0.8, maximum of 10 items (maxlen), and a maximal time
+for subset checking of 5 seconds (<code>maxtime</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>appearance</code></td>
+<td>
+<p>object of class APappearance or named
+list.  With this argument item appearance can be restricted (implements rule
+templates).  By default all items can appear unrestricted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>object of class APcontrol or named list.
+Controls the algorithmic performance of the mining algorithm (item sorting,
+report progress (verbose), etc.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments are for convenience added to the parameter list.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Apriori algorithm (Agrawal et al, 1993) employs level-wise search for
+frequent itemsets. The used C implementation of Apriori by Christian
+Borgelt (2003) includes some improvements (e.g., a prefix tree and item sorting).
+</p>
+<p><strong>Warning about automatic conversion of matrices or data.frames to transactions.</strong>
+It is preferred to create transactions manually before
+calling <code>apriori()</code> to have control over item coding. This is especially
+important when you are working with multiple datasets or several subsets of
+the same dataset. To read about item coding, see itemCoding.
+</p>
+<p>If a data.frame is specified as <code>x</code>, then the data is automatically
+converted into transactions by discretizing numeric data using
+<code>discretizeDF()</code> and then coercion to transactions. The discretization
+may fail if the data is not well behaved.
+</p>
+<p><strong>Apriori only creates rules with one item in the RHS (Consequent).</strong>
+The default value in APparameter for <code>minlen</code> is 1.
+This meains that rules with only one item (i.e., an empty antecedent/LHS)
+like
+</p>
+<p style="text-align: center;"><code class="reqn">\{\} =&gt; \{beer\}</code>
+</p>
+
+<p>will be created.  These rules mean that no matter what other items are
+involved, the item in the RHS will appear with the probability given by the
+rule's confidence (which equals the support).  If you want to avoid these
+rules then use the argument <code>parameter = list(minlen = 2)</code>.
+</p>
+<p><strong>Notes on run time and memory usage:</strong>
+If the minimum <code>support</code> is
+chosen too low for the dataset, then the algorithm will try to create an
+extremely large set of itemsets/rules. This will result in very long run
+time and eventually the process will run out of memory.  To prevent this,
+the default maximal length of itemsets/rules is restricted to 10 items (via
+the parameter element <code>maxlen = 10</code>) and the time for checking subsets is
+limited to 5 seconds (via <code>maxtime = 5</code>). The output will show if you hit
+these limits in the "checking subsets" line of the output. The time limit is
+only checked when the subset size increases, so it may run significantly
+longer than what you specify in maxtime.  Setting <code>maxtime = 0</code> disables
+the time limit.
+</p>
+<p>Interrupting execution with <code>Control-C/Esc</code> is not recommended.  Memory
+cleanup will be prevented resulting in a memory leak. Also, interrupts are
+only checked when the subset size increases, so it may take some time till
+the execution actually stops.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class rules or
+itemsets.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler and Bettina Gruen
+</p>
+
+
+<h3>References</h3>
+
+<p>R. Agrawal, T. Imielinski, and A. Swami (1993) Mining
+association rules between sets of items in large databases. In
+<em>Proceedings of the ACM SIGMOD International Conference on Management
+of Data</em>, pages 207–216, Washington D.C.
+<a href="https://doi.org/10.1145/170035.170072">doi:10.1145/170035.170072</a>
+</p>
+<p>Christian Borgelt (2012) Frequent Item Set Mining.  <em>Wiley
+Interdisciplinary Reviews: Data Mining and Knowledge Discovery</em>
+2(6):437-456. J. Wiley &amp; Sons, Chichester, United Kingdom 2012.
+<a href="https://doi.org/10.1002/widm.1074">doi:10.1002/widm.1074</a>
+</p>
+<p>Christian Borgelt and Rudolf Kruse (2002) Induction of Association Rules:
+Apriori Implementation. <em>15th Conference on Computational Statistics</em>
+(COMPSTAT 2002, Berlin, Germany) Physica Verlag, Heidelberg, Germany.
+</p>
+<p>Christian Borgelt (2003) Efficient Implementations of Apriori and Eclat.
+<em>Workshop of Frequent Item Set Mining Implementations</em> (FIMI 2003,
+Melbourne, FL, USA).
+</p>
+<p>APRIORI Implementation: <a href="https://borgelt.net/apriori.html">https://borgelt.net/apriori.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other mining algorithms: 
+<code>APappearance-class</code>,
+<code>AScontrol-classes</code>,
+<code>ASparameter-classes</code>,
+<code>eclat()</code>,
+<code>fim4r()</code>,
+<code>ruleInduction()</code>,
+<code>weclat()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example 1: Create transaction data and mine association rules
+a_list &lt;- list(
+      c("a","b","c"),
+      c("a","b"),
+      c("a","b","d"),
+      c("c","e"),
+      c("a","b","d","e")
+      )
+
+## Set transaction names
+names(a_list) &lt;- paste("Tr",c(1:5), sep = "")
+a_list
+
+## Use the constructor to create transactions
+trans1 &lt;- transactions(a_list)
+trans1
+
+rules &lt;- apriori(trans1)
+inspect(rules)
+
+## Example 2: Mine association rules from an existing transactions dataset
+##   using different minimum support and minimum confidence thresholds
+data("Adult")
+
+rules &lt;- apriori(Adult,
+	parameter = list(supp = 0.5, conf = 0.9, target = "rules"))
+summary(rules)
+
+# since ... gets automatically added to parameter, we can also write the 
+#  same call shorter:
+apriori(Adult, supp = 0.5, conf = 0.9, target = "rules")
+</code></pre>
+
+
+</div>

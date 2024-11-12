@@ -1,0 +1,392 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apc.forecast.ac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecast for responses model with AC or CL structure.</h2>
+
+<h3>Description</h3>
+
+<p>Computes forecasts for a model with AC or Chain Ladder structure.
+Forecasts of the linear predictor are given for all models.
+Distributions forecasts are provided for a Poisson response model (using Martinez Miranda, Nielsen and Nielsen, 2015),
+for an over-dispersed Poisson response model (using Harnau and Nielsen, 2017)
+and
+for a log normal response model (using Kuang and Nielsen, 2018)
+This is done for the triangle which shares age and cohort indices with the data.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apc.forecast.ac(apc.fit,sum.per.by.age=NULL,
+			sum.per.by.coh=NULL, quantiles=NULL, suppress.warning=TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apc.fit</code></td>
+<td>
+<p>List. Output from <code>apc.fit.model</code>.
+Note: apc.fit.model should be run with AC structure so that 
+<code>apc.fit$model.design=="AC"</code>.
+Distribution forecasts are only provided for a Poisson response model where
+<code>apc.fit$model.family=="poisson.response"</code>
+for an over-disperse Poisson response model where
+<code>apc.fit$model.family=="poisson.response"</code>
+and
+for a log normal response model where
+<code>apc.fit$model.family=="log.normal.response"</code>.
+For other models only point forecasts of the linear predictor are provided, that is
+the first two values <code>linear.predictors.forecast</code> and <code>index.trap.J</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sum.per.by.age</code></td>
+<td>
+<p><em>Optional</em>. Vector.  If not NULL it will generate forecasts by period,
+where, for each period, the point forecasts are cummulated over certain age groups.
+Indicates which age groups. If <code>sum.per.by.age</code> is a scalar or vector of length one it
+represents a single age group. Point forecasts are made for the indicated age group.
+If <code>sum.per.by.age</code> is a vector of length two it represents lower and upper values
+of an range of age groups. Point forecasts are cummulated over the indicated age groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sum.per.by.coh</code></td>
+<td>
+<p><em>Optional</em>. Vector.  Same as <code>sum.per.by.age</code>, but for cohort instead of age.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p><em>Optional</em>. Vector.  Generates forecast quantiles for indicated quantiles.  Example:
+<code>quantiles=c(0.05,0.50,0.95)</code>. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warning</code></td>
+<td>
+<p>Logical. If true, suppresses warnings from <code>apc.data.list.subset</code>, which is called internally. Default is "TRUE".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default output only reports standard errors.
+By setting the argument
+<code>quantiles</code>
+to, for instance,
+<code>quantiles=c(0.05,0.50,0.95)</code>
+forecast quantiles are reported.
+</p>
+<p><em>Poisson response forecast errors</em>.
+The asymptotic theory for the Poisson forecast standard errors is presented in
+Martinez Miranda, Nielsen and Nielsen (2015).
+The sampling theory is based on multinomial model, conditional on the total number of outcomes.
+Asymptotically this gives a normal theory.
+There are two independent contributions to the forecast error:
+a process error and an estimation error.
+The empirical example of that paper uses the data
+<code>data.asbestos</code>.
+The results of that paper are reproduced in
+the vignette 
+<a href="../doc/ReproducingMMNN2015.pdf"><code>ReproducingMMNN2015.pdf</code></a>,
+<a href="../doc/ReproducingMMNN2015.R"><code>ReproducingMMNN2015.R</code></a>
+on
+<a href="../doc/index.html"><code>Vignettes</code></a>.		
+</p>
+<p><em>Overdispersed Poisson response forecast errors</em>.
+The asymptotic theory for the overdispersed Poission forecast standard errors is presented in
+Harnau and Nielsen (2018).
+The sampling theory is based on infinitely devisible distributions, with the
+compound Poisson distribution as a special case.
+This results in scale nuisance parameter, which is estimated by
+the deviance of the AC model divided by the degrees of freedom.
+Asymptotically this gives a t/F theory.
+There are three independent contributions to the forecast error:
+a process error, an estimation error and a sampling error for the overall mean.
+</p>
+<p><em>Generalized log normal forecast errors</em>.
+Uses the asymptotic theory present in Kuang and Nielsen (2018).
+The sampling theory is based on infinitely devisible distributions,
+using small sigma asymptotics.
+There are two independent contributions to the forecast error:
+a process error and an estimation error.
+</p>
+<p>The examples below are based on the smaller data reserving sets
+<code>data.loss.VNJ</code>,
+<code>data.loss.TA</code>.
+See also
+<code>data.loss.XL</code>.	
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>linear.predictors.forecast</code></td>
+<td>
+<p>Vector. Linear predictors for forecast area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.trap.J</code></td>
+<td>
+<p>Matrix. age-coh coordinates for vector. Similar structure to
+<code>index.trap</code> in <code>apc.index</code>, see <code>apc.get.index</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trap.response.forecast</code></td>
+<td>
+<p>Matrix. Includes data and point forecasts. Forecasts in lower right triangle. Trapezoid format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.cell</code></td>
+<td>
+<p>Matrix. 4 columns.
+1: Point forecasts.
+2: corresponding forecast standard errors
+3: process standard errors
+4: estimation standard errors
+Note that the square of column 2 equals the sums of squares of columns 3 and 4
+Note that <code>index.trap.J</code> gives the age-coh coordinates for each entry.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.age</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>age</code> cumulated over period/cohort.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>per</code> cumulated over age/cohort.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per.ic</code></td>
+<td>
+<p>Same as response.forecast.cell,
+but point forecasts cumulated by per and intercept corrected by
+multiplying column 1 of <code>response.forecast.per</code> by <code>intercept.correction.per</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.coh</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>coh</code> cumulated over age/period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.all</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts cumulated by <code>age</code> and <code>coh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per.by.age</code></td>
+<td>
+<p>Only if <code>sum.per.by.age!=NULL</code>.
+Same as <code>response.forecast.per</code>,
+but point forecasts cumulated over ages indicated by <code>sum.per.by.age</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per.by.age.ic</code></td>
+<td>
+<p>Only if <code>sum.per.by.age!=NULL</code>.
+Same as <code>response.forecast.per.by.age</code>,
+but intercept corrected using <code>intercept.correction.per.by.age</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per.by.coh</code></td>
+<td>
+<p>Only if <code>sum.per.by.coh!=NULL</code>.
+Same as <code>response.forecast.per</code>,
+but point forecasts cumulated over cohorts indicated by <code>sum.per.by.coh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per.by.coh.ic</code></td>
+<td>
+<p>Only if <code>sum.per.by.coh!=NULL</code>.
+Same as <code>response.forecast.per.by.coh</code>,
+but intercept corrected using <code>intercept.correction.per.by.coh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept.correction.per</code></td>
+<td>
+<p>Numeric.
+The intercept correction is constructed as the ratio of
+the sum of data entries for the last period and the sum of the corresponding fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept.correction.per.by.age</code></td>
+<td>
+<p>Numeric. Only if <code>sum.per.by.age!=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept.correction.per.by.coh</code></td>
+<td>
+<p>Numeric. Only if <code>sum.per.by.coh!=NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bent Nielsen &lt;bent.nielsen@nuffield.ox.ac.uk&gt; 18 November 2019 (2 Mar 2016)</p>
+
+
+<h3>References</h3>
+
+<p>Harnau, J. and Nielsen (2018) Over-dispersed age-period-cohort models. <em>Journal of the American Statistical Association</em> 113, 1722-1732. <em>Download</em>: <a href="https://www.nuffield.ox.ac.uk/economics/papers/2017/HarnauNielsen2017apcDP.pdf">Nuffield DP</a>
+</p>
+<p>Martinez Miranda, M.D., Nielsen, B. and Nielsen, J.P. (2015) Inference and forecasting in the age-period-cohort model with unknown exposure with an application to mesothelioma mortality. <em>Journal of the Royal Statistical Society</em> A 178, 29-55. <em>Download</em>: <a href="https://doi.org/10.1111/rssa.12051">Article</a>, <a href="http://www.nuffield.ox.ac.uk/economics/papers/2013/Asbestos8mar13.pdf">Nuffield DP</a>. 
+</p>
+<p>Martinez Miranda, M.D., Nielsen, B., Nielsen, J.P. and Verrall, R. (2011) Cash flow simulation for a model of outstanding liabilities based on claim amounts and claim numbers. <em>ASTIN Bulletin</em> 41, 107-129.
+</p>
+<p>Kuang, D, Nielsen B (2018) Generalized log-normal chain-ladder. mimeo Nuffield Collge.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The example below uses Japanese breast cancer data, see <code>data.Japanese.breast.cancer</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#####################
+#  EXAMPLE with reserving data: data.loss.VNJ()
+#  Data used in Martinez Miranda, Nielsen, Nielsen and Verrall (2011)
+#  Point forecasts are the Chain-Ladder forecasts	
+#  *NOTE* Data are over-dispersed,
+#		so distribution forecast are *NOT* reliable
+#  The same could be done data.asbestos(),
+#		which are not over-dispersed
+#		see vignette.
+
+data	&lt;- data.loss.VNJ()
+fit.ac	&lt;- apc.fit.model(data,"poisson.response","AC")
+forecast	&lt;- apc.forecast.ac(fit.ac)
+
+#	forecasts by "policy-year"
+forecast$response.forecast.coh
+#	          forecast         se    se.proc     se.est
+#	coh_2     1684.763   57.69067   41.04586   40.53949
+#	coh_3    29379.085  220.53214  171.40328  138.76362
+#	coh_4    60637.929  313.33867  246.24770  193.76066
+#	coh_5   101157.697  385.69930  318.05298  218.18857
+#	coh_6   173801.522  501.42184  416.89510  278.60786
+#	coh_7   249348.589  595.21937  499.34816  323.94060
+#	coh_8   475991.739  864.06580  689.92155  520.20955
+#	coh_9   763918.643 1182.70450  874.02440  796.78810
+#	coh_10 1459859.526 2216.80272 1208.24647 1858.58945
+
+#	forecasts of "cash-flow"
+forecast$response.forecast.per
+#	reproduces Table 6 of MMNNV (2011)
+#	         forecast         se    se.proc   se.est
+#	per_11 1353858.32 1456.92459 1163.55417 876.7958
+#	per_12  754180.12 1017.37629  868.43544 529.9758
+#	per_13  488612.42  816.62860  699.00817 422.2202
+#	per_14  318043.00  664.36135  563.95302 351.1880
+#	per_15  184610.86  508.97704  429.66366 272.8494
+#	per_16  115022.56  414.64945  339.14976 238.5615
+#	per_17   63145.15  320.93564  251.28700 199.6360
+#	per_18   35812.79  255.08766  189.24267 171.0466
+#	per_19    2494.27   78.10439   49.94266  60.0502
+
+#	forecast  of "total reserve"
+#	reproduces Table 6 of MMNNV (2011)
+forecast$response.forecast.all
+#	    forecast       se  se.proc   se.est
+#	all  3315779 3182.737 1820.928 2610.371
+
+#####################
+#	Forecast of cashflows for 7th cohort (policy year)
+#	Note a series of warnings are given because 
+#		this is done by truncating the data
+#		which generates the warnings associated
+#		with apc.data.list.subset()
+forecast&lt;- apc.forecast.ac(fit.ac,sum.per.by.coh=7)
+forecast$response.forecast.per.by.coh
+#	         forecast        se   se.proc    se.est
+#	per_11 102975.337 355.97444 320.89771 154.08590
+#	per_12  58061.306 267.24671 240.95914 115.58329
+#	per_13  40466.866 226.40049 201.16378 103.87646
+#	per_14  21615.765 170.90637 147.02301  87.13910
+#	per_15  24410.927 194.70158 156.23997 116.17994
+#	per_16   1818.389  61.09857  42.64257  43.75668
+#
+#	This can also be intercept corrected
+#		Such intercept corrections are useful when
+#		analysing data.asbestos().
+#		Unclear if they are useful for
+#		reserving.
+forecast$intercept.correction.per.by.coh
+#   &gt; [1] 1.241798
+forecast$response.forecast.per.by.coh.ic
+#	         forecast        se   se.proc    se.est
+#	per_11 127874.573 355.97444 320.89771 154.08590
+#	per_12  72100.417 267.24671 240.95914 115.58329
+#	per_13  50251.675 226.40049 201.16378 103.87646
+#	per_14  26842.415 170.90637 147.02301  87.13910
+#	per_15  30313.441 194.70158 156.23997 116.17994
+#	per_16   2258.071  61.09857  42.64257  43.75668
+
+#####################
+#	Forecast of cashflows cumulated for
+#		6th and 7th cohort (policy year)
+forecast&lt;- apc.forecast.ac(fit.ac,sum.per.by.coh=c(6,7))
+forecast$response.forecast.per.by.coh.ic
+#	         forecast        se   se.proc    se.est
+#	per_11 226219.380 460.52781 414.62816 200.42295
+#	per_12 139628.153 366.48699 325.74697 167.93339
+#	per_13  87022.435 295.86605 257.16360 146.29970
+#	per_14  66584.160 277.64858 224.94656 162.75067
+#	per_15  34962.678 206.77289 163.00324 127.22018
+#	per_16   2392.759  61.09857  42.64257  43.75668
+
+#####################
+#  EXAMPLE with reserving data: data.loss.TA()
+#  Data used in Harnau and Nielsen (2016)
+data	&lt;- data.loss.TA()
+fit.ac	&lt;- apc.fit.model(data,"od.poisson.response","AC")
+forecast	&lt;- apc.forecast.ac(fit.ac,quantiles=c(0.01,0.05,0.5,0.95,0.99))
+forecast$response.forecast.all
+#	    forecast      se se.proc  se.est  tau.est 
+#	all 18680856 2675417 1007826 2474680 134561.2
+#	...
+#	 t-0.010  t-0.050  t-0.500  t-0.950  t-0.990 
+#	12158931 14160544 18680856 23201167 25202781
+#	...
+#	 G-0.010  G-0.050  G-0.500  G-0.950  G-0.990 
+#	12760202 14398564 18553290 23417098 25792423 
+forecast$response.forecast.per
+
+#####################
+#  EXAMPLE with reserving data: data.loss.XL()
+#  see helpfile for data.loss.XL 	
+
+
+</code></pre>
+
+
+</div>

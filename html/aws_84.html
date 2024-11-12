@@ -1,0 +1,395 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vpaws</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+vector valued version of function <code>paws</code> with homogeneous covariance structure
+</h2>
+
+<h3>Description</h3>
+
+<p>The function implements a vector-valued version the propagation separation approach that
+uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function <code>vaws</code>. Using patches allows for an improved
+handling of locally smooth functions and in 2D and 3D for improved smoothness of
+discontinuities at the expense of increased computing time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vpaws(y, kstar = 16, sigma2 = 1, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+      ladjust = 1, wghts = NULL, u = NULL, patchsize = 1)
+vpawscov(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, 
+      wghts = NULL, maxni = FALSE, patchsize = 1)
+vpawscov2(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+      lambda = NULL, ladjust = 1, wghts = NULL, patchsize = 1,
+      data = NULL, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>y</code>  can be a full array of vector valued data, or, if <code>mask</code> is provided,
+be a matrix with columns corresponding to points/pixel/voxel within the mask. In the first case
+<code>dim(y)</code> determines the dimensionality and extend of the grid design, in the second
+case tis information is obtained from the dimensions of <code>mask</code>.
+the first component varies over components of the response vector.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kstar</code></td>
+<td>
+
+<p>maximal number of steps to employ. Determines maximal bandwidth.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+
+<p>specifies a homogeneous error variance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invcov</code></td>
+<td>
+
+<p>array (or matrix) of voxelwise inverse covariance matrixes, first index corresponds to
+upper diagonal inverse covariance matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+
+<p>logical mask. All computations are restrikted to design poins within the mask.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+
+<p>The vector <code>scorr</code> allows to specify a first order correlations of the noise for each coordinate direction,
+defaults to 0 (no correlation).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spmin</code></td>
+<td>
+
+<p>determines the form (size of the plateau) in the adaptation kernel.
+Not to be changed by the user.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+
+<p>factor to increase the default value of lambda
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts</code></td>
+<td>
+<p><code>wghts</code> specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
+in different coordinate directions, i.e. allows to define a more appropriate metric in the design space.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+
+<p>a "true" value of the regression function, may be provided to
+report risks at each iteration. This can be used to test the propagation condition with <code>u=0</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patchsize</code></td>
+<td>
+
+<p>positive integer defining the size of patches. Number of grid points within the patch is <code>(2*patchsize+1)^d</code> with <code>d</code> denoting the dimensionality of the design.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxni</code></td>
+<td>
+<p>require growing sum of weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>explicit value of lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>optional vector-valued images to be smoothed using the weighting scheme of the last step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical: provide information on progress.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>see <code>vaws</code>.
+Parameter <code>y</code>
+The procedure is supposed to produce superior results if the assumption of a
+local constant image is violated or if smooothness of discontinuities is desired.
+</p>
+<p>Function <code>vpawscov2</code> is intended for internal use in package <code>qMRI</code> only.
+</p>
+
+
+<h3>Value</h3>
+
+<p> function <code>vpaws</code> returns
+returns an object of class <code>aws</code> with slots
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>y = "numeric"</code></td>
+<td>
+<p>y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dy = "numeric"</code></td>
+<td>
+<p>dim(y)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni = "integer"</code></td>
+<td>
+<p>integer(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask = "logical"</code></td>
+<td>
+<p>logical(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta = "numeric"</code></td>
+<td>
+<p>Estimates of regression function, <code>length: length(y)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hseq = "numeric"</code></td>
+<td>
+<p>sequence of bandwidths employed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mae = "numeric"</code></td>
+<td>
+<p>Mean absolute error for each iteration step if u was specified,  numeric(0) else</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psnr = "numeric"</code></td>
+<td>
+<p>Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var = "numeric"</code></td>
+<td>
+<p>approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.Currently also uses factor <code>1/ni</code> instead of the correct
+<code>sum(wij^2)/ni^2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts = "numeric"</code></td>
+<td>
+<p>numeric(0), ratio of distances <code>wghts[-1]/wghts[1]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree = "integer"</code></td>
+<td>
+<p>0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax  = "numeric"</code></td>
+<td>
+<p>effective hmax</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2  = "numeric"</code></td>
+<td>
+<p>provided or estimated error variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr = "numeric"</code></td>
+<td>
+<p>scorr</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family = "character"</code></td>
+<td>
+<p>family</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape = "numeric"</code></td>
+<td>
+<p>shape</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern  = "integer"</code></td>
+<td>
+<p>integer code for lkern,
+1="Plateau", 2="Triangle", 3="Quadratic", 4="Cubic", 5="Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda = "numeric"</code></td>
+<td>
+<p>effective value of lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust = "numeric"</code></td>
+<td>
+<p>effective value of ladjust</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws = "logical"</code></td>
+<td>
+<p>aws</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory = "logical"</code></td>
+<td>
+<p>memory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen = "logical"</code></td>
+<td>
+<p>homogen</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop = "logical"</code></td>
+<td>
+<p>FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel = "character"</code></td>
+<td>
+<p>"Constant"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcoef = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call = "function"</code></td>
+<td>
+<p>the arguments of the call to <code>aws</code></p>
+</td>
+</tr>
+</table>
+<p>If <code>y</code> contained only information (condensed data) for positions within a mask, then the returned object only contains
+results for these positions.
+</p>
+
+
+<h3>Note</h3>
+
+<p>use <code>setCores='number of threads'</code> to enable parallel execution.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joerg Polzehl, <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a>,
+<a href="https://www.wias-berlin.de/people/polzehl/">https://www.wias-berlin.de/people/polzehl/</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>J. Polzehl, K. Tabelow (2019). Magnetic Resonance Brain Imaging:
+Modeling and Data Analysis Using R. Springer, Use R! series. Appendix A.
+Doi:10.1007/978-3-030-29184-6.
+</p>
+<p>J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 .
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>vaws</code>, <code>lpaws</code>, <code>vawscov</code>,<code>link{awsdata}</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+setCores(2)
+y &lt;- array(rnorm(4*64^3),c(4,64,64,64))
+yhat &lt;- vpaws(y,kstar=20)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

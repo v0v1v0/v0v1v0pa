@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>guessHzAttrName</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Guess Horizon Slot Column Names</h2>
+
+<h3>Description</h3>
+
+<p><code>guessHzAttrName()</code>: Guess the horizon column name where possible/preferred formative elements are known. There is a preference for records where more optional requirements are met to handle cases where there will be many matches. For example, working with soil data one might have "low, RV and high" total clay, as well as clay fractions. One could distinguish between these different measurements using standard formative elements for column names from the database of interest. Result is the first match in <code>horizonNames(x)</code> with the most required plus optional patterns matched.
+</p>
+<p>e.g. <code>guessHzAttrName(x, attr="clay", optional=c("total", "_r"))</code> matches (<code>claytotal_r == totalclay_r</code>) over (<code>clay_r == claytotal == totalclay</code>) over <code>clay</code>.
+</p>
+<p><code>guessHzDesgnName()</code>: <strong>DEPRECATED</strong> This follows the historic convention used by <code>aqp::plotSPC()</code> looking for "hzname" or other column names containing the regular expression "name". If the pattern "name" is not found, the pattern "desgn" is searched as a fallback, as "hzdesgn" or "hz_desgn" are other common column naming schemes for horizon designation name.
+</p>
+<p><code>guessHzTexClName()</code>: <strong>DEPRECATED</strong> This function is used to provide a texture class attribute column name to functions. It will use regular expressions to match "texcl" which is typically the texture of the fine earth fraction, without modifiers or in-lieu textures. Alternately, it will match "texture" for cases where "texcl" is absent (e.g. in NASIS Component Horizon).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">guessHzAttrName(x, attr, optional = NULL, verbose = TRUE, required = FALSE)
+
+guessHzDesgnName(x, required = FALSE)
+
+guessHzTexClName(x, required = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attr</code></td>
+<td>
+<p><em>character</em>. A regular expression containing required formative element of attribute name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optional</code></td>
+<td>
+<p><em>character</em>. Vector of regular expression(s) containing optional formative elements of attribute name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><em>logical</em>. Produce message output about guesses? Default: <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>required</code></td>
+<td>
+<p>logical Default: <code>FALSE</code>. Is this attribute required? If it is, set to <code>TRUE</code> to trigger error on invalid value.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Character containing horizon attribute column name. Result is the first match in <code>horizonNames(x)</code> with the most required plus optional patterns matched.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# a has the required attr pattern, but none of the optional
+a &lt;- data.frame(id = 1, top = c(0,10), bottom=c(10,40),
+                clay=c(18,19))
+depths(a) &lt;- id ~ top + bottom
+
+guessHzAttrName(a, attr="clay", optional=c("total", "_r"))
+
+# b has requried attr pattern, and one of the opional patterns
+#   notice that it also contains "clay" but preferentially matches more optional patterns
+b &lt;- data.frame(id = 1, top = c(0,10), bottom=c(10,40),
+                clay=c(0.18,0.19), clay_r=c(18,19))
+depths(b) &lt;- id ~ top + bottom
+
+guessHzAttrName(b, attr="clay", optional=c("total", "_r"))
+
+# c has total and _r (both optional) on either side of clay
+# having all of the optional patterns plus required is best evidence, and first
+# column containing that combination will be returned
+c &lt;- data.frame(id = 1, top = c(0,10), bottom=c(10,40),
+                totalclay_r=c(18,19), claytotal_r=c(0.18,0.19))
+depths(c) &lt;- id ~ top + bottom
+
+guessHzAttrName(c, attr="clay", optional=c("total", "_r"))
+
+</code></pre>
+
+
+</div>

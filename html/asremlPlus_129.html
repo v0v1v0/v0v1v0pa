@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>R2adj.asreml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculates the adjusted coefficient of determination for a specified combination of fixed and random terms.</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the adjusted coefficient of determination (R2) that measures the contributions to 
+the total variance exhibited by the observations of a specified combination of fixed and random 
+terms in a fitted linear mixed model.  
+</p>
+<p>Note that the adjusted R2 can be negative, which indicates that the contribution of the terms 
+to the total variance is very small relative to the sum of the degrees of freedom of the terms.
+</p>
+<p>Piepho's (2023) method for GLMMs has not been implemented. This function is not available for 
+ASReml-R version 3.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+R2adj(asreml.obj, 
+      include.which.fixed = ~ ., orthogonalize = "hybrid", 
+      include.which.random = NULL, 
+      bound.exclusions = c("F","B","S","C"), ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asreml.obj</code></td>
+<td>
+<p>An <code>asreml</code> object returned from a call to <code>asreml</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.which.fixed</code></td>
+<td>
+<p>A <code>formula</code> specifying the fixed terms whose joint contribution 
+to the total variance is to be measured.  If it is <code>NULL</code>, no fixed term 
+is to be included in the terms whose joint contribution is to be assessed. The 
+<code>formula</code> <code>~ .</code> indicates that the joint contribution of all fixed 
+terms are to be measured. Otherwise, the joint contribution of the set of terms 
+specified by the <code>formula</code> will be assessed. The <code>formula</code> can 
+include a "<code>.</code>", which means all fixed terms currently fitted, and is most likely 
+followed by a "<code>-</code>" with a bracketed set of terms to be removed that can be 
+specified using <code>formula</code> operators.  The names of the resulting 
+terms must be the same as those in either the <code>terms</code> attribute of the 
+<code>fixed</code> component of the <code>coefficient</code> component of the supplied 
+<code>asreml.obj</code>, or the Wald table produced by <code>wald.asreml</code>. 
+</p>
+<p>Note that the contribution of a subset of the fixed terms is only unique if the effects 
+for the fixed terms are orthogonal; if the effects are not orthogonal then the 
+contributions will depend on the order of the terms in the formula. Also, determining 
+the joint contribution of a subset of the fixed terms in the model may be 
+computationally demanding because the projection matrices have to be formed for all 
+fixed terms and these projections matrices have to be orthogonalized. A heavy 
+computational burden is most likely when the effects for the fixed terms are not 
+orthogonal, for example, when numeric covariates are included amongst the terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orthogonalize</code></td>
+<td>
+<p>A <code>character</code> vector indicating the method for orthogonalizing a 
+projector to those for terms that occurred previously in the 
+<code>formula</code> for <code>include.which.fixed</code>. Orthogonalizing the 
+projectors of fixed terms is not performed for the default setting of 
+<code>. ~</code>.  WHen required, two options are available for orthogonalizing: 
+<code>hybrid</code> and <code>eigenmethods</code>. The <code>hybrid</code> option is the most 
+general and uses the relationships between the projection operators for the 
+terms in the <code>formula</code> to decide which <code>projector</code>s to 
+subtract and which to orthogonalize using eigenmethods. The <code>eigenmethods</code> 
+option recursively orthogonalizes the <code>projector</code>s 
+using an eigenanalysis of each <code>projector</code> 
+with previously orthogonalized <code>projector</code>s. 
+See the documentation for <code>porthogonalize.list</code> from the R package 
+<code>dae</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.which.random</code></td>
+<td>
+<p>A <code>formula</code> specifying the random terms whose joint 
+contribution  to the total variance is to be measured.  If it is <code>NULL</code>, no 
+random term is to be included in the terms whose joint contribution is to be assessed. 
+The formula <code>~ .</code> indicates that the joint contribution of all random terms is 
+to be measured. Otherwise, the joint contribution of the set of terms specified by 
+the <code>formula</code>  will be assessed. The <code>formula</code> can 
+include a "<code>.</code>", which means all random terms currently fitted, and is most likely 
+followed by a "<code>-</code>" with a bracketed set of terms to be removed that can be 
+specified using <code>formula</code> operators. The resulting terms must be one of 
+those occurring in either the <code>vparameters</code> component of the supplied 
+<code>asreml.obj</code>, or in the <code>terms</code> attribute of the <code>random</code> component of 
+the <code>coefficient</code> component of the supplied <code>asreml.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.exclusions</code></td>
+<td>
+<p>A <code>character</code> specifying one or more bound codes that 
+will result in a variance parameter in the <code>random</code> model being excluded 
+from contributing to the variance. If set to <code>NULL</code> then none will
+be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Provision for passing arguments to functions called internally - 
+not used at present.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The method used to compute the adjusted R2 under a linear mixes model (LMM) is that 
+described by Piepho (2023). Here, the method has been extended to allow computation  
+of the adjusted R2 for a subset of the fixed terms. A set of orthogonalized 
+projectors for all of the fixed terms in the model (a set of 
+<code class="reqn">\mathbf{Q}_i\mathrm{s}</code>) is obtained and the combined contribution of the 
+fixed terms nominated in <code>include.which.fixed</code> is obtained by computing the 
+average semisquared bias, ASSB, for the nominated fixed terms as:
+</p>
+<p style="text-align: center;"><code class="reqn">\Sigma_i \{(\mathbf{Q}_i \mathbf{X}\boldsymbol{\beta})^\mathrm{T}\mathbf{Q}_i \mathbf{X}\boldsymbol{\beta} + \textnormal{trace}(\mathbf{X}^\mathrm{T} \mathbf{Q}_i \mathbf{X} \mathrm{var}(\boldsymbol{\beta})) \} / (n - 1)</code>
+</p>
+
+<p>Of the two methods, <code>eigenmethods</code> is least likely to fail, but it does 
+not establish the marginality between the terms. It is often needed when 
+there is nonorthogonality between terms, such as when there are several linear 
+covariates. It can also be more efficient in these circumstances.
+</p>
+<p>The process can be computationally expensive, particularly for a large data set 
+(500 or more observations) and/or when many terms are to be orthogonalized, 
+particularly if they are not orthogonal. 
+</p>
+<p>If the error "<code>Matrix is not idempotent</code>" should occur then, especially if 
+there are  many terms, one might try using <code>set.daeTolerance</code> from the 
+<code>dae</code> package to reduce the tolerance used in determining if values are 
+either the same or are zero; it may be necessary to lower the tolerance to as 
+low as 0.001. Also, setting <code>orthogonalize</code> to <code>eigenmethods</code> is 
+worth a try.
+</p>
+<p>In doing the computations, no changes are made to the fitted model, nor is the 
+<code>formula</code> stored in <code>asreml.obj</code> referred to. Instead, the 
+names of the terms referred to are those stored in the <code>coefficients</code> 
+component of the <code>asreml.obj</code>.  Use 
+<code>attr(asreml.obj$coefficients$fixed, which = "terms")</code> to access the attribute 
+for fixed terms; substitute <code>random</code> for <code>fixed</code> to see the names of the 
+random terms. For fixed terms. the term names are the same as those in the 
+Wald table produced by <code>wald.asreml</code>, and, for random terms, the same as those 
+in the <code>vparameters</code> component of the <code>asreml.obj</code>. Two <code>asreml</code> 
+<code>formula</code> functions whose terms can differ from their formulation in a 
+model <code>formula</code> are <code>at</code> and <code>str</code>.)
+</p>
+<p>The function <code>estimateV.asreml</code> is used to calculate the variance matrices 
+required in calculating the adjusted R2.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>numeric</code> that is the adjusted R2, expressed as a percentage. It has attributes 
+<code>include.which.fixed</code>, <code>include.which.random</code> and <code>missing.termmatrix</code> 
+(use <code>attr(x, which = "name")</code> to access the attribute <code>name</code>). 
+The <code>missing.termmatrix</code> attribute will be <code>NULL</code>, unless the design matrix 
+could not be obtained for one or more model terms. If is is not <code>NULL</code>, it will be 
+a list of terms whose design matices could not be produced  and so are not included in 
+the variance matrix estimate. An <code>NA</code> will be returned for the adjusted R2 if 
+<code>missing.termmatrix</code> is not <code>NULL</code> or a generalized inverse could 
+not be computed for the variance matrix estimate.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>References</h3>
+
+<p>Piepho, H.-P. (2023). An adjusted coefficient of determination (R2) for generalized 
+linear mixed models in one go. <em>Biometrical Journal</em>, <b>65(7)</b>, 2200290. 
+<a href="https://doi.org/10.1002/bimj.202200290">doi:10.1002/bimj.202200290</a>.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asreml</code>, <code>estimateV.asreml</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  data(Oats.dat)
+  
+  current.asr &lt;- asreml(Yield ~ Nitrogen*Variety, 
+                        random=~Blocks/Wplots,
+                        data=Oats.dat)
+  R2.adj.fix &lt;- R2adj.asreml(current.asr)
+  R2.adj.ran &lt;- R2adj.asreml(current.asr, 
+                             include.which.fixed = NULL, include.which.random = ~ .)
+  R2.adj.tot &lt;- R2adj.asreml(current.asr, include.which.random = ~ .)
+  R2.adj.tot &lt;- R2adj.asreml(current.asr, include.which.random = ~ Blocks)
+  R2.adj.add &lt;- R2adj.asreml(current.asr, include.which.fixed = ~ Nitrogen + Variety)
+  R2.adj.int &lt;- R2adj.asreml(current.asr, 
+                             include.which.fixed = ~ . - (Nitrogen + Variety))
+  R2.adj.int &lt;- R2adj.asreml(current.asr, include.which.fixed = ~ Nitrogen:Variety)
+
+## End(Not run)</code></pre>
+
+
+</div>

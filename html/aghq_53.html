@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make_moment_function</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Moments of Positive Functions</h2>
+
+<h3>Description</h3>
+
+<p>Given an object <code>quad</code> of class <code>aghq</code> returned by <code>aghq::aghq()</code>, <code>aghq::compute_moment()</code>
+will compute the moment of a positive function <code>g(theta)</code> of parameter <code>theta</code>. The present function,
+<code>aghq::make_moment_function()</code>, assists the user in constructing the appropriate input to <code>aghq::compute_moment()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make_moment_function(...)
+
+## S3 method for class 'aghqmoment'
+make_moment_function(gg, ...)
+
+## S3 method for class 'aghqtrans'
+make_moment_function(gg, ...)
+
+## S3 method for class ''function''
+make_moment_function(gg, ...)
+
+## S3 method for class 'character'
+make_moment_function(gg, ...)
+
+## S3 method for class 'list'
+make_moment_function(gg, ...)
+
+## Default S3 method:
+make_moment_function(gg, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass arguments to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gg</code></td>
+<td>
+<p>LOGARITHM of function <code style="white-space: pre;">⁠R^p -&gt; R^+⁠</code> of which the moment is to be computed along with its two derivatives. So for example providing gg = function(x) x will compute the moment of exp(x).
+Provided either as a <code>function</code>, a <code>list</code>, an <code>aghqtrans</code> object, or an <code>aghqmoment</code> object. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The approximation of moments of positive functions implemented in <code>aghq::compute_moment()</code>
+achieves the same asymptotic rate of convergence as the marginal likelihood. This involves computing a new mode and
+Hessian depending on the original posterior mode and Hessian, and <code>g</code>. These computations are handled by <code>aghq::compute_moment()</code>,
+re-using information from the original quadrature when feasible.
+</p>
+<p>Computation of moments is defined only for scalar-valued functions, with a vector moment just defined as a vector of moments. Consequently,
+the user may input to <code>aghq:compute_moment()</code> a function <code>g: R^p -&gt; R^q+</code> for any <code>q</code>, and that function will return the corresponding
+vector of moments. This is handled within <code>aghq::compute_moment()</code>. The <code>aghq::make_moment_function()</code> interface accepts the logarithm of <code>gg: R^p -&gt; R^+</code>, i.e.
+a multivariable, scalar-valued positive function. This is mostly to keep first and second derivatives as 1d and 2d arrays (i.e. the gradient and the Hessian);
+I deemed it too confusing for the user and the code-base to work with Jacobians and 2nd derivative tensors (if you're confused just reading this, there you go!).
+But, see <code>aghq::compute_moment()</code> for how to handle the very common case where the <em>same</em> transformation is desired of all parameter coordinates; for example
+when all parameters are on the log-scale and you want to compute <code>E(exp(theta))</code> for <em>vector</em> <code>theta</code>.
+</p>
+<p>If <code>gg</code> is a <code>function</code> or a <code>character</code> (like <code>'exp'</code>) it is first passed to <code>match.fun</code>, and then the output
+object is constructed using <code>numDeriv::grad()</code> and <code>numDeriv::hessian()</code>. If <code>gg</code> is a <code>list</code> then it is assumed to
+have elements <code>fn</code>, <code>gr</code>, and <code>he</code> of the correct form, and these elements are extracted and then passed back to <code>make_moment_function()</code>.
+If <code>gg</code> is an object of class <code>aghqtrans</code> returned by <code>aghq::make_transformation()</code>, then <code>gg$fromtheta</code>
+is passed back to <code>make_moment_function()</code>. If <code>gg</code> is an object of class <code>aghqtrans</code> then it is just returned.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>aghqmoment</code>, which is a list with elements <code>fn</code>,
+<code>gr</code>, and <code>he</code>, exactly like the input to <code>aghq::aghq()</code> and related functions. Here <code>gg$fn</code> is
+<code>log(gg(theta))</code>, <code>gg$gr</code> is its gradient, and <code>gg$he</code> its Hessian.
+Object is suitable for checking with <code>aghq::validate_moment()</code>
+and for inputting into <code>aghq::compute_moment()</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other moments: 
+<code>validate_moment()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># E(exp(x))
+mom1 &lt;- make_moment_function(force) # force = function(x) x
+mom2 &lt;- make_moment_function('force')
+mom3 &lt;- make_moment_function(list(fn=function(x) x,gr=function(x) 1,he = function(x) 0))
+
+</code></pre>
+
+
+</div>

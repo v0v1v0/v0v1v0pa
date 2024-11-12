@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MixedEffectsSet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a set of mixed effects models</h2>
+
+<h3>Description</h3>
+
+<p>A <code>MixedEffectsSet</code> represents a group of mixed-effects models that all have
+the same functional structure. Fitting a large family of models (e.g., for
+many different species) using the same functional structure is a common
+pattern in allometric studies, and <code>MixedEffectsSet</code> facilitates the
+installation of these groups of models by allowing the user to specify the
+parameter estimates and descriptions in a dataframe or spreadsheet.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MixedEffectsSet(
+  response,
+  covariates,
+  parameter_names,
+  predict_fn,
+  model_specifications,
+  predict_ranef,
+  fixed_only = FALSE,
+  descriptors = list(),
+  response_definition = NA_character_,
+  covariate_definitions = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>A named list containing one element, with a name representing the response
+variable and a value representing the units of the response variable
+using the <code>units::as_units</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>A named list containing the covariate specifications, with names
+representing the covariate name and the values representing the units of
+the coavariate using the <code>units::as_units</code> function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter_names</code></td>
+<td>
+<p>A character vector naming the columns in <code>model_specifications</code> that
+represent the parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict_fn</code></td>
+<td>
+<p>A function that takes the covariate names as arguments and returns a
+prediction of the response variable. This function should be vectorized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_specifications</code></td>
+<td>
+<p>A dataframe such that each row of the dataframe provides model-level
+descriptors and parameter estimates for that model. Models must be
+uniquely identifiable using the descriptors. This is usually established
+using the <code>load_parameter_frame()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict_ranef</code></td>
+<td>
+<p>A function that predicts the random effects, takes any named covariates in
+<code>covariates</code> as arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_only</code></td>
+<td>
+<p>A boolean value indicating if the model produces predictions using only
+fixed effects. This is useful when publications do not provide sufficient
+information to predict the random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>descriptors</code></td>
+<td>
+<p>An optional named list of descriptors that describe the context of the
+allometric model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response_definition</code></td>
+<td>
+<p>A string containing an optional custom response definition, which is used
+instead of the description given by the variable naming system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariate_definitions</code></td>
+<td>
+<p>An optional named list of custom covariate definitions that will supersede
+the definitions given by the variable naming system. The names of the list
+must match the covariate names given in <code>covariates</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Because mixed-effects models already accommodate a grouping structure,
+<code>MixedEffectsSet</code> tends to be a much rarer occurrence than <code>FixedEffectsSet</code>
+and <code>MixedEffectsModel</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An instance of MixedEffectsSet
+</p>
+
+
+<h3>Slots</h3>
+
+
+<dl>
+<dt><code>parameters</code></dt>
+<dd>
+<p>A named list of parameters and their values</p>
+</dd>
+<dt><code>predict_fn_populated</code></dt>
+<dd>
+<p>The prediction function populated with the
+parameter values</p>
+</dd>
+<dt><code>specification</code></dt>
+<dd>
+<p>A tibble::tbl_df of the model specification, which are
+the parameters and the descriptors together</p>
+</dd>
+<dt><code>predict_ranef</code></dt>
+<dd>
+<p>The function that predicts the random effects</p>
+</dd>
+<dt><code>predict_ranef_populated</code></dt>
+<dd>
+<p>The function that predicts the random effects
+populated with the fixed effect parameter estimates</p>
+</dd>
+<dt><code>fixed_only</code></dt>
+<dd>
+<p>A boolean value indicating if the model produces predictions
+using only fixed effects</p>
+</dd>
+<dt><code>model_specifications</code></dt>
+<dd>
+<p>A <code>tibble::tbl_df</code> of model specifications, where
+each row reprents one model identified with descriptors and containing the
+parameter estimates.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">mixed_effects_set &lt;- MixedEffectsSet(
+  response = list(
+    vsia = units::as_units("ft^3")
+  ),
+  covariates = list(
+    dsob = units::as_units("in")
+  ),
+  parameter_names = "a",
+  predict_ranef = function(dsob, hst) {
+    list(a_i = 1)
+  },
+  predict_fn = function(dsob) {
+    (a + a_i) * dsob^2
+  },
+  model_specifications = tibble::tibble(a = c(1, 2))
+)
+</code></pre>
+
+
+</div>

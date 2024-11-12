@@ -1,0 +1,261 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_joined_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Join Data for "joined" functions</h2>
+
+<h3>Description</h3>
+
+<p>The helper function joins the data for the "joined" functions. All <code>.join</code>
+variables are included in the output dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_joined_data(
+  dataset,
+  dataset_add,
+  by_vars = NULL,
+  join_vars = NULL,
+  join_type,
+  first_cond_lower = NULL,
+  first_cond_upper = NULL,
+  order = NULL,
+  tmp_obs_nr_var = NULL,
+  filter_add = NULL,
+  filter_join = NULL,
+  check_type = "warning"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified by the <code>by_vars</code>, the <code>new_vars</code>, the <code>join_vars</code>,
+and the <code>order</code> argument are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The two datasets are joined by the specified variables.
+</p>
+<p>Variables can be renamed by naming the element, i.e.
+<code style="white-space: pre;">⁠by_vars = exprs(&lt;name in input dataset&gt; = &lt;name in additional dataset&gt;)⁠</code>, similar to the <code>dplyr</code> joins.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>join_vars</code></td>
+<td>
+<p>Variables to use from additional dataset
+</p>
+<p>Any extra variables required from the additional dataset for <code>filter_join</code>
+should be specified for this argument. Variables specified for <code>new_vars</code>
+do not need to be repeated for <code>join_vars</code>. If a specified variable exists
+in both the input dataset and the additional dataset, the suffix ".join" is
+added to the variable from the additional dataset.
+</p>
+<p>If an expression is named, e.g., <code>exprs(EXTDT = convert_dtc_to_dt(EXSTDTC))</code>, a corresponding variable is added to the
+additional dataset and can be used in the filter conditions (<code>filter_add</code>,
+<code>filter_join</code>) and for <code>new_vars</code>. The variable is not included in the
+output dataset.
+</p>
+<p>The variables are not included in the output dataset.
+</p>
+<p><em>Permitted Values</em>: list of variables or named expressions created by <code>exprs()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>join_type</code></td>
+<td>
+<p>Observations to keep after joining
+</p>
+<p>The argument determines which of the joined observations are kept with
+respect to the original observation. For example, if <code>join_type = "after"</code>
+is specified all observations after the original observations are kept.
+</p>
+<p>For example for confirmed response or BOR in the oncology setting or
+confirmed deterioration in questionnaires the confirmatory assessment must
+be after the assessment. Thus <code>join_type = "after"</code> could be used.
+</p>
+<p>Whereas, sometimes you might allow for confirmatory observations to occur
+prior to the observation. For example, to identify AEs occurring on or
+after seven days before a COVID AE. Thus <code>join_type = "all"</code> could be used.
+</p>
+<p><em>Permitted Values:</em> <code>"before"</code>, <code>"after"</code>, <code>"all"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first_cond_lower</code></td>
+<td>
+<p>Condition for selecting range of data (before)
+</p>
+<p>If this argument is specified, the other observations are restricted from
+the first observation before the current observation where the specified
+condition is fulfilled up to the current observation. If the condition is
+not fulfilled for any of the other observations, no observations are
+considered, i.e., the observation is not flagged.
+</p>
+<p>This argument should be specified if <code>filter_join</code> contains summary
+functions which should not apply to all observations but only from a
+certain observation before the current observation up to the current
+observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first_cond_upper</code></td>
+<td>
+<p>Condition for selecting range of data (after)
+</p>
+<p>If this argument is specified, the other observations are restricted up to
+the first observation where the specified condition is fulfilled. If the
+condition is not fulfilled for any of the other observations, no
+observations are considered, i.e., the observation is not flagged.
+</p>
+<p>This argument should be specified if <code>filter_join</code> contains summary
+functions which should not apply to all observations but only up to the
+confirmation assessment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If the argument is set to a non-null value, for each observation of the
+input dataset the first or last observation from the joined dataset is
+selected with respect to the specified order. The specified variables are
+expected in the additional dataset (<code>dataset_add</code>). If a variable is
+available in both <code>dataset</code> and <code>dataset_add</code>, the one from <code>dataset_add</code>
+is used for the sorting.
+</p>
+<p>If an expression is named, e.g., <code>exprs(EXSTDT = convert_dtc_to_dt(EXSTDTC), EXSEQ)</code>, a corresponding variable (<code>EXSTDT</code>) is
+added to the additional dataset and can be used in the filter conditions
+(<code>filter_add</code>, <code>filter_join</code>) and for <code>join_vars</code> and <code>new_vars</code>. The
+variable is not included in the output dataset.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values</em>: list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code> or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmp_obs_nr_var</code></td>
+<td>
+<p>Temporary observation number
+</p>
+<p>The specified variable is added to the input dataset (<code>dataset</code>) and the
+additional dataset (<code>dataset_add</code>). It is set to the observation number
+with respect to <code>order</code>. For each by group (<code>by_vars</code>) the observation
+number starts with <code>1</code>. The variable can be used in the conditions
+(<code>filter_join</code>, <code>first_cond_upper</code>, <code>first_cond_lower</code>). It can also be
+used to select consecutive observations or the last observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional dataset (<code>dataset_add</code>)
+</p>
+<p>Only observations from <code>dataset_add</code> fulfilling the specified condition are
+joined to the input dataset. If the argument is not specified, all
+observations are joined.
+</p>
+<p>Variables created by <code>order</code> or <code>new_vars</code> arguments can be used in the
+condition.
+</p>
+<p>The condition can include summary functions like <code>all()</code> or <code>any()</code>. The
+additional dataset is grouped by the by variables (<code>by_vars</code>).
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_join</code></td>
+<td>
+<p>Filter for the joined dataset
+</p>
+<p>The specified condition is applied to the joined dataset. Therefore
+variables from both datasets <code>dataset</code> and <code>dataset_add</code> can be used.
+</p>
+<p>Variables created by <code>order</code> or <code>new_vars</code> arguments can be used in the
+condition.
+</p>
+<p>The condition can include summary functions like <code>all()</code> or <code>any()</code>. The
+joined dataset is grouped by the original observations.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the (restricted) joined dataset are not unique with
+respect to the by variables and the order.
+</p>
+<p>This argument is ignored if <code>order</code> is not specified. In this case an error
+is issued independent of <code>check_type</code> if the restricted joined dataset
+contains more than one observation for any of the observations of the input
+dataset.
+</p>
+<p><em>Permitted Values</em>: <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The variables specified by <code>order</code> are added to the additional dataset
+(<code>dataset_add</code>).
+</p>
+</li>
+<li>
+<p> The variables specified by <code>join_vars</code> are added to the additional dataset
+(<code>dataset_add</code>).
+</p>
+</li>
+<li>
+<p> The records from the additional dataset (<code>dataset_add</code>) are restricted to
+those matching the <code>filter_add</code> condition.
+</p>
+</li>
+<li>
+<p> The input dataset and the (restricted) additional dataset are left joined
+by the grouping variables (<code>by_vars</code>). If no grouping variables are
+specified, a full join is performed.
+</p>
+</li>
+<li>
+<p> The joined dataset is restricted by the <code>filter_join</code> condition.
+</p>
+</li>
+</ol>
+</div>

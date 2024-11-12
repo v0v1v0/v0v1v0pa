@@ -1,0 +1,299 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AdvDif4</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solving 1D Advection Bi-Flux Diffusion Equation</h2>
+
+<h3>Description</h3>
+
+<p>This software solves an Advection Bi-Flux Diffusive Problem using the Finite Difference Method FDM.
+A file with R commands can be consulted in document folder.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AdvDif4(parm,func)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>Parameters data. It must contain values for k2,k4,v,l,m,tf,n,w10,w11,w12,w20,w21,w22,e10,e11,e12,e20,e21,e20 needed to run the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>Functions definitions. It must contain the functions beta,dbetadp,fn,fs,fw1,fw2,fe1,fe2 needed to run the model.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The resulting matrix with results obtained for each time as rows and at each position as columns.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Begin of the first example
+#
+# 100th power sinusoidal function as initial condition and no source.
+# with advection, bi-blux (primary and secondary diffusion) and constant beta.
+#
+# Beta function
+fbeta &lt;- function(p)
+{f &lt;- 0.2
+return(f)}
+# Beta derivative function
+dbetadp &lt;- function(p)
+{f &lt;- 0
+return(f)}
+
+# Initial condition
+fn &lt;- function(x)
+{ f &lt;- sin(pi*x)^100
+return(f)}
+
+# velocity
+v &lt;- 0.2
+
+# Source function
+fs &lt;- function(x,t)
+{ f &lt;- 0
+ return(f)}
+
+# diffusion coefficients parameter
+k2 &lt;- 1e-3
+k4 &lt;- 1e-5
+
+# Space and temporal definition
+l &lt;- 1
+m &lt;- 100
+tf &lt;- 1
+n &lt;- 1000
+
+# Left boundary conditions
+w10 &lt;- 1
+w11 &lt;- 0
+w12 &lt;- 0
+w20 &lt;- 0
+w21 &lt;- 1
+w22 &lt;- 0
+fw1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fw2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+
+# Right boundary conditions
+e10 &lt;- 1
+e11 &lt;- 0
+e12 &lt;- 0
+e20 &lt;- 0
+e21 &lt;- 1
+e22 &lt;- 0
+fe1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fe2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+#
+parm &lt;- c(k2,k4,v,l,m,tf,n,w10,w11,w12,w20,w21,w22,e10,e11,e12,e20,e21,e22)
+func &lt;- c(fbeta=fbeta,dbetadp=dbetadp,fn=fn,fs=fs,fw1=fw1,fw2=fw2,fe1=fe1,fe2=fe2)
+#
+ad &lt;- AdvDif4(parm,func)
+eixo &lt;- seq(0,1,by=0.01)
+plot(eixo,ad[1,1:101],type='l',col="red",xaxt="n",xlab="X", ylab="p(x,t)")
+axis(1,seq(0,1,0.1),las=2)
+lines(eixo,ad[250,1:101],type='l',col="orange")
+lines(eixo,ad[500,1:101],type='l',col="green")
+lines(eixo,ad[750,1:101],type='l',col="blue")
+lines(eixo,ad[1000,1:101],type='l',col="black")
+#
+#
+# End of the first example
+#
+#
+# Begin of the second example
+# 100th power sinusoidal function as initial condition and no source.
+# with advection, bi-blux (primary and secondary diffusion) and sigmoid function beta.
+#
+# Beta function
+fbeta &lt;- function(p)
+{betamin &lt;- 0.2
+betamax &lt;- 1
+gama &lt;- 2500
+pin &lt;- 0.001
+f &lt;- betamax-(betamax-betamin)/(1+exp(-gama*(p-pin)))
+return(f)}
+# Beta derivative function
+dbetadp &lt;- function(p)
+{betamin &lt;- 0.2
+betamax &lt;- 1
+gama &lt;- 2500
+pin &lt;- 0.001
+f &lt;- (-gama*(betamax-betamin)*exp(-gama*(p-pin))/((1+exp(-gama*(p-pin)))^2))
+return(f)}
+
+# Initial condition
+fn &lt;- function(x)
+{ f &lt;- sin(pi*x)^100
+return(f)}
+
+# velocity
+v &lt;- 0.2
+
+# Source function
+fs &lt;- function(x,t)
+{ f &lt;- 0
+ return(f)}
+
+# diffusion coefficients parameter
+k2 &lt;- 1e-3
+k4 &lt;- 1e-5
+
+# Space and temporal definition
+l &lt;- 1
+m &lt;- 100
+tf &lt;- 1
+n &lt;- 1000
+
+# Left boundary conditions
+w10 &lt;- 1
+w11 &lt;- 0
+w12 &lt;- 0
+w20 &lt;- 0
+w21 &lt;- 1
+w22 &lt;- 0
+fw1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fw2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+
+# Right boundary conditions
+e10 &lt;- 1
+e11 &lt;- 0
+e12 &lt;- 0
+e20 &lt;- 0
+e21 &lt;- 1
+e22 &lt;- 0
+fe1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fe2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+#
+parm &lt;- c(k2,k4,v,l,m,tf,n,w10,w11,w12,w20,w21,w22,e10,e11,e12,e20,e21,e22)
+func &lt;- c(fbeta=fbeta,dbetadp=dbetadp,fn=fn,fs=fs,fw1=fw1,fw2=fw2,fe1=fe1,fe2=fe2)
+#
+ad &lt;- AdvDif4(parm,func)
+eixo &lt;- seq(0,1,by=0.01)
+plot(eixo,ad[1,1:101],type='l',col="red",xaxt="n",xlab="X", ylab="p(x,t)")
+axis(1,seq(0,1,0.1),las=2)
+lines(eixo,ad[250,1:101],type='l',col="orange")
+lines(eixo,ad[500,1:101],type='l',col="green")
+lines(eixo,ad[750,1:101],type='l',col="blue")
+lines(eixo,ad[1000,1:101],type='l',col="black")
+#
+# End of the second example
+#
+#
+# Begin of the third example
+# zero initial condition and a source.
+# with advection, bi-blux (primary and secondary diffusion) and constant beta.
+#
+# Beta function
+fbeta &lt;- function(p)
+{f &lt;- 0.2
+return(f)}
+# Beta derivative function
+dbetadp &lt;- function(p)
+{f &lt;- 0
+return(f)}
+
+# Initial condition
+fn &lt;- function(x)
+{ f &lt;- 0
+return(f)}
+
+# velocity
+v &lt;- 0.00
+
+# Source function
+fs &lt;- function(x,t)
+{ if(x&lt;=0.1){f &lt;- 1}
+ else{f &lt;- 0}
+return(f)}
+
+# diffusion coefficients parameter
+k2 &lt;- 1e-3
+k4 &lt;- 1e-5
+
+# Space and temporal definition
+l &lt;- 1
+m &lt;- 100
+tf &lt;- 1
+n &lt;- 1000
+
+# Left boundary conditions
+w10 &lt;- 0
+w11 &lt;- 1
+w12 &lt;- 0
+w20 &lt;- 0
+w21 &lt;- 0
+w22 &lt;- 1
+fw1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fw2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+
+# Right boundary conditions
+e10 &lt;- 0
+e11 &lt;- 1
+e12 &lt;- 0
+e20 &lt;- 0
+e21 &lt;- 0
+e22 &lt;- 1
+fe1 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+fe2 &lt;- function(t)
+{ f &lt;- 0
+ return(f)}
+#
+parm &lt;- c(k2,k4,v,l,m,tf,n,w10,w11,w12,w20,w21,w22,e10,e11,e12,e20,e21,e22)
+func &lt;- c(fbeta=fbeta,dbetadp=dbetadp,fn=fn,fs=fs,fw1=fw1,fw2=fw2,fe1=fe1,fe2=fe2)
+#
+ad &lt;- AdvDif4(parm,func)
+eixo &lt;- seq(0,1,by=0.01)
+plot(eixo,ad[1000,1:101],type='l',col="black",xaxt="n",xlab="X", ylab="p(x,t)")
+axis(1,seq(0,1,0.1),las=2)
+lines(eixo,ad[250,1:101],type='l',col="orange")
+lines(eixo,ad[500,1:101],type='l',col="green")
+lines(eixo,ad[750,1:101],type='l',col="blue")
+lines(eixo,ad[1,1:101],type='l',col="red")
+#
+# End of the third example
+#
+# It is easy to change k4 value in the previous example to observe its effect.
+# Another possibility is to change beta function and its derivative also.
+# There are more examples and also "News.md" inside "doc"" folder.
+#
+#
+</code></pre>
+
+
+</div>

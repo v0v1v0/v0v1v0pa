@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addBracket</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add Depth Brackets</h2>
+
+<h3>Description</h3>
+
+<p>Add depth brackets to soil profile sketches.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addBracket(
+  x,
+  label.cex = 0.75,
+  tick.length = 0.05,
+  arrow.length = 0.05,
+  offset = -0.3,
+  missing.bottom.depth = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>data.frame</code> object containing <code>idname(x)</code>, <code>top</code>, <code>bottom</code>, and optionally <code>label</code> columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label.cex</code></td>
+<td>
+<p>scaling factor for label font</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tick.length</code></td>
+<td>
+<p>length of bracket "tick" mark</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arrow.length</code></td>
+<td>
+<p>length of arrowhead</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>left-hand offset from each profile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing.bottom.depth</code></td>
+<td>
+<p>distance (in depth units) to extend brackets that are missing a lower depth (defaults to max depth of collection)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed on to <code>segments</code> or <code>arrows</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>x</code> may contain multiple records per profile. Additional examples can be found in <a href="http://ncss-tech.github.io/AQP/aqp/SPC-plotting-ideas.html">this tutorial</a>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This is a <code>low-level</code> plotting function: you must first plot a <code>SoilProfileCollection</code> object before using this function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>addDiagnosticBracket, plotSPC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# sample data
+data(sp1)
+
+# add color vector
+sp1$soil_color &lt;- with(sp1, munsell2rgb(hue, value, chroma))
+
+# promote to SoilProfileCollection
+depths(sp1) &lt;- id ~ top + bottom
+
+# plot profiles
+par(mar = c(0, 0, 0, 1))
+plotSPC(sp1, width = 0.3)
+
+# extract min--max depths associated with all A horizons
+# result is a single-row data.frame / profile
+combinedBracket &lt;- function(i) {
+  h &lt;- horizons(i)
+  idn &lt;- idname(i)
+  this.id &lt;- h[[idn]][1]
+  
+  idx &lt;- grep('^A', h$name)
+  
+  res &lt;- data.frame(
+    id = this.id,
+    top = min(h$top[idx]), 
+    bottom = max(h$bottom[idx], na.rm=TRUE)
+  )
+  names(res)[1] &lt;- idn
+  
+  return(res)
+}
+
+# return matching horizon top / bottom depths for A or C horizons
+# result is a 0 or more row data.frame / profile
+individualBrackets &lt;- function(i) {
+  h &lt;- horizons(i)
+  idn &lt;- idname(i)
+  this.id &lt;- h[[idn]][1]
+  
+  idx &lt;- grep('^A|^C', h$name)
+  
+  res &lt;- data.frame(
+    id = this.id,
+    top = h$top[idx], 
+    bottom = h$bottom[idx]
+  )
+  names(res)[1] &lt;- idn
+  
+  return(res)
+}
+
+# combined brackets
+b1 &lt;- profileApply(sp1, combinedBracket, frameify = TRUE)
+
+# individual brackets
+b2 &lt;- profileApply(sp1, individualBrackets, frameify = TRUE)
+
+# plot in reverse order
+plotSPC(sp1, plot.order = rev(1:length(sp1)), width = 0.25)
+
+# note that plotting order is derived from the call to `plotSPC(sp1)`
+addBracket(b1, col='red', offset = -0.35)
+
+# plot in reverse order
+plotSPC(sp1, plot.order = rev(1:length(sp1)), width = 0.25)
+
+# note that plotting order is derived from the call to `plotSPC(sp1)`
+addBracket(b2, col='red', offset = -0.35)
+
+
+</code></pre>
+
+
+</div>

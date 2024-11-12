@@ -1,0 +1,390 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arfima</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit ARFIMA, ARIMA-FGN, and ARIMA-PLA (multi-start) models
+Fits ARFIMA/ARIMA-FGN/ARIMA-PLA multi-start models to times series data.
+Options include fixing parameters, whether or not to fit fractional noise,
+what type of fractional noise (fractional Gaussian noise (FGN), fractionally
+differenced white noise (FDWN), or the newly introduced power-law
+autocovariance noise (PLA)), etc.  This function can fit regressions with
+ARFIMA/ARIMA-FGN/ARIMA-PLA errors via the xreg argument, including dynamic
+regression (transfer functions).</h2>
+
+<h3>Description</h3>
+
+<p>Fits by direct optimization using optim.  The optimizer choices are: 0 -
+BFGS; 1 - Nealder-Mead; 2 - SANN; otherwise CG.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arfima(
+  z,
+  order = c(0, 0, 0),
+  numeach = c(1, 1),
+  dmean = TRUE,
+  whichopt = 0,
+  itmean = FALSE,
+  fixed = list(phi = NA, theta = NA, frac = NA, seasonal = list(phi = NA, theta = NA,
+    frac = NA), reg = NA),
+  lmodel = c("d", "g", "h", "n"),
+  seasonal = list(order = c(0, 0, 0), period = NA, lmodel = c("d", "g", "h", "n"),
+    numeach = c(1, 1)),
+  useC = 3,
+  cpus = 1,
+  rand = FALSE,
+  numrand = NULL,
+  seed = NA,
+  eps3 = 0.01,
+  xreg = NULL,
+  reglist = list(regpar = NA, minn = -10, maxx = 10, numeach = 1),
+  check = F,
+  autoweed = TRUE,
+  weedeps = 0.01,
+  adapt = TRUE,
+  weedtype = c("A", "P", "B"),
+  weedp = 2,
+  quiet = FALSE,
+  startfit = NULL,
+  back = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>The data set (time series)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>The order of the ARIMA model to be fit: c(p, d, q).  We have
+that p is the number of AR parameters (phi), d is the amount of integer
+differencing, and q is the number of MA parameters (theta).  Note we use the
+Box-Jenkins convention for the MA parameters, in that they are the negative
+of <code>arima</code>: see "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numeach</code></td>
+<td>
+<p>The number of starts to fit for each parameter.  The first
+argument in the vector is the number of starts for each AR/MA parameter,
+while the second is the number of starts for the fractional parameter.  When
+this is set to 0, no fractional noise is fit.  Note that the number of
+starts in total is multiplicative: if we are fitting an ARFIMA(2, d, 2), and
+use the older number of starts (c(2, 2)), we will have 2^2 * 2 * 2^2 = 32
+starting values for the fits.  <strong>Note that the default has changed
+from c(2, 2) to c(1, 1) since package version 1.4-0</strong></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmean</code></td>
+<td>
+<p>Whether the mean should be fit dynamically with the optimizer.
+Note that the likelihood surface will change if this is TRUE, but this
+is usually not worrisome.
+See the referenced thesis for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>whichopt</code></td>
+<td>
+<p>Which optimizer to use in the optimization: see "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itmean</code></td>
+<td>
+<p>This option is under investigation, and will be set to FALSE
+automatically until it has been decided what to do.
+</p>
+<p>Whether the mean should be fit iteratively using the function
+<code>TrenchMean</code>.  Currently itmean, if set to TRUE, has higher
+priority that dmean: if both are TRUE, dmean will be set to FALSE, with a
+warning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>A list of parameters to be fixed.  If we are to fix certain
+elements of the AR process, for example, fixed$phi must have length equal to
+p.  Any numeric value will fix the parameter at that value; for example, if
+we are modelling an AR(2) process, and we wish to fix only the first
+autoregressive parameter to 0, we would have fixed = list(phi = c(0, NA)).
+NA corresponds to that parameter being allowed to change in the optimization
+process.  We can fix the fractional parameters, and unlike
+<code>arima</code>, can fix the seasonal parameters as well. Currently,
+fixing regression/transfer function parameters is disabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lmodel</code></td>
+<td>
+<p>The long memory model (noise type) to be used: "d" for FDWN,
+"g" for FGN, "h" for PLA, and "n" for none (i.e. ARMA short memory models).
+Default is "d".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal</code></td>
+<td>
+<p>The seasonal components of the model we wish to fit, with
+the same components as above.  The period must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useC</code></td>
+<td>
+<p>How much interfaced C code to use: an integer between 0 and 3.
+The value 3 is strongly recommended. See "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>The number of CPUs used to perform the multi-start fits.  A
+small number of fits and a high number of cpus (say both equal 4) with n not
+large can actually be slower than when cpus = 1.  The number of CPUs should
+not exceed the number of threads available to R.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rand</code></td>
+<td>
+<p>Whether random starts are used in the multistart method.
+Defaults to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numrand</code></td>
+<td>
+<p>The number of random starts to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The seed for the random starts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps3</code></td>
+<td>
+<p>How far to start from the boundaries when using a grid for the
+multi-starts (i.e. when rand is FALSE.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>A matrix, data frame, or vector of regressors for regression or
+transfer functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reglist</code></td>
+<td>
+<p>A list with the following elements:
+</p>
+
+<ul>
+<li>
+<p> regpar -
+either NA or a list, matrix, data frame, or vector with 3 columns.  If
+regpar is a vector, the matrix xreg must have one row or column only.  In
+order, the elements of regpar are: r, s, and b.  The values of r are the the
+orders of the delta parameters as in Box, Jenkins and Reinsel, the values of
+s are the orders of omega parameters, and the values of b are the
+backshifting to be done.
+</p>
+</li>
+<li>
+<p> minn - the minimum value for the starting value of the search, if
+reglist$numeach &gt; 1.
+</p>
+</li>
+<li>
+<p> maxx - the maximum value for the starting value
+of the search, if reglist$numeach &gt; 1.
+</p>
+</li>
+<li>
+<p> numeach - the number of starts
+to try for each regression parameter.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check</code></td>
+<td>
+<p>If TRUE, checks at each optim iteration whether the model is
+identifiable.  This makes the optimization much slower.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>autoweed</code></td>
+<td>
+<p>Whether to automatically (before the fit is returned) weed
+out modes found that are found that are close together (usually the same
+point.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weedeps</code></td>
+<td>
+<p>The maximum distance between modes that are close together
+for the mode with the lower log-likelihood to be weeded out.  If adapt is
+TRUE (default) this value changes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adapt</code></td>
+<td>
+<p>If TRUE, if dim is the dimensionality of the search, weedeps is
+changed to <code class="reqn">(1 + weedeps)^{dim} - 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weedtype</code></td>
+<td>
+<p>The type of weeding to be done.  See <code>weed</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weedp</code></td>
+<td>
+<p>The p in the p-norm to be used in the weeding.  p = 2 (default)
+is Euclidean distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>If TRUE, no auxiliary output is generated. The default (FALSE)
+has information of fits being proformed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startfit</code></td>
+<td>
+<p>Meant primarily for debugging (for now), allows starting places
+for the fitting process.  Overrides <code>numeach</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>back</code></td>
+<td>
+<p>Setting this to true will restore the defaults in numeach.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A word of warning: it is generally better to use the default, and only use
+Nelder-Mead to check for spurious modes.  SANN takes a long time (and may
+only find one mode), and CG may not be stable.
+</p>
+<p>If using Nelder-Mead, it must be stressed that Nelder-Mead can take out
+non-spurious modes or add spurious modes: we have checked visually where we
+could.  Therefore it is wise to use BFGS as the default and if there are
+modes close to the boundaries, check using Nelder-Mead.
+</p>
+<p>The moving average parameters are in the Box-Jenkins convention: they are
+the negative of the parameters given by <code>arima</code>.  That is, the
+model to be fit is, in the case of a non-seasonal ARIMA model, phi(B)
+(1-B)^d z[t] = theta(B) a[t], where phi(B) = 1 - phi(1) B - ... - phi(p) B^p
+and theta(B) = 1 - theta(1) B - ... - theta(q) B^q.
+</p>
+<p>For the useC parameter, a "0" means no C is used; a "1" means C is only used
+to compute the log-likelihood, but not the theoretical autocovariance
+function (tacvf); a "2" means that C is used to compute the tacvf and not
+the log-likelihood; and a "3" means C is used to compute everything.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "arfima".  In it, full information on the fit is
+given, though not printed under the print.arfima method.  The phis are the
+AR parameters, and the thetas are the MA parameters.  Residuals, regression
+residuals, etc., are all available, along with the parameter values and
+standard errors.  Note that the muHat returned in the arfima object is
+of the <strong>differenced</strong> series, if differencing is applied.
+</p>
+<p>Note that if multiple modes are found, they are listed in order of
+log-likelihood value.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>JQ (Justin) Veenstra
+</p>
+
+
+<h3>References</h3>
+
+<p>McLeod, A. I., Yu, H. and Krougly, Z. L. (2007) Algorithms for
+Linear Time Series Analysis: With R Package Journal of Statistical Software,
+Vol. 23, Issue 5
+</p>
+<p>Veenstra, J.Q. Persistence and Antipersistence:  Theory and
+Software (PhD Thesis)
+</p>
+<p>P. Borwein (1995) An efficient algorithm for Riemann Zeta function Canadian
+Math. Soc. Conf. Proc., 27, pp. 29-34.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arfima.sim</code>, <code>SeriesJ</code>,
+<code>arfima-package</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+set.seed(8564)
+sim &lt;- arfima.sim(1000, model = list(phi = c(0.2, 0.1),
+dfrac = 0.4, theta = 0.9))
+fit &lt;- arfima(sim, order = c(2, 0, 1), back=TRUE)
+
+fit
+
+data(tmpyr)
+
+fit &lt;- arfima(tmpyr, order = c(1, 0, 1), numeach = c(3, 3))
+fit
+
+plot(tacvf(fit), maxlag = 30, tacf = TRUE)
+
+data(SeriesJ)
+attach(SeriesJ)
+
+fitTF &lt;- arfima(YJ, order= c(2, 0, 0), xreg = XJ, reglist =
+list(regpar = c(2, 2, 3)), lmodel = "n")
+fitTF
+
+detach(SeriesJ)
+
+
+</code></pre>
+
+
+</div>

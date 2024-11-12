@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_crpr_dataset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get CR Records Followed by PR That Lead to a Prior Error</h2>
+
+<h3>Description</h3>
+
+<p>Get CR Records Followed by PR That Lead to a Prior Error
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_crpr_dataset()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>Some <code>{admiralonco}</code> functions check that in the source records CR is not
+followed by PR and throw an error otherwise. The <code>get_crpr_dataset()</code>
+function allows one to retrieve the duplicate records that lead to an error.
+</p>
+<p>Note that the function always returns the dataset of duplicates from the last
+error that has been thrown in the current R session. Thus, after restarting
+the R sessions <code>get_crpr_dataset()</code> will return <code>NULL</code> and after a second
+error has been thrown, the dataset of the first error can no longer be
+accessed (unless it has been saved in a variable).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> or <code>NULL</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stefan Bundfuss
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>signal_crpr()</code>
+</p>
+<p>Utilities for Dataset Checking: 
+<code>signal_crpr()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr)
+library(lubridate)
+library(admiralonco)
+library(rlang)
+
+adrs &lt;- tribble(
+  ~USUBJID, ~ADTC,        ~AVALC,
+  "1",      "2020-01-01", "PR",
+  "1",      "2020-02-01", "CR",
+  "1",      "2020-02-16", "NE",
+  "1",      "2020-03-01", "CR",
+  "2",      "2020-02-06", "PR",
+  "2",      "2020-02-16", "CR",
+  "2",      "2020-03-30", "PR",
+) %&gt;%
+  mutate(
+    ADT = ymd(ADTC),
+    STUDYID = "XX1234"
+  )
+
+signal_crpr(adrs, order = exprs(ADT))
+
+get_crpr_dataset()
+</code></pre>
+
+
+</div>

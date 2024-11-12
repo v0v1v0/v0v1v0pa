@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frag.edges.weighting</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weighting the edges of a fragmentation graph</h2>
+
+<h3>Description</h3>
+
+<p>Weighting of the edges of an archeofrag fragmentation graph.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frag.edges.weighting(graph, layer.attr, morphometry, x, y, z)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p>An undirected <code>igraph</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer.attr</code></td>
+<td>
+<p>Character. The name of the vertex attribute with the layer of the fragments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>morphometry</code></td>
+<td>
+<p>Character. Optional, the name of the vertex attribute with the morphometric value of the fragments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Character. Optional, the name of the vertex attribute with the "x" coordinate of the fragments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Character. Optional, the name of the vertex attribute with the "y" coordinate of the fragments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>Character. Optional, the name of the vertex attribute with the "z" coordinate of the fragments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the framework of the TSAR method, this function weights the edges of a fragmentation graph, before computing the cohesion and admixture values.
+The weights are computed from the topological properties  of the connection network and can be modified using  the morphometric properties of the fragments and/or the spatial distance between them. In summary, three different parameters can be used:
+</p>
+<p>1. topology, the basic weighting method;
+2. morphometry, the length, length by width, surface, volume, etc.
+3. spatial distance, expressed using the metric (or other) system, or an ad hoc relative system.
+</p>
+<p>The function must be applied to a fragmentation graph with two layers.
+Internal connection relationships (within a layer) and external relationships (between the two layers) are distinguished, and their respective edge weights are computed in different ways.
+Three subgraphs are first generated, one for each layer and only one for the external relations.
+</p>
+<p>The weight of an intra-layer edge (E) is equal to the sum of the degrees (d) of the vertices (i and j) it connects: 
+</p>
+<p style="text-align: center;"><code class="reqn">W_{intra(E_{ij})} = d_i + d_j</code>
+</p>
+
+<p>For an inter-layer edge, the same calculation is made but with a modifier to account for the balance of information available for each layer:  
+</p>
+<p style="text-align: center;"><code class="reqn">W(E_inter{ij}) = (d_i + d_j) \times \left(3 - \frac{2}{ 1 + (tr_i + tr_j)/2}\right) \times \left(1 - \frac{1}{\sqrt{(V_{sub} + E_{sub}) }}\right)^2</code>
+</p>
+
+<p>with <code>trans_i</code> and <code>trans_i</code> the local transitivity of the vertices i and j, and <code>sqrt(V_sub + E_sub)</code> the square root of the sum of the vertices count and edge count of the sub-graph.
+</p>
+<p>If the <code>morphometry</code> and/or coordinates (<code>x</code>, <code>y</code>, <code>z</code>) parameters are provided, the previous formula is modified using a factor which is computed as:
+</p>
+<p style="text-align: center;"><code class="reqn">f(E_{ij}) =  1 - \left(\sqrt{  \frac{size_i + size_j}{max(sizes)} \times \sqrt{\frac{\frac{size_i}{size_j}}{max(prop)}} \times \frac{distance_{ij}}{max(distances)}}\ \right) </code>
+</p>
+
+<p>with <code>size_i</code> the morphometric value of the smaller fragment, <code>max(sizes)</code> the maximum sum of morphometric values observed for the pairs of connected fragments in the dataset under study; <code>max(prop)</code> the maximum proportion between the size values of connected fragments observed in the dataset under study; distance ij the spatial distance between fragments i and j; <code>max(distances)</code> the maximum euclidean distance observed for the pairs of connected fragments in the dataset under study.
+Results of the morphometric-spatial factor range in ]0,1].
+</p>
+<p>Error messages are displayed if the vertex "layer" attribute has more than two layers, and a warning is displayed if one or more of the values for the x, y, z parameters do not exist in the input graph.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The graph, with an additional "weight" edge attribute and, if the distance has been computed, a "distance" edge attribute.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sebastien Plutniak &lt;sebastien.plutniak at posteo.net&gt;</p>
+
+
+<h3>See Also</h3>
+
+<p><code>transitivity</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">g &lt;- frag.simul.process(n.components=20, vertices=50, disturbance=.15)
+frag.edges.weighting(g , "layer")
+# with morphometric and spatial parameters:
+library(igraph)
+V(g)$morpho &lt;- sample(1:20, 50, replace=TRUE)
+V(g)$x &lt;- sample(1:100, 50, replace=TRUE)
+V(g)$y &lt;- sample(1:100, 50, replace=TRUE)
+V(g)$z &lt;- sample(1:100, 50, replace=TRUE)
+frag.edges.weighting(g, "layer", "morpho", "x", "y", "z")
+</code></pre>
+
+
+</div>

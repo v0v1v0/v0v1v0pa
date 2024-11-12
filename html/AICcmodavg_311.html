@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extractCN</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute Condition Number
+</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the condition number for models of
+<code>unmarkedFit</code> classes as the ratio of the largest eigenvalue of the
+Hessian matrix to the smallest eigenvalue of the Hessian matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extractCN(mod, method = "svd", ...)
+
+## S3 method for class 'unmarkedFit'
+extractCN(mod, method = "svd", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+
+<p>a model of one the <code>unmarkedFit</code> classes for which a condition
+number is requested.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>specifies the method used to extract the singular values or
+eigenvalues from the Hessian matrix using singular value decomposition
+(<code>method = "svd"</code>) or eigenvalue decomposition
+(<code>method = "eigen"</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The condition number (<code class="reqn">\kappa</code>) is a measure of the transfer of
+error to the solution in response to small changes in the input (Cheney
+and Kincaid 2008).  In this implementation, the condition number is
+computed on the Hessian matrix of models of <code>unmarkedFit</code> classes
+from the <code>optim</code> results stored in the model object.  The condition
+number is defined as the ratio of the largest to the smallest
+non-negative singular values of a given matrix (Cline et al. 1979, Dixon
+1983).  In the special case of positive semi-definite matrices, the
+singular values are equal to the eigenvalues (Ruhe 1975). 
+</p>
+<p>Large values of the condition number may indicate problems in estimating
+parameters or their variance (ill-conditioning), possibly due to a model
+having too many parameters for the given data set.  Cheney and Ward
+(2008) suggest using the <code class="reqn">\log_{10}(\kappa)</code> of the condition number as
+a crude estimate of the number of digits of precision lost.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>extractCN</code> returns a list of class <code>extractCN</code> with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>CN</code></td>
+<td>
+<p>the condition number (<code class="reqn">\kappa</code>) of the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log10</code></td>
+<td>
+<p>the log base 10 of the condition number.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method used to extract the singular values or eigenvalues.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Cheney, W., Kincaid, D. (2008) <em>Numerical mathematics and
+computing</em>. Sixth edition. Thomson Brooks/Cole: Belmont.
+</p>
+<p>Cline, A. K., Moler, C. B., Stewart, G. W., Wilkinson, J. H. (1979) An
+estimate for the condition number of a matrix. <em>SIAM Journal on
+Numerical Analysis</em> <b>16</b>, 368–375.
+</p>
+<p>Dixon, J. D. (1983) Estimating extremal eigenvalues and condition
+numbers of matrices. <em>SIAM Journal on Numerical Analysis</em>
+<b>20</b>, 812–814. 
+</p>
+<p>Ruhe, A. (1975) On the closeness of eigenvalues and singular values for
+almost normal matrices. <em>Linear Algebra and its Applications</em>
+<b>11</b>, 87–94. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>c_hat</code>, <code>mb.gof.test</code>,
+<code>Nmix.gof.test</code>, <code>parboot</code>,
+<code>kappa</code>, <code>rcond</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##N-mixture model example modified from ?pcount
+## Not run: 
+require(unmarked)
+##single season
+data(mallard)
+mallardUMF &lt;- unmarkedFramePCount(mallard.y, siteCovs = mallard.site,
+                                  obsCovs = mallard.obs)
+##run model
+fm.mallard &lt;- pcount(~ ivel+ date + I(date^2) ~ length + elev + forest,
+                     mallardUMF, K=30)
+
+##compute condition number
+extractCN(fm.mallard)
+
+##compare against 'kappa'
+kappa(fm.mallard@opt$hessian, exact = TRUE)
+detach(package:unmarked)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

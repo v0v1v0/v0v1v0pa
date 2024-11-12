@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>qtlRaster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Sample assignment using thresholds
+</h2>
+
+<h3>Description</h3>
+
+<p>Selects the grid cells of probability density rasters with the highest probability and returns rasters with these cell values set to 1. Cells are selected based on the user-specified quantile threshold so that the most-probable cells representing a given fraction of the assignment area or posterior probability are returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">qtlRaster(pdR, threshold, thresholdType = "area", genplot = TRUE, outDir = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pdR</code></td>
+<td>
+
+<p>SpatRaster. Probability density maps for individual samples, e.g., as output by <code>pdRaster</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>numeric from 0 to 1. Quantile to be selected. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholdType</code></td>
+<td>
+
+<p>character. Either “area” (default) or “prob”. If “area”, the most probable cells constituting <code>threshold</code> percent of the assignment area are selected. If “prob”, the most probable cells constituting <code>threshold</code> percent of the posterior probability are selected.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+
+<p>logical.Plot results in R.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outDir</code></td>
+<td>
+
+<p>character string. Directory path to which output will be saved. If NULL no files are written.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>SpatRaster including a binary assignment surface for each individual in <code>pdR</code>. If <code>outDir</code> is not NULL, writes individual rasters in GeoTIFF format and a single PDF file with images for each raster to the designated directory.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(terra)
+
+# load hydrogen isotope data for human hair in North America
+d = subOrigData(group = "Modern human", mask = naMap, genplot = FALSE)
+
+# rescale from environmental isoscape to tissue isoscape
+r = calRaster(d, d2h_lrNA, naMap, genplot = FALSE)
+
+# four unknown-origin examples
+id = c("A", "B", "C", "D")
+d2H = c(-110, -90, -105, -102)
+un = data.frame(id, d2H)
+
+# posterior probabilities
+pp = pdRaster(r, un, mask = naMap, genplot = FALSE)
+
+# assign to most probable 10 percent of area
+## Not run: qtlRaster(pp, threshold = 0.1)
+
+# assign to most probable 10 percent of proabability distribution
+qtlRaster(pp, threshold = 0.1, thresholdType = "prob")
+</code></pre>
+
+
+</div>

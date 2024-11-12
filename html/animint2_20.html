@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>animint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an animint</h2>
+
+<h3>Description</h3>
+
+<p>Create an animated, interactive data visualization. The easiest
+way to get started is by reading the Animint2 Manual,
+https://rcdata.nau.edu/genomic-ml/animint2-manual/Ch02-ggplot2.html
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">animint(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ggplots and options</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>This function creates a list with the items in ... and
+attaches the animint class. It also provides default names for
+un-named ggplots. The list should contain ggplots and
+options. Each geom can be made interactive by using the 
+showSelected and clickSelects parameters; each should be a
+character vector of selection variable names. For example
+geom_line(clickSelects="country") means that clicking the line
+changes the value of the "country" selection variable;
+geom_point(showSelected="year") means to only show the subset of
+data for the currently selected year.
+</p>
+
+
+<h3>Value</h3>
+
+<p>list of class animint
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require('data.table'))setDTthreads(1)#for CRAN.
+library(animint2)
+data(WorldBank, package="animint2")
+years &lt;- unique(WorldBank[, "year", drop=FALSE])
+y1960 &lt;- subset(WorldBank, year==1960)
+animint(
+  title="Linked scatterplot and time series", #web page title.
+  time=list(variable="year",ms=3000), #variable and time delay used for animation.
+  duration=list(year=1000), #smooth transition duration in milliseconds.
+  selector.types=list(country="multiple"), #single/multiple selection for each variable.
+  first=list( #selected values to show when viz is first rendered.
+    country=c("Canada", "Japan"),
+    year=1970),
+  ## ggplots are rendered together for an interactive data viz.
+  ts=ggplot()+
+    theme_animint(width=500)+
+    make_tallrect(WorldBank, "year")+
+    geom_text(aes(
+      year, life.expectancy, label=country),
+      showSelected="country",
+      clickSelects="country",
+      hjust=1,
+      data=y1960)+
+    scale_x_continuous(limits=c(1950, NA))+
+    geom_line(aes(
+      year, life.expectancy, group=country, color=region),
+      clickSelects="country",
+      data=WorldBank,
+      size=4,
+      alpha=0.55),
+  scatter=ggplot()+
+    geom_point(aes(
+      fertility.rate, life.expectancy,
+      key=country, colour=region, size=population),
+      showSelected="year",
+      clickSelects="country",
+      data=WorldBank)+
+    geom_text(aes(
+      fertility.rate, life.expectancy,
+      key=country,
+      label=country),
+      showSelected=c("country", "year"),
+      data=WorldBank)+
+    geom_text(aes(
+      5, 80, key=1, label=paste("year =", year)),
+      showSelected="year",
+      data=years)+
+    scale_size_animint(pixel.range=c(2,20), breaks=10^(4:9)))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,354 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ARtCensReg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Censored autoregressive regression model with Student-t innovations
+</h2>
+
+<h3>Description</h3>
+
+<p>It fits a univariate left, right, or interval censored linear regression model 
+with autoregressive errors considering Student-t innovations, through the SAEM algorithm. 
+It provides estimates and standard errors of the parameters, supporting missing 
+values on the dependent variable. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ARtCensReg(cc, lcl = NULL, ucl = NULL, y, x, p = 1, M = 10,
+  perc = 0.25, MaxIter = 400, pc = 0.18, nufix = NULL, tol = 1e-04,
+  show_se = TRUE, quiet = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cc</code></td>
+<td>
+<p>Vector of censoring indicators of length <code class="reqn">n</code>, where <code class="reqn">n</code> is the 
+total observations. For each observation: 0 if non-censored, 1 if censored/missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lcl, ucl</code></td>
+<td>
+<p>Vectors of length <code class="reqn">n</code> that represent the lower and upper bounds 
+of the interval, which contains the observade value of the censored observation. 
+Default=<code>NULL</code>, indicating no-censored data. See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Vector of responses of length <code class="reqn">n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix of covariates of dimension <code class="reqn">n \times l</code>, where <code class="reqn">l</code> is the 
+number of fixed effects including the intercept, if considered (in models which 
+include an intercept, <code>x</code> should contain a column of ones).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Order of the autoregressive process. It must be a positive integer value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Size of the Monte Carlo sample generated in each step of the SAEM algorithm.
+Default=10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perc</code></td>
+<td>
+<p>Percentage of burn-in on the Monte Carlo sample. Default=0.25.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MaxIter</code></td>
+<td>
+<p>The maximum number of iterations of the SAEM algorithm. Default=400.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc</code></td>
+<td>
+<p>Percentage of initial iterations of the SAEM algorithm with no memory. It is recommended that 
+<code>50&lt;MaxIter*pc&lt;100</code>. Default=0.18.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nufix</code></td>
+<td>
+<p>If the degrees of freedom (<code class="reqn">\nu</code>) are unknown, <code>nufix</code> 
+should be equal to <code>NULL</code>; otherwise, it must be a number greater than 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The convergence maximum error permitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_se</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>. Indicates if the standard errors should be 
+estimated. Default=<code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p><code>TRUE</code> or <code>FALSE</code>. Indicates if printing information should be 
+suppressed. Default=<code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The linear regression model with autocorrelated errors, defined as a discrete-time autoregressive (AR) process of order <code class="reqn">p</code>, at time <code class="reqn">t</code> is given by
+</p>
+<p><code class="reqn">Y_t = x_t^T \beta + \xi_t,</code>
+</p>
+<p><code class="reqn">\xi_t = \phi_1 \xi_{t-1} + ... + \phi_p \xi_{t-p} + \eta_t, t=1,..., n,</code>
+</p>
+<p>where <code class="reqn">Y_t</code> is the response variable, <code class="reqn">\beta = (\beta_1,..., \beta_l)^T</code> is 
+a vector of regression parameters of dimension <code class="reqn">l</code>, <code class="reqn">x_t = (x_{t1},..., x_{tl})^T</code> 
+is a vector of non-stochastic regressor variables values, and <code class="reqn">\xi_t</code> is the AR 
+error with <code class="reqn">\eta_t</code> being a shock of disturbance following the Student-t distribution 
+with <code class="reqn">\nu</code> degrees of freedom, <code class="reqn">\phi = (\phi_1,..., \phi_p)^T</code> being the vector of AR 
+coefficients, and <code class="reqn">n</code> denoting the sample size. 
+</p>
+<p>It is assumed that <code class="reqn">Y_t</code> is not fully observed for all <code class="reqn">t</code>. 
+For left censored observations, we have <code>lcl=-Inf</code> and <code>ucl=</code><code class="reqn">V_t</code>, 
+such that the true value <code class="reqn">Y_t \leq V_t</code>. For right censoring, <code>lcl=</code><code class="reqn">V_t</code> 
+and <code>ucl=Inf</code>, such that <code class="reqn">Y_t \geq V_t</code>. For interval censoring, <code>lcl</code> and <code>ucl</code> must be finite values, such that <code class="reqn">V_{1t} \leq Y_t \leq V_{2t}</code>. Missing data can be defined by setting <code>lcl=-Inf</code> and <code>ucl=Inf</code>.
+</p>
+<p>The initial values are obtained by ignoring censoring and applying maximum likelihood 
+estimation with the censored data replaced by their censoring limits. Moreover, 
+just set <code>cc</code> as a vector of zeros to fit a regression model with autoregressive 
+errors for non-censored data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "ARtpCRM" representing the AR(p) censored regression Student-t fit. Generic functions such as print and summary have methods to show the results of the fit. The function plot provides convergence graphics for the parameter estimates.
+</p>
+<p>Specifically, the following components are returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Estimate of the regression parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>Estimated scale parameter of the innovation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>Estimate of the autoregressive parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>Estimated degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>Vector of parameters estimate (<code class="reqn">\beta, \sigma^2, \phi, \nu</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SE</code></td>
+<td>
+<p>Vector of the standard errors of (<code class="reqn">\beta, \sigma^2, \phi, \nu</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yest</code></td>
+<td>
+<p>Augmented response variable based on the fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uest</code></td>
+<td>
+<p>Final estimated weight variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix of covariates of dimension <code class="reqn">n \times l</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of iterations until convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criteria</code></td>
+<td>
+<p>Attained criteria value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The <code>ARtCensReg</code> call that produced the object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p>Table of estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens</code></td>
+<td>
+<p>"left", "right", or "interval" for left, right, or interval censoring, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmiss</code></td>
+<td>
+<p>Number of missing observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncens</code></td>
+<td>
+<p>Number of censored observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converge</code></td>
+<td>
+<p>Logical indicating convergence of the estimation algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MaxIter</code></td>
+<td>
+<p>The maximum number of iterations used for the SAEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Size of the Monte Carlo sample generated in each step of the SAEM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc</code></td>
+<td>
+<p>Percentage of initial iterations of the SAEM algorithm with no memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Time elapsed in processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A list containing convergence information.</p>
+</td>
+</tr>
+</table>
+<h3>Warning </h3>
+
+<p>This algorithm assumes that the first <code class="reqn">p</code> values in the response vector are completely observed.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Katherine L. Valeriano, Fernanda L. Schumacher, and Larissa A. Matos
+</p>
+
+
+<h3>References</h3>
+
+<p>Delyon B, Lavielle M, Moulines E (1999).
+“Convergence of a stochastic approximation version of the EM algorithm.”
+<em>Annals of statistics</em>, 94–128.
+</p>
+<p>Valeriano KL, Schumacher FL, Galarza CE, Matos LA (2021).
+“Censored autoregressive regression models with Student-<code class="reqn"> t </code> innovations.”
+<em>arXiv preprint arXiv:2110.00224</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arima</code>, <code>ARCensReg</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: (p = l = 1)
+# Generating a sample
+set.seed(1234)
+n = 80
+x = rep(1, n)
+dat = rARCens(n=n, beta=2, phi=.6, sig2=.3, x=x, cens='right', pcens=.05, 
+              innov='t', nu=4)
+
+# Fitting the model (quick convergence)
+fit0 = ARtCensReg(dat$data$cc, dat$data$lcl, dat$data$ucl, dat$data$y, x,
+                 M=5, pc=.12, tol=0.001)
+fit0
+
+## Example 2: (p = l = 2)
+# Generating a sample
+set.seed(783796)
+n = 200
+x = cbind(1, runif(n))
+dat = rARCens(n=n, beta=c(2,1), phi=c(.48,-.2), sig2=.5, x=x, cens='left',
+              pcens=.05, innov='t', nu=5)
+  
+# Fitting the model with nu known
+fit1 = ARtCensReg(dat$data$cc, dat$data$lcl, dat$data$ucl, dat$data$y, x,
+                  p=2, M=15, pc=.20, nufix=5)
+summary(fit1)
+plot(fit1)
+
+# Fitting the model with nu unknown
+fit2 = ARtCensReg(dat$data$cc, dat$data$lcl, dat$data$ucl, dat$data$y, x,
+                 p=2, M=15, pc=.20)
+summary(fit2)
+plot(fit2)
+</code></pre>
+
+
+</div>

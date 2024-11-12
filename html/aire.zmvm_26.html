@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>idw360</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inverse Distance Weighting with Directional Data</h2>
+
+<h3>Description</h3>
+
+<p>Function for inverse distance weighted interpolation with directional data.
+Useful for when you are working with data whose unit of measurement is
+degrees (i.e. the average of 35 degrees and 355 degrees should be 15
+degrees). It works by finding the shortest distance between two degree
+marks on a circle.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">idw360(values, coords, grid, idp = 2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>the dependent variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coords</code></td>
+<td>
+<p>the spatial data locations where the values were measured.
+First column x/longitude, second y/latitude</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>data frame or Spatial object with the locations to predict.
+First column x/longitude, second y/latitude</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idp</code></td>
+<td>
+<p>The inverse distance weighting power</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame with the interpolated values for each of the grid points
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library("sp")
+library("ggplot2")
+
+## Could be wind direction values in degrees
+values &lt;- c(55, 355)
+
+## Location of sensors. First column x/longitud, second y/latitude
+locations &lt;- data.frame(lon = c(1, 2), lat = c(1, 2))
+coordinates(locations) &lt;- ~lon+lat
+
+## The grid for which to extrapolate values
+grid &lt;- data.frame(lon = c(1, 2, 1, 2), lat = c(1, 2, 2, 1))
+coordinates(grid) &lt;- ~lon+lat
+
+## Perform the inverse distance weighted interpolation
+res &lt;- idw360(values, locations, grid)
+head(res)
+
+## Not run: 
+df &lt;- cbind(res, as.data.frame(grid))
+## The wind direction compass starts where the 90 degree mark is located
+ggplot(df, aes(lon, lat)) +
+  geom_point() +
+  geom_spoke(aes(angle = ((90 - pred) %% 360) * pi / 180),
+             radius = 1,
+             arrow=arrow(length = unit(0.2, "npc")))
+
+library("mapproj")
+## Random values in each of the measuring stations
+locations &lt;- stations[, c("lon", "lat")]
+coordinates(locations) &lt;- ~lon+lat
+crs_string &lt;- "+proj=longlat +ellps=WGS84 +no_defs +towgs84=0,0,0"
+proj4string(locations) &lt;- CRS(crs_string)
+values &lt;- runif(length(locations), 0, 360)
+pixels &lt;- 10
+grid &lt;- expand.grid(lon = seq((min(coordinates(locations)[, 1]) - .1),
+                              (max(coordinates(locations)[, 1]) + .1),
+                              length.out = pixels),
+                    lat = seq((min(coordinates(locations)[, 2]) - .1),
+                              (max(coordinates(locations)[, 2]) + .1),
+                              length.out = pixels))
+grid &lt;- SpatialPoints(grid)
+proj4string(grid) &lt;- CRS(crs_string)
+## bind the extrapolated values for plotting
+df &lt;- cbind(idw360(values, locations, grid), as.data.frame(grid))
+ggplot(df, aes(lon, lat)) +
+  geom_point(size = .1) +
+  geom_spoke(aes(angle = ((90 - pred) %% 360) * pi / 180),
+             radius = .07,
+             arrow=arrow(length = unit(0.2,"cm"))) +
+  coord_map()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

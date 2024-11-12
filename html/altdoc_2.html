@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>render_docs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update documentation</h2>
+
+<h3>Description</h3>
+
+<p>Render and update the function reference manual, vignettes, README, NEWS, CHANGELOG, LICENSE,
+and CODE_OF_CONDUCT sections, if they exist. This function overwrites the
+content of the 'docs/' folder. See details below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">render_docs(path = ".", verbose = FALSE, parallel = FALSE, freeze = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Path to the package root directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical. Print Rmarkdown or Quarto rendering output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical. Render man pages and vignettes in parallel using the <code>future</code> framework. In addition to setting this argument to TRUE, users must define the parallelism plan in <code>future</code>. See the examples section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freeze</code></td>
+<td>
+<p>Logical. If TRUE and a man page or vignette has not changed since the last call to <code>render_docs()</code>, that file is skipped. File hashes are stored in <code>altdoc/freeze.rds</code>. If that file is deleted, all man pages and vignettes will be rendered anew.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments are ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function searches the root directory and the <code style="white-space: pre;">⁠inst/⁠</code> directory for specific filenames, renders/converts/copies them to the <code style="white-space: pre;">⁠docs/⁠</code> directory. The order of priority for each file is established as follows:
+</p>
+
+<ul>
+<li> <p><code>docs/README.md</code>
+</p>
+
+<ul><li>
+<p> README.md, README.qmd, README.Rmd
+</p>
+</li></ul>
+</li>
+<li> <p><code>docs/NEWS.md</code>
+</p>
+
+<ul>
+<li>
+<p> NEWS.md, NEWS.txt, NEWS, NEWS.Rd
+</p>
+</li>
+<li>
+<p> Note: Where possible, Github contributors and issues are linked automatically.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>docs/CHANGELOG.md</code>
+</p>
+
+<ul><li>
+<p> CHANGELOG.md, CHANGELOG.txt, CHANGELOG
+</p>
+</li></ul>
+</li>
+<li> <p><code>docs/CODE_OF_CONDUCT.md</code>
+</p>
+
+<ul><li>
+<p> CODE_OF_CONDUCT.md, CODE_OF_CONDUCT.txt, CODE_OF_CONDUCT
+</p>
+</li></ul>
+</li>
+<li> <p><code>docs/LICENSE.md</code>
+</p>
+
+<ul><li>
+<p> LICENSE.md, LICENSE.txt, LICENSE
+</p>
+</li></ul>
+</li>
+<li> <p><code>docs/LICENCE.md</code>
+</p>
+
+<ul><li>
+<p> LICENCE.md, LICENCE.txt, LICENCE
+</p>
+</li></ul>
+</li>
+</ul>
+<h3>Altdoc variables</h3>
+
+<p>The settings files in the <code style="white-space: pre;">⁠altdoc/⁠</code> directory can include <code style="white-space: pre;">⁠$ALTDOC⁠</code> variables which are replaced automatically by <code>altdoc</code> when calling <code>render_docs()</code>:
+</p>
+
+<ul>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_PACKAGE_NAME⁠</code>: Name of the package from <code>DESCRIPTION</code>.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_PACKAGE_VERSION⁠</code>: Version number of the package from <code>DESCRIPTION</code>
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_PACKAGE_URL⁠</code>: First URL listed in the DESCRIPTION file of the package.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_PACKAGE_URL_GITHUB⁠</code>: First URL that contains "github.com" from the URLs listed in the DESCRIPTION file of the package. If no such URL is found, lines containing this variable are removed from the settings file.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_MAN_BLOCK⁠</code>: Nested list of links to the individual help pages for each exported function of the package. The format of this block depends on the documentation generator.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_VIGNETTE_BLOCK⁠</code>: Nested list of links to the vignettes. The format of this block depends on the documentation generator.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠$ALTDOC_VERSION⁠</code>: Version number of the altdoc package.
+</p>
+</li>
+</ul>
+<p>Also note that you can store images and static files in the <code style="white-space: pre;">⁠altdoc/⁠</code> directory. All the files in this folder are copied to <code style="white-space: pre;">⁠docs/⁠</code> and made available in the root of the website, so you can link to them easily.
+</p>
+
+
+<h3>Altdoc preambles</h3>
+
+<p>When you call <code>render_docs()</code>, <code>altdoc</code> will automatically paste the content of one of these three files to the top of a document:
+</p>
+
+<ul>
+<li> <p><code>altdoc/preamble_vignettes_qmd.yml</code>
+</p>
+</li>
+<li> <p><code>altdoc/preamble_vignettes_rmd.yml</code>
+</p>
+</li>
+<li> <p><code>altdoc/preamble_man_qmd.yml</code>
+</p>
+</li>
+</ul>
+<p>The README file uses the vignette preamble.
+</p>
+<p>To preempt this behavior, add your own preamble to the README file or to a vignette.
+</p>
+
+
+<h3>Freeze</h3>
+
+<p>When working on a package, running <code>render_docs()</code> to preview changes can be a time-consuming road block. The argument <code>freeze = TRUE</code> tries to improve the experience by preventing rerendering of files that have not changed since the last time <code>render_docs()</code> was ran. Note that changes to package internals will not cause a rerender, so rerendering the entire docs can still be necessary.
+</p>
+<p>For non-Quarto formats, this is done by creating a <code>freeze.rds</code> file in <code style="white-space: pre;">⁠altdoc/⁠</code> that is able to determine which documentation files have changed.
+</p>
+<p>For the Quarto format, we rely on the <a href="https://quarto.org/docs/projects/code-execution.html#freeze">Quarto freeze</a> feature. Freezing a document needs to be set either at a project or per-file level. Freezing a document needs to be set either at a project or per-file level. To do so, add to either <code>quarto_website.yml</code> or the frontmatter of a file:
+</p>
+<div class="sourceCode yml"><pre>execute:
+  freeze: auto
+</pre></div>
+
+
+<h3>Auto-link for Quarto websites</h3>
+
+<p>When the <code>code-link</code> format setting is <code>true</code> in <code>altdoc/quarto_website.yml</code> and the <code>downlit</code> package is installed, <code>altdoc</code> will use the <code>downlit</code> package to replace the function names on the package website by links to web-based package documentation. This works for base R libraries and any package published on CRAN.
+</p>
+<p>To allow internal links to functions documented by <code>altdoc</code>, we need to include links to correct URLs in the <code>altdoc/pkgdown.yml</code> file. By default, this file is populated with links to the first URL in the <code>DESCRIPTION</code>.
+</p>
+<p>Importantly, <code>downlit</code> requires the <code>pkgdown.yml</code> file to be live on the website to create links. This means that links will generally not be updated when making purely local changes. Also, links may not be updated the first time an <code>altdoc</code> website is published to the web.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (interactive()) {
+
+  render_docs()
+
+  # parallel rendering
+  library(future)
+  plan(multicore)
+  render_docs(parallel = TRUE)
+
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute.threshold.AROC.kernel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+AROC-based threshold values.
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates AROC-based threshold values using the nonparametric kernel-based method proposed by Rodriguez-Alvarez et al. (2011).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute.threshold.AROC.kernel(object, newcovariate, FPF = 0.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class <code>AROC</code> as produced by <code>AROC.kernel</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newcovariate</code></td>
+<td>
+<p>Numeric vector with the covariate values at which threshold values are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FPF</code></td>
+<td>
+<p>Numeric vector with the FPF at which to calculate the AROC-based threshold values. Atomic values are also valid.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimation of the covariate-adjusted ROC curve (AROC) using the nonparametric kernel-based method proposed by Rodriguez-Alvarez et al. (2011) involves the estimation of the conditional distribution function for the diagnostic test outcome in the healthy population
+</p>
+<p style="text-align: center;"><code class="reqn">F_{\bar{D}}(y|X_{\bar{D}}) = Pr\{Y_{\bar{D}} \leq y | X_{\bar{D}}\}.</code>
+</p>
+
+<p>This function makes use of this estimate in order to calculate AROC-based threshold values. In particular, for a covariate value <code class="reqn">x</code> and a FPF = t, the AROC-based threshold value is calculated as follows
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{c}_{\mathbf{x}} = \hat{F}^{-1}_{\bar{D}}(1-t|\mathbf{X}_{\bar{D}} = \mathbf{x}).</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A matrix with the computed AROC-based threshold values. The matrix has as many columns as different covariate values, and as many rows as different FPFs.</p>
+
+
+<h3>References</h3>
+
+<p>Hayfield, T., and Racine, J. S.(2008). Nonparametric Econometrics: The np Package. Journal of Statistical Software 27(5). URL http://www.jstatsoft.org/v27/i05/.
+</p>
+<p>Inacio de Carvalho, V., and Rodriguez-Alvarez, M. X. (2018). Bayesian nonparametric inference for the covariate-adjusted ROC curve. arXiv preprint arXiv:1806.00473.
+</p>
+<p>Rodriguez-Alvarez, M. X., Roca-Pardinas, J., and Cadarso-Suarez, C. (2011). ROC curve and covariates: extending induced methodology to the non-parametric framework. Statistics and Computing, 21(4), 483 - 499.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AROC.kernel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AROC)
+data(psa)
+# Select the last measurement
+newpsa &lt;- psa[!duplicated(psa$id, fromLast = TRUE),]
+
+# Log-transform the biomarker
+newpsa$l_marker1 &lt;- log(newpsa$marker1)
+
+m2 &lt;- AROC.kernel(marker = "l_marker1", covariate = "age",
+group = "status", tag.healthy = 0, data = newpsa, 
+p = seq(0,1,l=101), B = 500)
+
+# Compute the threshold values
+cov.values &lt;- seq(52, 80, l = 50)
+FPF = c(0.1, 0.3)
+
+th_np &lt;- compute.threshold.AROC.kernel(m2, cov.values, FPF)
+
+
+</code></pre>
+
+
+</div>

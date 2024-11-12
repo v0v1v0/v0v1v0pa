@@ -1,0 +1,315 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calculate_ps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of the Main Parameters of the Pollen Season</h2>
+
+<h3>Description</h3>
+
+<p>Function to calculate the main parameters of the pollen season with regard to phenology and pollen intensity from a historical database of several pollen types. The function can use the most common methods in the definition of the pollen season.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calculate_ps(data, method = "percentage", th.day = 100, perc = 95,
+  def.season = "natural", reduction = FALSE, red.level = 0.9,
+  derivative = 5, man = 11, th.ma = 5, n.clinical = 5,
+  window.clinical = 7, window.grains = 5, th.pollen = 10,
+  th.sum = 100, type = "none", interpolation = TRUE,
+  int.method = "lineal", maxdays = 30, result = "table",
+  plot = TRUE, export.plot = FALSE, export.result = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> object including the general database where calculation of the pollen season must be applied. This <code>data.frame</code> must include a first column in <code>Date</code> format and the rest of columns in <code>numeric</code> format belonging to each pollen type by column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A <code>character</code> string specifying the method applied to calculate the pollen season and the main parameters. The implemented methods that can be used are: <code>"percentage"</code>, <code>"logistic"</code>, <code>"moving"</code>, <code>"clinical"</code> or <code>"grains"</code>. A more detailed information about the different methods for defining the pollen season may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th.day</code></td>
+<td>
+<p>A <code>numeric</code> value. The number of days whose pollen concentration is bigger than this threshold is calculated for each year and pollen type. This value will be obtained in the results of the function. The <code>th.day</code> argument will be <code>100</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perc</code></td>
+<td>
+<p>A <code>numeric</code> value ranging <code>0_100</code>. This argument is valid only for <code>method = "percentage"</code>. This value represents the percentage of the total annual pollen included in the pollen season, removing <code>(100_perc)/2%</code> of the total pollen before and after of the pollen season. The <code>perc</code> argument will be <code>95</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>def.season</code></td>
+<td>
+<p>A <code>character</code> string specifying the method for selecting the best annual period to calculate the pollen season. The pollen seasons may occur within the natural year between two years. The implemented options that can be used are: <code>"natural"</code>, <code>"interannual"</code> or <code>"peak"</code>. The <code>def.season</code> argument will be <code>"natural"</code> by default. A more detailed information about the different methods for selecting the best annual period to calculate the pollen season may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduction</code></td>
+<td>
+<p>A <code>logical</code> value. This argument is valid only for the <code>"logistic"</code> method. If <code>FALSE</code> the reduction of the pollen data is not applicable. If <code>TRUE</code> a reduction of the peaks above a certain level (<code>red.level</code> argument) will be carried out before the definition of the pollen season. The <code>reduction</code> argument will be <code>FALSE</code> by default. A more detailed information about the reduction process may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>red.level</code></td>
+<td>
+<p>A <code>numeric</code> value ranging <code>0_1</code> specifying the percentile used as level to reduce the peaks of the pollen series before the definition of the pollen season. This argument is valid only for the <code>"logistic"</code> method. The <code>red.level</code> argument will be <code>0.90</code> by default, specifying the percentile 90.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>derivative</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value belonging to options of <code>4</code>, <code>5</code> or <code>6</code> specifying the derivative that will be applied to calculate the asymptotes which determines the pollen season using the <code>"logistic"</code> method. This argument is valid only for the <code>"logistic"</code> method. The <code>derivative</code> argument will be <code>5</code> by default. More information may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>man</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the order of the moving average applied to calculate the pollen season using the <code>"moving"</code> method. This argument is valid only for the <code>"moving"</code> method. The <code>man</code> argument will be <code>11</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th.ma</code></td>
+<td>
+<p>A <code>numeric</code> value specifying the threshold used for the <code>"moving"</code> method for defining the beginning and the end of the pollen season. This argument is valid only for the <code>"moving"</code> method. The <code>th.ma</code> argument will be <code>5</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.clinical</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the number of days which must exceed a given threshold (<code>th.pollen</code> argument) for defining the beginning and the end of the pollen season. This argument is valid only for the <code>"clinical"</code> method. The <code>n.clinical</code> argument will be <code>5</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.clinical</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the time window during which the conditions must be evaluated for defining the beginning and the end of the pollen season using the <code>"clinical"</code> method. This argument is valid only for the <code>"clinical"</code> method. The <code>window.clinical</code> argument will be <code>7</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.grains</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the time window during which the conditions must be evaluated for defining the beginning and the end of the pollen season using the <code>"grains"</code> method. This argument is valid only for the <code>"grains"</code> method. The <code>window.grains</code> argument will be <code>5</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th.pollen</code></td>
+<td>
+<p>A <code>numeric</code> value specifying the threshold that must be exceeded during a given number of days (<code>n.clinical</code> or <code>window.grains</code> arguments) for defining the beginning and the end of the pollen season using the <code>"clinical"</code> or <code>"grains"</code> methods. This argument is valid only for the <code>"clinical"</code> or <code>"grains"</code> methods. The <code>th.pollen</code> argument will be <code>10</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th.sum</code></td>
+<td>
+<p>A <code>numeric</code> value specifying the pollen threshold that must be exceeded by the sum of daily pollen during a given number of days (<code>n.clinical</code> argument) exceeding a given daily threshold (<code>th.pollen</code> argument) for defining the beginning and the end of the pollen season using the <code>"clinical"</code> method. This argument is valid only for the <code>"clinical"</code> method. The <code>th.sum</code> argument will be <code>100</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A <code>character</code> string specifying the parameters considered according to a specific pollen type for calculating the pollen season using the <code>"clinical"</code> method. The implemented pollen types that may be used are: <code>"birch"</code>, <code>"grasses"</code>, <code>"cypress"</code>, <code>"olive"</code> or <code>"ragweed"</code>. As result for selecting any of these pollen types the parameters <code>n.clinical</code>, <code>window.clinical</code>, <code>th.pollen</code> and <code>th.sum</code> will be automatically adjusted for the <code>"clinical"</code> method. If no pollen types are specified (<code>type = "none"</code>), these parameters will be considered by the user. This argument is valid only for the <code>"clinical"</code> method. The <code>type</code> argument will be <code>"none"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+<p>A <code>logical</code> value. If <code>FALSE</code> the interpolation of the pollen data is not applicable. If <code>TRUE</code> an interpolation of the pollen series will be applied to complete the gaps with no data before the calculation of the pollen season. The <code>interpolation</code> argument will be <code>TRUE</code> by default. A more detailed information about the interpolation method may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int.method</code></td>
+<td>
+<p>A <code>character</code> string specifying the method selected to apply the interpolation method in order to complete the pollen series. The implemented methods that may be used are: <code>"lineal"</code>, <code>"movingmean"</code>, <code>"spline"</code> or <code>"tseries"</code>. The <code>int.method</code> argument will be <code>"lineal"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdays</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code> value) specifying the maximum number of consecutive days with missing data that the algorithm is going to interpolate. If the gap is bigger than the argument value, the gap will not be interpolated. Not valid with <code>int.method = "tseries"</code>. The <code>maxdays</code> argument will be <code>30</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result</code></td>
+<td>
+<p>A <code>character</code> string specifying the output for the function. The implemented outputs that may be obtained are: <code>"table"</code> and <code>"list"</code>. The argument <code>result</code> will be <code>"table"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A <code>logical</code> value specifying if a set of plots based on the definition of the pollen season will be shown in the plot history or not. If <code>FALSE</code> graphical results will not be shown. If <code>TRUE</code> a set of plots will be shown in the plot history. The <code>plot</code> argument will be <code>TRUE</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export.plot</code></td>
+<td>
+<p>A <code>logical</code> value specifying if a set of plots based on the definition of the pollen season will be saved in the workspace. If <code>TRUE</code> a <em>pdf</em> file for each pollen type showing graphically the definition of the pollen season for each studied year will be saved within the <em>plot_AeRobiology</em> directory created in the working directory. The <code>plot</code> argument will be <code>FALSE</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export.result</code></td>
+<td>
+<p>A <code>logical</code> value specifying if a excel file including all parameters for the definition of the pollen season saved in the working directoty will be required or not. If <code>FALSE</code> the results will not exported. If <code>TRUE</code> the results will be exported as <em>xlsx</em> file including all parameters calculated from the definition of the pollen season within the <em>table_AeRobiology</em> directory created in the working directory. The <code>export.result</code> argument will be <code>FALSE</code> by default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows to calculate the pollen season using five different methods which are described below. After calculating the start_date, end_date and peak_date for the pollen season all rest of parameters have been calculated as detailed in <strong>Value</strong> section.
+</p>
+
+<ul>
+<li> <p><code>"percentage"</code> method. This is a commonly used method for defining the pollen season based on the elimination of a certain percentage in the beginning and the end of the pollen season <em>(Nilsson and Persson, 1981; Andersen, 1991)</em>. For example if the pollen season is based on the 95% of the total annual pollen (<code>"perc" = 95</code>), the start_date of the pollen season is marked as the day in which 2.5% of the total pollen is registered and the end_date of the pollen season is marked as the day in which 97.5% of the total pollen is registered.
+</p>
+</li>
+<li> <p><code>"logistic"</code> method. This method was developed by <em>Ribeiro et al. (2007)</em> and modified by <em>Cunha et al. (2015)</em>. It is based on fitting annually a non_linear logistic regression model to the daily accumulated curve for each pollen type. This logistic function and the different derivatives were considered to calculate the start_date and end_date of the pollen season, based on the asymptotes when pollen amounts are stabilized on the beginning and the end of the accumulated curve. For more information about the method to see <em>Ribeiro et al. (2007)</em> and <em>Cunha et al. (2015)</em>. Three different derivatives may be used (<code>derivative</code> argument) <code>4</code>, <code>5</code> or <code>6</code> that represent from higher to lower restrictive criterion for defining the pollen season. This method may be complemented with an optional method for reduction the peaks values (<code>reduction = TRUE</code>), thus avoiding the effect of the great influence of extreme peaks. In this sense, peaks values will be cut below a certain level that the user may select based on a percentile analysis of peaks. For example, <code>red.level = 0.90</code> will cut all peaks above the percentile <code>90</code>.
+</p>
+</li>
+<li> <p><code>"moving"</code> method. This method is proposed the first time by the authors of this package. The definition of the pollen season is based on the application of a moving average to the pollen series in order to obtain the general seasonality of the pollen curve avoiding the great variability of the daily fluctuations. Thus, the start_date and the end_date will be established when the curve of the moving average reaches a given pollen threshold (<code>th.ma</code> argument). Also the order of the moving average may be customized by the user (<code>man</code> argument). By default, <code>man</code> = 11 and <code>th.ma</code> = 5.
+</p>
+</li>
+<li> <p><code>"clinical"</code> method. This method was proposed by <em>Pfaar et al. (2017)</em>. It is based on the expert consensus in relation to pollen exposure and the relationship with allergic symptoms derived of the literature. Different periods may be defined by this method: the pollen season, the high pollen season and the high pollen days. The start_date and end_date of the pollen season were defined as a certain number of days (<code>n.clinical</code> argument) within a time window period (<code>window.clinical</code> argument) exceeding a certain pollen threshold (<code>th.pollen</code> argument) which summation is above a certain pollen sum (<code>th.sum</code> argument). All these parameters are established for each pollen type according to <em>Pfaar et al. (2017)</em> and using the <code>type</code> argument these parameters may be automatically adjusted for the specific pollen types (<code>"birch"</code>, <code>"grasses"</code>, <code>"cypress"</code>, <code>"olive"</code> or <code>"ragweed"</code>). Furthermore, the user may change all parameters to do a customized definition of the pollen season. The start_date and end_date of the high pollen season were defined as three consecutive days exceeding a certain pollen threshold (<code>th.day</code> argument). The number of high pollen days will also be calculated exceeding this pollen threshold (<code>th.day</code>). For more information about the method to see <em>Pfaar et al. (2017)</em>.
+</p>
+</li>
+<li> <p><code>"grains"</code> method. This method was proposed by <em>Galan et al. (2001)</em> originally in olive pollen but after also applied in other pollen types. The start_date and end_date of the pollen season were defined as a certain number of days (<code>window.grains</code> argument) exceeding a certain pollen threshold (<code>th.pollen</code> argument). For more information about the method to see <em>Galan et al. (2001)</em>.
+</p>
+</li>
+</ul>
+<p>The pollen season of the species may occur during the natural year (Calendar year: from 1. January to 31. December) or the start_date and the end_date of the pollen season may happen in two different natural years (or calendar years). This consideration has been taken into account and in this package different method for defining the period for calculating the pollen season have been implemented. In this sense, the <code>def.season</code> argument has been incorporated in three options:
+</p>
+
+<ul>
+<li> <p><code>"natural"</code>: considering the pollination year as natural year from 1st January to 31th December for defining the start_dates and end_dates of the pollen season for each pollen types.
+</p>
+</li>
+<li> <p><code>"interannual"</code>: considering the pollination year from 1st June to 31th May for defining the start_dates and end_dates of the pollen season for each pollen types.
+</p>
+</li>
+<li> <p><code>"peak"</code>: considering a customized pollination year for each pollen types calculated as 6 previous months and 6 later months from the average peak_date.
+</p>
+</li>
+</ul>
+<p>Pollen time series frequently have different gaps with no data and this fact could be a problem for the calculation of specific methods for defining the pollen season even providing incorrect results. In this sense by default a linear interpolation will be carried out to complete these gaps before to define the pollen season (<code>interpolation = TRUE</code>). Additionally, the users may select other interpolation methods using the <code>int.method</code> argument, as <code>"lineal"</code>, <code>"movingmean"</code>, <code>"spline"</code> or <code>"tseries"</code>. For more information to see the <code>interpollen</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns different results:<br><code>data.frame</code> when <code>result = "table"</code> including the main parameters of the pollen season with regard to phenology and pollen intensity as:
+</p>
+
+<ul>
+<li> <p><strong>type</strong>: pollen type
+</p>
+</li>
+<li> <p><strong>seasons</strong>: year of the beginning of the season
+</p>
+</li>
+<li> <p><strong>st.dt</strong>: start_date (date)
+</p>
+</li>
+<li> <p><strong>st.jd</strong>: start_date (day of the year)
+</p>
+</li>
+<li> <p><strong>en.dt</strong>: end_date (date)
+</p>
+</li>
+<li> <p><strong>en.jd</strong>: end_date (day of the year)
+</p>
+</li>
+<li> <p><strong>ln.ps</strong>: length of the season
+</p>
+</li>
+<li> <p><strong>sm.tt</strong>: total sum
+</p>
+</li>
+<li> <p><strong>sm.ps</strong>: pollen integral
+</p>
+</li>
+<li> <p><strong>pk.val</strong>: peak value
+</p>
+</li>
+<li> <p><strong>pk.dt</strong>: peak_date (date)
+</p>
+</li>
+<li> <p><strong>pk.jd</strong>: peak_date (day of year)
+</p>
+</li>
+<li> <p><strong>ln.prpk</strong>: length of the pre_peak period
+</p>
+</li>
+<li> <p><strong>sm.prpk</strong>: pollen integral of the pre_peak period
+</p>
+</li>
+<li> <p><strong>ln.pspk</strong>: length of the post_peak period
+</p>
+</li>
+<li> <p><strong>sm.pspk</strong>: pollen integral of the post_peak period
+</p>
+</li>
+<li> <p><strong>daysth</strong>: number of days with more than 100 pollen grains
+</p>
+</li>
+<li> <p><strong>st.dt.hs</strong>: start_date of the High pollen season (date, only for clinical method)
+</p>
+</li>
+<li> <p><strong>st.jd.hs</strong>: start_date of the High pollen season (day of the year, only for clinical method)
+</p>
+</li>
+<li> <p><strong>en.dt.hs</strong>: end_date of the High pollen season (date, only for clinical method)
+</p>
+</li>
+<li> <p><strong>en.jd.hs</strong>: end_date of the High pollen season (day of the year, only for clinical method)
+</p>
+</li>
+</ul>
+<p><code>list</code> when <code>result = "list"</code> including the main parameters of the pollen season, one pollen type by element
+<code>plots</code> when <code>plot = TRUE</code> showing graphically the definition of the pollen season for each studied year in the plot history.
+If <code>export.result = TRUE</code> this <code>data.frame</code> will also be exported as <em>xlsx</em> file within the <em>table_AeRobiology</em> directory created in the working directory. If <code>export.result = FALSE</code> the results will also be showed as list object named <code>list.ps</code>. <br>
+If <code>export.plot = TRUE</code> a <em>pdf</em> file for each pollen type showing graphically the definition of the pollen season for each studied year will be saved within the <em>plot_AeRobiology</em> directory created in the working directory.
+</p>
+
+
+<h3>References</h3>
+
+<p>Andersen, T.B., 1991. A model to predict the beginning of the pollen season. <em>Grana</em>, 30(1), pp.269_275.
+</p>
+<p>Cunha, M., Ribeiro, H., Costa, P. and Abreu, I., 2015. A comparative study of vineyard phenology and pollen metrics extracted from airborne pollen time series. <em>Aerobiologia</em>, 31(1), pp.45_56.
+</p>
+<p>Galan, C., Garcia_Mozo, H., Carinanos, P., Alcazar, P. and Dominguez_Vilches, E., 2001. The role of temperature in the onset of the <em>Olea europaea</em> L. pollen season in southwestern Spain. <em>International Journal of Biometeorology</em>, 45(1), pp.8_12.
+</p>
+<p>Nilsson, S. and Persson, S., 1981. Tree pollen spectra in the Stockholm region (Sweden), 1973_1980. <em>Grana</em>, 20(3), pp.179_182.
+</p>
+<p>Pfaar, O., Bastl, K., Berger, U., Buters, J., Calderon, M.A., Clot, B., Darsow, U., Demoly, P., Durham, S.R., Galan, C., Gehrig, R., Gerth van Wijk, R., Jacobsen, L., Klimek, L., Sofiev, M., Thibaudon, M. and Bergmann, K.C., 2017. Defining pollen exposure times for clinical trials of allergen immunotherapy for pollen_induced rhinoconjunctivitis_an EAACI position paper. <em>Allergy</em>, 72(5), pp.713_722.
+</p>
+<p>Ribeiro, H., Cunha, M. and Abreu, I., 2007. Definition of main pollen season using logistic model. <em>Annals of Agricultural and Environmental Medicine</em>, 14(2), pp.259_264.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>interpollen</code>, <code>plot_ps</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("munich_pollen")
+calculate_ps(munich_pollen, plot = TRUE, result = "table")
+</code></pre>
+
+
+</div>

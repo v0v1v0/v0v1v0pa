@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hz_segment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Segmenting of Soil Horizon Data by Depth Interval</h2>
+
+<h3>Description</h3>
+
+<p>This function segments or subdivides horizon data from a <code>SoilProfileCollection</code> or <code>data.frame</code> by depth interval (e.g. <code>c(0, 10)</code>, <code>c(0, 50)</code>, or <code>25:100</code>). This results in horizon records being split at the specified depth intervals, which duplicates the original horizon data but also adds new horizon depths. In addition, labels (i.e. <code>"segment_id"</code>) are added to each horizon record that correspond with their depth interval (e.g. <code>025-100</code>). This function is intended to harmonize horizons to a common support (i.e. depth interval) for further aggregation or summary. See the examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hz_segment(object, intervals, trim = TRUE, depthcols = c("top", "bottom"))
+
+segment(object, intervals, trim = TRUE, hzdepcols = c("top", "bottom"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>either a <code>SoilProfileCollection</code> or <code>data.frame</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intervals</code></td>
+<td>
+<p>a vector of integers over which to slice the horizon data (e.g. <code>c(25, 100)</code> or <code>25:100</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>logical, when <code>TRUE</code> horizons in <code>object</code> are truncated to the min/max specified in <code>intervals</code>. When <code>FALSE</code>, those horizons overlapping an interval are marked as such. Care should be taken when specifying more than one depth interval and <code>trim = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depthcols</code></td>
+<td>
+<p>a character vector of length 2 specifying the names of the horizon depths (e.g. <code>c("top", "bottom")</code>), only necessary if <code>object</code> is a</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hzdepcols</code></td>
+<td>
+<p>deprecated being replaced by depthcols.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>hz_segment()</code> performs no aggregation or resampling of the source data, rather, labels are added to horizon records for subsequent aggregation or summary. This makes it possible to process a very large number of records outside of the constraints associated with e.g. <code>slice()</code> or <code>slab()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Either a <code>SoilProfileCollection</code> or <code>data.frame</code> with the original horizon data segmented by depth intervals. There are usually more records in the resulting object, one for each time a segment interval partially overlaps with a horizon. A new column called <code>segment_id</code> identifying the depth interval is added.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Roecker
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dice()</code>, <code>glom()</code>, <code>hz_dissolve()</code>, <code>hz_lag()</code>, <code>hz_intersect()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# example data
+data(sp1)
+
+# upgrade to SPC
+depths(sp1) &lt;- id ~ top + bottom
+
+# segment and trim
+z &lt;- hz_segment(sp1, intervals = c(0, 10, 20, 30), trim = TRUE)
+
+# display segment labels
+# note that there are new horizon boundaries at segments
+par(mar = c(0, 0, 3, 1))
+plotSPC(z, color = 'segment_id', width = 0.3)
+
+# highlight new horizon records
+par(mar = c(0, 0, 2, 1))
+plotSPC(z, color = NA, default.color = NA, width = 0.3, lwd = 1)
+plotSPC(sp1, color = NA, default.color = NA, 
+width = 0.3, lwd = 3, add = TRUE, name = NA, print.id = FALSE)
+legend('top', horiz = TRUE, 
+legend = c('original', 'segmented'), 
+lwd = c(1, 3), cex = 0.85, bty = 'n')
+
+
+# same results as slab()
+# 10 random profiles
+s &lt;- lapply(1:10, random_profile, n_prop = 1, SPC = TRUE, method = 'random_walk')
+s &lt;- combine(s)
+
+a.slab &lt;- slab(s, fm = ~ p1, slab.structure = c(0, 10, 20, 30), slab.fun = mean, na.rm = TRUE)
+
+z &lt;- hz_segment(s, intervals = c(0, 10, 20, 30), trim = TRUE)
+z &lt;- horizons(z)
+z$thick &lt;- z$bottom - z$top
+
+a.segment &lt;- sapply(split(z, z$segment_id), function(i) {
+  weighted.mean(i$p1, i$thick)
+})
+
+
+res &lt;- data.frame(
+  slab = a.slab$value,
+  segment = a.segment,
+  diff = a.slab$value - a.segment
+)
+
+print(res)
+res$diff &lt; 0.001
+
+
+
+data(sp5)
+
+# segment by upper 25-cm
+test1 &lt;- hz_segment(sp5, intervals = c(0, 100))
+print(test1)
+nrow(test1)
+print(object.size(test1), units = "Mb")
+
+# segment by 1-cm increments
+test2 &lt;- hz_segment(sp5, intervals = 0:100)
+print(test2)
+nrow(test2)
+print(object.size(test2), units = "Mb")
+
+
+# segment and aggregate
+test3 &lt;- hz_segment(horizons(sp5), 
+                 intervals = c(0, 5, 15, 30, 60, 100, 200), 
+                 depthcols = c("top", "bottom")
+)
+test3$hzthk &lt;- test3$bottom - test3$top
+test3_agg &lt;- by(test3, test3$segment_id, function(x) {
+  data.frame(
+    hzID = x$hzID[1],
+    segment_id = x$segment_id[1],
+    average = weighted.mean(x$clay, w = x$hzthk)
+  )
+})
+test3_agg &lt;- do.call("rbind", test3_agg)
+
+head(test3_agg)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,226 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>accumulate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Split-Apply-Combine with Collapsing Groups</h2>
+
+<h3>Description</h3>
+
+<p>Compute grouped aggregates. If a group does not satisfy certain user-defined
+conditions (such as too many missings, or not enough records) then the group
+is expanded according to a user-defined 'collapsing' scheme.  This happens
+recursively until either the group satisfies all conditions and the
+aggregate is computed, or we run out of collapsing possibilities and the
+<code>NA</code> is returned for that group. 
+</p>
+
+<ul>
+<li>
+<p><code>accumulate</code> aggregates over all non-grouping variables defined in 
+<code>collapse</code> 
+</p>
+</li>
+<li>
+<p><code>cumulate</code> uses a syntax akin to <code>dplyr::summarise</code>
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">accumulate(data, collapse, test, fun, ...)
+
+cumulate(data, collapse, test, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>[data.frame]</code> The data to aggregate by (collapsing) groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse</code></td>
+<td>
+<p><code>[formula|data.frame]</code> representing a group collapsing sequence.
+See below for details on how to specify each option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p><code>[function]</code> A function that takes a subset of <code>data</code> and returns
+<code>TRUE</code> if it is suitable for computing the desired aggregates and 
+<code>FALSE</code> if a collapsing step is necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p><code>[function]</code> A scalar function that will be applied to all columns
+of <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For <code>accumulate</code>, extra arguments to be passed to <code>fun</code>. For
+<code>cumulate</code>, a comma-separated list of <code>name=expression</code>, 
+where <code>expression</code> defines the aggregating operation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame where each row represents a (multivariate) group.  The first
+columns contain the grouping variables. The next column is called
+<code>level</code> and indicates to what level collapsing was necessary to compute
+a value, where 0 means that no collapsing was necessary. The following
+colummns contain the aggregates defined in the <code>...</code> argument.  If no
+amount of collapsing yields a data set that is satisfactory according to
+<code>test</code>, then for that row, the <code>level</code> and subsequent columns are
+<code>NA</code>.
+</p>
+
+
+<h3>Using a formula to define the collapsing sequence</h3>
+
+<p>If all combinations of collapsing options are stored as columns in
+<code>data</code>, the <code>formula</code> interface can be used. An example is the
+easiest way to see how it works.  Suppose that <code>collapse = A*B ~ A1*B +
+B</code> This means:
+</p>
+
+<ul>
+<li>
+<p>Compute output for groups defined by variables A and B
+</p>
+</li>
+<li>
+<p>If for a certain combination <code>(a,b)</code> in <code>AxB</code> the data does not
+pass the <code>test</code>, use <code>(a1,b)</code> in <code>A1xB</code> as alternative combination to compute
+a value for <code>(a,b)</code> (<code>A1xB</code> must yield larger groups than <code>AxB</code>).
+</p>
+</li>
+<li>
+<p>If that does not work, use only <code>B</code> as a grouping variable to compute
+a value for <code>(a,b)</code>.
+</p>
+</li>
+<li>
+<p>If that does not work, return <code>NA</code> for that particular combination <code>(a,b)</code>.
+</p>
+</li>
+</ul>
+<p>Generally, the <code>formula</code> must be of the form <code>X0 ~ X1 + X2 + ... +
+Xn</code> where each <code>Xi</code> is a (product of) grouping variable(s) in the data set.
+</p>
+
+
+<h3>Using a data frame to define the collapsing scheme</h3>
+
+<p>In this case <code>collapse</code> is a data frame with columns <code>[A0, A1,
+..., An]</code>.  The variable <code>A0</code> represents the most fine-grained
+grouping and must also be present in <code>data</code>. Aggregation works
+as follows.
+</p>
+
+<ul>
+<li>
+<p>Compute output for groups defined by variable <code>A0</code>
+</p>
+</li>
+<li>
+<p>If for a certain <code>a0</code> in <code>A0</code> the corresponding selected
+data does not pass the <code>test</code>, use the larger dataset corresponding to
+<code>a1</code> in <code>A1</code> to compute output for <code>a1</code>.
+</p>
+</li>
+<li>
+<p>Repeat the second step until either the <code>test</code> is passed or 
+no more collapsing is possible. In the latter case, return <code>NA</code>
+for that particular value of <code>a0</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example of data frame defining collapsing scheme, using accumulate
+
+input    &lt;- data.frame(Y1 = 2^(0:8), Y2 = 2^(0:8))
+input$Y2[c(1,4,7)] &lt;- NA
+# make sure that the input data also has the most fine-graind (target)
+# grouping variable
+input$A0 &lt;- c(123,123,123,135,136,137,212,213,225)
+
+# define collapsing sequence
+collapse &lt;- data.frame(
+     A0   = c(123, 135, 136, 137, 212, 213, 225)
+   , A1   = c(12 , 13 , 13 , 13 , 21 , 21 , 22 )
+   , A2   = c(1  , 1  , 1  , 1  , 2  , 2  , 2  )
+)
+
+accumulate(input
+ , collapse
+ , test = function(d) nrow(d)&gt;=3
+ , fun  = sum, na.rm=TRUE)
+
+
+## Example of formula defining collapsing scheme, using cumulate
+input &lt;- data.frame(
+   A  = c(1,1,1,2,2,2,3,3,3)
+ , B  = c(11,11,11,12,12,13,21,22,12)
+ , B1 = c(1,1,1,1,1,1,2,2,1)
+ , Y  = 2^(0:8)
+)
+cumulate(input, collapse=A*B ~ A*B1 + A
+        , test = function(d) nrow(d) &gt;= 3
+        , tY = sum(Y))
+
+
+## Example with formula defining collapsing scheme, using accumulate
+# The collapsing scheme must be represented by variables in the 
+# data. All columns not part of the collapsing scheme will be aggregated
+# over.
+
+input &lt;- data.frame(
+    A  = c(1,1,1,2,2,2,3,3,3)
+  , B  = c(11,11,11,12,12,13,21,22,12)
+  , B1 = c(1,1,1,1,1,1,2,2,1)
+  , Y1 = 2^(0:8)
+  , Y2 = 2^(0:8)
+)
+
+input$Y2[c(1,4,7)] &lt;- NA
+
+accumulate(input
+ , collapse = A*B ~ A*B1 + A
+ , test=function(a) nrow(a)&gt;=3
+ , fun = sum, na.rm=TRUE)
+
+
+
+## Example with data.frame defining collapsing scheme, using cumulate
+dat &lt;- data.frame(A0 = c("11","12","11","22"), Y = c(2,4,6,8))
+# collapsing scheme
+csh &lt;- data.frame(
+   A0 = c("11","12","22")
+ , A1 = c("1" ,"1", "2") 
+)
+cumulate(data = dat
+   , collapse = csh
+   , test     = function(d) if (nrow(d)&lt;2) FALSE else TRUE
+   , mn = mean(Y, na.rm=TRUE)
+   , md = median(Y, na.rm=TRUE)
+)
+
+</code></pre>
+
+
+</div>

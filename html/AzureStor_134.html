@@ -1,0 +1,322 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>list_blobs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Operations on a blob container or blob</h2>
+
+<h3>Description</h3>
+
+<p>Upload, download, or delete a blob; list blobs in a container; create or delete directories; check blob availability.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">list_blobs(container, dir = "/", info = c("partial", "name", "all"),
+  prefix = NULL, recursive = TRUE)
+
+upload_blob(container, src, dest = basename(src), type = c("BlockBlob",
+  "AppendBlob"), blocksize = if (type == "BlockBlob") 2^24 else 2^22,
+  lease = NULL, put_md5 = FALSE, append = FALSE, use_azcopy = FALSE)
+
+multiupload_blob(container, src, dest, recursive = FALSE,
+  type = c("BlockBlob", "AppendBlob"), blocksize = if (type == "BlockBlob")
+  2^24 else 2^22, lease = NULL, put_md5 = FALSE, append = FALSE,
+  use_azcopy = FALSE, max_concurrent_transfers = 10)
+
+download_blob(container, src, dest = basename(src), blocksize = 2^24,
+  overwrite = FALSE, lease = NULL, check_md5 = FALSE,
+  use_azcopy = FALSE, snapshot = NULL, version = NULL)
+
+multidownload_blob(container, src, dest, recursive = FALSE,
+  blocksize = 2^24, overwrite = FALSE, lease = NULL, check_md5 = FALSE,
+  use_azcopy = FALSE, max_concurrent_transfers = 10)
+
+delete_blob(container, blob, confirm = TRUE)
+
+create_blob_dir(container, dir)
+
+delete_blob_dir(container, dir, recursive = FALSE, confirm = TRUE)
+
+blob_exists(container, blob)
+
+blob_dir_exists(container, dir)
+
+copy_url_to_blob(container, src, dest, lease = NULL, async = FALSE,
+  auth_header = NULL)
+
+multicopy_url_to_blob(container, src, dest, lease = NULL, async = FALSE,
+  max_concurrent_transfers = 10, auth_header = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>container</code></td>
+<td>
+<p>A blob container object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>For <code>list_blobs</code>, a string naming the directory. Note that blob storage does not support real directories; this argument simply filters the result to return only blobs whose names start with the given value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>For <code>list_blobs</code>, level of detail about each blob to return: a vector of names only; the name, size, blob type, and whether this blob represents a directory; or all information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>For <code>list_blobs</code>, an alternative way to specify the directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>For the multiupload/download functions, whether to recursively transfer files in subdirectories. For <code>list_blobs</code>, whether to include the contents of any subdirectories in the listing. For <code>delete_blob_dir</code>, whether to recursively delete subdirectory contents as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src, dest</code></td>
+<td>
+<p>The source and destination files for uploading and downloading. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>When uploading, the type of blob to create. Currently only block and append blobs are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocksize</code></td>
+<td>
+<p>The number of bytes to upload/download per HTTP(S) request.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lease</code></td>
+<td>
+<p>The lease for a blob, if present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>put_md5</code></td>
+<td>
+<p>For uploading, whether to compute the MD5 hash of the blob(s). This will be stored as part of the blob's properties. Only used for block blobs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append</code></td>
+<td>
+<p>When uploading, whether to append the uploaded data to the destination blob. Only has an effect if <code>type="AppendBlob"</code>. If this is FALSE (the default) and the destination append blob exists, it is overwritten. If this is TRUE and the destination does not exist or is not an append blob, an error is thrown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_azcopy</code></td>
+<td>
+<p>Whether to use the AzCopy utility from Microsoft to do the transfer, rather than doing it in R.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_concurrent_transfers</code></td>
+<td>
+<p>For <code>multiupload_blob</code> and <code>multidownload_blob</code>, the maximum number of concurrent file transfers. Each concurrent file transfer requires a separate R process, so limit this if you are low on memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>When downloading, whether to overwrite an existing destination file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_md5</code></td>
+<td>
+<p>For downloading, whether to verify the MD5 hash of the downloaded blob(s). This requires that the blob's <code>Content-MD5</code> property is set. If this is TRUE and the <code>Content-MD5</code> property is missing, a warning is generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snapshot, version</code></td>
+<td>
+<p>For <code>download_blob</code>, optional snapshot and version identifiers. These should be datetime strings, in the format "yyyy-mm-ddTHH:MM:SS.SSSSSSSZ". If omitted, download the base blob.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blob</code></td>
+<td>
+<p>A string naming a blob.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>Whether to ask for confirmation on deleting a blob.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>async</code></td>
+<td>
+<p>For <code>copy_url_to_blob</code> and <code>multicopy_url_to_blob</code>, whether the copy operation should be asynchronous (proceed in the background).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auth_header</code></td>
+<td>
+<p>For <code>copy_url_to_blob</code> and <code>multicopy_url_to_blob</code>, an optional <code>Authorization</code> HTTP header to send to the source. This allows copying files that are not publicly available or otherwise have access restrictions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>upload_blob</code> and <code>download_blob</code> are the workhorse file transfer functions for blobs. They each take as inputs a <em>single</em> filename as the source for uploading/downloading, and a single filename as the destination. Alternatively, for uploading, <code>src</code> can be a textConnection or rawConnection object; and for downloading, <code>dest</code> can be NULL or a <code>rawConnection</code> object. If <code>dest</code> is NULL, the downloaded data is returned as a raw vector, and if a raw connection, it will be placed into the connection. See the examples below.
+</p>
+<p><code>multiupload_blob</code> and <code>multidownload_blob</code> are functions for uploading and downloading <em>multiple</em> files at once. They parallelise file transfers by using the background process pool provided by AzureRMR, which can lead to significant efficiency gains when transferring many small files. There are two ways to specify the source and destination for these functions:
+</p>
+
+<ul>
+<li>
+<p> Both <code>src</code> and <code>dest</code> can be vectors naming the individual source and destination pathnames.
+</p>
+</li>
+<li>
+<p> The <code>src</code> argument can be a wildcard pattern expanding to one or more files, with <code>dest</code> naming a destination directory. In this case, if <code>recursive</code> is true, the file transfer will replicate the source directory structure at the destination.
+</p>
+</li>
+</ul>
+<p><code>upload_blob</code> and <code>download_blob</code> can display a progress bar to track the file transfer. You can control whether to display this with <code>options(azure_storage_progress_bar=TRUE|FALSE)</code>; the default is TRUE.
+</p>
+<p><code>multiupload_blob</code> can upload files either as all block blobs or all append blobs, but not a mix of both.
+</p>
+<p><code>blob_exists</code> and <code>blob_dir_exists</code> test for the existence of a blob and directory, respectively.
+</p>
+<p><code>delete_blob</code> deletes a blob, and <code>delete_blob_dir</code> deletes all blobs in a directory (possibly recursively). This will also delete any snapshots for the blob(s) involved.
+</p>
+
+
+<h4>AzCopy</h4>
+
+<p><code>upload_blob</code> and <code>download_blob</code> have the ability to use the AzCopy commandline utility to transfer files, instead of native R code. This can be useful if you want to take advantage of AzCopy's logging and recovery features; it may also be faster in the case of transferring a very large number of small files. To enable this, set the <code>use_azcopy</code> argument to TRUE.
+</p>
+<p>The following points should be noted about AzCopy:
+</p>
+
+<ul>
+<li>
+<p> It only supports SAS and AAD (OAuth) token as authentication methods. AzCopy also expects a single filename or wildcard spec as its source/destination argument, not a vector of filenames or a connection.
+</p>
+</li>
+<li>
+<p> Currently, it does <em>not</em> support appending data to existing blobs.
+</p>
+</li>
+</ul>
+<h4>Directories</h4>
+
+<p>Blob storage does not have true directories, instead using filenames containing a separator character (typically '/') to mimic a directory structure. This has some consequences:
+</p>
+
+<ul>
+<li>
+<p> The <code>isdir</code> column in the data frame output of <code>list_blobs</code> is a best guess as to whether an object represents a file or directory, and may not always be correct. Currently, <code>list_blobs</code> assumes that any object with a file size of zero is a directory.
+</p>
+</li>
+<li>
+<p> Zero-length files can cause problems for the blob storage service as a whole (not just AzureStor). Try to avoid uploading such files.
+</p>
+</li>
+<li> <p><code>create_blob_dir</code> and <code>delete_blob_dir</code> are guaranteed to function as expected only for accounts with hierarchical namespaces enabled. When this feature is disabled, directories do not exist as objects in their own right: to create a directory, simply upload a blob to that directory. To delete a directory, delete all the blobs within it; as far as the blob storage service is concerned, the directory then no longer exists.
+</p>
+</li>
+<li>
+<p> Similarly, the output of <code>list_blobs(recursive=TRUE)</code> can vary based on whether the storage account has hierarchical namespaces enabled.
+</p>
+</li>
+<li> <p><code>blob_exists</code> will return FALSE for a directory when the storage account does not have hierarchical namespaces enabled.
+</p>
+</li>
+</ul>
+<p><code>copy_url_to_blob</code> transfers the contents of the file at the specified HTTP[S] URL directly to blob storage, without requiring a temporary local copy to be made. <code>multicopy_url_to_blob</code> does the same, for multiple URLs at once. These functions have a current file size limit of 256MB.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>list_blobs</code>, details on the blobs in the container. For <code>download_blob</code>, if <code>dest=NULL</code>, the contents of the downloaded blob as a raw vector. For <code>blob_exists</code> a flag whether the blob exists.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>blob_container, az_storage, storage_download, call_azcopy, list_blob_snapshots, list_blob_versions
+</p>
+<p><a href="https://github.com/Azure/azure-storage-azcopy">AzCopy version 10 on GitHub</a>
+<a href="https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs">Guide to the different blob types</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+cont &lt;- blob_container("https://mystorage.blob.core.windows.net/mycontainer", key="access_key")
+
+list_blobs(cont)
+
+upload_blob(cont, "~/bigfile.zip", dest="bigfile.zip")
+download_blob(cont, "bigfile.zip", dest="~/bigfile_downloaded.zip")
+
+delete_blob(cont, "bigfile.zip")
+
+# uploading/downloading multiple files at once
+multiupload_blob(cont, "/data/logfiles/*.zip", "/uploaded_data")
+multiupload_blob(cont, "myproj/*")  # no dest directory uploads to root
+multidownload_blob(cont, "jan*.*", "/data/january")
+
+# append blob: concatenating multiple files into one
+upload_blob(cont, "logfile1", "logfile", type="AppendBlob", append=FALSE)
+upload_blob(cont, "logfile2", "logfile", type="AppendBlob", append=TRUE)
+upload_blob(cont, "logfile3", "logfile", type="AppendBlob", append=TRUE)
+
+# you can also pass a vector of file/pathnames as the source and destination
+src &lt;- c("file1.csv", "file2.csv", "file3.csv")
+dest &lt;- paste0("uploaded_", src)
+multiupload_blob(cont, src, dest)
+
+# uploading serialized R objects via connections
+json &lt;- jsonlite::toJSON(iris, pretty=TRUE, auto_unbox=TRUE)
+con &lt;- textConnection(json)
+upload_blob(cont, con, "iris.json")
+
+rds &lt;- serialize(iris, NULL)
+con &lt;- rawConnection(rds)
+upload_blob(cont, con, "iris.rds")
+
+# downloading files into memory: as a raw vector, and via a connection
+rawvec &lt;- download_blob(cont, "iris.json", NULL)
+rawToChar(rawvec)
+
+con &lt;- rawConnection(raw(0), "r+")
+download_blob(cont, "iris.rds", con)
+unserialize(con)
+
+# copy from a public URL: Iris data from UCI machine learning repository
+copy_url_to_blob(cont,
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
+    "iris.csv")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,327 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>testswapran.asrtests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tests, using a REMLRT, the significance of the difference between the current 
+random model and one in which oldterms are dropped and newterms are added.
+The result is recorded in an <code>asrtests.object</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Fits a new random model using <code>asreml</code> by removing <code>oldterms</code> 
+and adding <code>newterms</code>. If <code>simpler = FALSE</code> the model to be fitted 
+must be more complex than the one whose fit has been stored in 
+<code>asrtests.obj</code>. That is, the new model must have more parameters. 
+However, if <code>simpler = TRUE</code> the model to be fitted must be simpler 
+than the one whose fit has been stored in <code>asrtests.obj</code> in that it 
+must have fewer parameters. The test is a REML ratio test that is performed using 
+<code>REMLRT.asreml</code>, <b>which is only valid if the models are nested</b>. 
+It compares the newly fitted model with the fit of the model in 
+<code>asrtests.obj</code>. A row is added to the <code>test.summary</code> 
+<code>data.frame</code> using the supplied <code>label</code>. If the newly fitted model 
+is retained, any boundary terms are then removed using 
+<code>rmboundary.asrtests</code>. If the models are not nested, then using 
+<code>changeModelOnIC.asrtests</code> may be the more appropriate approach 
+for comparing models.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asrtests'
+testswapran(asrtests.obj, oldterms = NULL, newterms = NULL, 
+            label = "Swap in random model", simpler = FALSE, alpha = 0.05, 
+            allow.unconverged = TRUE, allow.fixedcorrelation = TRUE, 
+            checkboundaryonly = FALSE, 
+            positive.zero = FALSE, bound.test.parameters = "none", 
+            bound.exclusions = c("F","B","S","C"), REMLDF = NULL, 
+            denDF="numeric", IClikelihood = "none", 
+            trace = FALSE, update = TRUE, 
+            set.terms = NULL, ignore.suffices = TRUE, 
+            bounds = "P", initial.values = NA, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asrtests.obj</code></td>
+<td>
+<p>an <code>asrtests.object</code> for a fitted model that is a list 
+containing the components (i) <code>asreml.obj</code>, (ii) <code>wald.tab</code> 
+(iii) <code>test.summary</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oldterms</code></td>
+<td>
+<p>Terms, stored as a <code>character</code>, that are to be removed from the 
+random model using <code>asreml</code>. The names of the terms must 
+match those in the <code>vparameters</code> component of the <code>asreml.obj</code> 
+component in <code>asrtests.obj</code>. Note that 
+multiple terms specified using a single <code>asreml::at</code> function 
+can only be dropped as a whole. If the term was specified using 
+an <code>asreml::at</code> function with a single level, then it can be 
+removed and either the level itself or its <code>numeric</code> 
+position in the levels returned by the <code>levels</code> function 
+can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newterms</code></td>
+<td>
+<p>Terms, stored as a <code>character</code>, that are to be added to the 
+random model using <code>asreml</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simpler</code></td>
+<td>
+<p>A logical indicating whether the new model to be fitted. after the
+changes made as a result of swapping <code>oldterms</code> for 
+<code>newterms</code>, is simpler than the already fitted model whose 
+fit is stored in <code>asrtests.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The significance level for the test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.unconverged</code></td>
+<td>
+<p>A <code>logical</code> indicating whether to accept a new model 
+even when it does not converge. If <code>FALSE</code> and the fit of the new 
+model does not converge, the supplied <code>asrtests.obj</code> is returned.  
+Also, if <code>FALSE</code> and the fit of the new model has converged, but that 
+of the old model has not, the new model will be accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.fixedcorrelation</code></td>
+<td>
+<p>A <code>logical</code> indicating whether to accept a new model 
+even when it contains correlations in the model whose values have been 
+designated as fixed, bound or singular. If <code>FALSE</code> and the new model 
+contains correlations whose values have not been able to be estimated, 
+the supplied <code>asrtests.obj</code> is returned. The fit in the 
+<code>asreml.obj</code> component of the supplied <code>asrtests.obj</code> will 
+also be tested and a warning issued if both fixed correlations are found 
+in it and <code>allow.fixedcorrelation</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkboundaryonly</code></td>
+<td>
+<p>If <code>TRUE</code> then boundary and singular terms are not removed by 
+<code>rmboundary.asrtests</code>; a warning is issued instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>A character string to use as the label in <code>test.summary</code> and 
+which indicates what is being tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positive.zero</code></td>
+<td>
+<p>Indicates whether the hypothesized values for the 
+variance components being tested are on the boundary 
+of the parameter space. For example, this is true 
+for positively-constrained variance components that, 
+under the reduced model, are zero. This argument does 
+not need to be set if <code>bound.test.parameters</code> is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.test.parameters</code></td>
+<td>
+<p>Indicates whether for the variance components 
+being tested, at least some of the hypothesized values
+are on the boundary of the parameter space. 
+The possibilities are <code>"none"</code>, <code>"onlybound"</code> 
+and <code>"one-and-one"</code>. The default is <code>"none"</code>, 
+although if it is set to <code>"none"</code> and 
+<code>positive.zero</code> is <code>TRUE</code> then 
+<code>bound.test.parameters</code> is taken to be <code>"onlybound"</code>. 
+When <code>bound.test.parameters</code> is set to 
+<code>"one-and-one"</code>, it signifies that there are two 
+parameters being tested, one of which is bound and the 
+other is not. For example, the latter is true for testing 
+a covariance and a positively-constrained variance component 
+that, under the reduced model, are zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.exclusions</code></td>
+<td>
+<p>A <code>character</code> specifying one or more bound (constraint) codes that 
+will result in a variance parameter being excluded from the count of 
+estimated variance parameters in using <code>REMLRT.asreml</code>.
+If set to <code>NULL</code> then none will be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REMLDF</code></td>
+<td>
+<p>A <code>numeric</code> giving the difference in the number of variance parameters 
+whose estimates are not of the type specified in <code>bound.exclusions</code> 
+for two models being compared in a REML ratio test using 
+<code>REMLRT.asreml</code>. If <code>NULL</code> then this is determined from 
+the information in the <code>asreml</code> object for the two models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>denDF</code></td>
+<td>
+<p>Specifies the method to use in computing approximate denominator 
+degrees of freedom when <code>wald.asreml</code> is called. Can be <code>none</code> 
+to suppress the computations, <code>numeric</code> for numerical methods,
+<code>algebraic</code> for algebraic methods or <code>default</code>, the default, 
+to automatically choose numeric or algebraic computations depending 
+on problem size. The denominator degrees of freedom are calculated 
+according to Kenward and Roger (1997) for fixed terms in the dense 
+part of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IClikelihood</code></td>
+<td>
+<p>A <code>character</code> that controls both the occurrence and the type 
+of likelihood for information criterion in the <code>test.summary</code> 
+of the new <code>asrtests.object</code>. If <code>none</code>, none are 
+included. Otherwise, if <code>REML</code>, then the AIC and BIC based 
+on the Restricted Maximum Likelihood are included; if <code>full</code>, 
+then the AIC and BIC based on the full likelihood, evaluated 
+using REML estimates, are included. 
+(See also <code>infoCriteria.asreml</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If TRUE then partial iteration details are displayed when ASReml-R 
+functions are invoked; if FALSE then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE</code>, and <code>set.terms</code> is <code>NULL</code>, then 
+<code>newfit.asreml</code> is called to fit the model to be tested, 
+using the values of the variance parameters stored in 
+the <code>asreml.object</code>, that is stored in <code>asrtests.obj</code>, as starting values. 
+If <code>FALSE</code> or <code>set.terms</code> is not <code>NULL</code>, then 
+<code>newfit.asreml</code> will not use the stored variance parameter 
+values as starting values when fitting the new model, the only 
+modifications being (i) for the supplied <code>oldterms</code> and 
+(ii) those specified via <code>...</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set.terms</code></td>
+<td>
+<p>A character vector specifying the terms that are to have 
+bounds and/or initial values set prior to fitting. 
+The names must match those in the <code>vparameters</code> component 
+of the <code>asreml.obj</code> component in the <code>asrtests.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.suffices</code></td>
+<td>
+<p>A logical vector specifying whether the suffices of the 
+<code>asreml</code>-assigned names of the variance terms (i.e. the 
+information to the right of an "!", other than "R!") is to 
+be ignored in matching elements of <code>terms</code>. 
+If <code>TRUE</code> for an element of <code>terms</code>, the suffices 
+are stripped from the <code>asreml</code>-assigned names. 
+If <code>FALSE</code> for an element of <code>terms</code>, the element 
+must exactly match an <code>asreml</code>-assigned name for a 
+variance term. This vector must be of length one or the 
+same length as <code>terms</code>. If it is of length one then 
+the same action is applied to the <code>asreml</code>-assigned 
+suffices for all the terms in <code>terms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A <code>character</code> vector specifying the bounds to be applied 
+to the terms specified in <code>set.terms</code>. This vector 
+must be of length one or the same length as <code>set.terms</code>. 
+If it is of length one then the same constraint is 
+applied to all the terms in <code>set.terms</code>. 
+If any of the bounds are equal to NA then they are 
+left unchanged for those terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.values</code></td>
+<td>
+<p>A character vector specifying the initial values for  
+the terms specified in <code>terms</code>. This vector 
+must be of length one or the same length as <code>terms</code>. 
+If it is of length one then the same initial value is 
+applied to all the terms in <code>terms</code>. 
+If any of the initial.values are equal to NA then they are 
+left unchanged for those terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>asreml</code>, <code>wald.asreml</code> and 
+<code>as.asrtests</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>asrtests.object</code> for a fitted model that is a list 
+containing the components (i) <code>asreml.obj</code>, (ii) <code>wald.tab</code> 
+(iii) <code>test.summary</code>.
+If the <code>term</code> is not in the model, then the supplied <code>asreml</code> 
+object will be returned. Also, <code>reml.test</code> will have the likelihood 
+ratio and the p-value set to <code>NA</code> and the degrees of freedom to zero.
+Similarly, the row of <code>test.summary</code> for the <code>term</code> will have 
+its name, a p-value set to <code>NA</code>, and action set to Absent.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>References</h3>
+
+<p>Kenward, M. G., &amp; Roger, J. H. (1997). Small sample inference for fixed effects from restricted maximum likelihood. 
+<em>Biometrics</em>, <b>53</b>, 983-997.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.asrtests</code>, <code>chooseModel.asrtests</code>, 
+<code>REMLRT.asreml</code>, <code>rmboundary.asrtests</code>, <br><code>newfit.asreml</code>, <code>testresidual.asrtests</code>, 
+<code>changeModelOnIC.asrtests</code>, <br><code>changeTerms.asrtests</code>, <code>reparamSigDevn.asrtests</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+current.asrt &lt;- testswapran(current.asrt, oldterms = "str(~ Cart/xDays, ~us(2):id(184))",
+                            newterms = "Cart/xDays", pos = FALSE, 
+                            label = "Intercept/Slope correlation", 
+                            simpler = TRUE)
+  print(current.asrt)
+
+## End(Not run)</code></pre>
+
+
+</div>

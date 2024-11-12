@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>store_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Store data from the inertia calculations in long format</h2>
+
+<h3>Description</h3>
+
+<p>Function to store moment of inertia tensor and center of gravity vector
+components in long format
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">store_data(dat_wingID_curr, dat_mass, mass_properties, name)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat_wingID_curr</code></td>
+<td>
+<p>Dataframe related to the current bird wing ID
+info that must include the following columns:
+</p>
+
+<ul>
+<li>
+<p>speciesSpecies ID code as a string
+</p>
+</li>
+<li>
+<p>BirdIDBird ID code as a string
+</p>
+</li>
+<li>
+<p>TestIDTest ID code as a string
+</p>
+</li>
+<li>
+<p>frameIDVideo frame ID code as a string
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat_mass</code></td>
+<td>
+<p>Dataframe containing the new MOI and CG data to add
+to mass_properties as new rows. Must include:
+</p>
+
+<ul>
+<li>
+<p>IMoment of inertia tensor (kg-m^2)
+</p>
+</li>
+<li>
+<p>CGCenter of gravity with three location components (m)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties</code></td>
+<td>
+<p>Dataframe containing any previously saved data.
+Must have the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>Name of the component for which the moment of inertia and
+center of gravity were computed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns mass_properties as an updated dataframe
+with a new row corresponding to the dat_mass information
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

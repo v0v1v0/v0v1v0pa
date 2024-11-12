@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimateL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate out-of-sample loss</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>estimateL()</code> estimates the out-of-sample loss of a given algorithm on specified time-series. By default, it uses the optimal weighting scheme which exploits also the in-sample performance in order to deliver a more precise estimate than the conventional estimator.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimateL(
+  y,
+  algorithm,
+  m,
+  h = 1,
+  v = 1,
+  xreg = NULL,
+  lossFunction = function(y, yhat) {     (y - yhat)^2 },
+  method = "optimal",
+  Phi = NULL,
+  bw = NULL,
+  rhoLimit = 0.99,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Univariate time-series object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>Algorithm which is to be applied to the time-series. The object which the algorithm produces should respond to <code>fitted</code> and <code>forecast</code> methods.
+Alternatively in the case of more complex custom algorithms, the algorithm may be a function which takes named arguments <code style="white-space: pre;">⁠("yInSample", "yOutSample", "h")⁠</code> or <code style="white-space: pre;">⁠("yInSample", "yOutSample", "h", "xregInSample", "xregOutSample")⁠</code> as inputs and produces a list with named elements <code style="white-space: pre;">⁠("yhatInSample", "yhatOutSample")⁠</code> containing vectors of in-sample and out-of-sample forecasts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Length of the window on which the algorithm should be trained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Number of predictions made after a single training of the algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Number of periods by which the estimation window progresses forward once the predictions are generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>Matrix of exogenous regressors supplied to the algorithm (if applicable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lossFunction</code></td>
+<td>
+<p>Loss function used to compute contrasts (defaults to squared error).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Can be set to either <code>"optimal"</code> for the estimator which optimally utilizes also the in-sample performance or <code>"convetional"</code> for the conventional loss estimator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi</code></td>
+<td>
+<p>User can also directly supply <code>Phi</code>; the matrix of contrasts produced by <code>tsACV</code>. In this case parameters: <code>y</code>, <code>algorithm</code>, <code>m</code>, <code>h</code>, <code>v</code>, <code>xreg</code>, <code>lossFunction</code> are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Bandwidth for the long run variance estimator. If <code>NULL</code>, <code>bw</code> is selected according to <code>(3/4)*n^(1/3)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhoLimit</code></td>
+<td>
+<p>Parameter <code>rhoLimit</code> limits to the absolute value of the estimated <code>rho</code> coefficient. This is useful as estimated values very close to 1 might cause instability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters passed to the algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List containing loss estimate and its estimated variance along with some other auxiliary information like the matrix of contrasts <code>Phi</code> and the weights used for computation.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+y &lt;- rnorm(40)
+m &lt;- 36
+h &lt;- 1
+v &lt;- 1
+estimateL(y, forecast::Arima, m = m, h = h, v = v)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>marginal_posterior</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Marginal Posteriors</h2>
+
+<h3>Description</h3>
+
+<p>Compute the marginal posterior for a given parameter using AGHQ. This function is
+mostly called within <code>aghq()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">marginal_posterior(...)
+
+## S3 method for class 'aghq'
+marginal_posterior(
+  quad,
+  j,
+  qq = NULL,
+  method = c("auto", "reuse", "correct"),
+  ...
+)
+
+## S3 method for class 'list'
+marginal_posterior(
+  optresults,
+  k,
+  j,
+  basegrid = NULL,
+  ndConstruction = "product",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>optresults$ff</code>, see <code>?optimize_theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quad</code></td>
+<td>
+<p>Object returned by <code>aghq::aghq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>Integer between 1 and the dimension of the parameter space. Which
+index of the parameter vector to compute the marginal posterior for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qq</code></td>
+<td>
+<p>Numeric vector of length <code>&gt;=1</code> giving the points at which to evaluate the marginal posterior.
+The default, <code>NULL</code>, chooses these points in a 'clever' way, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method for computing the quadrature points used to approximate moment.
+One of 'reuse' (default) or 'correct'. See details.
+The default SHOULD be 'correct'; it is currently set to 'reuse' to maintain compatibility of
+results with previous versions. This will be switched in a future major release.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optresults</code></td>
+<td>
+<p>The results of calling <code>aghq::optimize_theta()</code>: see return value of that function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer, the number of quadrature points to use. I suggest at least 3. k = 1 corresponds to a Laplace
+approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basegrid</code></td>
+<td>
+<p>Optional. Provide an object of class <code>NIGrid</code> from the <code>mvQuad</code>
+package, representing the base quadrature rule that will be adapted. This is only
+for users who want more complete control over the quadrature, and is not necessary
+if you are fine with the default option which basically corresponds to
+<code>mvQuad::createNIGrid(length(theta),'GHe',k,'product')</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndConstruction</code></td>
+<td>
+<p>Create a multivariate grid using a product or sparse construction?
+Passed directly to <code>mvQuad::createNIGrid()</code>, see that function for further details. Note
+that the use of sparse grids within <code>aghq</code> is currently <strong>experimental</strong> and not supported
+by tests. In particular, calculation of marginal posteriors is known to fail currently.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>qq=NULL</code>, then it is set to the unique values in an adapted GHQ grid computed
+assuming that <code>j=1</code> (there is nothing special about this procedure, it's just a way to provide
+an apparently sensible default).
+</p>
+<p>If <code>method='reuse'</code>, then the parameter vector is reordered so <code>j=1</code>, and the
+approximate marginal is computed by first computing the whole AGHQ grid, then summing over the other
+indices. This is an outdated method that does not have any theory pertaining to it, and is included for
+backwards compatibility. It does not use <code>qq</code> if supplied.
+</p>
+<p>If <code>method='correct'</code> then the theoretically-justified approximation from Section 2.4 of the 'Stochastic Convergence Rates...'
+paper is returned.
+</p>
+<p><code>method='auto'</code> currently chooses <code>'reuse'</code> for backwards compatibility, but this will be
+changed in a future release.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame containing the normalized log marginal posterior
+for theta_j evaluated at the original quadrature points. Has columns
+<code>"thetaj","logpost_normalized","weights"</code>, where <code>j</code> is the <code>j</code> you specified.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other summaries: 
+<code>compute_pdf_and_cdf()</code>,
+<code>compute_quantiles()</code>,
+<code>interpolate_marginal_posterior()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## A 2d example ##
+logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+funlist2d &lt;- list(
+  fn = objfunc2d,
+  gr = function(x) numDeriv::grad(objfunc2d,x),
+  he = function(x) numDeriv::hessian(objfunc2d,x)
+)
+opt_sparsetrust_2d &lt;- optimize_theta(funlist2d,c(1.5,1.5))
+
+# Now actually do the marginal posteriors
+marginal_posterior(opt_sparsetrust_2d,3,1)
+marginal_posterior(opt_sparsetrust_2d,3,2)
+marginal_posterior(opt_sparsetrust_2d,7,2)
+
+</code></pre>
+
+
+</div>

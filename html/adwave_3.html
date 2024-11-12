@@ -1,0 +1,279 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>signal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Localized Admixture Signals</h2>
+
+<h3>Description</h3>
+
+<p>Produces estimates of localized ancestry for each individual. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">signal(table, who = colnames(table), populations, popA = NA, popB = NA, 
+	normalize = FALSE, n.pca = 5, PCAonly = FALSE, verbose = TRUE, tol = 0.001,
+	n.signal = NULL, window.size = NULL, genmap = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>table</code></td>
+<td>
+
+<p>matrix of genotype calls (rows, length <em>T</em>) versus individuals (columns, length <em>n</em>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>who</code></td>
+<td>
+<p>individuals to include in the analysis. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>populations</code></td>
+<td>
+<p>list containing a vector of IDs for each population in the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popA</code></td>
+<td>
+
+<p>name of ancestral population 1 (used for forming the axes of variation). Must match one of the names in <code>populations</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popB</code></td>
+<td>
+
+<p>name of ancestral population 2 (used for forming the axes of variation). Must match one of the names in <code>populations</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+
+<p>if <code>TRUE</code>, normalize the data matrix. Default is <code>FALSE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.pca</code></td>
+<td>
+
+<p>number of PCA axes to compute (only the first principal component is used for forming the signals, but additional components may be desired for visualization). Default is 5.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PCAonly</code></td>
+<td>
+
+<p>if <code>TRUE</code>, only compute the PCA, do not compute the signals. Default is<code> FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>if <code>TRUE</code>, print summary to screen. Default is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>tolerance for normalization of admixture signals (<code class="reqn">\epsilon</code> in accompanying paper). Default is 0.001.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.signal</code></td>
+<td>
+
+<p><em>(optional)</em> number of data points in the windowed signal. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window.size</code></td>
+<td>
+
+<p><em>(optional)</em> size of window specified as a proportion of total length; <br> e.g., <code>window.size = 0.01</code> with signal of length <code class="reqn">T</code> = 3000 SNPs generates windows of <code class="reqn">0.01 x 3000 = 30</code> polymorphisms. Value need not be a round number. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genmap</code></td>
+<td>
+
+<p><em>(optional)</em> genetic distance of genotype calls, supplied as vector of length <em>T</em>. If specified, signals will be formulated in terms of genetic distance along the chromosome (rather than physical position).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Applies PCA to genome-wide data using ancestral reference populations. The first eigenvector reflects the population structure. All individuals are then projected on to this axis to form the SNP-level admixture signals. PCA scores are used to estimate the proportion of admixture at the level of individuals (<code>indP</code>) and populations (<code>popP</code>). There is no restriction on the length of the data (number of SNPs) and the default is to provide an estimate of localized ancestry at each SNP. <br><br>
+Optionally, it is also possible to window the signals, producing processed signals of length <code>n.signal</code>. The windows may be overlapping or disjoint with width specified through the <code>window.size</code> option (see examples). If <code>genmap</code> is specified, the signals will be formulated in terms of genetic distance along the chromosome (note: this function is not described in the accompanying paper).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>adsig</code>, a list with the following components: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date</code></td>
+<td>
+<p>date of function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>individuals</code></td>
+<td>
+<p>individuals for whom projections on the first principal component are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.snps</code></td>
+<td>
+<p>number of polymorphisms in the table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signals </code></td>
+<td>
+<p>The admixture signals, output as a <code class="reqn">T x n</code> data matrix, where <em>n</em> is the number of individuals and <em>T</em> is the number of data points (either the number of polymorphisms if <code>n.signal = NULL</code> or <code>n.signal</code> otherwise).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.tol  </code></td>
+<td>
+<p>the number of entries replaced by zero in the normalization procedure. This is dependent on the value set for the tolerance, tol.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popP </code></td>
+<td>
+<p>estimated proportion of admixture for each population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indP </code></td>
+<td>
+<p>estimated proportion of admixture for each individual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pa.ind </code></td>
+<td>
+<p>columns are principal axes in individual coordinates (<code class="reqn">n_A + n_B</code> rows, <code>n.pca</code> columns).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pa.snp </code></td>
+<td>
+<p>columns are principal axes in polymorphism coordinates (<em>T</em> rows, <code>n.pca</code> columns).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G </code></td>
+<td>
+<p>matrix of quadratic form in individual coordinates. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev </code></td>
+<td>
+<p>vector of eigenvalues.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gendist </code></td>
+<td>
+<p>(<em>only if <code>genmap</code> is specified in input</em>) Vector of genetic distances along the chromosome, length <code>n.signal</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jean Sanderson
+</p>
+
+
+<h3>References</h3>
+
+<p>Sanderson J, H Sudoyo, TM Karafet, MF Hammer and MP Cox. 2015. Reconstructing past admixture processes from local genomic ancestry using wavelet transformation. <em>Genetics</em> 200:469-481. <a href="https://doi.org/10.1534/genetics.115.176842">https://doi.org/10.1534/genetics.115.176842</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>wavesum</code>,  <code>plotsignal</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(admix)
+
+# EXAMPLE 1
+# Generate the admixture signal 
+AdexPCA &lt;- signal(admix$data,popA="popA",popB="popB",populations=admix$populations,tol=0.001,
+		n.signal=NULL)
+
+# Plot the resulting PCA
+plot(AdexPCA$pc.ind[,1],AdexPCA$pc.ind[,2],col=admix$colplot,xlab="PC1",ylab="PC2",pch=16)
+legend("bottomright",c("popA","popB","popAB"),col=c(3,4,2),pch=16)
+
+
+# EXAMPLE 2
+# Generate the admixture signal with windowing
+AdexPCA2 &lt;- signal(admix$data,popA="popA",popB="popB",populations=admix$populations,tol=0.001,
+		n.signal=1000,window.size=0.01)
+
+# Plot resulting admixture signal for one individual
+plotsignal(AdexPCA2,ind="AD00001",popA=AdexPCA2$popA,popB=AdexPCA2$popB)
+
+
+# EXAMPLE 3
+# Generate the admixture signal with windowing
+# As in EXAMPLE 2 but with n.signal reduced to 100 to provide disjoint windows
+AdexPCA3 &lt;- signal(admix$data,popA="popA",popB="popB",populations=admix$populations,tol=0.001,
+		n.signal=100,window.size=0.01)
+
+# Plot resulting admixture signal for one individual
+plotsignal(AdexPCA3,ind="AD00001",popA=AdexPCA2$popA,popB=AdexPCA2$popB)
+
+
+# EXAMPLE 4
+# Generate the admixture signal in terms of genetic distance
+# As in EXAMPLE 2 but with genmap specified so that signals are formulated using genetic distances
+AdexPCA4 &lt;- signal(admix$data,popA="popA",popB="popB",populations=admix$populations,tol=0.001,
+	n.signal=1000,window.size=0.01,genmap=admix$map[,2])
+
+# Plot resulting admixture signal for one individual
+plotsignal(AdexPCA4,ind="AD00001",popA=AdexPCA4$popA,popB=AdexPCA4$popB)
+</code></pre>
+
+
+</div>

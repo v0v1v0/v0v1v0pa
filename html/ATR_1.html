@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rotate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Change the class of a <code>party</code> object.
+</h2>
+
+<h3>Description</h3>
+
+<p>Adds a new class to party objects allowing rotated tree visualisations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rotate(m, to = "left", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>an object of class <code>party</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>a character, only <code>left</code> is implemented at the moment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments, currently ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Adds a new class allowing for improved tree printing.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This package was written by the students participating in the
+Advanced R Programming course taught in spring semester 2017 at
+University of Zurich.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data("airquality", package = "datasets")
+  m &lt;- ctree(Wind ~ . , data = airquality)
+  plot(rotate(m), main = "TREE", tnex = 1.5)
+
+  if (require("trtf")) {
+    data("Ozone", package = "mlbench")
+    Ozone &lt;- subset(Ozone, complete.cases(Ozone))
+    Ozone &lt;- as.data.frame(lapply(Ozone, function(x) {
+        x &lt;- x[, drop = TRUE]
+        if (is.factor(x)) return(as.ordered(x))
+        x
+    }))
+    response &lt;- "V4"
+    Ozone[[response]] &lt;- as.numeric(Ozone[[response]])
+
+    ns &lt;- 20
+    fm &lt;- V4 ~ V1 + V2 + V3 + V5 + V6 + V7 + V8 + V9 + V10 + V11 + V12 + V13
+    mtry &lt;- ceiling(length(all.vars(fm[[3]])) / 3)
+    var_m &lt;- numeric_var("V4", support = quantile(Ozone[[response]], prob = c(.1, .9)), 
+                     add = range(Ozone[[response]]) - 
+                                 quantile(Ozone[[response]], prob = c(.1, .9)), 
+                     bounds = c(0, Inf))
+
+    B_m &lt;- Bernstein_basis(var_m, order = 4, ui = "increasing")
+    uc_ctm_Ozone &lt;- ctm(B_m, data = Ozone, todistr = "Normal")
+
+    tt_Ozone &lt;- trafotree(uc_ctm_Ozone, formula = fm, data = Ozone, 
+                control = ctree_control(mincriterion = .95, minsplit = 2*ns, 
+                                        minbucket = ns))
+
+    plot(rotate(tt_Ozone), tp_args = list(type = "density", id = FALSE, 
+         ylines = 0, K = 100, fill = "lightgrey"), 
+         terminal_panel = trtf:::node_mlt)
+}
+</code></pre>
+
+
+</div>

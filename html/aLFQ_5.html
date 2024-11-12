@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ALF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate ALF report</h2>
+
+<h3>Description</h3>
+
+<p>Estimation of Absolute Protein Quantities of Unlabeled Samples by Targeted Mass Spectrometry.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+ALF(data, report_filename="ALF_report.pdf", 
+prediction_filename="ALF_prediction.csv", peptide_methods = c("top"), 
+peptide_topx = c(1,2,3), peptide_strictness = "loose", 
+peptide_summary = "mean", transition_topx = c(1,2,3), 
+transition_strictness = "loose", transition_summary = "sum", fasta = NA, 
+apex_model = NA, combine_precursors = FALSE, combine_peptide_sequences = FALSE, 
+consensus_proteins = TRUE, consensus_peptides = TRUE, consensus_transitions = TRUE,
+cval_method = "boot", cval_mcx = 1000, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a mandatory data frame containing the columns <code>"run_id"</code>, <code>"protein_id"</code>, <code>"peptide_id"</code>, <code>"peptide_sequence"</code>, <code>"precursor_charge"</code>, <code>"peptide_intensity"</code> and <code>"concentration"</code> are required. For quantification on the transition level, the columns <code>"protein_id"</code>, <code>"peptide_id"</code>, <code>"transition_id"</code>, <code>"peptide_sequence"</code>, <code>"precursor_charge"</code>, <code>"transition_intensity"</code> and <code>"concentration"</code> are required. The id columns can be defined in any format, while the <code>"_intensity"</code> and <code>"concentration"</code> columns need to be numeric and in non-log form. The data may contain calibration data (with numeric <code>"concentration"</code> and test data (with <code>"concentration"</code> = "?"))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report_filename</code></td>
+<td>
+<p>the path and filename of the PDF report.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prediction_filename</code></td>
+<td>
+<p>the path and filename of the predictions of the optimal model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_methods</code></td>
+<td>
+<p>a vecter containing a combination of <code>"top"</code>, <code>"all"</code>, <code>"iBAQ"</code>, <code>"APEX"</code> or <code>"NSAF"</code> peptide to protein intensity estimation methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_topx</code></td>
+<td>
+<p>(<code>"top"</code> only:) a positive integer value of the top x peptides to consider for <code>"top"</code> methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_strictness</code></td>
+<td>
+<p>(<code>"top"</code> only:) whether <code>peptide_topx</code> should only consider proteins with the minimal peptide number (<code>"strict"</code>) or all (<code>"loose"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peptide_summary</code></td>
+<td>
+<p>(<code>"top"</code> and <code>"all"</code> only:) how to summarize the peptide intensities: <code>"mean"</code>, <code>"median"</code>, <code>"sum"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_topx</code></td>
+<td>
+<p>a positive integer value of the top x transitions to consider for transition to peptide intensity estimation methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_strictness</code></td>
+<td>
+<p>whether <code>transition_topx</code> should only consider peptides with the minimal transition number (<code>"strict"</code>) or all (<code>"loose"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_summary</code></td>
+<td>
+<p>how to summarize the transition intensities: <code>"mean"</code>, <code>"median"</code>, <code>"sum"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fasta</code></td>
+<td>
+<p>(<code>"iBAQ"</code>, <code>"APEX"</code> and <code>"NSAF"</code> only:) the path and filename to an amino acid fasta file containing the proteins of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apex_model</code></td>
+<td>
+<p>(<code>"APEX"</code> only:) The <code>"APEX"</code> model to use (see APEX).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_precursors</code></td>
+<td>
+<p>whether to sum all precursors of the same peptide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_peptide_sequences</code></td>
+<td>
+<p>whether to sum all variants (modifications) of the same peptide sequence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_proteins</code></td>
+<td>
+<p>if multiple runs are provided, select identical proteins among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_peptides</code></td>
+<td>
+<p>if multiple runs are provided, select identical peptides among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensus_transitions</code></td>
+<td>
+<p>if multiple runs are provided, select identical transitions among all runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cval_method</code></td>
+<td>
+<p>a method for doing crossvalidation: <code>"boot"</code> (bootstrapping), <code>"mc"</code> (monte carlo cross-validation), <code>"loo"</code> (leaving-one-out).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cval_mcx</code></td>
+<td>
+<p>a positive integer value of the number of folds for cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>future extensions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The ALF module enables model selection for TopN transitions and peptides for protein quantification (Ludwig et al., 2012). The workflow is completely automated and a report and prediction (using the best model) is generated.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The reports specified in the function call.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>George Rosenberger <a href="mailto:gr2578@cumc.columbia.edu">gr2578@cumc.columbia.edu</a></p>
+
+
+<h3>References</h3>
+
+<p>Ludwig, C., Claassen, M., Schmidt, A. \&amp; Aebersold, R. <em>Estimation of Absolute Protein Quantities of Unlabeled Samples by Selected Reaction Monitoring Mass Spectrometry.</em> Molecular \&amp; Cellular Proteomics 11, M111.013987-M111.013987 (2012).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>import</code>, <code>ProteinInference</code>, <code>AbsoluteQuantification</code>, <code>APEX</code>, <code>apexFeatures</code>, <code>proteotypic</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: data(UPS2MS)
+
+## Not run: ALF(UPS2_SRM)
+
+## Not run: data(LUDWIGMS)
+
+## Not run: ALF(LUDWIG_SRM)
+</code></pre>
+
+
+</div>

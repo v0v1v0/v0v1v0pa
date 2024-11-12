@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>labeling</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+labeling for clusters
+</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to label the clusters obtained from <code>cd.cluster</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">labeling(Y, Q, cd.cluster.object, method = c("2b","2a","1","3"),perm=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+
+<p>A required <code class="reqn">N \times J</code> response matrix with binary elements (1=correct, 0=incorrect), where <code class="reqn">N</code> is the number of examinees and <code class="reqn">J</code> is the number of items.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+
+<p>A required <code class="reqn">J \times K</code> binary item-by-attribute association matrix (Q-matrix), where <code class="reqn">K</code> is the number of attributes. The <code class="reqn">j^{th}</code> row of the matrix is an indicator vector, 1 indicating attributes are required and 0 indicating attributes are not required to master item <code class="reqn">j</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cd.cluster.object</code></td>
+<td>
+
+<p>An object of <code>cd.cluster</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The algorithm used for labeling. It should be one of "1","2a", "2b" and "3" corresponding to four different labeling methods in Chiu and Ma (2013). The default is "2b". See details for more information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm</code></td>
+<td>
+
+<p>The data matrix of the partial orders of the attribute patterns. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Because cluster analysis such as <em>K</em>-means or HACA can only classify examinees into unlabeled clusters, labeling algorithms are needed to identify the underlying attribute patterns of each latent cluster. Four labeling algorithms proposed in Chiu and Ma (2013) can be implemented using this function. 
+</p>
+<p>The first method is the Inconsistency Index method (<code>method="1"</code>). The Inconsistency Index, <code class="reqn">IC</code>, quantifies the amount of deviation of an ordering of clusters due to a specific <code class="reqn">\bm{W}</code> (See details in <code>cd.cluster</code>) from an arrangement of clusters that is suggested by simple assumptions about the (possible) underlying model. Among all feasible assignments of attribute patterns to clusters, the one that minimizes <code class="reqn">IC</code> is chosen. Refer to Chiu and Ma (2013) for details. Note that this method appears to be more time-consuming when <code class="reqn">K</code> is large and thus only the cases of <code class="reqn">K=3</code> and <code class="reqn">K=4</code> are implemented in the current function. To implement this algorithm, the partial order matrix of the attribute patterns should be provided. See <code>perm</code> for details. 
+</p>
+<p>For <code>method="2a"</code> and <code>method="2b"</code>, the label of a latent class is obtained by minimizing the average distance between observed responses and ideal responses. Specifically, let <code class="reqn">\bm{y}=(y_1, y_2, \ldots, y_J)</code> be the observed response pattern for a particular examinee and <code class="reqn">\bm{\eta}=(\eta_1,\eta_2,\ldots,\eta_J)</code> be the ideal response pattern corresponding to a particular attribute pattern <code class="reqn">\bm{\alpha}</code>. The Weighted Hamming distance <code class="reqn">d</code> between <code class="reqn">\bm{y}</code> and <code class="reqn">\bm{\eta}</code> is given by
+</p>
+<p style="text-align: center;"><code class="reqn">
+d(\bm{y}, \bm{\eta})=\sum_{j=1}^J\frac{1}{\bar{p_j}(1-\bar{p_j})}|y_j-\eta_j|.
+</code>
+</p>
+
+<p>where <code class="reqn">\bar{p_j}</code> denotes the proportion correction on the <code class="reqn">j^{th}</code> item.
+Then the best label or attribute pattern (<code class="reqn">\hat{\bm{\alpha}}</code>) can be obtained through
+</p>
+<p style="text-align: center;"><code class="reqn">
+\hat{\bm{\alpha}}=\mbox{arg} \min_{\bm{\alpha}_k \in \Omega}D.
+</code>
+</p>
+
+<p>where <code class="reqn">D</code> is the average weighted Hamming distance within each cluster and <code class="reqn">\Omega</code> is the set of <code class="reqn">\bm{\alpha}</code>. In practice, the largest cluster will be labeled first and the smallest cluster will be labeled last.
+</p>
+<p>For <code>method="2a"</code>, The selected label <code class="reqn">\bm{\alpha}</code> will be eliminated from <code class="reqn">\Omega</code> after each labeling iteration, implying that different clusters will obtain different labels. 
+</p>
+<p>For <code>method="2b"</code>, The selected label <code class="reqn">\bm{\alpha}</code> will not be eliminated from <code class="reqn">\Omega</code> after each labeling iteration, implying that different clusters may obtain the same label. 
+</p>
+<p>For <code>method="3"</code>, it combines the technique of the partial order and  <code>"2a"</code> method such that some labels can be eliminated from <code class="reqn">\Omega</code> before each labeling iteration. Refer to Chiu and Ma (2013) for details.
+</p>
+<p>It should be noted that <code>method</code> <code>"1"</code>, <code>"2a"</code> and <code>"3"</code> all assume that different latent clusters are distinct in nature, which means different clusters will be given different labels using these methods. But <code>method</code> <code>"2b"</code> relaxes this assumption and allow the same label for different clusters. In addition, <code>method</code> <code>"1"</code> and <code>"3"</code> may be used when number of clusters is <code class="reqn">2^K</code> only. If it is not the case, <code>method</code> <code>"2a"</code> or <code>method</code> <code>"2b"</code> should be used.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>att.pattern</code></td>
+<td>
+<p>A <code class="reqn">N \times K</code> binary attribute patterns, where <code class="reqn">N</code> is the number of examinees and <code class="reqn">K</code> is the number of attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>att.dist</code></td>
+<td>
+<p>A <code class="reqn">2^K \times 2</code> data frame, where the first column is the attribute pattern, the second column is its frequency.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Chiu, C. Y., Douglas, J. A., &amp; Li, X. (2009). Cluster analysis for cognitive diagnosis: theory and applications. <em>Psychometrika, 74</em>(4), 633-665.
+</p>
+<p>Chiu, C. Y., &amp; Ma, W. (2013). <em>Assignment of clusters to attribute profiles for cognitive diagnosis</em>. Manuscript in preparation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.labeling</code>, <code>cd.cluster</code>, <code>npar.CDM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Labeling based on simulated data and Q matrix
+data(sim.dat)
+data(sim.Q)
+
+# Information about the dataset
+N &lt;- nrow(sim.dat) #number of examinees
+J &lt;- nrow(sim.Q) #number of items
+K &lt;- ncol(sim.Q) #number of attributes
+
+# Assume 2^K latent clusters
+cluster.obj &lt;- cd.cluster(sim.dat, sim.Q)
+# Different clusters may have the same attribute patterns
+labeled.obj.2b &lt;- labeling(sim.dat, sim.Q, cluster.obj, method="2b")
+# Different clusters mhave different attribute patterns
+labeled.obj.2a &lt;- labeling(sim.dat, sim.Q, cluster.obj, method="2a")
+# labeling using method 1
+data(perm3)  #since the number of attributes in this example is 3, perm3 is used here
+labeled.obj.1 &lt;- labeling(sim.dat, sim.Q, cluster.obj, method="1",perm=perm3)
+remove(perm3) #remove perm3 
+
+# Assume 5 attribute patterns exist
+M &lt;- 5
+cluster.obj &lt;- cd.cluster(sim.dat, sim.Q, method="HACA", HACA.cut=M) 
+labeled.obj &lt;- labeling(sim.dat, sim.Q, cluster.obj, method="2b")
+
+
+</code></pre>
+
+
+</div>

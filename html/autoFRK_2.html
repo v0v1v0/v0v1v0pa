@@ -1,0 +1,284 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autoFRK</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic Fixed Rank Kriging</h2>
+
+<h3>Description</h3>
+
+<p>This function performs resolution adaptive fixed rank kriging based on
+spatial data observed at one or multiple time points via the following
+spatial random-effects model:
+</p>
+<p style="text-align: center;"><code class="reqn">z[t]=\mu + G \cdot w[t]+\eta[t]+e[t], w[t] \sim N(0,M), e[t] \sim N(0, s \cdot D); t=1,...,T,</code>
+</p>
+
+<p>where <code class="reqn">z[t]</code> is an <em>n</em>-vector of (partially) observed data at <em>n</em> locations,
+<code class="reqn">\mu</code> is an <em>n</em>-vector of deterministic mean values,
+<code class="reqn">D</code> is a given n by n matrix,
+<code class="reqn">G</code> is a given <em>n</em> by <em>K</em> matrix,
+<code class="reqn">\eta[t]</code> is an n-vector of random variables corresponding to a spatial stationary process,
+and <code class="reqn">w[t]</code> is a K-vector of unobservable random weights.
+Parameters are estimated by maximum likelihood in a closed-form expression. The matrix <code class="reqn">G</code> corresponding to basis functions is
+given by an ordered class of thin-plate spline functions, with the number of basis functions
+selected by  Akaike's information criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autoFRK(
+  Data,
+  loc,
+  mu = 0,
+  D = diag.spam(NROW(Data)),
+  G = NULL,
+  finescale = FALSE,
+  maxit = 50,
+  tolerance = 0.1^6,
+  maxK = NULL,
+  Kseq = NULL,
+  method = c("fast", "EM"),
+  n.neighbor = 3,
+  maxknot = 5000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Data</code></td>
+<td>
+<p><em>n</em> by <em>T</em> data matrix (NA allowed) with
+<code class="reqn">z[t]</code> as the <em>t</em>-th column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loc</code></td>
+<td>
+<p><em>n</em> by <em>d</em> matrix of coordinates corresponding to <em>n</em> locations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p><em>n</em>-vector or scalar for <code class="reqn">\mu</code>; Default is 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p><em>n</em> by <em>n</em> matrix (preferably sparse) for the covariance matrix of the measurement errors up to a constant scale.
+Default is an identity matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p><em>n</em> by <em>K</em> matrix of basis function values with each column being a basis function taken values at <code>loc</code>.
+Default is NULL, which is automatic determined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finescale</code></td>
+<td>
+<p>logical; if <code>TRUE</code> then a (approximate) stationary finer scale process <code class="reqn">\eta[t]</code> will be included
+based on <code>LatticeKrig</code> pacakge.
+In such a case, only the diagonals of <code class="reqn">D</code> would be taken into account. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations. Default is 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>precision tolerance for convergence check. Default is 0.1^6.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxK</code></td>
+<td>
+<p>maximum number of basis functions considered. Default is
+<code class="reqn">10 \cdot \sqrt{n}</code> for <em>n&gt;100</em> or <em>n</em> for <em>n&lt;=100</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kseq</code></td>
+<td>
+<p>user-specified vector of numbers of basis functions considered. Default is
+<code>NULL</code>, which is determined from <code>maxK</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"fast" or " EM"; if "fast" then the missing data are filled in using k-nearest-neighbor imputation;
+if "EM" then the missing data are taken care by the EM algorithm. Default is "fast".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.neighbor</code></td>
+<td>
+<p>number of neighbors to be used in the "fast" imputation method. Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxknot</code></td>
+<td>
+<p>maximum number of knots to be used in
+generating basis functions. Default is 5000.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes the ML estimate of M using the closed-form expression in Tzeng and Huang (2018).
+If the user would like to specify
+a <code>D</code> other than an identity matrix for a large <em>n</em>, it is better to provided via <code>spam</code> function
+in <code>spam</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>FRK</code> is returned, which is a list of the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>ML estimate of <code class="reqn">M</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>estimate for the scale parameter of measurement errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negloglik</code></td>
+<td>
+<p> negative  log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p><em>K</em> by <em>T</em> matrix with <code class="reqn">w[t]</code> as the <em>t</em>-th column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p><em>K</em> by <em>K</em> matrix of the prediction error covariance matrix of <code class="reqn">w[t]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>user specified basis function matrix or an automatically generated <code>mrts</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LKobj</code></td>
+<td>
+<p>a list from calling <code>LKrig.MLE</code> in <code>LatticeKrig</code> package if <code>useLK=TRUE</code>;
+otherwise <code>NULL</code>. See that package for details.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>ShengLi Tzeng and Hsin-Cheng Huang.
+</p>
+
+
+<h3>References</h3>
+
+<p>Tzeng, S., &amp; Huang, H.-C. (2018). Resolution Adaptive Fixed Rank Kriging, Technometrics, https://doi.org/10.1080/00401706.2017.1345701.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.FRK</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### generating data from two eigenfunctions
+originalPar &lt;- par(no.readonly = TRUE)
+set.seed(0)
+n &lt;- 150
+s &lt;- 5
+grid1 &lt;- grid2 &lt;- seq(0, 1, l = 30)
+grids &lt;- expand.grid(grid1, grid2)
+fn &lt;- matrix(0, 900, 2)
+fn[, 1] &lt;- cos(sqrt((grids[, 1] - 0)^2 + (grids[, 2] - 1)^2) * pi)
+fn[, 2] &lt;- cos(sqrt((grids[, 1] - 0.75)^2 + (grids[, 2] - 0.25)^2) * 2 * pi)
+
+#### single realization simulation example
+w &lt;- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
+y &lt;- fn %*% w
+obs &lt;- sample(900, n)
+z &lt;- y[obs] + rnorm(n) * sqrt(s)
+X &lt;- grids[obs, ]
+
+#### method1: automatic selection and prediction
+one.imat &lt;- autoFRK(Data = z, loc = X, maxK = 15)
+yhat &lt;- predict(one.imat, newloc = grids)
+
+#### method2: user-specified basis functions
+G &lt;- mrts(X, 15)
+Gpred &lt;- predict(G, newx = grids)
+one.usr &lt;- autoFRK(Data = z, loc = X, G = G)
+yhat2 &lt;- predict(one.usr, newloc = grids, basis = Gpred)
+
+require(fields)
+par(mfrow = c(2, 2))
+image.plot(matrix(y, 30, 30), main = "True")
+points(X, cex = 0.5, col = "grey")
+image.plot(matrix(yhat$pred.value, 30, 30), main = "Predicted")
+points(X, cex = 0.5, col = "grey")
+image.plot(matrix(yhat2$pred.value, 30, 30), main = "Predicted (method 2)")
+points(X, cex = 0.5, col = "grey")
+plot(yhat$pred.value, yhat2$pred.value, mgp = c(2, 0.5, 0))
+par(originalPar)
+#### end of single realization simulation example
+
+#### independent multi-realization simulation example
+set.seed(0)
+wt &lt;- matrix(0, 2, 20)
+for (tt in 1:20) wt[, tt] &lt;- c(rnorm(1, sd = 5), rnorm(1, sd = 3))
+yt &lt;- fn %*% wt
+obs &lt;- sample(900, n)
+zt &lt;- yt[obs, ] + matrix(rnorm(n * 20), n, 20) * sqrt(s)
+X &lt;- grids[obs, ]
+multi.imat &lt;- autoFRK(Data = zt, loc = X, maxK = 15)
+Gpred &lt;- predict(multi.imat$G, newx = grids)
+
+G &lt;- multi.imat$G
+Mhat &lt;- multi.imat$M
+dec &lt;- eigen(G %*% Mhat %*% t(G))
+fhat &lt;- Gpred %*% Mhat %*% t(G) %*% dec$vector[, 1:2]
+par(mfrow = c(2, 2))
+image.plot(matrix(fn[, 1], 30, 30), main = "True Eigenfn 1")
+image.plot(matrix(fn[, 2], 30, 30), main = "True Eigenfn 2")
+image.plot(matrix(fhat[, 1], 30, 30), main = "Estimated Eigenfn 1")
+image.plot(matrix(fhat[, 2], 30, 30), main = "Estimated Eigenfn 2")
+par(originalPar)
+#### end of independent multi-realization simulation example
+</code></pre>
+
+
+</div>

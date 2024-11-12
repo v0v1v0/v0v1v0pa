@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_vmss_template</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Virtual machine scaleset (cluster) template class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing a virtual machine scaleset deployment template. This class keeps track of all resources that are created as part of deploying a scaleset, and exposes methods for managing them.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>az_vmss_template</code>, inheriting from <code>AzureRMR::az_template</code>.
+</p>
+
+
+<h3>Details</h3>
+
+<p>A virtual machine scaleset in Azure is actually a collection of resources, including any and all of the following.
+</p>
+
+<ul>
+<li>
+<p> Network security group (Azure resource type <code>Microsoft.Network/networkSecurityGroups</code>)
+</p>
+</li>
+<li>
+<p> Virtual network (Azure resource type <code>Microsoft.Network/virtualNetworks</code>)
+</p>
+</li>
+<li>
+<p> Load balancer (Azure resource type <code>Microsoft.Network/loadBalancers</code>)
+</p>
+</li>
+<li>
+<p> Public IP address (Azure resource type <code>Microsoft.Network/publicIPAddresses</code>)
+</p>
+</li>
+<li>
+<p> Autoscaler (Azure resource type <code>Microsoft.Insights/autoscaleSettings</code>)
+</p>
+</li>
+<li>
+<p> The scaleset itself (Azure resource type <code>Microsoft.Compute/virtualMachineScaleSets</code>)
+</p>
+</li>
+</ul>
+<p>By wrapping the deployment template used to create these resources, the <code>az_vmss_template</code> class allows managing them all as a single entity.
+</p>
+
+
+<h3>Fields</h3>
+
+<p>The following fields are exposed, in addition to those provided by the AzureRMR::az_template class.
+</p>
+
+<ul>
+<li> <p><code>dns_name</code>: The DNS name for the scaleset (technically, the name for its load balancer). Will be NULL if the scaleset is not publicly visible, or doesn't have a load balancer attached.
+</p>
+</li>
+<li> <p><code>identity</code>: The managed identity details for the scaleset. Will be NULL if the scaleset doesn't have an identity assigned.
+</p>
+</li>
+</ul>
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_template class.
+</p>
+
+<ul>
+<li> <p><code>sync_vmss_status</code>: Check the status of the scaleset.
+</p>
+</li>
+<li> <p><code>list_instances()</code>: Return a list of az_vm_resource objects, one for each VM instance in the scaleset. Note that if the scaleset has an autoscaler attached, the number of instances will vary depending on the load.
+</p>
+</li>
+<li> <p><code>get_instance(id)</code>: Return a specific VM instance in the scaleset.
+</p>
+</li>
+<li> <p><code>start(id=NULL, wait=FALSE)</code>: Start the scaleset. In this and the other methods listed here, <code>id</code> can be an optional character vector of instance IDs; if supplied, only carry out the operation for those instances.
+</p>
+</li>
+<li> <p><code>restart(id=NULL, wait=FALSE)</code>: Restart the scaleset.
+</p>
+</li>
+<li> <p><code>stop(deallocate=TRUE, id=NULL, wait=FALSE)</code>: Stop the scaleset.
+</p>
+</li>
+<li> <p><code>get_public_ip_address()</code>: Get the public IP address of the scaleset (technically, of the load balancer). If the scaleset doesn't have a load balancer attached, returns NA.
+</p>
+</li>
+<li> <p><code>get_vm_public_ip_addresses(id=NULL, nic=1, config=1)</code>: Get the public IP addresses for the instances in the scaleset. Returns NA for the instances that are stopped or not publicly accessible.
+</p>
+</li>
+<li> <p><code>get_vm_private_ip_addresses(id=NULL, nic=1, config=1)</code>: Get the private IP addresses for the instances in the scaleset.
+</p>
+</li>
+<li> <p><code>get_public_ip_resource()</code>: Get the Azure resource for the load balancer's public IP address.
+</p>
+</li>
+<li> <p><code>get_vnet(nic=1, config=1)</code>: Get the scaleset's virtual network resource.
+</p>
+</li>
+<li> <p><code>get_nsg(nic=1, config=1)</code>: Get the scaleset's network security group resource.
+</p>
+</li>
+<li> <p><code>get_load_balancer()</code>: Get the scaleset's load balancer resource.
+</p>
+</li>
+<li> <p><code>get_autoscaler()</code>: Get the scaleset's autoscaler resource.
+</p>
+</li>
+<li> <p><code>run_deployed_command(command, parameters=NULL, script=NULL, id=NULL)</code>: Run a PowerShell command on the instances in the scaleset.
+</p>
+</li>
+<li> <p><code>run_script(script, parameters=NULL, id=NULL)</code>: Run a script on the VM. For a Linux VM, this will be a shell script; for a Windows VM, a PowerShell script. Pass the script as a character vector.
+</p>
+</li>
+<li> <p><code>reimage(id=NULL, datadisks=FALSE)</code>: Reimage the instances in the scaleset. If <code>datadisks</code> is TRUE, reimage any attached data disks as well.
+</p>
+</li>
+<li> <p><code>redeploy(id=NULL)</code>: Redeploy the instances in the scaleset.
+</p>
+</li>
+<li> <p><code>mapped_vm_operation(..., id=NULL)</code>: Carry out an arbitrary operation on the instances in the scaleset. See the <code>do_operation</code> method of the AzureRMR::az_resource class for more details.
+</p>
+</li>
+<li> <p><code>add_extension(publisher, type, version, settings=list(), protected_settings=list(), key_vault_settings=list())</code>: Add an extension to the scaleset.
+</p>
+</li>
+<li> <p><code>do_vmss_operation(...)</code> Carry out an arbitrary operation on the scaleset resource (as opposed to the instances in the scaleset).
+</p>
+</li>
+</ul>
+<p>Many of these methods are actually provided by the az_vmss_resource class, and propagated to the template as active bindings.
+</p>
+
+
+<h3>Instance operations</h3>
+
+<p>AzureVM has the ability to parallelise scaleset instance operations using a background process pool provided by AzureRMR. This can lead to significant speedups when working with scalesets with high instance counts. The pool is created automatically the first time that it is required, and remains persistent for the session. You can control the size of the process pool with the <code>azure_vm_minpoolsize</code> and <code>azure_vm_maxpoolsize</code> options, which have default values 2 and 10 respectively.
+</p>
+<p>The <code>id</code> argument lets you specify a subset of instances on which to carry out an operation. This can be a character vector of instance IDs; a list of instance objects such as returned by <code>list_instances</code>; or a single instance object. The default (NULL) is to carry out the operation on all instances.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>AzureRMR::az_template, create_vm_scaleset, get_vm_scaleset, delete_vm_scaleset, AzureRMR::init_pool
+</p>
+<p><a href="https://docs.microsoft.com/en-us/rest/api/compute/virtualmachinescalesets">VM scaleset API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+sub &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")
+
+vmss &lt;- sub$get_vm_scaleset("myscaleset")
+
+vmss$identity
+
+vmss$get_public_ip_address()  # NA if the scaleset doesn't have a load balancer
+
+vmss$start()
+vmss$get_vm_private_ip_addresses()
+vmss$get_vm_public_ip_addresses()  # NA if scaleset nodes are not publicly visible
+
+instances &lt;- vmss$list_instances()
+first &lt;- instances[1]
+vmss$run_script("echo hello world! &gt; /tmp/hello.txt", id=first)
+vmss$stop(id=first)
+vmss$reimage(id=first)
+
+vmss$sync_vmss_status()
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

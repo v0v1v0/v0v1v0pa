@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cover_special_periods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cover special periods.</h2>
+
+<h3>Description</h3>
+
+<p>Identifies special periods that are in proximity to already covered durations and adds additional
+events for these durations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cover_special_periods(
+  events.data,
+  special.periods.data,
+  ID.colname,
+  medication.class.colnames,
+  disp.date.colname,
+  disp.start.colname,
+  episode.start.colname,
+  episode.end.colname,
+  duration.colname,
+  days.before,
+  days.after,
+  date.format,
+  suppress.warnings = FALSE,
+  return.data.table = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>events.data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> or <em><code>data.table</code></em> with the event durations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>special.periods.data</code></td>
+<td>
+<p>a <em><code>data.frame</code></em> or or <em><code>data.table</code></em>
+containing the information about special periods (e.g., hospitalizations or other situations
+where medication use may differ, e.g. during incarcerations or holidays). Must contain the same unique
+patient ID as dispensing and prescription data, the start and end dates of the special
+periods with the exact column names <em><code>DATE.IN</code></em> and <em><code>DATE.OUT</code></em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>events.data</code> and
+<code>special.periods.data</code> containing the unique patient ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colnames</code></td>
+<td>
+<p>A <em><code>Vector</code></em> of <em>strings</em>, the
+name(s) of the column(s) in the <code>events.data</code> identify medication classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>events.data</code> containing the dispensation start date (in the format given in
+the <code>date.format</code> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp.start.colname, episode.start.colname, episode.end.colname</code></td>
+<td>
+<p>column names in
+<code>events.data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>duration.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>events.data</code> containing the duration of the medication event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days.before</code></td>
+<td>
+<p>an <em>integer</em>, the number of days before the start of a special period
+within which an event duration must end to consider the special period as covered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days.after</code></td>
+<td>
+<p>an <em>integer</em>, the number of days after a special period within
+which an event duration must start to consider the special period as covered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in
+the <code>data</code> and the other parameters; see the <code>format</code> parameters
+of the <code>as.Date</code> function for details (NB, this concerns
+only the dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any
+warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.data.table</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> return a
+<code>data.table</code> object, otherwise a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other possible parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Special periods may appear as gaps, possibly leading to underestimation of implementation or even
+assumption of discontinuation and non-persistence. To consider such periods as covered, this function
+adds additional durations, for example when it is assumed that hospitalized patients are adherent
+during the hospitalization period. This function should be used after pruning with
+<code>prune_event_durations</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> or <code>data.table</code>, the <code>events.data</code> with the additional
+durations for special periods covered.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# select medication class of interest and compute event durations
+disp_data &lt;- durcomp.dispensing[ID == 3 &amp; grepl("J01EE01", ATC.CODE)]
+presc_data &lt;- durcomp.prescribing[ID == 3 &amp; grepl("J01EE01", ATC.CODE)]
+
+event_durations_list &lt;- compute_event_durations(disp.data = disp_data,
+                                                presc.data = presc_data,
+                                                special.periods.data = durcomp.hospitalisation,
+                                                special.periods.method = "carryover",
+                                                ID.colname = "ID",
+                                                presc.date.colname = "DATE.PRESC",
+                                                disp.date.colname = "DATE.DISP",
+                                                date.format = "%Y-%m-%d",
+                                                medication.class.colnames = c("ATC.CODE",
+                                                                              "UNIT",
+                                                                              "FORM"),
+                                                total.dose.colname = "TOTAL.DOSE",
+                                                presc.daily.dose.colname = "DAILY.DOSE",
+                                                presc.duration.colname = "PRESC.DURATION",
+                                                visit.colname = "VISIT",
+                                                force.init.presc = TRUE,
+                                                force.presc.renew = TRUE,
+                                                split.on.dosage.change = TRUE,
+                                                trt.interruption = "carryover",
+                                                suppress.warnings = FALSE,
+                                                return.data.table = TRUE,
+                                                progress.bar = FALSE)
+
+event_durations &lt;- prune_event_durations(event_durations_list,
+                                         include = c("special periods"),
+                                         medication.class.colnames = "ATC.CODE",
+                                         days.within.out.date.1 = 7,
+                                         days.within.out.date.2 = 30,
+                                         keep.all = TRUE)
+
+# cover special periods
+special_periods &lt;- event_durations_list$special_periods
+event_durations_covered &lt;- cover_special_periods(events.data = event_durations,
+                                                 special.periods.data = special_periods,
+                                                 ID.colname = "ID",
+                                                 medication.class.colnames = "ATC.CODE",
+                                                 disp.start.colname = "DISP.START",
+                                                 duration.colname = "DURATION",
+                                                 days.before = 7,
+                                                 days.after = 7,
+                                                 date.format = "%Y-%m-%d")
+       
+## End(Not run)
+</code></pre>
+
+
+</div>

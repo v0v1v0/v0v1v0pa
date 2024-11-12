@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>snpClust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjacency-constrained Clustering of Single Nucleotide Polymorphisms</h2>
+
+<h3>Description</h3>
+
+<p>Adjacency-constrained hierarchical agglomerative clustering of Single
+Nucleotide Polymorphisms based on Linkage Disequilibrium
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">snpClust(x, h = ncol(x) - 1, stats = c("R.squared", "D.prime"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>either a genotype matrix of class
+<code>SnpMatrix</code>/<code>matrix</code> or a
+linkage disequilibrium matrix of class
+<code>dgCMatrix</code>. In the latter case the LD
+values are expected to be in [0,1]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>band width. If not provided, <code>h</code> is set to default value 'p-1'
+where 'p' is the number of columns of <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>a character vector specifying the linkage disequilibrium
+measures to be calculated (using the <code>ld</code>
+function) when <code>x</code> is a genotype matrix. Only "R.squared" and
+"D.prime" are allowed, see Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Adjacency-constrained hierarchical agglomerative clustering (HAC) is HAC in
+which each observation is associated to a position, and the clustering is
+constrained so as only adjacent clusters are merged. SNPs are clustered based
+on their similarity as measured by the linkage disequilibrium.
+</p>
+<p>In the special case where genotypes are given as input and the corresponding
+LD matrix has missing entries, the clustering cannot be performed. This can
+typically happen when there is insufficient variability in the sample
+genotypes. In this special case, the indices of the SNP pairs which yield
+missing values are returned.
+</p>
+<p>If <code>x</code> is of class
+<code>SnpMatrix</code> or <code>matrix</code>,
+it is assumed to be a <code class="reqn">n \times p</code> matrix of <code class="reqn">p</code> genotypes for
+<code class="reqn">n</code> individuals. This input is converted to a LD similarity matrix
+using the <code>snpStats::ld</code>. If <code>x</code> is of class
+<code>dgCMatrix</code>, it is assumed to be a
+(squared) LD matrix.
+</p>
+<p>Clustering on a LD similarity other than "R.squared" or "D.prime" can be
+performed by providing the LD values directly as argument <code>x</code>. These
+values are expected to be in [0,1], otherwise they are truncated to [0,1].
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>chac</code> (when no LD value is missing)
+</p>
+
+
+<h3>References</h3>
+
+<p>Dehman A. (2015) <em>Spatial Clustering of Linkage
+Disequilibrium Blocks for Genome-Wide Association Studies</em>, PhD thesis,
+Universite Paris Saclay.
+</p>
+<p>Dehman, A. Ambroise, C. and Neuvial, P. (2015). Performance of a
+blockwise approach in variable selection using linkage disequilibrium
+information. *BMC Bioinformatics* 16:148.
+</p>
+<p>Ambroise C., Dehman A., Neuvial P., Rigaill G., and Vialaneix N
+(2019). <em>Adjacency-constrained hierarchical clustering of a band
+similarity matrix with application to genomics</em>, Algorithms for Molecular
+Biology 14(22)"
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adjClust</code> <code>ld</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## a very small example
+if (requireNamespace("snpStats", quietly = TRUE)) {
+  data(testdata, package = "snpStats")
+
+  # input as snpStats::SnpMatrix
+  fit1 &lt;- snpClust(Autosomes[1:200, 1:5], h = 3, stats = "R.squared")
+
+  # input as base::matrix
+  fit2 &lt;- snpClust(as.matrix(Autosomes[1:200, 1:5]), h = 3, stats = "R.squared")
+
+  # input as Matrix::dgCMatrix
+  ldres &lt;- snpStats::ld(Autosomes[1:200, 1:5], depth = 3, stats = "R.squared", symmetric = TRUE)
+  fit3 &lt;- snpClust(ldres, 3)
+}
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>storage_account</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Managed storage account</h2>
+
+<h3>Description</h3>
+
+<p>This class represents a storage account that Key Vault will manage access to. It provides methods for regenerating keys, and managing shared access signatures (SAS).
+</p>
+<p>This class represents a secret stored in a vault.
+</p>
+
+
+<h3>Fields</h3>
+
+<p>This class provides the following fields:
+</p>
+
+<ul>
+<li> <p><code>id</code>: The internal vault ID of the storage account.
+</p>
+</li>
+<li> <p><code>resourceId</code>: The Azure resource ID of the storage account.
+</p>
+</li>
+<li> <p><code>activeKeyName</code>: The current active storage account key.
+</p>
+</li>
+<li> <p><code>autoRegenerateKey</code>: Whether Key Vault will manage the storage account's key.
+</p>
+</li>
+<li> <p><code>regenerationPeriod</code>: How often the account key is regenerated, in ISO 8601 format.
+</p>
+</li>
+</ul>
+<p>This class provides the following fields:
+</p>
+
+<ul>
+<li> <p><code>value</code>: The value of the secret.
+</p>
+</li>
+<li> <p><code>id</code>: The ID of the secret.
+</p>
+</li>
+<li> <p><code>kid</code>: If this secret backs a certificate, the ID of the corresponding key.
+</p>
+</li>
+<li> <p><code>managed</code>: Whether this secret's lifetime is managed by Key Vault. TRUE if the secret backs a certificate.
+</p>
+</li>
+<li> <p><code>contentType</code>: The content type of the secret.
+</p>
+</li>
+</ul>
+<h3>Methods</h3>
+
+<p>This class provides the following methods:</p>
+<pre>regenerate_key(key_name)
+create_sas_definition(sas_name, sas_template, validity_period, sas_type="account",
+                      enabled=TRUE, recovery_level=NULL, ...)
+delete_sas_definition(sas_name, confirm=TRUE)
+get_sas_definition(sas_name)
+list_sas_definitions()
+show_sas(sas_name)
+
+update_attributes(attributes=vault_object_attrs(), ...)
+remove(confirm=TRUE)
+</pre>
+<p>This class provides the following methods:</p>
+<pre>update_attributes(attributes=vault_object_attrs(), ...)
+list_versions()
+set_version(version=NULL)
+delete(confirm=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>key_name</code>: For <code>regenerate_key</code>, the name of the access key to regenerate.
+</p>
+</li>
+<li> <p><code>sas_name</code>: The name of a SAS definition.
+</p>
+</li>
+<li> <p><code>sas_template</code>: A string giving the details of the SAS to create. See 'Details' below.
+</p>
+</li>
+<li> <p><code>validity_period</code>: How long the SAS should be valid for.
+</p>
+</li>
+<li> <p><code>sas_type</code>: The type of SAS to generate, either "account" or "service".
+</p>
+</li>
+<li> <p><code>enabled</code>: Whether the SAS definition. is enabled.
+</p>
+</li>
+<li> <p><code>recovery_level</code>: The recovery level of the SAS definition.
+</p>
+</li>
+<li> <p><code>...</code>: For <code>create_sas_definition</code>, other named arguments to use as tags for a SAS definition. For <code>update_attributes</code>, additional account-specific properties to update. See storage_accounts.
+</p>
+</li>
+<li> <p><code>attributes</code>: For <code>update_attributes</code>, the new attributes for the object, such as the expiry date and activation date. A convenient way to provide this is via the vault_object_attrs helper function.
+</p>
+</li>
+<li> <p><code>confirm</code>: For <code>delete</code> and <code>delete_sas_definition</code>, whether to ask for confirmation before deleting.
+</p>
+</li>
+</ul>
+<ul>
+<li> <p><code>attributes</code>: For <code>update_attributes</code>, the new attributes for the object, such as the expiry date and activation date. A convenient way to provide this is via the vault_object_attrs helper function.
+</p>
+</li>
+<li> <p><code>...</code>: For <code>update_attributes</code>, additional secret-specific properties to update. See secrets.
+</p>
+</li>
+<li> <p><code>version</code>: For <code>set_version</code>, the version ID or NULL for the current version.
+</p>
+</li>
+<li> <p><code>confirm</code>: For <code>delete</code>, whether to ask for confirmation before deleting the secret.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p><code>create_sas_definition</code> creates a new SAS definition from a template. This can be created from the Azure Portal, via the Azure CLI, or in R via the AzureStor package (see examples). <code>get_sas_definition</code> returns a list representing the template definition; <code>show_sas</code> returns the actual SAS.
+</p>
+<p><code>regenerate_key</code> manually regenerates an access key. Note that if the vault is setup to regenerate keys automatically, you won't usually have to use this method.
+</p>
+<p>Unlike the other objects stored in a key vault, storage accounts are not versioned.
+</p>
+<p>A secret can have multiple <em>versions</em>, which are automatically generated when a secret is created with the same name as an existing secret. By default, the most recent (current) version is used for secret operations; use <code>list_versions</code> and <code>set_version</code> to change the version.
+</p>
+<p>The value is stored as an object of S3 class "secret_value", which has a print method that hides the value to guard against shoulder-surfing. Note that this will not stop a determined attacker; as a general rule, you should minimise assigning secrets or passing them around your R environment. If you want the raw string value itself, eg when passing it to <code>jsonlite::toJSON</code> or other functions which do not accept arbitrary object classes as inputs, use <code>unclass</code> to strip the class attribute first.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>create_sas_definition</code> and <code>get_sas_definition</code>, a list representing the SAS definition. For <code>list_sas_definitions</code>, a list of such lists.
+</p>
+<p>For <code>show_sas</code>, a string containing the SAS.
+</p>
+<p>For <code>list_versions</code>, a data frame containing details of each version.
+</p>
+<p>For <code>set_version</code>, the secret object with the updated version.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>storage_accounts
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+<p>secrets
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+vault &lt;- key_vault("mykeyvault")
+
+# get the storage account details
+library(AzureStor)
+res &lt;- AzureRMR::get_azure_login()$
+    get_subscription("sub_id")$
+    get_resource_group("rgname")$
+    get_storage_account("mystorageacct")
+
+stor &lt;- vault$storage$create("mystor", res, "key1")
+
+# Creating a new SAS definition
+today &lt;- Sys.time()
+sasdef &lt;- res$get_account_sas(expiry=today + 7*24*60*60, services="b", permissions="rw")
+stor$create_sas_definition("newsas", sasdef, validity_period="P15D")
+
+stor$show_sas("newsas")
+
+
+## End(Not run)
+## Not run: 
+
+vault &lt;- key_vault("mykeyvault")
+
+vault$secrets$create("mynewsecret", "secret text")
+# new version of an existing secret
+vault$secrets$create("mynewsecret", "extra secret text"))
+
+secret &lt;- vault$secrets$get("mynewsecret")
+vers &lt;- secret$list_versions()
+secret$set_version(vers[2])
+
+# printing the value will not show the secret
+secret$value  # "&lt;hidden&gt;"
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

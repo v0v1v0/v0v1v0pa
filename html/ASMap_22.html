@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pushCross</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Push markers into an established R/qtl linkage map.
+</h2>
+
+<h3>Description</h3>
+
+<p>Push unlinked markers or markers that were originally placed aside by
+<code>pullCross</code> back into linkage groups of an established R/qtl linkage map.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pushCross(object, type = c("co.located","seg.distortion",
+          "missing","unlinked"), unlinked.chr = NULL,
+          pars = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>An R/qtl <code>cross</code> object with class structure <code>"bc"</code>,
+<code>"dh"</code>, <code>"riself"</code>, <code>"bcsft"</code>. (see <code>?mstmap.cross</code> for more details.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>A character string determining the type of markers to be pushed into
+the linkage map (see Details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unlinked.chr</code></td>
+<td>
+
+<p>A character string of linkage group names containing markers that
+require pushing into the remaining linkage groups of the object. This is only useful when
+<code>type="unlinked"</code>. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+
+<p>A list of parameters that are used by <code>pushCross</code> to push markers
+a certain type back into the linkage group. The default NULL calls the parameter
+initialization function <code>pp.init</code> with defaults (see Details and
+Examples).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Currently ignored.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function was written explicitly to complement <code>pullCross</code> by
+"pushing" markers of certain types back into linkage groups of an
+established linkage map.
+</p>
+<p>Currently supported marker types are:
+</p>
+
+<ul>
+<li> <p><code>type = "co.located"</code>. Users can push co-located markers back
+into the linkage map that have been set aside in the cross object element
+<code>co.located</code>. To ensure this can be used at any stage of the linkage map
+construction process the function disregards the linkage group information
+provided in the table formed by using <code>pullCross</code>. Instead it uses the
+current positions of the markers in the reduced linkage map to determine
+where to push the co-located markers back to.
+</p>
+</li>
+<li> <p><code>type = "seg.distortion"</code>. Users can push markers from the
+<code>"seg.distortion"</code> element of the object back into a linkage map using the thresholding
+mechanisms <code>seg.thresh</code> and <code>seg.ratio</code> called using
+<code>pars</code>. If <code>seg.thresh</code> is given then the markers are pushed
+back that have p-values that are GREATER than <code>seg.thresh</code>. If
+<code>pars</code> contains an element <code>seg.ratio</code> then markers are pushed
+back based on the ratio provided. The ratio must be in character format and of the type
+"AA:BB" for two allele populations and "AA:AB:BB" for three allele
+populations (see Examples for more details). Markers are pushed back if their
+allele proportions are LESS than the largest proportional ratio or GREATER
+than the smallest proportional ratio given in <code>seg.thresh</code>. If neither
+thresholding mechanisms are given then the default is to use <code>seg.thresh = 0.05</code>.
+</p>
+</li>
+<li> <p><code>type = "missing"</code>. Users can push markers from the object
+element <code>"missing"</code> back into the linkage map using the
+thresholding parameter <code>miss.thresh</code> called using
+<code>pars</code>. Markers will be pushed back that have a
+proportion of missing values LESS than <code>miss.thresh</code>. If no value
+is given for this parameter it defaults to 0.1 or 10% missing values.
+</p>
+</li>
+<li> <p><code>type = "unlinked"</code>. Users can push unlinked markers that
+reside in linkage groups of the established linkage map. If this type is
+chosen <code>unlinked.chr</code> must be a character string of linkage group
+names in the object.
+</p>
+</li>
+</ul>
+<p>For types <code>"seg.distortion"</code>, <code>"missing"</code> and
+<code>"unlinked"</code> a fast clustering method is used to allocate markers
+to established linkage groups. This is done very
+efficiently by reducing the constructed linkage map to a skeleton set
+of markers before checking linkages. How these linkages are formed can
+be tweaked by setting <code>max.rf</code> and <code>min.lod</code> when calling
+<code>pars</code>. These currently default to <code>max.rf = 0.25</code> and
+<code>min.lod = 3</code>.
+</p>
+<p>Users should explicitly avoid the use of "UL" as part of a linkage group name as
+this is used internally to name unlinked groups of markers if required.
+It should also be noted that this function does not re-construct the
+object after allocating markers to linkage groups. For efficient linkage map
+reconstruction of an R/qtl object see <code>mstmap.cross()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The cross object is returned with an identical class structure as the
+inputted cross object with additional markers from the marker types
+pushed into linkage groups of the established linkage map. If all
+markers of an element type are pushed back then the element type is
+removed from the object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Julian Taylor
+</p>
+
+
+<h3>References</h3>
+
+<p>Taylor, J., Butler, D. (2017) R Package ASMap: Efficient Genetic
+Linkage Map Construction and Diagnosis. Journal of Statistical Software,
+<b>79</b>(6), 1–29.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pullCross</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(mapDH, package = "ASMap")
+
+## pull co-located markers from map
+
+mapDH.c &lt;- pullCross(mapDH, type = "co.located")
+mapDH.c$co.located$table
+
+## push co-located markers back into linkage map
+
+mapDH.z &lt;- pushCross(mapDH.c, type = "co.located")
+pull.map(mapDH.z)
+
+</code></pre>
+
+
+</div>

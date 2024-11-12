@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>causal_ols_rpart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation and Inference about the GATEs with rpart Objects</h2>
+
+<h3>Description</h3>
+
+<p>Obtains point estimates and standard errors for the group average treatment effects (GATEs), where groups correspond to the
+leaves of an <code>rpart</code> object. Additionally, performs some hypothesis testing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">causal_ols_rpart(
+  tree,
+  Y,
+  D,
+  X,
+  method = "aipw",
+  scores = NULL,
+  boot_ci = FALSE,
+  boot_R = 2000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>An <code>rpart</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Outcome vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Treatment assignment vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Covariate matrix (no intercept).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either <code>"raw"</code> or <code>"aipw"</code>, defines the outcome used in the regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Optional, vector of scores to be used in the regression. Useful to save computational time if scores have already been estimated. Ignored if <code>method == "raw"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_ci</code></td>
+<td>
+<p>Logical, whether to compute bootstrap confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_R</code></td>
+<td>
+<p>Number of bootstrap replications. Ignored if <code>boot_ci == FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Point estimates and standard errors for the GATEs</h4>
+
+<p>The GATEs and their standard errors are obtained by fitting an appropriate linear model. If <code>method == "raw"</code>, we
+estimate via OLS the following:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_i = \sum_{l = 1}^{|T|} L_{i, l} \gamma_l + \sum_{l = 1}^{|T|} L_{i, l} D_i \beta_l + \epsilon_i</code>
+</p>
+
+<p>with <code>L_{i, l}</code> a dummy variable equal to one if the i-th unit falls in the l-th leaf of <code>tree</code>, and |T| the number of
+groups. If the treatment is randomly assigned, one can show that the betas identify the GATE in each leaf. However, this is not true
+in observational studies due to selection into treatment. In this case, the user is expected to use <code>method == "aipw"</code> to run
+the following regression:
+</p>
+<p style="text-align: center;"><code class="reqn">score_i = \sum_{l = 1}^{|T|} L_{i, l} \beta_l + \epsilon_i</code>
+</p>
+
+<p>where score_i are doubly-robust scores constructed via honest regression forests and 5-fold cross fitting (unless the user specifies
+the argument <code>scores</code>). This way, betas again identify the GATEs.<br></p>
+<p>Regardless of <code>method</code>, standard errors are estimated via the Eicker-Huber-White estimator.<br></p>
+<p>If <code>boot_ci == TRUE</code>, the routine also computes asymmetric bias-corrected and accelerated 95% confidence intervals using 2000 bootstrap
+samples.<br></p>
+<p>If <code>tree</code> consists of a root only, <code>causal_ols_rpart</code> regresses <code>y</code> on a constant and <code>D</code> if
+<code>method == "raw"</code>, or regresses the doubly-robust scores on a constant if <code>method == "aipw"</code>. This way,
+we get an estimate of the overall average treatment effect.
+</p>
+
+
+
+<h4>Hypothesis testing</h4>
+
+<p><code>causal_ols_rpart</code> uses the standard errors obtained by fitting the linear models above to test the hypotheses
+that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing
+using Holm's procedure.
+</p>
+
+
+
+<h4>Caution on Inference</h4>
+
+<p>"honesty" is a necessary requirement to get valid inference. Thus, observations in <code>Y</code>, <code>D</code>, and
+<code>X</code> must not have been used to construct the <code>tree</code> and the <code>scores</code>.<br></p>
+
+
+
+<h3>Value</h3>
+
+<p>A list storing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model fitted to get point estimates and standard errors for the GATEs, as an <code>lm_robust</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gates_diff_pairs</code></td>
+<td>
+<p>Results of testing whether GATEs differ across all pairs of leaves. This is a list storing GATEs differences and p-values adjusted using Holm's procedure (check <code>p.adjust</code>). <code>NULL</code> if the tree consists of a root only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_ci</code></td>
+<td>
+<p>Bootstrap confidence intervals (this is an empty list if <code>boot_ci == FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Vector of doubly robust scores. <code>NULL</code> if <code>method == 'raw'</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Riccardo Di Francesco
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p> Di Francesco, R. (2022). Aggregation Trees. CEIS Research Paper, 546. <a href="https://doi.org/10.2139/ssrn.4304256">doi:10.2139/ssrn.4304256</a>.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>estimate_rpart</code> <code>avg_characteristics_rpart</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate data.
+set.seed(1986)
+
+n &lt;- 1000
+k &lt;- 3
+
+X &lt;- matrix(rnorm(n * k), ncol = k)
+colnames(X) &lt;- paste0("x", seq_len(k))
+D &lt;- rbinom(n, size = 1, prob = 0.5)
+mu0 &lt;- 0.5 * X[, 1]
+mu1 &lt;- 0.5 * X[, 1] + X[, 2]
+Y &lt;- mu0 + D * (mu1 - mu0) + rnorm(n)
+
+## Split the sample.
+splits &lt;- sample_split(length(Y), training_frac = 0.5)
+training_idx &lt;- splits$training_idx
+honest_idx &lt;- splits$honest_idx
+
+Y_tr &lt;- Y[training_idx]
+D_tr &lt;- D[training_idx]
+X_tr &lt;- X[training_idx, ]
+
+Y_hon &lt;- Y[honest_idx]
+D_hon &lt;- D[honest_idx]
+X_hon &lt;- X[honest_idx, ]
+
+## Construct a tree using training sample.
+library(rpart)
+tree &lt;- rpart(Y ~ ., data = data.frame("Y" = Y_tr, X_tr), maxdepth = 2)
+
+## Estimate GATEs in each node (internal and terminal) using honest sample.
+results &lt;- causal_ols_rpart(tree, Y_hon, D_hon, X_hon, method = "raw")
+
+summary(results$model) # Coefficient of leafk:D is GATE in k-th leaf.
+
+results$gates_diff_pair$gates_diff # GATEs differences.
+results$gates_diff_pair$holm_pvalues # leaves 1-2 and 3-4 not statistically different.
+
+</code></pre>
+
+
+</div>

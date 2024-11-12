@@ -1,0 +1,521 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>acdFit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+ACD (Autoregressive Conditional Duration) Model Fitting
+</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates various ACD models with various assumed error term distributions, using Maximum Likelihood Estimation.
+</p>
+<p>The currently available models (conditional mean specifications) are:
+</p>
+<p>Standard ACD, Log-ACD (two alternative specifications), AMACD, ABACD, SNIACD and LSNIACD.
+</p>
+<p>The currently available distributions are:
+</p>
+<p>Exponential (also used for QML), Weibull, Burr, generalized Gamma, and generalized F.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">acdFit(durations = NULL, model = "ACD", dist = "exponential", 
+    order = NULL, startPara = NULL,  dailyRestart = 0, optimFnc = "optim",
+    method = "Nelder-Mead", output = TRUE, bootstrapErrors = FALSE, 
+    forceErrExpec = TRUE, fixedParamPos = NULL, bp = NULL, 
+    exogenousVariables = NULL, control = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>durations</code></td>
+<td>
+
+<p>either (1) a data frame including, at least, a column named 'durations' or 'adjDur' (for adjusted durations), or (2) a vector of durations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>the conditional mean model specification. Must be one of <code>"ACD"</code>, <code>"LACD1"</code>, <code>"LACD2"</code>, <code>"AMACD"</code>, <code>"BACD"</code>, 
+<code>"ABACD"</code>, <code>"SNIACD"</code> or <code>"LSNIACD"</code>. See 'Details' for detailed model specification. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+
+<p>the assumed error term distribution. Must be one of <code>"exponential"</code>, <code>"weibull"</code>, <code>"burr"</code>, <code>"gengamma"</code>, <code>"genf"</code>, <code>"qweibull"</code>, <code>"mixqwe"</code>, <code>"mixqww"</code>, or <code>"mixinvgauss"</code>. See 'Details' for detailed model specification. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+
+<p>a vector detailing the order of the particular ACD model. For example an ACD(p, q) specification should have <code>order = c(p, q)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startPara</code></td>
+<td>
+
+<p>a vector with parameter values to start the maximization algorithm from. Must be in the correct order according to the model specification (see Details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dailyRestart</code></td>
+<td>
+
+<p>if <code>TRUE</code> the conditional duration will start fresh every new trading day. Can only be used if the <code>durations</code> arguments included the clock time of the durations, or if the <code>time</code> argument was provided.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimFnc</code></td>
+<td>
+
+<p>Specifies which optimization function to use for the estimation. <code>"optim"</code>, <code>"nlminb"</code>, <code>"solnp"</code>, and <code>"optimx"</code> are available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Argument passed to the optimization function if <code>optimFnc = "optim"</code> or <code>optimFnc = "optimx"</code> were chosen. Specifies the optimization algorithm. See the help files for optim, nlminb or solnp.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+
+<p>if <code>FALSE</code> the estimation results won't be printed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrapErrors</code></td>
+<td>
+
+<p>if <code>TRUE</code> the standard errors will be computed by using bootstrap simulations. Currently only works with the standard ACD model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forceErrExpec</code></td>
+<td>
+
+<p>if <code>TRUE</code> the expectation of the error terms' distribution will be forced to be 1, otherwise the distribution parameter specifying the mean will be set to 1 to ensure identification.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedParamPos</code></td>
+<td>
+
+<p>a logical vector of <code>TRUE</code> and <code>FALSE</code>. Can only be used if the argument <code>startPara</code> were provided, and should be of the same length. Each element represents the respective start parameter and if <code>TRUE</code>, this parameter will be held fixed when estimating the other parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bp</code></td>
+<td>
+
+<p>used only for the SNIACD or LSNIACD model. A vector of break points.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exogenousVariables</code></td>
+<td>
+
+<p>specifies the columns in the <code>durations</code> data.frame that should be used as exogenous variables when fitting the model. Must be a vector, either with the column positions or the names of the columns. It is highly recommended to standardize the exogenous variables before running the estimation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>a list of control values,
+</p>
+
+<dl>
+<dt>maxit</dt>
+<dd>
+<p>maximum number of iterations performed by the numerical maximization algorithm.
+</p>
+</dd>
+<dt>trace</dt>
+<dd>
+<p>an integer. If this is set to diffrent to 0, the values of the parameters each time the optimization function calls the log likelihood function. This search path of the MLE will then be plotted. Also passed on to the optimization function, see the help files for optim, nlminb or solnp.
+</p>
+</dd>
+<dt>B</dt>
+<dd>
+<p>number of bootstrap samples
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>startPara</code> argument is  a vector of the parameter values to start from. The length of the vector naturally depends on the <code>model</code> and <code>distribution</code>. The first elements represent the model parameters, and the last elements the distribution parameters. For example for an ACD(1,1) with Weibull errors the first 3 elements are <code class="reqn">\omega, \alpha_1, \beta_1</code> for the model, and the last is <code class="reqn">\gamma</code> for the Weibull distribution.
+</p>
+<p>The family of ACD models are
+</p>
+<p style="text-align: center;"><code class="reqn">x_i = \mu_i \epsilon_i,</code>
+</p>
+
+<p>where different specifications of the conditional mean duration <code class="reqn">\mu_i</code> and the error term <code class="reqn">\epsilon_i</code> give rise to different models as shown below. 
+</p>
+<p>When exogenous variables are used, they are added in the form of 
+</p>
+<p style="text-align: center;"><code class="reqn">\sum_{j=1}^{k} \xi_j z_j</code>
+</p>
+ 
+<p>to the right hand side of the equations, where <code class="reqn">z_j</code> are the exogenous variables.
+</p>
+<p><strong>Conditional mean duration <code class="reqn">\mu_i</code> specifications according to the <code>model</code> argument:</strong>
+<br></p>
+<p><b>ACD(p, q) specification:</b> (Engle and Russell,  1998)
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_i = \omega + \sum_{j=1}^{p} \alpha_j x_{i-j} + \sum_{j=1}^{q} \beta_j \mu_{i-j}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j...,\beta_j...)</code>.
+<br></p>
+<p><b>LACD1(p, q):</b> (Bauwens and Giot,  2000)
+</p>
+<p style="text-align: center;"><code class="reqn">\ln\mu_i = \omega + \sum_{j=1}^{p} \alpha_j \ln \epsilon_{i-j} + \sum_{j=1}^{q} \beta_j \ln \mu_{i-j}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j...,\beta_j...)</code>.
+<br></p>
+<p><b>LACD2(p, q):</b> (Lunde,  1999)
+</p>
+<p style="text-align: center;"><code class="reqn">\ln\mu_i = \omega + \sum_{j=1}^{p} \alpha_j \epsilon_{i-j} + \sum_{j=1}^{q} \beta_j \ln \mu_{i-j}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j...,\beta_j...)</code>.
+<br></p>
+<p><b>AMACD(p, r, q) (Additive and Multiplicative ACD):</b> (Hautsch , 2012)
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_i = \omega + \sum_{j=1}^{p} \alpha_j x_{i-j} + \sum_{j=1}^{r} \nu_j \epsilon_{i-j} + \sum_{j=1}^{q} \beta_j \mu_{i-j}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j...,\nu_j...,\beta_j...)</code>.
+<br></p>
+<p><b>ABACD(p, q) (Augmented Box-Cox ACD):</b> (Hautsch,  2012)
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_i^{\delta_1} = \omega + \sum_{j=1}^{p} \alpha_j \left( |\epsilon_{i-j}-\nu|+c_j|\epsilon_{i-j}-b| \right)^{\delta_2} + \sum_{j=1}^{q} \beta_j \mu_{i-j}^{\delta_1}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j..., c_j..., \beta_j..., \nu, \delta_1, \delta_2)</code>.
+<br></p>
+<p><b>BACD(p, q) (Box-Cox ACD):</b> (Hautsch,  2003)
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_i^{\delta_1} = \omega + \sum_{j=1}^{p} \alpha_j \epsilon_{i-j}^{\delta_2} + \sum_{j=1}^{q} \beta_j \mu_{i-j}^{\delta_1}</code>
+</p>
+
+<p>The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, \alpha_j..., \beta_j...)</code>.
+<br></p>
+<p><b>SNIACD(p,  q, M) (Spline News Impact ACD):</b> (Hautsch,  2012, with a slight difference)
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_i = \omega + \sum_{j=1}^{p} (\alpha_{j-1}+c_0) \epsilon_{i-j} + \sum_{j=1}^{p} \sum_{k=M}^{r} (\alpha_{j-1}+c_k)1_{(\epsilon_{i-j} \le  \bar{\epsilon_k})}+\sum_{j=1}^{q} \beta_j \mu_{i-j},</code>
+</p>
+
+<p>where <code class="reqn">1_{()}</code> is an indicator function and <code class="reqn">\alpha_0=0</code>. <br>
+The element order of the <code>startPara</code> vector is <code class="reqn">(\omega, c_k..., \alpha_j..., \beta_j...)</code> (The number of <code class="reqn">\alpha</code>-parameters are <code class="reqn">p-1]</code>).
+<br></p>
+<p><strong>The distribution of the error term <code class="reqn">\epsilon_i</code> specifications according to the <code>dist</code> argument:</strong>
+<br><br><b>Exponential distribution, <code>dist = "exponential"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon)=\exp(-\epsilon)</code>
+</p>
+
+<p><b>Weibull distribution, <code>dist = "weibull"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon)=\theta \gamma \epsilon^{\gamma-1}e^{-\theta \epsilon^{\gamma}} ,</code>
+</p>
+
+<p>where <code class="reqn">\theta=[\Gamma(\gamma^{-1}+1)]^{\gamma}</code> if <code>forceErrExpec = TRUE</code>.
+<br></p>
+<p><b>Burr distribution, <code>dist = "burr"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon)= \frac{\theta \kappa \epsilon^{\kappa-1}}{(1+\sigma^2 \theta \epsilon^{\kappa})^{\frac{1}{\sigma^2}+1}},</code>
+</p>
+
+<p>where,
+</p>
+<p style="text-align: center;"><code class="reqn">\theta= \sigma^{2 \left(1+\frac{1}{\kappa}\right)} \frac{\Gamma \left(\frac{1}{\sigma^2}+1\right)}{\Gamma \left(\frac{1}{\kappa}+1\right) \Gamma \left(\frac{1}{\sigma^2}-\frac{1}{\kappa}\right)},</code>
+</p>
+
+<p>if <code>forceErrExpec = TRUE</code>. <br>
+The element order of the <code>startPara</code> vector is <code class="reqn">(model parameters, \kappa, \sigma^2)</code>.
+<br></p>
+<p><b>Generalized Gamma distribution, <code>dist = "gengamma"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon)=\frac{\gamma \epsilon^{\kappa \gamma - 1}}{\lambda^{\kappa \gamma}\Gamma (\kappa)}\exp \left\{{-\left(\frac{\epsilon}{\lambda}\right)^{\gamma}}\right\}</code>
+</p>
+
+<p>where <code class="reqn">\lambda=\frac{\Gamma(\kappa)}{\Gamma(\kappa+\frac{1}{\gamma})}</code> if <code>forceErrExpec = TRUE</code>.
+The element order of the <code>startPara</code> vector is <code class="reqn">(model parameters, \kappa, \gamma)</code>.
+<br></p>
+<p><b>Generalized F distribution, <code>dist = "genf"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon)= \frac{\gamma \epsilon^{\kappa \gamma -1}[\eta+(\epsilon/\lambda)^{\gamma}]^{-\eta-\kappa}\eta^{\eta}}{\lambda^{\kappa \gamma}B(\kappa,\eta)},</code>
+</p>
+
+<p>where <code class="reqn">B(\kappa,\eta)=\frac{\Gamma(\kappa)\Gamma(\eta)}{\Gamma(\kappa+\eta)}</code>, and if <code>forceErrExpec = TRUE</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda=\frac{\Gamma(\kappa)\Gamma(\eta)}{\eta^{1/\gamma}\Gamma(\kappa+1/\gamma)\Gamma(\eta-1/\gamma)}.</code>
+</p>
+
+<p><br>
+The element order of the <code>startPara</code> vector is <code class="reqn">(model parameters, \kappa,  \eta, \gamma)</code>.
+<br></p>
+<p><b>q-Weibull distribution, <code>dist = "qweibull"</code>:</b>
+</p>
+<p style="text-align: center;"><code class="reqn">f(\epsilon) = (2-q)\frac{a}{b^a} \epsilon^{a-1} \left[1-(1-q)\left(\frac{\epsilon}{b}\right)^a\right]^{\frac{1}{1-q}}</code>
+</p>
+
+<p>where if <code>forceErrExpec = TRUE</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">b = \frac{(q-1)^{\frac{1+a}{a}}}{2-q}\frac{a\Gamma(\frac{1}{q-1})}{\Gamma(\frac{1}{a}) \Gamma(\frac{1}{q-1}-\frac{1}{a}-1)}.</code>
+</p>
+
+<p><br>
+The element order of the <code>startPara</code> vector is <code class="reqn">(model parameters, a,  q)</code>.
+<br></p>
+
+
+<h3>Value</h3>
+
+<p>a list of class <code>"acdFit"</code> with the following slots: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>durations</code></td>
+<td>
+
+<p>the durations object used to fit the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muHats</code></td>
+<td>
+
+<p>a vector of the estimated conditional mean durations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+
+<p>the residuals from the fitted model, calculated as durations/mu
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>the model for the conditional mean durations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+
+<p>the order of the model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distribution</code></td>
+<td>
+
+<p>the assumed error term distribution
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distCode</code></td>
+<td>
+
+<p>the internal code used to represent the distribution
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mPara</code></td>
+<td>
+
+<p>a vector of the estimated conditional mean duration parameters
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dPara</code></td>
+<td>
+
+<p>a vector of the estimated error distribution parameters
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Npar</code></td>
+<td>
+
+<p>total number of parameters
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>goodnessOfFit</code></td>
+<td>
+
+<p>a data.frame with the log likelihood, AIC, BIC, and MSE calculated as the mean squared deviation of the durations and the estimated conditional durations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameterInference</code></td>
+<td>
+
+<p>a data.frame with the estimated coefficients and their standard errors and p-values
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forcedDistPara</code></td>
+<td>
+
+<p>the value of the unfree distribution parameter. If <code>forceErrExpec = TRUE</code> were used, this parameter is a function of the other distribution parameters, to force the mean of the distribution to be one. Otherwise the parameter was fixed at 1 to ensure identification.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comments</code></td>
+<td>
+
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+
+<p>the numerical hessian of the log likelihood evaluated at the estimate
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>number of observations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evals</code></td>
+<td>
+
+<p>number of log-likelihood evaluations needed for the maximization algorithm
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+
+<p>if the maximization algorithm converged, this value is zero. (see the help file optim, nlminb or solnp)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimationTime</code></td>
+<td>
+
+<p>time required for estimation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+
+<p>who fitted the model and when 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robustCorr</code></td>
+<td>
+
+<p>only available for QML estimation (choosing the exponential distribution) for the standard ACD(p, q) model. The robust correlation matrix of the parameter estimates. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Markus Belfrage
+</p>
+
+
+<h3>References</h3>
+
+<p>Bauwens, L., and P. Giot (2000) 
+<em>The logarithmic ACD model: an application to the bid-ask quote process of three NYSE stocks.</em> Annales d'Economie et de Statistique, 60, 117-149.
+</p>
+<p>Engle R.F, Russell J.R. (1998)
+<em>Autoregressive Conditional Duration: A New Model for Irregularly Spaced Transaction Data</em>, Econometrica, 66(5): 1127-1162.
+</p>
+<p>Grammig, J., and Maurer, K.-O. (2000) 
+<em>Non-monotonic hazard functions and the autoregressive conditional duration model.</em> Econometrics Journal 3: 16-38.
+</p>
+<p>Hautsch, N. (2003) 
+<em>Assessing the Risk of Liquidity Suppliers on the Basis of Excess Demand Intensities.</em> Journal of Financial Econometrics (2003) 1 (2): 189-215
+</p>
+<p>Hautsch, N. (2012) 
+<em>Econometrics of Financial High-Frequency Data.</em> Berlin, Heidelberg: Springer.
+</p>
+<p>Lunde, A. (1999): 
+<em>A generalized gamma autoregressive conditional duration model,</em> Working paper, Aalborg University.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+fitModel &lt;- acdFit(durations = adjDurData, model = "ACD", 
+            dist = "exponential", order = c(1,1), dailyRestart = 1)
+
+
+
+</code></pre>
+
+
+</div>

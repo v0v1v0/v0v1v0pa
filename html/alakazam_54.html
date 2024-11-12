@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>groupGenes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Group sequences by gene assignment</h2>
+
+<h3>Description</h3>
+
+<p><code>groupGenes</code> will group rows by shared V and J gene assignments, 
+and optionally also by junction lengths. IGH:IGK/IGL, TRB:TRA, and TRD:TRG 
+paired single-cell BCR/TCR sequencing and unpaired bulk sequencing 
+(IGH, TRB, TRD chain only) are supported. In the case of ambiguous (multiple) 
+gene assignments, the grouping may be specified to be a union across all 
+ambiguous V and J gene pairs, analogous to single-linkage clustering 
+(i.e., allowing for chaining).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">groupGenes(
+  data,
+  v_call = "v_call",
+  j_call = "j_call",
+  junc_len = NULL,
+  cell_id = NULL,
+  locus = "locus",
+  only_heavy = TRUE,
+  first = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame containing sequence data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v_call</code></td>
+<td>
+<p>name of the column containing the heavy/long chain 
+V-segment allele calls.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j_call</code></td>
+<td>
+<p>name of the column containing the heavy/long chain 
+J-segment allele calls.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>junc_len</code></td>
+<td>
+<p>name of column containing the junction length.
+If <code>NULL</code> then 1-stage partitioning is perform
+considering only the V and J genes is performed. 
+See Details for further clarification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cell_id</code></td>
+<td>
+<p>name of the column containing cell identifiers or barcodes. 
+If specified, grouping will be performed in single-cell mode
+with the behavior governed by the <code>locus</code> and 
+<code>only_heavy</code> arguments. If set to <code>NULL</code> then the 
+bulk sequencing data is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locus</code></td>
+<td>
+<p>name of the column containing locus information. 
+Only applicable to single-cell data.
+Ignored if <code>cell_id=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only_heavy</code></td>
+<td>
+<p>use only the IGH (BCR) or TRB/TRD (TCR) sequences 
+for grouping. Only applicable to single-cell data.
+Ignored if <code>cell_id=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first</code></td>
+<td>
+<p>if <code>TRUE</code> only the first call of the gene assignments 
+is used. if <code>FALSE</code> the union of ambiguous gene 
+assignments is used to group all sequences with any 
+overlapping gene calls.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To invoke single-cell mode the <code>cell_id</code> argument must be specified and the <code>locus</code> 
+column must be correct. Otherwise, <code>groupGenes</code> will be run with bulk sequencing assumptions, 
+using all input sequences regardless of the values in the <code>locus</code> column.
+</p>
+<p>Values in the <code>locus</code> column must be one of <code>c("IGH", "IGI", "IGK", "IGL")</code> for BCR 
+or <code>c("TRA", "TRB", "TRD", "TRG")</code> for TCR sequences. Otherwise, the function returns an 
+error message and stops.
+</p>
+<p>Under single-cell mode with paired chained sequences, there is a choice of whether 
+grouping should be done by (a) using IGH (BCR) or TRB/TRD (TCR) sequences only or
+(b) using IGH plus IGK/IGL (BCR) or TRB/TRD plus TRA/TRG (TCR). 
+This is governed by the <code>only_heavy</code> argument.
+</p>
+<p>Specifying <code>junc_len</code> will force <code>groupGenes</code> to perform a 1-stage partitioning of the 
+sequences/cells based on V gene, J gene, and junction length simultaneously. 
+If <code>junc_len=NULL</code> (no column specified), then <code>groupGenes</code> performs only the first 
+stage of a 2-stage partitioning in which sequences/cells are partitioned in the first stage 
+based on V gene and J gene, and then in the second stage further splits the groups based on 
+junction length (the second stage must be performed independently, as this only returns the
+first stage results).
+</p>
+<p>In the input <code>data</code>, the <code>v_call</code>, <code>j_call</code>, <code>cell_id</code>, and <code>locus</code> 
+columns, if present, must be of type <code>character</code> (as opposed to <code>factor</code>). 
+</p>
+<p>It is assumed that ambiguous gene assignments are separated by commas.
+</p>
+<p>All rows containing <code>NA</code> values in any of the <code>v_call</code>, <code>j_call</code>, and <code>junc_len</code> 
+(if <code>junc_len != NULL</code>) columns will be removed. A warning will be issued when a row 
+containing an <code>NA</code> is removed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a modified data.frame with disjoint union indices 
+in a new <code>vj_group</code> column. 
+</p>
+<p>If <code>junc_len</code> is supplied, the grouping this <code>vj_group</code> 
+will have been based on V, J, and junction length simultaneously. However, 
+the output column name will remain <code>vj_group</code>.
+</p>
+<p>The output <code>v_call</code>, <code>j_call</code>, <code>cell_id</code>, and <code>locus</code>
+columns will be converted to type <code>character</code> if they were of type 
+<code>factor</code> in the input <code>data</code>.
+</p>
+
+
+<h3>Expectations for single-cell data</h3>
+
+<p>Single-cell paired chain data assumptions:
+</p>
+
+<ul>
+<li>
+<p> every row represents a sequence (chain).
+</p>
+</li>
+<li>
+<p> heavy/long and light/short chains of the same cell are linked by <code>cell_id</code>.
+</p>
+</li>
+<li>
+<p> the value in <code>locus</code> column indicates whether the chain is the heavy/long or light/short chain.
+</p>
+</li>
+<li>
+<p> each cell possibly contains multiple heavy/long and/or light/short chains.
+</p>
+</li>
+<li>
+<p> every chain has its own V(D)J annotation, in which ambiguous V(D)J 
+annotations, if any, are separated by a comma.
+</p>
+</li>
+</ul>
+<p>Single-cell example:
+</p>
+
+<ul>
+<li>
+<p> A cell has 1 heavy chain and 2 light chains.
+</p>
+</li>
+<li>
+<p> There should be 3 rows corresponding to this cell.
+</p>
+</li>
+<li>
+<p> One of the light chains may have an ambiguous V annotation which looks like <code>"Homsap IGKV1-39*01 F,Homsap IGKV1D-39*01 F"</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Group by genes
+db &lt;- groupGenes(ExampleDb)
+head(db$vj_group)
+ 
+</code></pre>
+
+
+</div>

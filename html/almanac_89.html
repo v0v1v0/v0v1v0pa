@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>roffset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an offset rschedule</h2>
+
+<h3>Description</h3>
+
+<p><code>roffset()</code> creates a new rschedule with events that are <em>offset</em> from an
+existing rschedule by a certain amount. This can be useful when generating
+relative events like "the day after Christmas."
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">roffset(rschedule, by)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rschedule</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[rschedule]⁠</code>
+</p>
+<p>An rschedule to offset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[integer(1)]⁠</code>
+</p>
+<p>A single integer to offset by.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An offset rschedule.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">on_christmas &lt;- yearly() %&gt;%
+  recur_on_month_of_year("Dec") %&gt;%
+  recur_on_day_of_month(25)
+
+on_day_after_christmas &lt;- roffset(on_christmas, by = 1)
+
+alma_search("2018-01-01", "2023-01-01", on_day_after_christmas)
+
+# Now what if you want the observed holiday representing the day after
+# Christmas?
+on_weekends &lt;- weekly() %&gt;% recur_on_weekends()
+
+# Adjust Christmas to the nearest weekday
+on_christmas &lt;- radjusted(on_christmas, on_weekends, adj_nearest)
+
+# Offset by 1 and then adjust that to the following weekday.
+# We never adjust backwards because that can coincide with the observed day
+# for Christmas.
+on_day_after_christmas &lt;- on_christmas %&gt;%
+  roffset(by = 1) %&gt;%
+  radjusted(on_weekends, adj_following)
+
+# Note that:
+# - A Christmas on Friday the 24th resulted in a day after Christmas of
+#   Monday the 27th
+# - A Christmas on Monday the 26th resulted in a day after Christmas of
+#   Tuesday the 27th
+christmas &lt;- alma_search("2018-01-01", "2023-01-01", on_christmas)
+day_after_christmas &lt;- alma_search("2018-01-01", "2023-01-01", on_day_after_christmas)
+
+lubridate::wday(christmas, label = TRUE)
+lubridate::wday(day_after_christmas, label = TRUE)
+</code></pre>
+
+
+</div>

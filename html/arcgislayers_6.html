@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_read</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read an ArcGIS FeatureLayer, Table, or ImageServer</h2>
+
+<h3>Description</h3>
+
+<p><code>arc_read()</code> combines the functionality of <code>arc_open()</code> with <code>arc_select()</code>
+or <code>arc_raster()</code> to read an ArcGIS <code>FeatureLayer</code>, <code>Table</code>, or <code>ImageServer</code>
+to an <code>sf</code> or <code>SpatRaster</code> object. Optionally, set, check, or modify names
+for the returned data frame or sf object using the <code>col_names</code> and
+<code>name_repair</code> parameters. For ease of use and convenience, <code>arc_read()</code>
+allows users to access and query a FeatureLayer, Table, or ImageServer with a
+single function call instead of combining <code>arc_open()</code> and <code>arc_select()</code>.
+The conventions of <code>col_select</code> are based on functions for reading tabular
+data in the <code>{readr}</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arc_read(
+  url,
+  col_names = TRUE,
+  col_select = NULL,
+  n_max = Inf,
+  name_repair = "unique",
+  crs = NULL,
+  ...,
+  fields = NULL,
+  alias = c("drop", "label", "replace"),
+  token = arc_token()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>url</code></td>
+<td>
+<p>The url of the remote resource. Must be of length one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_names</code></td>
+<td>
+<p>Default <code>TRUE</code>. Column names or name handling rule.
+<code>col_names</code> can be <code>TRUE</code>, <code>FALSE</code>, <code>NULL</code>, or a character vector:
+</p>
+
+<ul>
+<li>
+<p> If <code>TRUE</code>, use existing default column names for the layer or table.
+If <code>FALSE</code> or <code>NULL</code>, column names will be generated automatically: X1, X2,
+X3 etc.
+</p>
+</li>
+<li>
+<p> If <code>col_names</code> is a character vector, values replace the existing column
+names. <code>col_names</code> can't be length 0 or longer than the number of fields in
+the returned layer.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_select</code></td>
+<td>
+<p>Default <code>NULL</code>. A character vector of the field names to be
+returned. By default, all fields are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Defaults to <code>Inf</code> or an option set with
+<code style="white-space: pre;">⁠options("arcgislayers.n_max" = &lt;max records&gt;)⁠</code>. Maximum number of records
+to return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_repair</code></td>
+<td>
+<p>Default <code>"unique"</code>. See <code>vctrs::vec_as_names()</code> for
+details. If <code>name_repair = NULL</code>, names are set directly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>the spatial reference to be returned. If the CRS is different than
+the CRS for the input <code>FeatureLayer</code>, a transformation will occur
+server-side. Ignored if x is a <code>Table</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>arc_select()</code> if URL is a
+<code>FeatureLayer</code> or <code>Table</code> or <code>arc_raster()</code> if URL is an <code>ImageLayer</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fields</code></td>
+<td>
+<p>Default <code>NULL</code>. a character vector of the field names to
+returned. By default all fields are returned. Ignored if <code>col_names</code> is
+supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alias</code></td>
+<td>
+<p>Use of field alias values. Default <code style="white-space: pre;">⁠c("drop", "label", "replace"),⁠</code>. There are three options:
+</p>
+
+<ul>
+<li> <p><code>"drop"</code>, field alias values are ignored.
+</p>
+</li>
+<li> <p><code>"label"</code>: field alias values are assigned as a label attribute for each field.
+</p>
+</li>
+<li> <p><code>"replace"</code>: field alias values replace existing column names. <code>col_names</code>
+must <code>TRUE</code> for this option to be applied.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>your authorization token.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Value</h3>
+
+<p>An sf object, a <code>data.frame</code>, or an object of class <code>SpatRaster</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arc_select()</code>; <code>arc_raster()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  furl &lt;- "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3"
+
+  # read entire service
+  arc_read(furl)
+
+  # apply tolower() to column names
+  arc_read(url, name_repair = tolower)
+
+  # use paste0 to prevent CRAN check NOTE
+  furl &lt;- paste0(
+    "https://sampleserver6.arcgisonline.com/arcgis/rest/services/",
+    "EmergencyFacilities/FeatureServer/0"
+  )
+
+ # use field aliases as column names
+ arc_read(furl, col_names = "alias")
+
+ # read an ImageServer directly
+ img_url &lt;- "https://landsat2.arcgis.com/arcgis/rest/services/Landsat/MS/ImageServer"
+
+ arc_read(
+   img_url,
+   width = 100, height = 100,
+   xmin = -71, ymin = 43,
+   xmax = -67, ymax = 47.5,
+   bbox_crs = 4326
+ )
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

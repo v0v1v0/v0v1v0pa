@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>OC2c</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Operating Characteristics of an Acceptance Sampling Plan</h2>
+
+<h3>Description</h3>
+
+<p> The preferred way of creating new objects from the family
+of <code>"OC2c"</code> classes.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">OC2c(n,c,r=if (length(c)&lt;=2) rep(1+c[length(c)], length(c)) else NULL,
+  type=c("binomial","hypergeom", "poisson"), ...) </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A vector of length k giving the sample size at each
+of the k stages of sampling, e.g. for double sampling k=2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>A vector of length k giving the <b>cumulative</b>
+acceptance numbers at each of the k stages of sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>A vector of length k giving the <b>cumulative</b>
+rejection numbers at each of the k stages of sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The possible types relate to the distribution on
+which the plans are based on, namely, <code>binomial</code>,
+<code>hypergeom</code>, and <code>poisson</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to the class
+generating function for each type. See Details for options.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Typical usages are:
+</p>
+<pre>
+    OC2c(n, c)
+    OC2c(n, c, r, pd)
+    OC2c(n, c, r, type="hypergeom", N, pd)
+    OC2c(n, c, r, type="poisson", pd)
+  </pre>
+<p>The first and second forms use a default <code>type</code> of
+"binomial". The first form can calculate <code>r</code> <em>only</em> when
+<code>n</code> and <code>c</code> are of length 1 or 2.
+</p>
+<p>The second form provides a the proportion of defectives, <code>pd</code>, for
+which the OC function should be calculated (default is <code>pd=seq(0,
+  1, 0.01)</code>.
+</p>
+<p>The third form states that the OC function based on a Hypergeometric
+distribution is desired. In this case the population size <code>N</code>
+also needs to be specified. In this case, <code>pd</code> indicates the
+proportion of population defectives, such that <code>pd*N</code> gives the
+actual number of defectives in the population. If <code>N</code> or
+<code>pd</code> are not specified they take defaults of <code>N=100</code> and
+<code>pd=seq(0, 1, 0.01)</code>.  A warning is issued if N and D=N*pd are
+not integers by checking the value, not the object type.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object from the family of <code>OC2c-class</code>, namely of class
+<code>OCbinomial</code>, <code>OChypergeom</code>, or <code>OCpoisson</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>OC2c-class</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## A standard binomial sampling plan
+x &lt;- OC2c(10,1)
+x ## print out a brief summary
+plot(x) ## plot the OC curve
+plot(x, xlim=c(0,0.5)) ## plot the useful part of the OC curve
+
+## A double sampling plan
+x &lt;- OC2c(c(125,125), c(1,4), c(4,5), pd=seq(0,0.1,0.001))
+x
+plot(x) ## Plot the plan
+
+## Assess whether the plan can meet desired risk points
+assess(x, PRP=c(0.01, 0.95), CRP=c(0.05, 0.04))
+
+## A plan based on the Hypergeometric distribution
+x &lt;- OC2c(10,1, type="hypergeom", N=5000, pd=seq(0,0.5, 0.025))
+plot(x)
+
+## The summary
+x &lt;- OC2c(10,1, type="hypergeom", N=5000, pd=seq(0,0.5, 0.1))
+summary(x, full=TRUE)
+
+## Plotting against a function which generates P(defective)
+xm &lt;- seq(-3, 3, 0.05) ## The mean of the underlying characteristic
+x &lt;- OC2c(10, 1, pd=1-pnorm(0, mean=xm, sd=1))
+plot(xm, x) ## Plot P(accept) against mean
+</code></pre>
+
+
+</div>

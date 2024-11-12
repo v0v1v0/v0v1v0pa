@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nClustMulti</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiple Samples Optimal Number of Clusters Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the optimal number of clusters for multiple samples using either Slope or Silhouette criterion. The optimal number of clusters will be
+verified in the range 2,..., maxClust. Takes the mean of all samples in order to perform the estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nClustMulti(dataDist, p = 1, maxClust = 20, clusteringFunction,
+  criterion = c("slope", "silhouette"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataDist</code></td>
+<td>
+<p>An  matrix with n subjects. Each subject has the size of NxN and represents the distances between the elements of the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Slope adjust parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxClust</code></td>
+<td>
+<p>The maximum number of clusters to be tried.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusteringFunction</code></td>
+<td>
+<p>The clustering function to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>The criterion that will be used for estimating the number of clusters. The options are "slope" or "silhouette". If not defined, "slope" will be used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The optimal number of clusters.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fujita A, Takahashi DY, Patriota AG (2014b) A non-parametric method to
+estimate the number of clusters. Computational Statistics &amp; Data Analysis 73:27–39
+</p>
+<p>Rousseeuw PJ (1987) Sihouettes: a graphical aid to the interpretation and validation of cluster
+analysis. Journal of Computational and Applied Mathematics 20:53–65
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Install packages if necessary
+# install.packages('MASS')
+# install.packages('cluster')
+
+library(anocva)
+library(MASS)
+library(cluster)
+
+set.seed(5000)
+
+# A k-means function that returns cluster labels directly.
+myKmeans = function(dist, k){
+  return(kmeans(dist, k, iter.max = 50, nstart = 5)$cluster)
+}
+
+# Number of subjects in each population
+nsub = 25
+# Number of items in each subject
+nitem = 60
+
+# Generate simulated data
+data = array(NA, c(nsub, nitem*2, 2))
+data.dist = array(NA, c(nsub, nitem*2, nitem*2))
+meanx = 2
+delta = 0.5
+# Covariance matrix
+sigma = matrix(c(0.03, 0, 0, 0.03), 2)
+for (i in seq(nsub)){
+  sub = rbind(mvrnorm(nitem, mu = c(0, 0), Sigma = sigma ),
+              mvrnorm(nitem, mu = c(meanx,0), Sigma = sigma))
+  data[i,,] = sub
+  data.dist[i,,] = as.matrix(dist(data[i,,]))
+}
+
+# Estimate the optimal number of clusters
+r = nClustMulti(dataDist = data.dist, p = 1, maxClust = 20,
+                clusteringFunction = myKmeans, criterion = "slope")
+sprintf("The optimal number of clusters found was %d.", r)
+
+</code></pre>
+
+
+</div>

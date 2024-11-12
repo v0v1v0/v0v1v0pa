@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>canopy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract canopy from voxel space.</h2>
+
+<h3>Description</h3>
+
+<p>Extract canopy from <code>VoxelSpace</code> object.
+The canopy layer is the set of highest voxels with number of hits greater
+than a user-defined threshold.
+</p>
+
+
+<h4>Minimum number of hits/echos</h4>
+
+<p>Minimum number of hits is set by default to one, meaning that a single echo
+in a voxel is enough to consider that there is some vegetation. Increasing
+this threshold will tend to lower the canopy level or introduce some gaps (
+i-j-cells with no vegetation). This <code>hit.min</code> filter is stronger than
+<code>butterfly()</code> since is does not discriminate isolated voxels.
+A reasonable value for <code>hit.min</code> cannot be suggested ad-hoc since it
+strongly depends on sampling intensity. Removing butterflies prior to
+extracting canopy is advisable.
+</p>
+
+
+
+<h4>Gaps</h4>
+
+<p>For a VoxelSpace with fully defined ground level (see <code>ground()</code>),
+missing canopy cells can be interpreted as gaps. Conversely if both ground
+and canopy are missing for a i-j-cell, then it is inconclusive.
+</p>
+
+
+
+<h4>Above/below canopy</h4>
+
+<p>Function <code>aboveCanopy</code> returns voxel index above canopy level (excluded).
+Function <code>belowCanopy</code> returns voxel index below canopy level (included).
+</p>
+
+
+
+<h4>Canopy Height Model</h4>
+
+<p>Function <code>canopyHeight</code> returns ground distance at canopy level, including
+gaps.
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">canopy(vxsp, hit.min = 1)
+
+belowCanopy(vxsp, ...)
+
+aboveCanopy(vxsp, ...)
+
+canopyHeight(vxsp, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vxsp</code></td>
+<td>
+<p>a <code>VoxelSpace</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hit.min</code></td>
+<td>
+<p>a positive integer, minimum number of hit/echo in a voxel
+to consider it contains vegetation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters which will be passed to <code>canopy</code> function.
+So far only <code>hit.min</code> parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>data.table::data.table</code> object with voxel index either
+below canopy, canopy level or above canopy
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>butterfly()</code>, <code>ground()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+cnp &lt;- canopy(vxsp)
+acnp &lt;- aboveCanopy(vxsp)
+bcnp &lt;- belowCanopy(vxsp)
+# canopy layer included in below canopy subset
+all(bcnp[cnp, on=list(i, j, k)] == cnp) # TRUE expected
+vxsp@data[cnp, list(i, j, ground_distance), on=list(i, j, k)]
+
+</code></pre>
+
+
+</div>

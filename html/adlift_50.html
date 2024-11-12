@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>UndoPointsUpdate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>UndoPointsUpdate</h2>
+
+<h3>Description</h3>
+
+<p>This function undoes the update lifting step in the inverse transform.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">UndoPointsUpdate(X, coeff, nbrs, index, remove, r, N, pointsin, gamweights,
+ lengths, lengthrem)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the vector of grid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>the vector of detail and scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices (into <span class="env">X</span>) of the neighbours to be used in the lifting step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the indices into <span class="env">pointsin</span> of <span class="env">nbrs</span>, the neighbours of <span class="env">remove</span>, the point to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove</code></td>
+<td>
+<p>the index (into <span class="env">X</span>) of the point to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>the index into <span class="env">pointsin</span> of the added point, <span class="env">remove</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>length(<span class="env">pointsin</span>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>The indices of gridpoints still to be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamweights</code></td>
+<td>
+<p>the prediction weights obtained from the regression in the prediction step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>the vector of interval lengths at the present step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthrem</code></td>
+<td>
+<p>the interval length associated to the point to be added.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This procedure uses minimum norm update coefficients to invert the update step of the transform. The prediction weights are used to change the interval lengthsm before the update weights are used to modify <span class="env">coeff</span>.   
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of (modified) detail and scaling coefficients to be used later in the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>vector of interval lengths after inverting the update step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the weights used to modify <span class="env">lengths</span> and <span class="env">coeff</span>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>AdaptNeigh</code>, <code>AdaptPred</code>, <code>CubicPred</code>, <code>invtnp</code>, <code>LinearPred</code>, <code>PointsUpdate</code>,
+<code>QuadPred</code>     </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Generate some blocks data: 100 observations.
+#
+x &lt;- runif(100)
+y &lt;-make.signal2("blocks",x=x)
+#
+#find initial interval lengths...
+#
+I&lt;-intervals(x,"reflect")
+lengths&lt;-lengthintervals(x,I,neighbours=2,closest=FALSE)
+#
+#perform prediction step...
+p&lt;-AdaptNeigh(order(x),x,y,32,5,TRUE,2)
+#
+#
+u&lt;-PointsUpdate(x,p$results[[6]],p$newinfo[[2]],p$newinfo[[3]],5,order(x),p$results[[4]],
+lengths)
+#
+p2&lt;-setdiff(order(x),5)
+a&lt;-which(order(x)==5)
+l2&lt;-lengths[setdiff(1:100, a)]
+#
+#remove the lifted coefficient
+#
+#now undo the update step...
+#
+undo&lt;-UndoPointsUpdate(x,u$coeff,p$newinfo[[2]],p$newinfo[[3]],5,a,99,p2,
+p$results[[4]],l2,lengths[a])
+#
+
+</code></pre>
+
+
+</div>

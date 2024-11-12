@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filter_extreme</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter the First or Last Observation for Each By Group</h2>
+
+<h3>Description</h3>
+
+<p>Filters the first or last observation for each by group.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filter_extreme(dataset, by_vars = NULL, order, mode, check_type = "warning")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>order</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Default</em>: <code>NULL</code>
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>Within each by group the observations are ordered by the specified order.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If <code>"first"</code> is specified, the first observation of each by group is
+included in the output dataset. If <code>"last"</code> is specified, the last
+observation of each by group is included in the output dataset.
+</p>
+<p><em>Permitted Values:</em>  <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the input dataset are not unique with respect to the
+by variables and the order.
+</p>
+<p><em>Default:</em> <code>"warning"</code>
+</p>
+<p><em>Permitted Values:</em> <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each group (with respect to the variables specified for the
+<code>by_vars</code> parameter) the first or last observation (with respect to the
+order specified for the <code>order</code> parameter and the mode specified for the
+<code>mode</code> parameter) is included in the output dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataset containing the first or last observation of each by group
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Utilities for Filtering Observations: 
+<code>count_vals()</code>,
+<code>filter_exist()</code>,
+<code>filter_joined()</code>,
+<code>filter_not_exist()</code>,
+<code>filter_relative()</code>,
+<code>max_cond()</code>,
+<code>min_cond()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+
+ex &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~EXSEQ, ~EXDOSE,    ~EXTRT,
+  "PILOT01",    "EX", "01-1442",      1,      54,    "XANO",
+  "PILOT01",    "EX", "01-1442",      2,      54,    "XANO",
+  "PILOT01",    "EX", "01-1442",      3,      54,    "XANO",
+  "PILOT01",    "EX", "01-1444",      1,      54,    "XANO",
+  "PILOT01",    "EX", "01-1444",      2,      81,    "XANO",
+  "PILOT01",    "EX", "05-1382",      1,      54,    "XANO",
+  "PILOT01",    "EX", "08-1213",      1,      54,    "XANO",
+  "PILOT01",    "EX", "10-1053",      1,      54,    "XANO",
+  "PILOT01",    "EX", "10-1053",      2,      54,    "XANO",
+  "PILOT01",    "EX", "10-1183",      1,       0, "PLACEBO",
+  "PILOT01",    "EX", "10-1183",      2,       0, "PLACEBO",
+  "PILOT01",    "EX", "10-1183",      3,       0, "PLACEBO",
+  "PILOT01",    "EX", "11-1036",      1,       0, "PLACEBO",
+  "PILOT01",    "EX", "11-1036",      2,       0, "PLACEBO",
+  "PILOT01",    "EX", "11-1036",      3,       0, "PLACEBO",
+  "PILOT01",    "EX", "14-1425",      1,      54,    "XANO",
+  "PILOT01",    "EX", "15-1319",      1,      54,    "XANO",
+  "PILOT01",    "EX", "15-1319",      2,      81,    "XANO",
+  "PILOT01",    "EX", "16-1151",      1,      54,    "XANO",
+  "PILOT01",    "EX", "16-1151",      2,      54,    "XANO"
+)
+
+
+# Select first dose for each patient
+ex %&gt;%
+  filter_extreme(
+    by_vars = exprs(USUBJID),
+    order = exprs(EXSEQ),
+    mode = "first"
+  ) %&gt;%
+  select(USUBJID, EXSEQ)
+
+# Select highest dose for each patient on the active drug
+ex %&gt;%
+  filter(EXTRT != "PLACEBO") %&gt;%
+  filter_extreme(
+    by_vars = exprs(USUBJID),
+    order = exprs(EXDOSE),
+    mode = "last",
+    check_type = "none"
+  ) %&gt;%
+  select(USUBJID, EXTRT, EXDOSE)
+</code></pre>
+
+
+</div>

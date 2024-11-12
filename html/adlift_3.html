@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AdaptPred</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AdaptPred</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the prediction lifting step over intercept and regression order.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AdaptPred(pointsin, X, coeff, nbrs, remove, intercept, 
+neighbours)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>The indices of gridpoints still to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the vector of grid values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>the vector of detail and scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices (into <span class="env">X</span>) of the neighbours to be used in the prediction step. Note that the value to this input is not important, since the procedure checks the neighbourhoods structure in the minimisation step anyway, but is for standardisation of arguments to the non-adaptive prediction schemes. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove</code></td>
+<td>
+<p>the index (into <span class="env">X</span>) of the point to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>Boolean value for whether or not an intercept is used in the prediction step of the transform. (Note that this is actually a dummy argument, since it is not necessary for the computation of the detail coefficient in <code>AdaptPred</code>(the intercept is part of the adaptiveness), though is used for standardising its arguments with other prediction schemes for use in the <code>fwtnp</code> function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighbours</code></td>
+<td>
+<p>the number of neighbours to be considered in the computation of predicted values and detail coefficients.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The procedure performs adaptive regression (through AdaptPred) over the three types of regression and also over intercept.  The combination (type of regression, intercept) is chosen which gives the smallest detail coefficient (in absolute value).   
+</p>
+
+
+<h3>Value</h3>
+
+<p><strong>results.</strong> This is a ten item list giving the regression information chosen from the detail coefficient minimisation:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xneigh</code></td>
+<td>
+<p>matrix of <span class="env">X</span> values corresponding to the neighbours of the removed point. The matrix consists of columns <code class="reqn">1,X[nbrs],X[nbrs]^2,...</code> depending on the order of the prediction used and whether or not an intercept is used. Refer to any reference on linear regression for more details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mm</code></td>
+<td>
+<p>the matrix from which the prediction is made. In terms of <span class="env">Xneigh</span>, it is <br><code class="reqn">(Xneigh^T Xneigh)^{-1} Xneigh^T</code> . </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bhat</code></td>
+<td>
+<p>The regression coefficients used in prediction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the prediction weights for the neighbours. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>the predicted function value obtained from the regression. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of (modified) detail and scaling coefficients to be used in the update step of the transform. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p>if TRUE, an intercept was used in the regression. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scheme</code></td>
+<td>
+<p>a character vector denoting the type of regression used in the prediction ("Linear", "Quad" or "Cubic"). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+<p>a vector of the detail coefficients from which <code>AdaptPred</code> selects the minimum value. There are six entries. The first three entries represent the detail coefficients from regression with no intercept in increasing order of prediction. The second three details are values for regression with intercept. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minindex</code></td>
+<td>
+<p>the index into details (<span class="env">results[[9]]</span>) which produces the minimum value.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AdaptNeigh</code>, <code>CubicPred</code>, <code>fwtnp</code>, <code>LinearPred</code>, <code>QuadPred</code>    </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#
+# Generate some doppler data: 500 observations.
+#
+tx &lt;- runif(500)
+ty&lt;-make.signal2("doppler",x=tx)
+#
+# Compute the neighbours of point 173 (2 neighbours on each side)
+#
+out&lt;-getnbrs(tx,173,order(tx),2,FALSE)
+
+#
+# Perform the adaptive lifting step 
+#
+ap&lt;-AdaptPred(order(tx),tx,ty,out$nbrs,173,FALSE,2)
+#
+#the detail coefficient:
+ap[[3]]
+
+#and let's check the scheme used:
+ap[[4]]
+
+ap[[5]]
+
+
+
+</code></pre>
+
+
+</div>

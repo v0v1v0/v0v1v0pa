@@ -1,0 +1,457 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AIDS-Functions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>(Nested) AIDS Calibration and Merger Simulation</h2>
+
+<h3>Description</h3>
+
+<p>Calibrates consumer demand using (nested) AIDS and then
+simulates the price effect of a merger between two firms
+under the assumption that all firms in the market are playing
+a differentiated products Bertrand game.
+</p>
+<p>Below let k denote the number of products produced by all firms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aids(
+  shares,
+  margins,
+  prices,
+  diversions,
+  ownerPre,
+  ownerPost,
+  mktElast = NA_real_,
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(shares)),
+  subset = rep(TRUE, length(shares)),
+  parmStart = rep(NA_real_, 2),
+  priceStart = runif(length(shares)),
+  isMax = FALSE,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(shares), sep = ""),
+  ...
+)
+
+pcaids(
+  shares,
+  knownElast,
+  mktElast = -1,
+  prices,
+  diversions,
+  ownerPre,
+  ownerPost,
+  knownElastIndex = 1,
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(shares)),
+  subset = rep(TRUE, length(shares)),
+  priceStart = runif(length(shares)),
+  isMax = FALSE,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(shares), sep = ""),
+  ...
+)
+
+pcaids.nests(
+  shares,
+  margins,
+  knownElast,
+  mktElast = -1,
+  prices,
+  ownerPre,
+  ownerPost,
+  nests = rep(1, length(shares)),
+  knownElastIndex = 1,
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(shares)),
+  subset = rep(TRUE, length(shares)),
+  priceStart = runif(length(shares)),
+  isMax = FALSE,
+  nestsParmStart,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(shares), sep = ""),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>shares</code></td>
+<td>
+<p>A length k vector of product revenue shares. All shares must
+be between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margins</code></td>
+<td>
+<p>A length k vector of product margins. All margins must
+be either be between 0 and 1, or NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prices</code></td>
+<td>
+<p>A length k vector product prices. Default is missing, in
+which case demand intercepts are not calibrated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diversions</code></td>
+<td>
+<p>A k x k matrix of diversion ratios with diagonal
+elements equal to -1. Default is missing, in which case diversion
+according to revenue share is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPre</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product before the merger OR a
+k x k matrix of pre-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPost</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product after the merger OR
+a k x k matrix of post-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mktElast</code></td>
+<td>
+<p>A negative number equal to the industry pre-merger
+price elasticity. Default is NA for  <code>aids</code> and -1 for <code>pcaids</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>insideSize</code></td>
+<td>
+<p>Total expenditure (revenues) on products included in the simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcDelta</code></td>
+<td>
+<p>A vector of length k where each element equals the
+proportional change in a product's marginal costs due to
+the merger. Default is 0, which assumes that the merger does not
+affect any products' marginal cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A vector of length k where each element equals TRUE if
+the product indexed by that element should be included in the
+post-merger simulation and FALSE if it should be excluded.Default is a
+length k vector of TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parmStart</code></td>
+<td>
+<p><code>aids</code> only. A vector of length 2 who elements equal to an
+initial guess for "known" element of the diagonal of the demand matrix
+and the market elasticity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceStart</code></td>
+<td>
+<p>A vector of length k who elements equal to an
+initial guess of the proportional change in price caused by the
+merger. The default is to draw k random elements from a [0,1] uniform
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isMax</code></td>
+<td>
+<p>If TRUE, checks to see whether computed price equilibrium
+locally maximizes firm profits and returns a warning if not. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.slopes</code></td>
+<td>
+<p>A list of  <code>optim</code>  control parameters passed to
+the calibration routine optimizer (typically the <code>calcSlopes</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.equ</code></td>
+<td>
+<p>A list of  <code>BBsolve</code> control parameters passed to
+the non-linear equation solver (typically the <code>calcPrices</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A k-length vector of labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional options to feed to the <code>BBsolve</code>
+optimizer used to solve for equilibrium prices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knownElast</code></td>
+<td>
+<p>A negative number equal to the pre-merger own-price
+elasticity for any of the k products.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knownElastIndex</code></td>
+<td>
+<p>An integer equal to the position of the
+‘knownElast’ product in the ‘shares’ vector. Default is 1, which
+assumes that the own-price elasticity of the first product is
+known.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nests</code></td>
+<td>
+<p>A length k vector identifying which nest a product
+belongs to. Default is that all products belong to a single nest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nestsParmStart</code></td>
+<td>
+<p>A vector of starting values used to solve for
+price coefficient and nest parameters. If missing then the random
+draws with the appropriate restrictions are employed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Using product market revenue shares and all of the
+product product margins from at least two firms, <code>aids</code> is able to
+recover the slopes in a proportionally calibrated Almost Ideal Demand System (AIDS)
+without income effects. <code>aids</code> then uses these slopes to simulate the
+price effects of a merger between
+two firms under the assumption that all firms in the market are
+playing a differentiated Bertrand pricing game.
+</p>
+<p>If prices are also supplied, <code>aids</code> is able to recover the
+intercepts from the AIDS demand system. Intercepts are helpful because
+they can be used to simulate pre- and post-merger price <em>levels</em> as well as price
+<em>changes</em>. Whatsmore, the intercepts are necessary in order to
+calculate compensating variation.
+</p>
+<p><code>aids</code> assumes that diversion between the products
+in the market occurs according to revenue share. This assumption may be relaxed
+by setting ‘diversions’ equal to a k x k matrix of diversion
+ratios. The diagonal of this matrix must equal -1, the off-diagonal
+elements must be between 0 and 1, and the rows must sum to 1.
+</p>
+<p><code>pcaids</code> is almost identical to <code>aids</code>, but instead of
+assuming that at least two margins are known, <code>pcaids</code> assumes
+that the own-price elasticity of any single
+product, and the industry-wide own-price elasticity, are
+known. Demand intercepts cannot be recovered using <code>pcaids</code>.
+</p>
+<p><code>pcaids.nests</code> extends <code>pcaids</code> by allowing products
+to be grouped into nests. Although products within the same nest still
+have the independence of irrelevant alternatives (IIA) property,
+products in different nests do not. Note that the ‘diversions’
+argument is absent from <code>pcaids.nests</code>.
+</p>
+<p><code>pcaids.nests</code>  assumes that the share diversion between nests is symmetric
+(i.e for 2 nests A and B, the diversion from A to B is the same as B to
+A). Therefore, if there are <code class="reqn">w</code> nests, <code class="reqn">2\le w \le k</code>, then the model
+must estimate <code class="reqn">w(w-1)/2</code> distinct nesting parameters. To accomplish
+this, <code>pcaids.nests</code> uses margin information to produce estimates of
+the nesting parameters. It is important to note that the number of
+supplied margins must be at least as great as the number of nesting
+parameters in order for PCAIDS to work.
+</p>
+<p>The nesting parameters are constrained to be between 0 and
+1. Therefore, one way to test the validity of the nesting structure is
+to check whether the nesting parameters are between 0 and 1. The value
+of the nesting parameters may be obtained from calling either the ‘summary’ or
+‘getNestsParms’ functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>aids</code> returns an instance of class
+<code>AIDS</code>, a child class of <code>Linear</code>.
+<code>pcaids</code> returns an instance of class
+<code>PCAIDS</code>, while <code>pcaids.nests</code> returns an
+instance of <code>PCAIDSNests</code>. Both are
+children of the <code>AIDS</code> class.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Charles Taragin <a href="mailto:ctaragin+antitrustr@gmail.com">ctaragin+antitrustr@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Epstein, Roy and  Rubinfeld, Daniel (2004).
+“Merger Simulation with Brand-Level Margin Data: Extending PCAIDS
+with Nests.”
+<em>The B.E. Journal of Economic Analysis and Policy</em>, <b>advances.4</b>(1), pp. 2.
+</p>
+<p>Epstein, Roy and Rubinfeld, Daniel (2004).
+“Effects of Mergers Involving Differentiated Products.”
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>linear</code> for a demand system based on quantities
+rather than revenue shares.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate a merger between two single-product firms A and B in a
+## three-firm market (A, B, C). This example assumes that the merger is between
+## the firms A and B and that A's own-price elasticity is
+## known.
+## Source: Epstein and Rubinfeld (2004), pg 9, Table 2.
+
+
+prices    &lt;- c(2.9,3.4,2.2) ## optional for aids, unnecessary for pcaids
+shares    &lt;- c(.2,.3,.5)
+
+
+## The following are used by aids but not pcaids
+## only two of the margins are required to calibrate the demand parameters
+margins &lt;- c(0.33, 0.36, 0.44)
+
+## The following are used by pcaids, but not aids
+knownElast&lt;- -3
+mktElast  &lt;- -1
+
+
+## Define ownership using a vector of firm identities
+ownerPre &lt;- c("A","B","C")
+ownerPost &lt;- c("A","A","C")
+
+## Alternatively, ownership could be defined using matrices
+#ownerPre=diag(1,length(shares))
+#ownerPost=ownerPre
+#ownerPost[1,2] &lt;- ownerPost[2,1] &lt;- 1
+
+
+## AIDS: the following assumes both prices and margins are known.
+##       Prices are not needed to estimate price changes
+
+
+
+result.aids &lt;- aids(shares,margins,prices,ownerPre=ownerPre,ownerPost=ownerPost,labels=ownerPre)
+
+
+
+print(result.aids)           # return predicted price change
+summary(result.aids)         # summarize merger simulation
+
+elast(result.aids,TRUE)      # returns premerger elasticities
+elast(result.aids,FALSE)     # returns postmerger elasticities
+
+diversion(result.aids,TRUE)  # return premerger diversion ratios
+diversion(result.aids,FALSE) # return postmerger diversion ratios
+
+
+cmcr(result.aids)            #calculate compensating marginal cost reduction
+upp(result.aids)             #calculate Upwards Pricing Pressure Index
+
+
+## Implement the Hypothetical Monopolist Test
+## for products A and B using a 5\% SSNIP
+
+HypoMonTest(result.aids,prodIndex=1:2)
+
+
+CV(result.aids)        #calculate compensating variation as a percent of
+#total expenditure
+#CV can only be calculated if prices are supplied
+
+
+## Get a detailed description of the 'AIDS' class slots
+showClass("AIDS")
+
+## Show all methods attached to the 'AIDS' Class
+showMethods(classes="AIDS")
+
+## Show which class have their own 'elast' method
+showMethods("elast")
+
+## Show the method definition for 'elast' and Class 'AIDS'
+getMethod("elast","AIDS")
+
+
+
+## PCAIDS: the following assumes that only one product's elasticity is
+##       known as well as the market elasticity.
+
+
+
+result.pcaids &lt;- pcaids(shares,knownElast,mktElast,
+                        ownerPre=ownerPre,ownerPost=ownerPost,
+                        labels=ownerPre)
+
+print(result.pcaids)           # return predicted price change
+summary(result.pcaids)         # summarize merger simulation
+
+elast(result.pcaids,TRUE)      # returns premerger elasticities
+elast(result.pcaids,FALSE)     # returns postmerger elasticities
+
+diversion(result.pcaids,TRUE)  # return premerger diversion ratios
+diversion(result.pcaids,FALSE) # return postmerger diversion ratios
+
+
+cmcr(result.pcaids)            #calculate compensating marginal cost reduction
+
+
+## Implement the Hypothetical Monopolist Test
+## for products A and B using a 5\% SSNIP
+
+HypoMonTest(result.pcaids,prodIndex=1:2)
+
+
+
+## Nested PCAIDS: in addition to the PCAIDS information requirements,
+##                users must supply the nesting structure as well as margin infromation.
+
+nests &lt;- c('H','L','L') # product A assigned to nest H, products B and C assigned to nest L
+
+
+result.pcaids.nests &lt;- pcaids.nests(shares,knownElast,mktElast,margins=margins,
+                                    nests=nests,ownerPre=ownerPre,
+                                    ownerPost=ownerPost,labels=ownerPre)
+
+</code></pre>
+
+
+</div>

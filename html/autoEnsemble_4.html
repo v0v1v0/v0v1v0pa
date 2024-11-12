@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modelSelection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Selects Diverse Top-Performing Models for Stacking an Ensemble Model</h2>
+
+<h3>Description</h3>
+
+<p>Multiple model performance metrics are computed
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modelSelection(
+  eval,
+  family = "binary",
+  top_rank = 0.01,
+  max = NULL,
+  model_selection_criteria = c("auc", "aucpr", "mcc", "f2")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>an object of class <code>"ensemble.eval"</code> which is provided
+by 'evaluate' function. this object is a data.frame, including
+several performance metrics for the evaluated models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>model family. currently only <code>"binary"</code> classification models
+are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top_rank</code></td>
+<td>
+<p>numeric. what percentage of the top model should be selected?
+the default value is top 1% models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max</code></td>
+<td>
+<p>integer. specifies maximum number of models for each criteria to be extracted. the
+default value is the <code>"top_rank"</code> percentage for each model selection
+criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_selection_criteria</code></td>
+<td>
+<p>character, specifying the performance metrics that
+should be taken into consideration for model selection. the default are
+<code>"c('auc', 'aucpr', 'mcc', 'f2')"</code>. other possible criteria are
+<code>"'f1point5', 'f3', 'f4', 'f5', 'kappa', 'mean_per_class_error', 'gini', 'accuracy'"</code>,
+which are also provided by the <code>"evaluate"</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a matrix of F-Measures for different thresholds or the highest F-Measure value
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>E. F. Haghish
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+library(h2o)
+library(h2otools) #for h2o.get_ids() function
+library(h2oEnsemble)
+
+# initiate the H2O server to train a grid of models
+h2o.init(ignore_config = TRUE, nthreads = 2, bind_to_localhost = FALSE, insecure = TRUE)
+
+# Run a grid search or AutoML search
+prostate_path &lt;- system.file("extdata", "prostate.csv", package = "h2o")
+prostate &lt;- h2o.importFile(path = prostate_path, header = TRUE)
+y &lt;- "CAPSULE"
+prostate[,y] &lt;- as.factor(prostate[,y])  #convert to factor for classification
+aml &lt;- h2o.automl(y = y, training_frame = prostate, max_runtime_secs = 30,
+                  seed = 2023, nfolds = 10, keep_cross_validation_predictions = TRUE)
+
+# get the model IDs from the H2O Grid search or H2O AutoML Grid
+ids &lt;- h2otools::h2o.get_ids(aml)
+
+# evaluate all the models and return a dataframe
+evals &lt;- evaluate(id = ids)
+
+# perform model selection (up to top 10% of each criteria)
+select &lt;- modelSelection(eval = evals, top_rank = 0.1))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ingest_local</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ingestion functions for Kusto</h2>
+
+<h3>Description</h3>
+
+<p>Ingestion functions for Kusto
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ingest_local(
+  database,
+  src,
+  dest_table,
+  method = NULL,
+  staging_container = NULL,
+  ingestion_token = database$token,
+  http_status_handler = "stop",
+  ...
+)
+
+ingest_url(database, src, dest_table, async = FALSE, ...)
+
+ingest_blob(
+  database,
+  src,
+  dest_table,
+  async = FALSE,
+  key = NULL,
+  token = NULL,
+  sas = NULL,
+  ...
+)
+
+ingest_adls2(
+  database,
+  src,
+  dest_table,
+  async = FALSE,
+  key = NULL,
+  token = NULL,
+  sas = NULL,
+  ...
+)
+
+ingest_adls1(
+  database,
+  src,
+  dest_table,
+  async = FALSE,
+  key = NULL,
+  token = NULL,
+  sas = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>database</code></td>
+<td>
+<p>A Kusto database endpoint object, created with kusto_database_endpoint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src</code></td>
+<td>
+<p>The source data. This can be either a data frame, local filename, or URL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dest_table</code></td>
+<td>
+<p>The name of the destination table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>For local ingestion, the method to use. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>staging_container</code></td>
+<td>
+<p>For local ingestion, an Azure storage container to use for staging the dataset. This can be an object of class either AzureStor::blob_container or AzureStor::adls_filesystem. Only used if <code>method="indirect"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ingestion_token</code></td>
+<td>
+<p>For local ingestion, an Azure Active Directory authentication token for the cluster ingestion endpoint. Only used if <code>method="streaming"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_status_handler</code></td>
+<td>
+<p>For local ingestion, how to handle HTTP conditions &gt;= 300. Defaults to "stop"; alternatives are "warn", "message" and "pass". The last option will pass through the raw response object from the server unchanged, regardless of the status code. This is mostly useful for debugging purposes, or if you want to see what the Kusto REST API does. Only used if <code>method="streaming"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Named arguments to be treated as ingestion parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>async</code></td>
+<td>
+<p>For the URL ingestion functions, whether to do the ingestion asychronously. If TRUE, the function will return immediately while the server handles the operation in the background.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key, token, sas</code></td>
+<td>
+<p>Authentication arguments for the Azure storage ingestion methods. If multiple arguments are supplied, a key takes priority over a token, which takes priority over a SAS. Note that these arguments are for authenticating with the Azure <em>storage account</em>, as opposed to Kusto itself.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are up to 3 possible ways to ingest a local dataset, specified by the <code>method</code> argument.
+</p>
+
+<ul>
+<li> <p><code>method="indirect"</code>: The data is uploaded to blob storage, and then ingested from there. This is the default if the AzureStor package is present.
+</p>
+</li>
+<li> <p><code>method="streaming"</code>: The data is uploaded to the cluster ingestion endpoint. This is the default if the AzureStor package is not present, however be aware that currently (as of February 2019) streaming ingestion is in beta and has to be enabled for a cluster by filing a support ticket.
+</p>
+</li>
+<li> <p><code>method="inline"</code>: The data is embedded into the command text itself. This is only recommended for testing purposes, or small datasets.
+</p>
+</li>
+</ul>
+<p>Note that the destination table must be created ahead of time for the ingestion to proceed.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# ingesting from local:
+
+# ingest via Azure storage
+cont &lt;- AzureStor::storage_container("https://mystorage.blob.core.windows.net/container",
+    sas="mysas")
+ingest_local(db, "file.csv", "table",
+    method="indirect", storage_container=cont)
+
+ingest_local(db, "file.csv", "table", method="streaming")
+
+# ingest by inlining data into query
+ingest_inline(db, "file.csv", "table", method="inline")
+
+# ingesting online data:
+
+# a public dataset: Microsoft web data from UCI machine learning repository
+ingest_url(db,
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/anonymous/anonymous-msweb.data",
+    "table")
+
+# from blob storage:
+ingest_blob(db,
+    "https://mystorage.blob.core.windows.net/container/myblob",
+    "table",
+    sas="mysas")
+
+# from ADLSGen2:
+token &lt;- AzureRMR::get_azure_token("https://storage.azure.com", "mytenant", "myapp", "password")
+ingest_blob(db,
+    "abfss://filesystem@myadls2.dfs.core.windows.net/data/myfile",
+    "table",
+    token=token)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

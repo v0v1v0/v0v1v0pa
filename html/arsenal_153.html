@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tableby</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary Statistics of a Set of Independent Variables by a Categorical Variable</h2>
+
+<h3>Description</h3>
+
+<p>Summarize one or more variables (x) by a categorical variable (y). Variables
+on the right side of the formula, i.e. independent variables, are summarized by the
+levels of a categorical variable on the left of the formula. Optionally, an appropriate test is performed to test the
+distribution of the independent variables across the levels of the categorical variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tableby(
+  formula,
+  data,
+  na.action,
+  subset = NULL,
+  weights = NULL,
+  strata,
+  control = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>formula</code>; a symbolic description of the variables to be summarized by the group,
+or categorical variable, of interest. See "Details" for more information. To only view overall summary
+statistics, a one-sided formula can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame)
+containing the variables in the model. If not found in data, the variables are taken from <code>environment(formula)</code>,
+typically the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when the data contain <code>NA</code>s.
+The default is <code>na.tableby(TRUE)</code> if there is a by-variable, and <code>na.tableby(FALSE)</code> if there is not.
+This schema thus includes observations with <code>NA</code>s in x variables,
+but removes those with <code>NA</code> in the categorical group variable and strata (if used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations (rows of data) to be used in the results.
+Works as vector of logicals or an index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a vector of weights. Using weights will disable statistical tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>a vector of strata to separate summaries by an additional group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>control parameters to handle optional settings within <code>tableby</code>.
+Two aspects of <code>tableby</code> are controlled with these: test options of RHS variables across levels of the categorical
+grouping variable, and x variable summaries within the grouping variable. Arguments for <code>tableby.control</code>
+can be passed to <code>tableby</code> via the <code>...</code> argument, but if a control object and <code>...</code> arguments are both supplied,
+the latter are used. See <code>tableby.control</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to internal <code>tableby</code> functions or <code>tableby.control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The group variable (if any) is categorical, which could be an integer, character,
+factor, or ordered factor. <code>tableby</code> makes a simple summary of
+the counts within the k-levels of the independent variables on the
+right side of the formula. Note that unused levels are dropped.
+</p>
+<p>The <code>data</code> argument allows data.frames with label attributes for the columns, and those
+labels will be used in the summary methods for the <code>tableby</code> class.
+</p>
+<p>The independent variables are a mixture of types: categorical (discrete),
+numeric (continuous), and time to event (survival). These variables
+are split by the levels of the group variable (if any), then summarized within
+those levels, specific to the variable type. A statistical test is
+performed to compare the distribution of the independent variables across the
+levels of the grouping variable.
+</p>
+<p>The tests differ by the independent variable type, but can be specified
+explicitly in the formula statement or in the control function.
+These tests are accepted:
+</p>
+
+<ul>
+<li>
+<p><code>anova</code>: analysis of variance test; the default test for continuous variables. When
+LHS variable has two levels, equivalent to two-sample t-test.
+
+</p>
+</li>
+<li>
+<p><code>kwt</code>: Kruskal-Wallis Rank Test, optional test for continuous
+variables. When LHS variable has two levels, equivalent to Wilcoxon test.
+
+</p>
+</li>
+<li>
+<p><code>wt</code>: An explicit Wilcoxon test.
+
+</p>
+</li>
+<li>
+<p><code>medtest</code>: A median test.
+
+</p>
+</li>
+<li>
+<p><code>chisq</code>: chi-square goodness of fit test for equal counts of a
+categorical variable across categories; the default for categorical
+or factor variables
+
+</p>
+</li>
+<li>
+<p><code>fe</code>: Fisher's exact test for categorical variables
+
+</p>
+</li>
+<li>
+<p><code>trend</code>: trend test for equal distribution of an ordered variable
+across a categorical variable; the default for ordered factor variables
+
+</p>
+</li>
+<li>
+<p><code>logrank</code>: log-rank, the default for time-to-event variables
+
+</p>
+</li>
+<li>
+<p><code>notest</code>: no test is performed.
+
+</p>
+</li>
+</ul>
+<p>To perform a mixture of asymptotic and rank-based tests on two
+different continuous variables, an example formula is:
+<code>formula = group ~ anova(age) + kwt(height)</code>. The test settings
+in <code>tableby.control</code> apply to all independent variables of a given type.
+</p>
+<p>The summary statistics reported for each independent variable within the
+group variable can be set in <code>tableby.control</code>.
+</p>
+<p>Finally, multiple by-variables can be set using <code>list()</code>. See the examples for more details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with class <code>c("tableby", "arsenal_table")</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jason Sinnwell, Beth Atkinson, Gregory Dougherty, and Ethan Heinzen, adapted from SAS Macros written by Paul Novotny and Ryan Lennon
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arsenal_table</code>, <code>anova</code>, <code>chisq.test</code>, <code>tableby.control</code>,
+<code>summary.tableby</code>, <code>tableby.internal</code>, <code>formulize</code>, <code>selectall</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(mockstudy)
+tab1 &lt;- tableby(arm ~ sex + age, data=mockstudy)
+summary(tab1, text=TRUE)
+
+mylabels &lt;- list(sex = "SEX", age ="Age, yrs")
+summary(tab1, labelTranslations = mylabels, text=TRUE)
+
+tab3 &lt;- tableby(arm ~ sex + age, data=mockstudy, test=FALSE, total=FALSE,
+                numeric.stats=c("median","q1q3"), numeric.test="kwt")
+summary(tab3, text=TRUE)
+
+# multiple LHS
+summary(tableby(list(arm, sex) ~ age, data = mockstudy, strata = ps), text = TRUE)
+
+tab.test &lt;- tableby(arm ~ kwt(age) + anova(bmi) + kwt(ast), data=mockstudy)
+tests(tab.test)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bard</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Detection of multivariate anomalous segments using BARD.</h2>
+
+<h3>Description</h3>
+
+<p>Implements the BARD (Bayesian Abnormal Region Detector) procedure of Bardwell and Fearnhead (2017). 
+BARD is a fully Bayesian inference procedure which is able to give measures of uncertainty about the 
+number and location of anomalous regions. It uses negative binomial prior distributions on the lengths 
+of anomalous and non-anomalous regions as well as a uniform prior for the means of anomalous regions. 
+Inference is conducted by solving a set of recursions. To reduce computational and storage costs a resampling 
+step is included.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bard(
+  x,
+  p_N = 1/(nrow(x) + 1),
+  p_A = 5/nrow(x),
+  k_N = 1,
+  k_A = (5 * p_A)/(1 - p_A),
+  pi_N = 0.9,
+  paffected = 0.05,
+  lower = 2 * sqrt(log(nrow(x))/nrow(x)),
+  upper = max(x),
+  alpha = 1e-04,
+  h = 0.25
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric matrix with n rows and p columns containing the data which is to be inspected. The time series data classes ts, xts, and zoo are also supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_N</code></td>
+<td>
+<p>Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (probability of success). Defaults to <code class="reqn">\frac{1}{n+1}.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_A</code></td>
+<td>
+<p>Hyper-parameter of the negative binomial distribution for the length of anomalous segments (probability of success). Defaults to <code class="reqn">\frac{5}{n}.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k_N</code></td>
+<td>
+<p>Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (size). Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k_A</code></td>
+<td>
+<p>Hyper-parameter of the negative binomial distribution for the length of anomalous segments (size). Defaults to <code class="reqn">\frac{5p_A}{1- p_A}.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_N</code></td>
+<td>
+<p>Probability that an anomalous segment is followed by a non-anomalous segment. Defaults to 0.9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paffected</code></td>
+<td>
+<p>Proportion of the variates believed to be affected by any given anomalous segment. Defaults to 5%. 
+This parameter is relatively robust to being mis-specified and is studied empirically in Section 5.1 of Bardwell and Fearnhead (2017).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>The lower limit of the the prior uniform distribution for the mean of an anomalous segment <code class="reqn">\mu</code>. Defaults to <code class="reqn">2\sqrt{\frac{\log(n)}{n}}.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>The upper limit of the prior uniform distribution for the mean of an anomalous segment <code class="reqn">\mu</code>. 
+Defaults to the largest value of x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Threshold used to control the resampling in the approximation of the posterior distribution at each time step. A sensible default is 1e-4.
+Decreasing alpha increases the accuracy of the posterior distribution but also increases the computational complexity of the algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The step size in the numerical integration used to find the marginal likelihood. 
+The quadrature points are located from <code>lower</code> to <code>upper</code> in steps of <code>h</code>. Defaults to 0.25. 
+Decreasing this parameter increases the accuracy of the calculation for the marginal likelihood but increases computational complexity.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An instance of the S4 object of type <code>.bard.class</code> containing the data <code>x</code>, procedure parameter values, and the results.
+</p>
+
+
+<h3>Notes on default hyper-parameters</h3>
+
+<p>This function gives certain default hyper-parameters for the two segment length distributions.
+We chose these to be quite flexible for a range of problems. For non-anomalous segments a geometric distribution
+was selected having an average segment length of <code class="reqn">n</code> with the standard deviation being of the same order. 
+For anomalous segments we chose parameters that gave an average length of 5 and a variance of <code class="reqn">n</code>. 
+These may not be suitable for all problems and the user is encouraged to tune these parameters.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bardwell L, Fearnhead P (2017).
+“Bayesian Detection of Abnormal Segments in Multiple Time Series.”
+<em>Bayesian Anal.</em>, <b>12</b>(1), 193–218.
+</p>
+<p>Fisch ATM, Grose D, Eckley IA, Fearnhead P, Bardwell L (2024).
+“anomaly: Detection of Anomalous Structure in Time Series Data.”
+<em>Journal of Statistical Software</em>, <b>110</b>(1), 1–24.
+<a href="https://doi.org/10.18637/jss.v110.i01">doi:10.18637/jss.v110.i01</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sampler</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(anomaly)
+data(simulated)
+# run bard
+bard.res&lt;-bard(sim.data, alpha = 1e-3, h = 0.5)
+sampler.res&lt;-sampler(bard.res)
+collective_anomalies(sampler.res)
+
+plot(sampler.res,marginals=TRUE)
+
+</code></pre>
+
+
+</div>

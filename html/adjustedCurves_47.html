@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surv_strat_cupples</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Adjusted Survival Curves for Categorical Confounders using the Method by Cupples et al. (1995)
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating confounder-adjusted survival curves using a weighted average of stratified Kaplan-Meier estimates using the method described in Cupples et al. (1995) (<code>method="strat_cupples"</code> in the <code>adjustedsurv</code> function). All regular arguments of the <code>adjustedsurv</code> function can be used. Additionally, the <code>adjust_vars</code> argument has to be specified in the <code>adjustedsurv</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>adjust_vars</code></td>
+<td>
+
+<p>[<strong>required</strong>] A single string or character vector specifying column names in data for which the survival curves should be adjusted for. The variables specified can be integers, factors or characters. Only categorical variables can be used with this method. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+
+<p>A <code>data.frame</code> to be used as a reference population when weighting the survival curves or <code>NULL</code> (default). If <code>NULL</code> the survival curves are weighted in reference to the full sample supplied using <code>data</code>, regardless of the <code>variable</code> level. If a <code>data.frame</code> is supplied it needs to include all variables specified in <code>adjust_vars</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> The survival curves are adjusted by taking a weighted average of stratified Kaplan-Meier estimates. This only works for categorical confounders. See below for more information.
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Any number of levels in <code>variable</code> are allowed. Must be a factor variable.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are not available. Bootstrap confidence intervals can however be calculated with all supported models. See <code>?adjustedsurv</code> for more information on bootstrapping.
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method relies on the <span class="pkg">survival</span> package.
+</p>
+</li>
+</ul>
+<p>This is one of the older adjustment methods described in the literature. It only works for categorical confounders. If adjustments for continuous confounders are desired, the user needs to explicitly categorize the continuous confounders. It is recommended to use one of the other methods implemented in this package in that case. The method works exactly as described in Cupples et al. (1995). First, stratified Kaplan-Meier estimates for each possible combination of all supplied variables (<code>variable</code> + <code>adjust_vars</code>) are calculated. If for example a dichotomous <code>variable</code> with the levels "Treatment" and "Control" is supplied in conjunction with a single dichotomous confounder "Sex" with the levels "male" and "female", this method would calculate four Kaplan-Meier curves (Treatment + male, Treatment + female, Control + male, Control + female). Next a simple weighted average of these survival curves is taken per level in <code>variable</code>, where the weights are the number of occurrences of each confounder level in the reference data. The reference data is the pooled sample by default, but external reference data can be used. A more detailed description can be found in the original article.
+</p>
+<p>If a character vector is supplied in the <code>adjust_vars</code> argument, the Kaplan-Meier estimates are created for each combination of all supplied variables. If the sample size is small and/or there are many levels in these variables, the estimates can become unstable or undefined. Because it is a weighted average of Kaplan-Meier curves, estimates for this method are only defined for points in time with a valid Kaplan-Meier estimate in all strata. Continuing the example from above, if the Kaplan-Meier curve of the strata "Treatment + male" only extends to t = 100, it will be impossible to estimate the adjusted survival curve for t &gt; 100 using this method.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds no additional objects to the output of the <code>adjustedsurv</code> function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Kramar and C. Com-Nougué (1990). "Estimation des courbes de survie ajustées". In: Revue d Épidémiologie et de Santé Publique 38.2, pp. 149-152
+</p>
+<p>L. Adrienne Cupples, David R. Gragnon, Ratna Ramaswamy, and Ralph D’Agostino (1995). "Age-Adjusted Survival Curves with Application in the Framingham Study". In: Statistics in Medicine 14, pp. 1731-1744
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adjustedsurv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+library(survival)
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_surv(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# adjust survival curves for some categorical confounders
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="strat_cupples",
+                        adjust_vars=c("x1", "x3"),
+                        conf_int=FALSE)
+
+# plot the curves
+plot(adjsurv)
+</code></pre>
+
+
+</div>

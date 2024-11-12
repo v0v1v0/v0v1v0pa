@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LIindex</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Lifted index 
+</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the instability parameter Lifted index (Celsius) from pressure, temperature and mixing ratio values described by a vertical sounding.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LIindex(Ps, Ts, ws, Psurface, deltaP, PWIDTH, doLog = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ps</code></td>
+<td>
+
+<p>Pressure (Pa) of the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ts</code></td>
+<td>
+
+<p>Temperature (K) of the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ws</code></td>
+<td>
+
+<p>Mixing ratio (kg/kg) of the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psurface</code></td>
+<td>
+
+<p>Surface pressure (Pa). If not available, the first level of the sounding can be used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaP</code></td>
+<td>
+
+<p>The width (Pa) of the layers used in the numerical solution of the vertical evolution (integration of the ODE). A default value of 5 Pa is used. It must be positive.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PWIDTH</code></td>
+<td>
+
+<p>PWIDTH represents the width (Pa) of the lower layer that will be averaged for P, T and w in order to calculate a "mixed-layer" average parcel that will be used for the vertical evolution. Typically 5000-10000 Pa are used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doLog</code></td>
+<td>
+
+<p>Use logarithmic vertical interpolation between sounding levels if doLog=1. It is not used by default (doLog=0).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the 500 hPa needed level is not exactly found in the input sounding, logarithmic/linear
+vertical interpolation is run to get the corresponding T/w from the Ps/Ts/ws depending on the value of doLog 0/1.
+</p>
+<p>The evolution of the lifted particle is computed by integrating the dT/dP ordinary differential equation (applying the Runge-Kutta 4th order method), that represents the vertical adiabatic evolution from the initial condition to 500 hPa using a pressure step deltaP (Pa). The vertical adiabatic evolution is either dry (before saturation) or pseudoadiabatic at every vertical step with a correction for moisture in <code class="reqn">c_p</code> using the value of the mixing ratio (<code class="reqn">c_{pm}</code> as in Tsonis, eq 7.11).
+</p>
+<p>If the sounding does not enclose the needed level of 500 hPa and the interpolation fails, the function returns -99999999.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns the LI index (Celsius).
+</p>
+
+
+<h3>References</h3>
+
+<p>Tsonis, A. A. (2002). An Introduction to Atmospheric Thermodynamics, Cambridge University Press, Cambridge. Eq. 7.11.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(RadiosondeA)
+aPs&lt;-RadiosondeA[,1]*100
+aTs&lt;-C2K(RadiosondeA[,3])
+aws&lt;-RadiosondeA[,6]/1000
+LIindex(aPs,aTs,aws,max(aPs),5,2500,0)
+</code></pre>
+
+
+</div>

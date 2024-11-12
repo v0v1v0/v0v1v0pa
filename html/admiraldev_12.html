@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>assert_date_var</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Is a Variable in a Dataset a Date or Datetime Variable?</h2>
+
+<h3>Description</h3>
+
+<p>Checks if a variable in a dataset is a date or datetime variable
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">assert_date_var(
+  dataset,
+  var,
+  dataset_name = rlang::caller_arg(dataset),
+  var_name = rlang::caller_arg(var),
+  message = NULL,
+  class = "assert_date_var",
+  call = parent.frame()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>The dataset where the variable is expected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>The variable to check</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_name</code></td>
+<td>
+<p>The name of the dataset. If the argument is specified, the
+specified name is displayed in the error message.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_name</code></td>
+<td>
+<p>The name of the variable. If the argument is specified, the
+specified name is displayed in the error message.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>(<code>string</code>)<br>
+string passed to <code>cli::cli_abort(message)</code>. When <code>NULL</code>, default messaging
+is used (see examples for default messages). <code>"var_name"</code> and <code>"dataset_name"</code>,
+can be used in messaging.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>Subclass of the condition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The execution environment of a currently running
+function, e.g. <code>call = caller_env()</code>. The corresponding function
+call is retrieved and mentioned in error messages as the source
+of the error.
+</p>
+<p>You only need to supply <code>call</code> when throwing a condition from a
+helper function which wouldn't be relevant to mention in the
+message.
+</p>
+<p>Can also be <code>NULL</code> or a defused function call to
+respectively not display any call or hard-code a code to display.
+</p>
+<p>For more information about error calls, see Including function calls in error messages.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function throws an error if <code>var</code> is not a date or datetime variable in
+<code>dataset</code> and returns the input invisibly otherwise.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lubridate)
+library(dplyr)
+library(rlang)
+
+example_fun &lt;- function(dataset, var) {
+  var &lt;- assert_symbol(enexpr(var))
+  assert_date_var(dataset = dataset, var = !!var)
+}
+
+my_data &lt;- tribble(
+  ~USUBJID, ~ADT,
+  "1",      ymd("2020-12-06"),
+  "2",      ymd("")
+)
+
+example_fun(
+  dataset = my_data,
+  var = ADT
+)
+
+try(example_fun(
+  dataset = my_data,
+  var = USUBJID
+))
+
+example_fun2 &lt;- function(dataset, var) {
+  var &lt;- assert_symbol(enexpr(var))
+  assert_date_var(
+    dataset = dataset,
+    var = !!var,
+    dataset_name = "your_data",
+    var_name = "your_var"
+  )
+}
+
+try(example_fun2(
+  dataset = my_data,
+  var = USUBJID
+))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monitor_leaflet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Leaflet interactive map of monitor locations</h2>
+
+<h3>Description</h3>
+
+<p>This function creates interactive maps that will be displayed in RStudio's
+'Viewer' tab. The <code>slice</code> argument is used to collapse a
+<em>mts_monitor</em> timeseries into a single value. If <code>slice</code> is an
+integer, that row index will be selected from the <code>monitor$data</code>
+dataframe. If <code>slice</code> is a function (unquoted), that function will be
+applied to the timeseries with the argument <code>na.rm=TRUE</code> (e.g.
+<code>max(..., na.rm=TRUE)</code>).
+</p>
+<p>If <code>slice</code> is a user defined function, it will be used with argument
+<code>na.rm=TRUE</code> to collapse the time dimension. Thus, user defined
+functions must accept <code>na.rm</code> as an argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monitor_leaflet(
+  monitor,
+  slice = "max",
+  radius = 10,
+  opacity = 0.7,
+  maptype = "terrain",
+  extraVars = NULL,
+  jitter = 5e-04,
+  NAAQS = c("PM2.5_2024", "PM2.5"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>monitor</code></td>
+<td>
+<p><em>mts_monitor</em> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slice</code></td>
+<td>
+<p>Either a formatted time string, a time index, the name of a
+(potentially user defined) function used to collapse the time axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>radius of monitor circles</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opacity</code></td>
+<td>
+<p>opacity of monitor circles</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maptype</code></td>
+<td>
+<p>optional name of leaflet ProviderTiles to use, e.g. "terrain"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extraVars</code></td>
+<td>
+<p>Character vector of additional column names from <code>monitor$meta</code>
+to be shown in leaflet popups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jitter</code></td>
+<td>
+<p>Amount to use to slightly adjust locations so that multiple
+monitors at the same location can be seen. Use zero or <code>NA</code> to see
+precise locations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAAQS</code></td>
+<td>
+<p>Version of NAAQS levels to use. See Note.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>leaflet::addCircleMarker()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>maptype</code> argument is mapped onto leaflet "ProviderTile" names.
+Current map types include:
+</p>
+
+<dl>
+<dt>"roadmap"</dt>
+<dd>
+<p> – "OpenStreetMap"</p>
+</dd>
+<dt>"satellite"</dt>
+<dd>
+<p> – "Esri.WorldImagery"</p>
+</dd>
+<dt>"terrain"</dt>
+<dd>
+<p> – "Esri.WorldTopoMap"</p>
+</dd>
+<dt>"toner"</dt>
+<dd>
+<p> – "Stamen.Toner"</p>
+</dd>
+</dl>
+<p>If a character string not listed above is provided, it will be used as the
+underlying map tile if available. See
+<a href="https://leaflet-extras.github.io/leaflet-providers/">https://leaflet-extras.github.io/leaflet-providers/</a> for a list of
+"provider tiles" to use as the background map.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Invisibly returns a leaflet map of class "leaflet".
+</p>
+
+
+<h3>Note</h3>
+
+<p>On February 7, 2024, EPA strengthened the National Ambient Air Quality
+Standards for Particulate Matter (PM NAAQS) to protect millions of Americans
+from harmful and costly health impacts, such as heart attacks and premature
+death. Particle or soot pollution is one of the most dangerous forms of air
+pollution, and an extensive body of science links it to a range of serious
+and sometimes deadly illnesses. EPA is setting the level of the primary
+(health-based) annual PM2.5 standard at 9.0 micrograms per cubic meter to
+provide increased public health protection, consistent with the available
+health science.
+See <a href="https://www.epa.gov/pm-pollution/final-reconsideration-national-ambient-air-quality-standards-particulate-matter-pm">PM NAAQS update</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(AirMonitor)
+# Fail gracefully if any resources are not available
+try({
+
+# Maximum AQI category at each site
+monitor_loadLatest() %&gt;%
+  monitor_filter(stateCode %in% CONUS) %&gt;%
+  monitor_leaflet()
+
+# Mean AQI category at each site
+monitor_loadLatest() %&gt;%
+  monitor_filter(stateCode %in% CONUS) %&gt;%
+  monitor_leaflet(
+    slice = "mean"
+  )
+
+# Mean AQI category at each site using the updated NAAQS
+monitor_loadLatest() %&gt;%
+  monitor_filter(stateCode %in% CONUS) %&gt;%
+  monitor_leaflet(
+    slice = "mean",
+    NAAQS = "PM2.5_2024"
+  )
+
+}, silent = FALSE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

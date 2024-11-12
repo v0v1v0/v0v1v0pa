@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MFA_ECM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ECM-Based MFA Estimation</h2>
+
+<h3>Description</h3>
+
+<p>An implementation of an ECM algorithm for the MFA model which does not condition on the factors being known (Zhao and Yu 2008).
+Performs a grid search from <code>gmin</code> to <code>gmax</code>, and <code>qmin</code> to <code>qmax</code>, respectively. The best combination of <em>g</em> and <em>q</em> is chosen to be the model with the minimum BIC.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MFA_ECM(
+  Y,
+  gmin = 1,
+  gmax = 10,
+  qmin = 1,
+  qmax = NULL,
+  eta = 0.005,
+  itmax = 500,
+  nkmeans = 5,
+  nrandom = 5,
+  tol = 1e-05,
+  conv_measure = "diff",
+  varimax = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An <em>n</em> by <em>p</em> data matrix, where <em>n</em> is the number of observations and <em>p</em> is the number of dimensions of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gmin</code></td>
+<td>
+<p>The smallest number of components for which an MFA model will be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gmax</code></td>
+<td>
+<p>The largest number of components for which an MFA model will be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qmin</code></td>
+<td>
+<p>The smallest number of factors with which an MFA model will be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qmax</code></td>
+<td>
+<p>The largest number of factors with which an MFA model will be fitted. Must obey the Ledermann bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>The smallest possible entry in any of the error matrices <em>D_i</em> (Zhao and Yu 2008).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itmax</code></td>
+<td>
+<p>The maximum number of ECM iterations allowed for the estimation of each MFA model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nkmeans</code></td>
+<td>
+<p>The number of times the <em>k</em>-means algorithm will be used to initialise models for each combination of <em>g</em> and <em>q</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrandom</code></td>
+<td>
+<p>The number of randomly initialised models that will be used for each combination of g and q.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The ECM algorithm terminates if the measure of convergence falls below this value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv_measure</code></td>
+<td>
+<p>The convergence criterion of the ECM algorithm. The default <code>'diff'</code> stops the ECM iterations if |l^(k+1) - l^(k)| &lt; <code>tol</code> where l^(k) is the log-likelihood at the <em>k</em>th ECM iteration. If <code>'ratio'</code>, then the convergence of the ECM iterations is measured using |(l^(k+1) - l^(k))/l^(k+1)|.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varimax</code></td>
+<td>
+<p>Boolean indicating whether the output factor loading matrices should be constrained
+using varimax rotation or not.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+
+<ul>
+<li>
+<p><code>model</code>: A list specifying the final MFA model. This contains: </p>
+
+<ul>
+<li>
+<p><code>B</code>: A <em>p</em> by <em>p</em> by <em>q</em> array containing the factor loading matrices for each component.
+</p>
+</li>
+<li>
+<p><code>D</code>: A <em>p</em> by <em>p</em> by <em>g</em> array of error variance matrices.
+</p>
+</li>
+<li>
+<p><code>mu</code>:  A <em>p</em> by <em>g</em> array containing the mean of each cluster.
+</p>
+</li>
+<li>
+<p><code>pivec</code>: A 1 by <em>g</em> vector containing the mixing
+proportions for each FA in the mixture.
+</p>
+</li>
+<li>
+<p><code>numFactors</code>: A 1 by <em>g</em> vector containing the number of factors for each FA.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>clustering</code>: A list specifying the clustering produced by the final model. This contains: </p>
+
+<ul>
+<li>
+<p><code>responsibilities</code>: A <em>n</em> by <em>g</em> matrix containing the probability
+that each point belongs to each FA in the mixture.
+</p>
+</li>
+<li>
+<p><code>allocations</code>: A <em>n</em> by 1 matrix containing which
+FA in the mixture each point is assigned to based on the responsibilities.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>diagnostics</code>: A list containing various pieces of information related to the fitting process of the algorithm. This contains: </p>
+
+<ul>
+<li>
+<p><code>bic</code>: The BIC of the final model.
+</p>
+</li>
+<li>
+<p><code>logL</code>: The log-likelihood of the final model.
+</p>
+</li>
+<li>
+<p><code>times</code>: A data frame containing the amount of time taken to fit each MFA model.
+</p>
+</li>
+<li>
+<p><code>totalTime</code>: The total time taken to fit the final model.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Zhao J, Yu PLH (2008).
+“Fast ML Estimation for the Mixture of Factor Analyzers via an ECM Algorithm.”
+<em>IEEE Transactions on Neural Networks</em>, <b>19</b>(11), 1956-1961.
+ISSN 1045-9227.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">RNGversion('4.0.3'); set.seed(3)
+MFA.fit &lt;- MFA_ECM(autoMFA::MFA_testdata,3,3)
+</code></pre>
+
+
+</div>

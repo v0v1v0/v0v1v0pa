@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_locf_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive LOCF (Last Observation Carried Forward) Records</h2>
+
+<h3>Description</h3>
+
+<p>Adds LOCF records as new observations for each 'by group' when the dataset
+does not contain observations for missed visits/time points.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_locf_records(
+  dataset,
+  dataset_ref,
+  by_vars,
+  analysis_var = AVAL,
+  order,
+  keep_vars = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code>, <code>analysis_var</code>, <code>order</code>, and <code>keep_vars</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_ref</code></td>
+<td>
+<p>Expected observations dataset
+</p>
+<p>Data frame with all the combinations of <code>PARAMCD</code>, <code>PARAM</code>, <code>AVISIT</code>,
+<code>AVISITN</code>, ... which are expected in the dataset is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>For each group defined by <code>by_vars</code> those observations from <code>dataset_ref</code>
+are added to the output dataset which do not have a corresponding observation
+in the input dataset or for which <code>analysis_var</code> is <code>NA</code> for the corresponding observation
+in the input dataset.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Analysis variable.
+</p>
+<p><em>Default</em>: <code>AVAL</code>
+</p>
+<p><em>Permitted Values</em>: a variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>The dataset is sorted by <code>order</code> before carrying the last observation
+forward (e.g. <code>AVAL</code>) within each <code>by_vars</code>.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_vars</code></td>
+<td>
+<p>Variables that need carrying the last observation forward
+</p>
+<p>Keep variables that need carrying the last observation forward other than <code>analysis_var</code>
+(e.g., <code>PARAMN</code>, <code>VISITNUM</code>). If by default <code>NULL</code>, only variables specified in
+<code>by_vars</code> and <code>analysis_var</code> will be populated in the newly created records.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each group (with respect to the variables specified for the
+by_vars parameter) those observations from <code>dataset_ref</code> are added to
+the output dataset
+</p>
+
+<ul>
+<li>
+<p> which do not have a corresponding observation in the input dataset or
+</p>
+</li>
+<li>
+<p> for which <code>analysis_var</code> is NA for the corresponding observation in the input dataset.
+</p>
+<p>For the new observations, <code>analysis_var</code> is set to the non-missing <code>analysis_var</code> of the
+previous observation in the input dataset (when sorted by <code>order</code>) and
+<code>DTYPE</code> is set to "LOCF".
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The input dataset with the new "LOCF" observations added for each
+<code>by_vars</code>. Note, a variable will only be populated in the new parameter rows
+if it is specified in <code>by_vars</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>G Gayatri
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(tibble)
+
+advs &lt;- tribble(
+  ~STUDYID,  ~USUBJID,      ~PARAMCD, ~PARAMN, ~AVAL, ~AVISITN, ~AVISIT,
+  "CDISC01", "01-701-1015", "PULSE",        1,    61,        0, "BASELINE",
+  "CDISC01", "01-701-1015", "PULSE",        1,    60,        6, "WEEK 6",
+  "CDISC01", "01-701-1015", "DIABP",        2,    51,        0, "BASELINE",
+  "CDISC01", "01-701-1015", "DIABP",        2,    50,        2, "WEEK 2",
+  "CDISC01", "01-701-1015", "DIABP",        2,    51,        4, "WEEK 4",
+  "CDISC01", "01-701-1015", "DIABP",        2,    50,        6, "WEEK 6",
+  "CDISC01", "01-701-1015", "SYSBP",        3,   121,        0, "BASELINE",
+  "CDISC01", "01-701-1015", "SYSBP",        3,   121,        2, "WEEK 2",
+  "CDISC01", "01-701-1015", "SYSBP",        3,   121,        4, "WEEK 4",
+  "CDISC01", "01-701-1015", "SYSBP",        3,   121,        6, "WEEK 6",
+  "CDISC01", "01-701-1028", "PULSE",        1,    65,        0, "BASELINE",
+  "CDISC01", "01-701-1028", "DIABP",        2,    79,        0, "BASELINE",
+  "CDISC01", "01-701-1028", "DIABP",        2,    80,        2, "WEEK 2",
+  "CDISC01", "01-701-1028", "DIABP",        2,    NA,        4, "WEEK 4",
+  "CDISC01", "01-701-1028", "DIABP",        2,    NA,        6, "WEEK 6",
+  "CDISC01", "01-701-1028", "SYSBP",        3,   130,        0, "BASELINE",
+  "CDISC01", "01-701-1028", "SYSBP",        3,   132,        2, "WEEK 2"
+)
+
+
+# A dataset with all the combinations of PARAMCD, PARAM, AVISIT, AVISITN, ... which are expected.
+advs_expected_obsv &lt;- tribble(
+  ~PARAMCD, ~AVISITN, ~AVISIT,
+  "PULSE",         0, "BASELINE",
+  "PULSE",         6, "WEEK 6",
+  "DIABP",         0, "BASELINE",
+  "DIABP",         2, "WEEK 2",
+  "DIABP",         4, "WEEK 4",
+  "DIABP",         6, "WEEK 6",
+  "SYSBP",         0, "BASELINE",
+  "SYSBP",         2, "WEEK 2",
+  "SYSBP",         4, "WEEK 4",
+  "SYSBP",         6, "WEEK 6"
+)
+
+derive_locf_records(
+  dataset = advs,
+  dataset_ref = advs_expected_obsv,
+  by_vars = exprs(STUDYID, USUBJID, PARAMCD),
+  order = exprs(AVISITN, AVISIT),
+  keep_vars = exprs(PARAMN)
+)
+
+</code></pre>
+
+
+</div>

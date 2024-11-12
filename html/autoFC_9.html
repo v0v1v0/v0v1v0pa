@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_TIRT_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit the Thurstonian IRT Model with Long Format Response Data</h2>
+
+<h3>Description</h3>
+
+<p>Fits the Thurstonian IRT response model using either lavaan, Mplus, or stan methods. 
+A long format response data set needs to be provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_TIRT_model(
+  data_TIRT,
+  method = "lavaan",
+  lavaan_estimator = "WLSMV",
+  stan_cores = 4,
+  chains = 4,
+  iter = 2000,
+  verbose = TRUE,
+  remove_mplus_file = FALSE,
+  export_estimates = TRUE,
+  file_name
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_TIRT</code></td>
+<td>
+<p>Long format TIRT response data as generated from <code>get_TIRT_long_data()</code> or <code>thurstonianIRT::make_TIRT_data()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Estimation method for the TIRT model. Can be <code>"lavaan"</code>, <code>"mplus"</code> or <code>"stan"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lavaan_estimator</code></td>
+<td>
+<p>Which estimator to use when lavaan is chosen as the method of estimating the TIRT model. Defaults to "WLSMV".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stan_cores, chains, verbose, iter</code></td>
+<td>
+<p>Parameters used in <code>thurstonianIRT::fit_TIRT_stan</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove_mplus_file</code></td>
+<td>
+<p>Whether the input/output files will be removed after model estimation, when Mplus is chosen as the method of estimating the TIRT model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_estimates</code></td>
+<td>
+<p>Logical. Should trait estimates be written to external files?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_name</code></td>
+<td>
+<p>If <code>export_estimates == TRUE</code>, specify the file name for the output file.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function incorporates the fit TIRT models functions in the <code>thurstonianIRT</code> package (Bürkner, 2019) and
+by (a) providing a wrapper interface for users to choose from estimating from lavaan, MPLUS, or stan, (b) placing
+the fit object, resulting trait estimates, and the original long format response data into one list as the return object.
+Users need to provide a long format TIRT response data set as generated from <code>get_TIRT_long_data()</code> or from <code>thurstonianIRT::make_TIRT_data()</code>,
+and they can choose from three estimation methods: lavaan, MPLUS or stan. For lavaan and stan, additional arguments can be specified.
+</p>
+<p>We note that currently the lavaan method does not provide standard error estimates. The stan method is the most stable
+but can take a very long time for estimation. The mplus method can be a good choice but may occassionally produce errors
+due to model convergence issues. In these rare cases, users may also consider using the Excel macro
+developed by Brown &amp; Maydeu-Olivares (2012) to generate Mplus syntax and directly run the syntax in Mplus.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+
+<p><code>final_estimates</code>   Final trait score and standard error estimates
+</p>
+<p><code>fit_object</code>   TIRT model fit object
+</p>
+<p><code>responses_TIRT</code>   The long format TIRT response
+</p>
+<p><code>long_estimates</code>   Final trait score and standard error estimates, in long format
+</p>
+
+
+
+<h3>Author(s)</h3>
+
+<p>Mengtong Li
+</p>
+
+
+<h3>References</h3>
+
+<p>Bürkner, P. C. (2019). thurstonianIRT: Thurstonian IRT models in R. <em>Journal of Open Source Software, 4</em>(42), 1662. https://doi.org/10.21105/joss.01662
+</p>
+<p>Brown, A., &amp; Maydeu-Olivares, A. (2012). Fitting a Thurstonian IRT model to forced-choice data using Mplus. <em>Behavior Research Methods, 44</em>, 1135-1147. https://doi.org/10.3758/s13428-012-0217-x
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>thurstonianIRT::fit_TIRT_lavaan</code>,
+</p>
+<p><code>thurstonianIRT::fit_TIRT_mplus</code>, 
+</p>
+<p><code>thurstonianIRT::fit_TIRT_stan</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(2024)
+test_data &lt;- triplet_example_data[1:20,]
+block_info &lt;- triplet_block_info
+test_data_long &lt;- get_TIRT_long_data(block_info = triplet_block_info, response_data = test_data,
+                                     response_varname = build_TIRT_var_names(N_blocks = 5, 
+                                     block_size = 3, item_name = "i"),
+                                     block_name = "Block", item_name = "ID", 
+                                     trait_name = "Factor", sign_name = "Keying")
+## Not run: 
+    test_fit &lt;- fit_TIRT_model(test_data_long, method = "lavaan")
+    test_fit$fit_object
+    test_fit$final_estimates
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

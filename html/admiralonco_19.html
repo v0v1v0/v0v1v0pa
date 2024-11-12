@@ -1,0 +1,512 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_confirmed_bor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a Parameter for Confirmed Best Overall Response</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_param_confirmed_bor()</code>
+function has been superseded in favor of <code>derive_extreme_event()</code>.
+</p>
+<p>Adds a parameter for confirmed best overall response (BOR)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_confirmed_bor(
+  dataset,
+  dataset_adsl,
+  filter_source,
+  source_pd = NULL,
+  source_datasets = NULL,
+  reference_date,
+  ref_start_window,
+  ref_confirm,
+  max_nr_ne = 1,
+  accept_sd = FALSE,
+  missing_as_ne = FALSE,
+  aval_fun,
+  set_values_to,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The <code>PARAMCD</code>, <code>ADT</code>, and <code>AVALC</code> variables and the variables specified by
+<code>subject_keys</code> and <code>reference_date</code> are expected.
+</p>
+<p>After applying <code>filter_source</code> and/or <code>source_pd</code> the variable <code>ADT</code> and the
+variables specified by <code>subject_keys</code> must be a unique key of the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_adsl</code></td>
+<td>
+<p>ADSL input dataset
+</p>
+<p>The variables specified for <code>subject_keys</code> are expected. For each subject
+of the specified dataset a new observation is added to the input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_source</code></td>
+<td>
+<p>Source filter
+</p>
+<p>All observations in <code>dataset_source</code> fulfilling the specified condition are
+considered for deriving the confirmed best overall response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_pd</code></td>
+<td>
+<p>Date of first progressive disease (PD)
+</p>
+<p>If the parameter is specified, the observations of the input dataset for
+deriving the new parameter are restricted to observations up to the
+specified date. Observations at the specified date are included. For
+subjects without first PD date all observations are take into account.
+</p>
+<p><em>Permitted Values:</em> a <code>date_source</code> object (see <code>admiral::date_source()</code>
+for details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source dataset for the first PD date
+</p>
+<p>A named list of datasets is expected. It links the <code>dataset_name</code> from
+<code>source_pd</code> with an existing dataset.
+</p>
+<p>For example if <code>source_pd = pd_date</code> with
+</p>
+<div class="sourceCode r"><pre>pd_date &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == PD
+)
+</pre></div>
+<p>and the actual response dataset in the script is <code>myadrs</code>, <code>source_datasets = list(adrs = myadrs)</code> should be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_date</code></td>
+<td>
+<p>Reference date
+</p>
+<p>The reference date is used for the derivation of <code>"SD"</code> and
+<code>"NON-CR/NON-PD"</code> response (see "Details" section). Usually it is treatment
+start date (<code>TRTSDT</code>) or randomization date (<code>RANDDT</code>).
+</p>
+<p><em>Permitted Values:</em> a numeric date variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_start_window</code></td>
+<td>
+<p>Stable disease time window
+</p>
+<p>Assessments at least the specified number of days after the reference date
+(i.e. where <code>ADT</code> &gt;= <code>reference_date</code> + <code>ref_start_window</code>)
+with response <code>"CR"</code>, <code>"PR"</code>, <code>"SD"</code>, or <code>"NON-CR/NON-PD"</code> are considered
+for <code>"SD"</code> or <code>"NON-CR/NON-PD"</code> response.
+</p>
+<p><em>Permitted Values:</em> a non-negative numeric scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_confirm</code></td>
+<td>
+<p>Minimum time period for confirmation
+</p>
+<p>The assessment and the confirmatory assessment for <code>"CR"</code> and <code>"PR"</code> have
+to be at least the specified number of days apart.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_nr_ne</code></td>
+<td>
+<p>The specified number of <code>"NE"</code> assessments between the assessment and the
+confirmatory assessment for <code>"CR"</code> and <code>"PR"</code> response is accepted.
+</p>
+<p><em>Permitted Values:</em> a non-negative numeric scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accept_sd</code></td>
+<td>
+<p>Accept <code>"SD"</code> for <code>"PR"</code>?
+</p>
+<p>If the argument is set to <code>TRUE</code>, one <code>"SD"</code> assessment between the
+assessment and the confirmatory assessment for <code>"PR"</code> response is accepted.
+Otherwise, no <code>"SD"</code> assessment must occur between the two assessments.
+</p>
+<p><em>Permitted Values:</em> a logical scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_as_ne</code></td>
+<td>
+<p>Consider no assessments as <code>"NE"</code>?
+</p>
+<p>If the argument is set to <code>TRUE</code>, the response is set to <code>"NE"</code> for
+subjects without an assessment in the input dataset. Otherwise, the
+response is set to <code>"MISSING"</code> for these subjects.
+</p>
+<p><em>Permitted Values:</em> a logical scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aval_fun</code></td>
+<td>
+<p><em>Deprecated</em>, please use <code>set_values_to</code> instead.
+</p>
+<p>Function to map character analysis value (<code>AVALC</code>) to numeric analysis
+value (<code>AVAL</code>)
+</p>
+<p>The (first) argument of the function must expect a character vector and the
+function must return a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the variables to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "CBOR", PARAM = "Confirmed Best Overall Response")</code> is expected. The values must be symbols, character strings,
+numeric values, or <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of symbols created using <code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The input dataset (<code>dataset</code>) is restricted to the observations matching
+<code>filter_source</code> and to observations before or at the date specified by
+<code>source_pd</code>.
+</p>
+</li>
+<li>
+<p> The following potential confirmed responses are selected from the
+restricted input dataset:
+</p>
+
+<ul>
+<li> <p><code>"CR"</code>: An assessment is considered as complete response (CR) if
+</p>
+
+<ul>
+<li> <p><code>AVALC == "CR"</code>,
+</p>
+</li>
+<li>
+<p> there is a confirmatory assessment with <code>AVALC == "CR"</code> at least
+<code>ref_confirm</code> days after the assessment,
+</p>
+</li>
+<li>
+<p> all assessments between the assessment and the confirmatory
+assessment are <code>"CR"</code> or <code>"NE"</code>, and
+</p>
+</li>
+<li>
+<p> there are at most <code>max_nr_ne</code> <code>"NE"</code> assessments between the
+assessment and the confirmatory assessment.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>"PR"</code>: An assessment is considered as partial response (PR) if
+</p>
+
+<ul>
+<li> <p><code>AVALC == "PR"</code>,
+</p>
+</li>
+<li>
+<p> there is a confirmatory assessment with <code>AVALC %in% c("CR",   "PR")</code> at least <code>ref_confirm</code> days after the assessment,
+</p>
+</li>
+<li>
+<p> all assessments between the assessment and the confirmatory
+assessment are <code>"CR"</code>, <code>"PR"</code>, <code>"SD"</code>, or <code>"NE"</code>,
+</p>
+</li>
+<li>
+<p> there is no <code>"PR"</code> assessment after a <code>"CR"</code> assessment in the
+confirmation period,
+</p>
+</li>
+<li>
+<p> there are at most <code>max_nr_ne</code> <code>"NE"</code> assessments between the
+assessment and the confirmatory assessment, and
+</p>
+</li>
+<li>
+<p> if the <code>accept_sd</code> argument is set to <code>TRUE</code>, one <code>"SD"</code>
+assessment in the confirmation period is accepted. Otherwise, no
+<code>"SD"</code> assessment must occur within the confirmation period.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>"SD"</code>: An assessment is considered as stable disease (SD) if
+</p>
+
+<ul>
+<li> <p><code>AVALC %in% c("CR", "PR", "SD")</code> and
+</p>
+</li>
+<li>
+<p> the assessment is at least <code>ref_start_window</code> days after
+<code>reference_date</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>"NON-CR/NON-PD"</code>: An assessment is considered as NON-CR/NON-PD if
+</p>
+
+<ul>
+<li> <p><code>AVALC = "NON-CR/NON-PD"</code> and
+</p>
+</li>
+<li>
+<p> the assessment is at least <code>ref_start_window</code> days after
+<code>reference_date</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>"PD"</code>: An assessment is considered as progressive disease (PD) if
+<code>AVALC == "PD"</code>.
+</p>
+</li>
+<li> <p><code>"NE"</code>: An assessment is considered as not estimable (NE) if
+</p>
+
+<ul>
+<li> <p><code>AVALC == "NE"</code> or
+</p>
+</li>
+<li> <p><code>AVALC %in% c("CR", "PR", "SD", "NON-CR/NON-PD")</code> and the
+assessment is less than <code>ref_start_window</code> days after
+<code>reference_date</code>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>"ND"</code>: An assessment is considered as not done (ND) if <code>AVALC ==   "ND"</code>.
+</p>
+</li>
+<li> <p><code>"MISSING"</code>: An assessment is considered as missing (MISSING) if a
+subject has no observation in the input dataset.
+</p>
+<p>If the <code>missing_as_ne</code> argument is set to <code>TRUE</code>, <code>AVALC</code> is set to
+<code>"NE"</code> for these subjects.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> For each subject the best response as derived in the previous step is
+selected, where <code>"CR"</code> is best and <code>"MISSING"</code> is worst in the order above.
+If the best response is not unique, the first one (with respect to <code>ADT</code>)
+is selected. If the selected record is from the input dataset, all
+variables are kept. If the selected record is from <code>dataset_adsl</code>, all
+variables which are in both <code>dataset</code> and <code>dataset_adsl</code> are kept.
+</p>
+</li>
+<li>
+<p> The <code>AVAL</code> variable is added and set to <code>aval_fun(AVALC)</code>.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> parameter are added to
+the new observations.
+</p>
+</li>
+<li>
+<p> The new observations are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with a new parameter for confirmed best overall
+response
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stefan Bundfuss
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other superseded: 
+<code>derive_param_bor()</code>,
+<code>derive_param_clinbenefit()</code>,
+<code>derive_param_confirmed_resp()</code>,
+<code>derive_param_response()</code>,
+<code>filter_pd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(lubridate)
+library(admiral)
+
+# Create ADSL dataset
+adsl &lt;- tibble::tribble(
+  ~USUBJID, ~TRTSDTC,
+  "1",      "2020-01-01",
+  "2",      "2019-12-12",
+  "3",      "2019-11-11",
+  "4",      "2019-12-30",
+  "5",      "2020-01-01",
+  "6",      "2020-02-02",
+  "7",      "2020-02-02",
+  "8",      "2020-04-01",
+  "9",      "2020-03-01"
+) %&gt;%
+  mutate(
+    TRTSDT = ymd(TRTSDTC),
+    STUDYID = "XX1234"
+  )
+
+# Create ADRS dataset
+ovr_obs &lt;- tibble::tribble(
+  ~USUBJID, ~ADTC,        ~AVALC,
+  "1",      "2020-01-01", "PR",
+  "1",      "2020-02-01", "CR",
+  "1",      "2020-02-16", "NE",
+  "1",      "2020-03-01", "CR",
+  "1",      "2020-04-01", "SD",
+  "2",      "2020-01-01", "SD",
+  "2",      "2020-02-01", "PR",
+  "2",      "2020-03-01", "SD",
+  "2",      "2020-03-13", "CR",
+  "3",      "2019-11-12", "CR",
+  "3",      "2019-12-02", "CR",
+  "3",      "2020-01-01", "SD",
+  "4",      "2020-01-01", "PR",
+  "4",      "2020-03-01", "SD",
+  "4",      "2020-04-01", "SD",
+  "4",      "2020-05-01", "PR",
+  "4",      "2020-05-15", "NON-CR/NON-PD",
+  "5",      "2020-01-01", "PR",
+  "5",      "2020-01-10", "SD",
+  "5",      "2020-01-20", "PR",
+  "5",      "2020-05-15", "NON-CR/NON-PD",
+  "6",      "2020-02-06", "PR",
+  "6",      "2020-02-16", "CR",
+  "6",      "2020-03-30", "PR",
+  "6",      "2020-04-12", "PD",
+  "6",      "2020-05-01", "CR",
+  "6",      "2020-06-01", "CR",
+  "7",      "2020-02-06", "PR",
+  "7",      "2020-02-16", "CR",
+  "7",      "2020-04-01", "NE",
+  "9",      "2020-03-16", "CR",
+  "9",      "2020-04-01", "NE",
+  "9",      "2020-04-16", "NE",
+  "9",      "2020-05-01", "CR"
+) %&gt;%
+  mutate(PARAMCD = "OVR", ANL01FL = "Y")
+
+pd_obs &lt;-
+  bind_rows(tibble::tribble(
+    ~USUBJID, ~ADTC,        ~AVALC,
+    "6",      "2020-04-12", "Y"
+  ) %&gt;%
+    mutate(PARAMCD = "PD", ANL01FL = "Y"))
+
+adrs &lt;- bind_rows(ovr_obs, pd_obs) %&gt;%
+  mutate(
+    ADT = ymd(ADTC),
+    STUDYID = "XX1234"
+  ) %&gt;%
+  select(-ADTC) %&gt;%
+  derive_vars_merged(
+    dataset_add = adsl,
+    by_vars = exprs(STUDYID, USUBJID),
+    new_vars = exprs(TRTSDT)
+  )
+
+pd_date &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == "PD" &amp; ANL01FL == "Y"
+)
+
+# Derive confirmed best overall response parameter
+derive_param_confirmed_bor(
+  adrs,
+  dataset_adsl = adsl,
+  filter_source = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd_date,
+  source_datasets = list(adrs = adrs),
+  reference_date = TRTSDT,
+  ref_start_window = 28,
+  ref_confirm = 28,
+  set_values_to = exprs(
+    PARAMCD = "CBOR",
+    PARAM = "Best Confirmed Overall Response by Investigator"
+  )
+) %&gt;%
+  filter(PARAMCD == "CBOR")
+
+# Derive confirmed best overall response parameter (accepting SD for PR,
+# accept two NEs, and considering missings as NE)
+derive_param_confirmed_bor(
+  adrs,
+  dataset_adsl = adsl,
+  filter_source = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd_date,
+  source_datasets = list(adrs = adrs),
+  reference_date = TRTSDT,
+  ref_start_window = 28,
+  ref_confirm = 28,
+  max_nr_ne = 2,
+  accept_sd = TRUE,
+  missing_as_ne = TRUE,
+  set_values_to = exprs(
+    PARAMCD = "CBOR",
+    PARAM = "Best Confirmed Overall Response by Investigator"
+  )
+) %&gt;%
+  filter(PARAMCD == "CBOR")
+</code></pre>
+
+
+</div>

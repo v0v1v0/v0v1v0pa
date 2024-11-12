@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nnr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Nonlinear Non-parametric Regression
+</h2>
+
+<h3>Description</h3>
+
+<p>Fit a nonlinear nonparametric regression models with spline smoothing based on extended Gauss-Newton/Newton-Raphson and backfitting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nnr(formula, func, spar="v", data=list(),
+    start=list(),verbose=FALSE,  control=list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>a model formula, with the response on the left of a <code class="reqn">\mbox{\textasciitilde}</code> operator and on the right an expression representing 
+the mean function with a nonparametric function appearing with a symbol, e.g. f. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+
+<p>a required formula specifying the spline components necessary to estimate the non-parametric function. 
+On the left of a <code class="reqn">\mbox{\textasciitilde}</code> operator is the unknow function symbol as well as its arguments, while the right side 
+is a list of two components, an optional <code>nb</code> and a required <code>rk</code>. <code>nb</code> and <code>rk</code> are 
+similar to <code>formula</code> and <code>rk</code> in <code>ssr</code>. A missing <code>nb</code> denotes an empty null space.   
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spar</code></td>
+<td>
+
+<p>a character string specifying a method for choosing the smoothing parameter. "v", "m" and "u" represent  GCV, GML and
+UBR respectively. Default is "v" for GCV.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional data frame.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>a list of vectors or expressions which input inital values for the unknown functions. If expressions,
+the argument(s) inside should be the same as in <code>func</code>. The length of <code>start</code> should be the same as 
+the number of unknown functions. If named, the names of the list should match those in "func". If not named, the order 
+of the list is taken as that appearing in "func".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>an optional logical numerical value. If <code>TRUE</code>, information on
+the evolution of the iterative algorithm is printed. Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>an optional list of control values to be used.  See nnr.control for details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A nonlinear nonparametric model is fitted using the algorithms developed in Ke and Wang (2002).
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>nnr</code> is returned, containing fitted values, fitted function values as well as 
+other information used to assess the estimate.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chunlei Ke <a href="mailto:chunlei_ke@yahoo.com">chunlei_ke@yahoo.com</a> and Yuedong Wang <a href="mailto:yuedong@pstat.ucsb.edu">yuedong@pstat.ucsb.edu</a>.</p>
+
+
+<h3>References</h3>
+
+<p>Ke, C. and Wang, Y. (2002). Nonlinear Nonparametric Regression Models. Submitted.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nnr.control</code>, <code>ssr</code>, <code>print.nnr</code>, <code>summary.nnr</code>, <code>intervals.nnr</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+x&lt;- 1:100/100
+y&lt;- exp(sin(2*pi*x))+0.3*rnorm(x)
+fit&lt;- nnr(y~exp(f(x)), func=list(f(u)~list(~u, cubic(u))), start=list(0))
+
+## fit a generalized varying coefficient models
+data(Arosa)
+Arosa$csmonth &lt;- (Arosa$month-0.5)/12
+Arosa$csyear &lt;- (Arosa$year-1)/45
+ozone.vc.fit &lt;- nnr(thick~f1(csyear)+exp(f2(csyear))*f3(csmonth),
+        func=list(f1(x)~list(~I(x-.5),cubic(x)), f2(x)~list(~I(x-.5)-1,cubic(x)),
+        f3(x)~list(~sin(2*pi*x)+cos(2*pi*x)-1,lspline(x,type="sine0"))),
+        data=Arosa[Arosa$year%%2==1,], spar="m", start=list(f1=mean(thick),f2=0,f3=sin(csmonth)),
+        control=list(backfit=1))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

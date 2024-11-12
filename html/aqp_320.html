@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>soil_minerals</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Munsell Colors of Common Soil Minerals</h2>
+
+<h3>Description</h3>
+
+<p>Munsell colors for some common soil minerals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(soil_minerals)
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 20 observations on the following 5 variables.
+</p>
+ <dl>
+<dt>mineral</dt>
+<dd>
+<p>mineral name</p>
+</dd> <dt>color</dt>
+<dd>
+<p>Munsell
+color</p>
+</dd> <dt>hue</dt>
+<dd>
+<p>Munsell hue</p>
+</dd> <dt>value</dt>
+<dd>
+<p>Munsell value</p>
+</dd>
+<dt>chroma</dt>
+<dd>
+<p>Munsell chroma</p>
+</dd> </dl>
+<h3>Details</h3>
+
+<p>Soil color and other properties including texture, structure, and
+consistence are used to distinguish and identify soil horizons (layers) and
+to group soils according to the soil classification system called Soil
+Taxonomy. Color development and distribution of color within a soil profile
+are part of weathering. As rocks containing iron or manganese weather, the
+elements oxidize. Iron forms small crystals with a yellow or red color,
+organic matter decomposes into black humus, and manganese forms black
+mineral deposits. These pigments paint the soil (Michigan State Soil). Color
+is also affected by the environment: aerobic environments produce sweeping
+vistas of uniform or subtly changing color, and anaerobic (lacking oxygen),
+wet environments disrupt color flow with complex, often intriguing patterns
+and points of accent. With depth below the soil surface, colors usually
+become lighter, yellower, or redder.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol><li>
+<p> Lynn, W.C. and Pearson, M.J., The Color of Soil, The Science
+Teacher, May 2000. 2. Schwertmann, U. 1993. Relations Between Iron Oxides,
+Soil Color, and Soil Formation. "Soil Color". SSSA Special Publication no.
+31, pages 51–69.
+</p>
+</li></ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+library(aqp)
+library(ape)
+library(cluster)
+library(farver)
+
+# load common soil mineral colors
+data(soil_minerals)
+
+# convert Munsell to R colors
+soil_minerals$col &lt;- munsell2rgb(
+  soil_minerals$hue, 
+  soil_minerals$value,
+  soil_minerals$chroma
+)
+
+# make a grid for plotting
+n &lt;- ceiling(sqrt(nrow(soil_minerals)))
+
+# read from top-left to bottom-right
+g &lt;- expand.grid(x=1:n, y=n:1)[1:nrow(soil_minerals),]
+
+# convert Munsell -&gt; sRGB -&gt; LAB
+col.rgb &lt;- munsell2rgb(
+  soil_minerals$hue,
+  soil_minerals$value,
+  soil_minerals$chroma,
+  return_triplets = TRUE
+)
+
+# sRGB values expected to be in the range [0,255]
+col.rgb &lt;- col.rgb * 255
+
+# convert from sRGB -&gt; CIE LAB
+col.lab &lt;- convert_colour(
+  col.rgb , from = 'rgb',
+  to = 'lab', white_from = 'D65'
+)
+
+# keep track of soil mineral names
+# in a way that will persist in a dist obj
+row.names(col.lab) &lt;- soil_minerals$mineral
+
+# perceptual distance via CIE dE00
+d &lt;- compare_colour(
+  from = col.lab,
+  to = col.lab,
+  from_space = 'lab',
+  to_space = 'lab',
+  white_from = 'D65',
+  method = 'CIE2000'
+)
+
+# matrix -&gt; dist
+d &lt;- as.dist(d)
+
+# divisive hierarchical clustering of LAB coordinates
+h &lt;- as.hclust(diana(d))
+p &lt;- as.phylo(h)
+
+# colors, in order based on clustering
+# starting from top-left
+min.cols &lt;- rev(soil_minerals$col[h$order])
+
+# mineral names, in order based on clustering
+# starting from top-left
+min.names &lt;- rev(soil_minerals$mineral[h$order])
+
+min.munsell &lt;- rev(soil_minerals$color[h$order])
+
+# plot grid of mineral names / colors
+layout(matrix(c(1, 2), nrow = 1), widths = c(1.25, 1))
+
+par(mar = c(1, 0, 0, 1))
+plot(g$x, g$y, pch = 15, cex = 12, axes = FALSE, xlab = '', ylab = '',
+     col = min.cols, 
+     xlim = c(0.5, 5.5), ylim = c(1.5, 5.5)
+)
+text(g$x, g$y, min.names, adj = c(0.45, 5.5), cex = 0.75, font = 2)
+text(g$x, g$y, min.munsell, col = invertLabelColor(min.cols), cex = 0.85, font = 2)
+
+title(main = 'Common Soil Pigments', line = -1.75, cex.main = 2)
+mtext('U. Schwertmann, 1993. SSSA Special Publication no. 31, pages 51--69', side = 1,
+      cex = 0.75, line = -1.5)
+
+# dendrogram + tip labels with mineral colors
+plot(p, cex = 0.85, label.offset = 5, font = 1)
+tiplabels(pch = 15, cex = 3, offset = 2, col = soil_minerals$col)
+
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

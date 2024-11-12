@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getCSPEstimates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Return Codon Specific Paramters (or write to csv) estimates as data.frame</h2>
+
+<h3>Description</h3>
+
+<p><code>getCSPEstimates</code> returns the codon specific
+parameter estimates for a given parameter and mixture or write it to a csv file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getCSPEstimates(
+  parameter,
+  filename = NULL,
+  mixture = 1,
+  samples = 10,
+  relative.to.optimal.codon = T,
+  report.original.ref = T,
+  log.scale = F
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>parameter an object created by <code>initializeParameterObject</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Posterior estimates will be written to file (format: csv). Filename will be in the format &lt;parameter_name&gt;_&lt;filename&gt;.csv.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture</code></td>
+<td>
+<p>estimates for which mixture should be returned</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samples</code></td>
+<td>
+<p>The number of samples used for the posterior estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative.to.optimal.codon</code></td>
+<td>
+<p>Boolean determining if parameters should be relative to the preferred codon or the alphabetically last codon (Default=TRUE). Only applies to ROC and FONSE models</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report.original.ref</code></td>
+<td>
+<p>Include the original reference codon (Default = TRUE). Note this is only included for the purposes of simulations, which expect the input parameter file to be in a specific format. Later version of AnaCoDa will remove this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.scale</code></td>
+<td>
+<p>Calculate posterior means, standard deviation, and posterior probability intervals on the natural log scale. Should be used for PA and PANSE models only.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>returns a list data.frame with the posterior estimates of the models 
+codon specific parameters or writes it directly to a csv file if <code>filename</code> is specified
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+genome_file &lt;- system.file("extdata", "genome.fasta", package = "AnaCoDa")
+
+genome &lt;- initializeGenomeObject(file = genome_file)
+sphi_init &lt;- c(1,1)
+numMixtures &lt;- 2
+geneAssignment &lt;- c(rep(1,floor(length(genome)/2)),rep(2,ceiling(length(genome)/2)))
+parameter &lt;- initializeParameterObject(genome = genome, sphi = sphi_init, 
+                                       num.mixtures = numMixtures, 
+                                       gene.assignment = geneAssignment, 
+                                       mixture.definition = "allUnique")
+model &lt;- initializeModelObject(parameter = parameter, model = "ROC")
+samples &lt;- 2500
+thinning &lt;- 50
+adaptiveWidth &lt;- 25
+mcmc &lt;- initializeMCMCObject(samples = samples, thinning = thinning, 
+                             adaptive.width=adaptiveWidth, est.expression=TRUE, 
+                             est.csp=TRUE, est.hyper=TRUE, est.mix = TRUE) 
+divergence.iteration &lt;- 10
+## Not run: 
+runMCMC(mcmc = mcmc, genome = genome, model = model, 
+        ncores = 4, divergence.iteration = divergence.iteration)
+
+## return estimates for codon specific parameters
+csp_mat &lt;- getCSPEstimates(parameter)
+
+# write the result directly to the filesystem as a csv file. No values are returned
+getCSPEstimates(parameter, filename=file.path(tempdir(), "test.csv"))
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

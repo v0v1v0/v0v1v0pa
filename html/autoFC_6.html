@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>convert_to_TIRT_response</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert the Latent Utility Values into Thurstonian IRT Pairwise/Rank Responses
+with Pre-Specified Block Design</h2>
+
+<h3>Description</h3>
+
+<p>This function simulates the responses to forced-choice blocks (both MOLE and RANK format), with
+the raw responses converted into pairwise or rank data to be understood by the Thurstonian IRT model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">convert_to_TIRT_response(
+  Utility,
+  block_design,
+  format = "pairwise",
+  partial = FALSE,
+  block_size,
+  N_blocks,
+  N_response
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Utility</code></td>
+<td>
+<p>The utility matrix of all items. Note that if this matrix is produced 
+from <code>get_simulation_matrices()</code>, the item order will be consistent with the order
+they appear in the CFA model. Users may need to re-order the columns back into 1, 2, 3...order
+before using this matrix as the input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_design</code></td>
+<td>
+<p>A numeric matrix specifying which items will be in the same forced-choice block (row).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>What format should the converted responses be in? Can be <code>"pairwise"</code> or <code>"ranks"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial</code></td>
+<td>
+<p>Only used when <code>format == "ranks"</code>. Should partial ranking responses be produced?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_size, N_blocks</code></td>
+<td>
+<p>The block size and total number of the forced-choice scale. 
+Preferably left blank and obtained through <code>block_design</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N_response</code></td>
+<td>
+<p>Number of simulated responses you wish to generate. Default to <code>nrow(Utility)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>According to the Thurstonian IRT model, when a respondent needs to make a choice
+between two items, they elicit a latent utility value for the two items and choose the item
+that has a higher utility value. Choosing/Ranking among &gt;2 items follows a similar procedure
+where the respondent generate latent utility for each item and produces a ranking or preference.
+</p>
+<p>For forced-choice blocks, the above choice procedure is conducted among the <code>block_size</code> items in the same block,
+and the respondent can either indicate the most/least preferred item (MOLE format) or rank all the items
+in terms of preference (RANK format). 
+</p>
+<p>Regardless of the format, the raw responses to the forced-choice blocks need to be converted into
+either all pairwise comparisons (<code>format = "pairwise"</code>), or a full ranking (<code>format = "ranks"</code>), 
+among the the <code>block_size</code> items in the same block. 
+</p>
+<p>We note that the when <code>block_size</code> is larger than 3 and when the MOLE format is used, some
+pairwise comparisons among the items in the block will be missing by design. As for now, the current technique 
+is not yet able to handle missing pairwise responses when <code>format = "pairwise"</code>.
+Thus, if users wish to simulate responses to MOLE format blocks with <code>block_size</code> larger than 3, 
+we recommend using <code>format = "ranks"</code> and also set <code>partial = TRUE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame containing pairwise (if <code>format == "pairwise"</code>) or
+rank (if <code>format == "ranks"</code>) responses to each block for the <code>N_response</code> participants.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Importantly, the <code>Utility</code> matrix produced by <code>get_simulation_matrices()</code> may not be directly
+used in this function because that utility matrix will have the item columns placed
+in the order they appear in the CFA model, not in the original Item 1, Item 2...order.
+Users need to re-order the columns of the <code>Utility</code> matrix produced by <code>get_simulation_matrices()</code> accordingly 
+before feeding the utility matrix to this function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mengtong Li
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lavaan)
+rating_data &lt;- HEXACO_example_data
+cfa_model &lt;- paste0("H =~ ", paste0("SS", seq(6,60,6), collapse = " + "), "\n",
+                    "E =~ ", paste0("SS", seq(5,60,6), collapse = " + "), "\n",
+                    "X =~ ", paste0("SS", seq(4,60,6), collapse = " + "), "\n",
+                    "A =~ ", paste0("SS", seq(3,60,6), collapse = " + "), "\n",
+                    "C =~ ", paste0("SS", seq(2,60,6), collapse = " + "), "\n",
+                    "O =~ ", paste0("SS", seq(1,60,6), collapse = " + "), "\n")
+cfa_estimates &lt;- get_CFA_estimates(response_data = rating_data,
+                                   fit_model = cfa_model, 
+                                   item_names = paste0("SS",c(1:60)))
+cfa_matrices &lt;- get_simulation_matrices(loadings = cfa_estimates$loadings,
+                                        intercepts = cfa_estimates$intercepts,
+                                        residuals = cfa_estimates$residuals,
+                                        covariances = cfa_estimates$covariances,
+                                        N = 100, N_items = 60, N_dims = 6,
+                                        dim_names = c("H", "E", "X", "A", "C", "O"),
+                                        empirical = TRUE)
+
+### Re-order the Utility columns!
+cfa_matrices$Utility &lt;- cfa_matrices$Utility[,c(t(matrix(1:60, ncol = 6)[,6:1]))]
+### N_response need to be consistent with those specified in get_simulated_matrices()
+FC_resp &lt;- convert_to_TIRT_response(Utility = cfa_matrices$Utility,
+                                    block_design = make_random_block(60, 60, 3),
+                                    N_response = 100, format = "pairwise",
+                                    block_size = 3, N_blocks = 20)
+FC_rank_resp &lt;- convert_to_TIRT_response(Utility = cfa_matrices$Utility,
+                                         block_design = make_random_block(60, 60, 5),
+                                         N_response = 100, format = "ranks",
+                                         block_size = 5, N_blocks = 12) 
+FC_rank_partial_resp &lt;- convert_to_TIRT_response(Utility = cfa_matrices$Utility,
+                                                 block_design = make_random_block(60, 60, 5),
+                                                 N_response = 100, format = "ranks", partial = TRUE,
+                                                 block_size = 5, N_blocks = 12)                                          
+FC_resp
+FC_rank_resp
+FC_rank_partial_resp
+
+</code></pre>
+
+
+</div>

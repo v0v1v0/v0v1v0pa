@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SANN_1D</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fix Overlap within a Sequence via Simulated Annealing</h2>
+
+<h3>Description</h3>
+
+<p>This function makes small adjustments to elements of <code>x</code> until overlap defined by <code>thresh</code> is removed, or until <code>maxIter</code> is reached. Rank order and boundary conditions (defined by <code>min.x</code> and <code>max.x</code>) are preserved. The underlying algorithm is based on simulated annealing. The "cooling schedule" parameters <code>T0</code> and <code>k</code> can be used to tune the algorithm for specific applications.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SANN_1D(
+  x,
+  thresh = 0.6,
+  adj = thresh * 2/3,
+  min.x = min(x) - 0.2,
+  max.x = max(x) + 0.2,
+  maxIter = 1000,
+  trace = FALSE,
+  tiny = 1e-04,
+  T0 = 500,
+  k = 10,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of horizontal positions, pre-sorted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>horizontal threshold defining "overlap" or distance between elements of <code>x</code>. For adjusting soil profile sketches values are typically &lt; 1 and likely in (0.3, 0.8).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>specifies the size of perturbations within <code>runif(min = adj * -1, max = adj)</code>. Larger values will sometimes reduce the number of iterations required to solve particularly difficult overlap conditions. See <code>coolingRate</code> argument when <code>adj</code> is large</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.x</code></td>
+<td>
+<p>left-side boundary condition, consider expanding if a solution cannot be found within <code>maxIter</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.x</code></td>
+<td>
+<p>right-side boundary condition, consider expanding if a solution cannot be found within <code>maxIter</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>maximum number of iterations to attempt before giving up and returning a regularly-spaced sequence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>print diagnostics, result is a <code>list</code> vs <code>vector</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tiny</code></td>
+<td>
+<p>the smallest allowable overlap</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T0</code></td>
+<td>
+<p>starting temperature</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>cooling constant</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used, absorbs additional arguments to <code>fixOverlap()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Ideas for solving difficult overlap scenarios:
+</p>
+
+<ul>
+<li>
+<p> widen the boundary conditions by adjusting <code>min.x</code> and <code>max.x</code> beyond the original scale of <code>x</code>
+</p>
+</li>
+<li>
+<p> reduce the allowable overlap threshold <code>thresh</code>
+</p>
+</li>
+<li>
+<p> reduce the magnitude of perturbations (<code>adj</code>) and increase <code>maxIter</code>
+</p>
+</li>
+<li>
+<p> increase <code>k</code>
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>When <code>trace = FALSE</code>, a vector of the same length as <code>x</code>, preserving rank-ordering and boundary conditions. When <code>trace = TRUE</code> a list containing the new sequence along with information about objective functions and decisions made during iteration.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette and K.C. Thompson
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>electroStatics_1D()</code>, <code>fixOverlap()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+x &lt;- c(1, 2, 3, 3.4, 3.5, 5, 6, 10)
+
+# easy
+z &lt;- fixOverlap(x, thresh = 0.2, trace = TRUE)
+
+# harder
+z &lt;- fixOverlap(x, thresh = 0.6, trace = TRUE)
+
+# much harder
+z &lt;- fixOverlap(x, thresh = 0.9, trace = TRUE)
+
+
+# interpret `trace` output
+
+# relatively challenging
+x &lt;- c(1, 2, 3.4, 3.4, 3.4, 3.4, 6, 8, 10, 12, 13, 13, 15, 15.5)
+
+# fix overlap, return debugging information
+set.seed(10101)
+z &lt;- fixOverlap(x, thresh = 0.8, trace = TRUE)
+
+# setup plot device
+par(mar = c(4, 4, 1, 1))
+layout(matrix(c(1,2,3)), widths = 1, heights = c(1,1,2))
+
+# objective function = overlap + SSD
+plot(
+  seq_along(z$stats), z$stats, 
+  type = 'h', las = 1,
+  xlab = 'Iteration', ylab = 'Overlap',
+  cex.axis = 0.8
+)
+
+# SSD: deviation from original configuration 
+plot(
+  seq_along(z$ssd), z$ssd, 
+  type = 'h', las = 1,
+  xlab = 'Iteration', ylab = 'Deviation',
+  cex.axis = 0.8
+)
+# adjustments at each iteration
+matplot(
+  z$states, type = 'l', 
+  lty = 1, las = 1, 
+  xlab = 'Iteration', ylab = 'x-position'
+)
+
+# trace log
+# B: boundary condition violation
+# O: rank (order) violation
+# +: accepted perturbation
+# -: rejected perturbation
+table(z$log)
+
+</code></pre>
+
+
+</div>

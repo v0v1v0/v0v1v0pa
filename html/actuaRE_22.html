@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hierCredTweedie</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combining the hierarchical credibility model with a GLM (Ohlsson, 2008)</h2>
+
+<h3>Description</h3>
+
+<p>Fit a random effects model using Ohlsson's methodology. In this function you estimate the power parameter p. See <code>hierCredGLM</code> when
+you want fix p.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hierCredTweedie(
+  formula,
+  data,
+  weights,
+  muHatGLM = TRUE,
+  epsilon = 1e-04,
+  maxiter = 500,
+  verbose = FALSE,
+  returnData = TRUE,
+  cpglmControl = list(bound.p = c(1.01, 1.99)),
+  balanceProperty = TRUE,
+  optimizer = "bobyqa",
+  y = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>object of type <code>formula</code> that specifies which model should be fitted. Syntax is the same as for
+<code>lmer</code> and <code>glmer</code>. For example, <code>Yijkt ~ x1 + x2 + (1 | Industry / Branch)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an object that is coercible by <code>as.data.table</code>, containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>variable name of the exposure weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muHatGLM</code></td>
+<td>
+<p>indicates which estimate has to be used in the algorithm for the intercept term. Default is <code>TRUE</code>,
+which used the intercept as estimated by the GLM. If <code>FALSE</code>, the estimate of the hierarchical credibility model is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>positive convergence tolerance <code class="reqn">\epsilon</code>; the iterations converge when
+<code class="reqn">||\theta[k] - \theta[k - 1]||^2[[2]]/||\theta[k - 1]||^2[[2]] &lt; \epsilon</code>. Here, <code class="reqn">\theta[k]</code> is the parameter vector at the <code class="reqn">k^{th}</code> iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating if output should be produced during the algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnData</code></td>
+<td>
+<p>logical indicating if input data has to be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpglmControl</code></td>
+<td>
+<p>a list of parameters to control the fitting process in the GLM part. By default,
+<code>cpglmControl = list(bound.p = c(1.01, 1.99))</code> which restricts the range of the power parameter p to [1.01, 1.99] in the fitting
+process. This list is passed to <code>cpglm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>balanceProperty</code></td>
+<td>
+<p>logical indicating if the balance property should be satisfied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimizer</code></td>
+<td>
+<p>a character string that determines which optimization routine is to be used in estimating the index and the dispersion parameters.
+Possible choices are <code>"nlminb"</code> (the default, see <code>nlminb</code>), <code>"bobyqa"</code> (<code>bobyqa</code>) and <code>"L-BFGS-B"</code> (<code>optim</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>logical indicating whether the response vector should be returned as a component of the returned value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>cpglm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When estimating the GLM part, this function uses the <code>cpglm</code> function from the <code>cplm</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of type <code>hierCredTweedie</code> with the following slots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HierarchicalResults</code></td>
+<td>
+<p>results of the hierarchical credibility model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitGLM</code></td>
+<td>
+<p>the results from fitting the GLM part.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>total number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Converged</code></td>
+<td>
+<p>logical indicating whether the algorithm converged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LevelsCov</code></td>
+<td>
+<p>object that summarizes the unique levels of each of the contract-specific covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>the fitted mean values, resulting from the model fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.weights</code></td>
+<td>
+<p>the weights (exposure) initially supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>if requested, the response vector. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Ohlsson, E. (2008). Combining generalized linear models and credibility models in practice. <em>Scandinavian Actuarial Journal</em> <b>2008</b>(4), 301–314.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>hierCredTweedie-class</code>, <code>fitted.hierCredTweedie</code>, <code>predict.hierCredTweedie</code>, <code>ranef-actuaRE</code>,
+<code>weights-actuaRE</code>, <code>hierCredibility</code>, <code>hierCredGLM</code>, <code>cpglm</code>, <code>plotRE</code>,
+<code>adjustIntercept</code>, <code>BalanceProperty</code>
+@references   Campo, B.D.C. and Antonio, Katrien (2023). Insurance pricing with hierarchically structured data an illustration with a workers' compensation insurance portfolio. <em>Scandinavian Actuarial Journal</em>, doi: 10.1080/03461238.2022.2161413
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("dataCar")
+fit = hierCredTweedie(Y ~ area + (1 | VehicleType / VehicleBody), dataCar,
+weights = w, epsilon = 1e-6)
+fit
+summary(fit)
+ranef(fit)
+fixef(fit)
+
+</code></pre>
+
+
+</div>

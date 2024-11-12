@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kstest.A</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Monte Carlo estimate for the p-value of a discrete KS Test based on zih.mle estimates.</h2>
+
+<h3>Description</h3>
+
+<p>Computes the Monte Carlo estimate for the p-value of a discrete one-sample Kolmogorov-Smirnov (KS) Test
+based on zih.mle function estimates for Poisson, geometric, negative binomial, beta binomial, beta negative binomial, normal, log normal,
+halfnormal, and exponential distributions and their zero-inflated as well as hurdle versions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kstest.A(x,nsim=200,bootstrap=TRUE,dist='poisson',r=NULL,p=NULL,alpha1=NULL,
+alpha2=NULL,n=NULL,lambda=NULL,mean=NULL,sigma=NULL,
+lowerbound=1e-2,upperbound=1e4,parallel=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of count data. Should be non-negative integers for discrete cases.  Random generation for continuous cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of bootstrapped samples or simulated samples generated to compute p-value. If it is not an integer, nsim will be automatically rounded up to the smallest integer that is no less than nsim. Should be greater than 30. Default is 200.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>Whether to generate bootstrapped samples or not. See Details. 'TRUE' or any numeric non-zero value indicates the generation of bootstrapped samples. The default is 'TRUE'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The distribution used as the null hypothesis. Can be one of poisson,geometric,nb,bb,bnb,normal,halfnormal,lognormal,exponential,zip,zigeom,zinb,zibb,zibnb,zinormal,zilognorm,zohalfnorm,ziexp,ph,geomh,nbh,bbh,bnbh, which corresponds to Poisson, geometric, negative binomial, negative binomial1, beta binomial, beta binomial1, beta negative binomial, beta negative binomial1, normal, half normal, log normal, and exponential distributions and their zero-inflated as well as hurdle version, respectively. Defult is 'poisson'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>An initial value of the number of success before which m failures are observed, where m is the element of x. Must be a positive number, but not required to be an integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>An initial value of the probability of success, should be a positive value within (0,1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha1</code></td>
+<td>
+<p>An initial value for the first shape parameter of beta distribution. Should be a positive number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha2</code></td>
+<td>
+<p>An initial value for the second shape parameter of beta distribution. Should be a positive number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>An initial value of the number of trials. Must be a positive number, but not required to be an integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>An initial value of the rate. Must be a positive real number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>An initial value of the mean or expectation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>An initial value of the standard deviation. Must be a positive real number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowerbound</code></td>
+<td>
+<p>A lower searching bound used in the optimization of likelihood function. Should be a small positive number. The default is 1e-2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upperbound</code></td>
+<td>
+<p>An upper searching bound used in the optimization of likelihood function. Should be a large positive number. The default is 1e4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>whether to use multiple threads for paralleling computation. Default is FALSE. Please aware that it may take longer time to execute the program with parallel=FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In arguments nsim, bootstrap, dist, if the length is larger than 1, only the first element will be used. For other arguments except for x, the first valid value will be used if the input is not NULL, otherwise some naive sample estimates will be fed into the algorithm.
+Note that only the initial values that is used in the null distribution dist are needed. For example, with dist=poisson, user should provide a value for lambda but not for other parameters.
+With an output p-value less than some user-specified significance level, x is very likely from a distribution other than the dist, given the current data.
+If p-values of more than one distributions are greater than the pre-specified significance level, user may consider a following likelihood ratio test to select a 'better' distribution.
+The methodology of computing Monte Carlo p-value is taken from Aldirawi et al. (2019) except changing the zih.mle function and have accurate estimates and adding new discrete and continuous distributions.
+When bootstrap=TRUE, nsim bootstrapped samples will be generated by resampling x without replacement. Otherwise, nsim samples are simulated from the null distribution with the maximum likelihood estimate of original data x.
+Then compute the maximum likelihood estimates of nsim bootstrapped or simulated samples, based on which nsim new samples are generated under the null distribution. nsim KS statistics are calculated for the nsim new samples, then the Monte Carlo p-value is resulted from comparing the nsim KS statistics and the statistic of original data x.
+During the process of computing maximum likelihood estimates, the negative log likelihood function is minimized via basic R function optim with the searching interval decided by lowerbound and upperbound.
+For large sample sizes we may use kstest.A and for small sample sizes (less that 50 or 100), kstest.B is preferred.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class 'kstest.A' including the following elements:
+</p>
+
+<ul>
+<li>
+<p> x: x used in computation.
+</p>
+</li>
+<li>
+<p> nsim: nsim used in computation.
+</p>
+</li>
+<li>
+<p> bootstrap: bootstrap used in computation.
+</p>
+</li>
+<li>
+<p> dist: dist used in computation.
+</p>
+</li>
+<li>
+<p> lowerbound: lowerbound used in computation.
+</p>
+</li>
+<li>
+<p> upperbound: upperboound used in computation.
+</p>
+</li>
+<li>
+<p> mle_new: A matrix of the maximum likelihood estimates of unknown parameters under the null distribution, using nsim bootstrapped or simulated samples.
+</p>
+</li>
+<li>
+<p> mle_ori: A row vector of the maximum likelihood estimates of unknown parameters under the null distribution, using the original data x.
+</p>
+</li>
+<li>
+<p> pvalue: Monte Carlo p-value of the one-sample KS test.
+</p>
+</li>
+<li>
+<p> N: length of x.
+</p>
+</li>
+<li>
+<p> r: initial value of r used in computation.
+</p>
+</li>
+<li>
+<p> p: initial value of p used in computation.
+</p>
+</li>
+<li>
+<p> alpha1: initial value of alpha1 used in computation.
+</p>
+</li>
+<li>
+<p> alpha2: initial value of alpha2 used in computation.
+</p>
+</li>
+<li>
+<p> lambda: initial value of lambda used in computation.
+</p>
+</li>
+<li>
+<p> n: initial value of n used in computation.
+</p>
+</li>
+<li>
+<p> mean: initial value of mean used in computation.
+</p>
+</li>
+<li>
+<p> sigma: initial value of sigma used in computation.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<ul><li>
+<p> H. Aldirawi, J. Yang, A. A. Metwally (2019). Identifying Appropriate Probabilistic Models for Sparse Discrete Omics Data, accepted for publication in 2019 IEEE EMBS International Conference on Biomedical &amp; Health Informatics (BHI).</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p>lrt.A
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(007)
+x1=sample.zi1(2000,phi=0.3,dist='bnb',r=5,alpha=3,alpha2=3)
+kstest.A(x1,nsim=200,bootstrap = TRUE,dist= 'zinb')$pvalue      #0
+kstest.A(x1,nsim=200,bootstrap = TRUE,dist= 'zibnb')$pvalue     #1
+kstest.A(x1,nsim=100,bootstrap = TRUE,dist= 'zibb')$pvalue      #0.03
+x2=sample.h1(2000,phi=0.3,dist="normal",mean=10,sigma=2)
+kstest.A(x2,nsim=100,bootstrap = TRUE,dist= 'normalh')$pvalue   #1
+## Not run: kstest.A(x2,nsim=100,bootstrap = TRUE,dist= 'halfnormh')$pvalue #0.04
+</code></pre>
+
+
+</div>

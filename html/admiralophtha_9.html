@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_bcvacritxfl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds <code>CRITx</code>/<code>CRITxFL</code> pairs to BCVA dataset</h2>
+
+<h3>Description</h3>
+
+<p>Adds a criterion variables <code>CRITx</code> and their corresponding flags <code>CRITxFL</code> to a
+dataset containing BCVA records
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_bcvacritxfl(
+  dataset,
+  crit_var,
+  bcva_ranges = NULL,
+  bcva_uplims = NULL,
+  bcva_lowlims = NULL,
+  additional_text = "",
+  critxfl_index = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset containing BCVA data (usually ADBCVA).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crit_var</code></td>
+<td>
+<p>Variable with respect to which <code>CRITx</code>/<code>CRITxFL</code> are derived
+(usually <code>CHG</code> or <code>AVAL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bcva_ranges</code></td>
+<td>
+<p>List containing one or more numeric vectors of length 2. For each
+vector <code>c(a,b)</code> in <code>bcva_ranges</code>, a pair of variables <code>CRITx</code>, <code>CRITxFL</code> is created
+with the condition: <code style="white-space: pre;">⁠a &lt;=  crit_var &lt;= b⁠</code>. If criterion flags of that type are not
+required, then leave as NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bcva_uplims</code></td>
+<td>
+<p>List containing one or more numeric elements. For each
+element a in <code>bcva_uplims</code>, a pair of variables <code>CRITx</code>, <code>CRITxFL</code> is created
+with the condition: <code>crit_var &lt;= a</code>. If criterion flags of that type are not
+required, then leave as NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bcva_lowlims</code></td>
+<td>
+<p>List containing one or more numeric elements. For each
+element b in <code>bcva_lowlims</code>, a pair of variables <code>CRITx</code>, <code>CRITxFL</code> is created
+with the condition: <code>crit_var &gt;= b</code>. If criterion flags of that type are not required,
+then leave as NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>additional_text</code></td>
+<td>
+<p>string containing additional text to append to <code>CRITx</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>critxfl_index</code></td>
+<td>
+<p>positive integer detailing the first value of x to use
+in <code>CRITxFL</code>. If not supplied, the function takes the first available value of
+x, counting up from x = 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function works by calling <code>derive_var_bcvacritxfl()</code> once for each of the
+elements in <code>bcva_ranges</code>, <code>bcva_uplims</code> and <code>bcva_lowlims</code>.
+NOTE: if <code>crit_var</code> is equal to <code>NA</code>, then the resulting criterion flag is also marked
+as <code>NA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input BCVA dataset with additional column pairs<code>CRITx</code>, <code>CRITxFL</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Edoardo Mancini
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(admiral)
+library(admiraldev)
+
+adbcva1 &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~AVISIT, ~BASETYPE, ~PARAMCD, ~CHG,
+  "XXX001", "P01", "BASELINE", "LAST", "SBCVA", 0,
+  "XXX001", "P01", "WEEK 2", "LAST", "FBCVA", 2,
+  "XXX001", "P02", "BASELINE", "LAST", "SBCVA", -13,
+  "XXX001", "P02", "WEEK 2", "LAST", "FBCVA", 5,
+  "XXX001", "P03", "BASELINE", "LAST", "SBCVA", NA,
+  "XXX001", "P03", "WEEK 2", "LAST", "FBCVA", 17
+)
+
+derive_var_bcvacritxfl(
+  dataset = adbcva1,
+  crit_var = exprs(CHG),
+  bcva_ranges = list(c(0, 5), c(-5, -1), c(10, 15)),
+  bcva_uplims = list(5, 10),
+  bcva_lowlims = list(8),
+  additional_text = ""
+)
+
+adbcva2 &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~AVISIT, ~BASETYPE, ~PARAMCD, ~AVAL, ~CHG,
+  "XXX001", "P01", "BASELINE", "LAST", "SBCVA", 4, NA,
+  "XXX001", "P01", "BASELINE", "LAST", "SBCVA", 6, NA,
+  "XXX001", "P01", "AVERAGE BASELINE", "AVERAGE", "SBCVA", 5, NA,
+  "XXX001", "P01", "WEEK 2", "LAST", "SBCVA", -3, NA,
+  "XXX001", "P01", "WEEK 4", "LAST", "SBCVA", -10, NA,
+  "XXX001", "P01", "WEEK 6", "LAST", "SBCVA", 12, NA,
+  "XXX001", "P01", "WEEK 2", "AVERAGE", "SBCVA", -2, -7,
+  "XXX001", "P01", "WEEK 4", "AVERAGE", "SBCVA", 6, 1,
+  "XXX001", "P01", "WEEK 6", "AVERAGE", "SBCVA", 3, -2
+)
+
+restrict_derivation(
+  adbcva2,
+  derivation = derive_var_bcvacritxfl,
+  args = params(
+    crit_var = exprs(CHG),
+    bcva_ranges = list(c(0, 5), c(-10, 0)),
+    bcva_lowlims = list(5),
+    additional_text = " (AVERAGE)"
+  ),
+  filter = PARAMCD %in% c("SBCVA", "FBCVA") &amp; BASETYPE == "AVERAGE"
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>massprop_torso</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Torso and leg mass properties</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the moment of inertia of a head modeled as a solid cone
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">massprop_torso(
+  m_true,
+  m_legs,
+  w_max,
+  h_max,
+  l_bmax,
+  w_leg,
+  l_leg,
+  l_tot,
+  CG_true_x,
+  CG_true_z,
+  start,
+  end
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m_true</code></td>
+<td>
+<p>Mass of the torso and legs - no tail (kg)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m_legs</code></td>
+<td>
+<p>Mass of the legs only (kg)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_max</code></td>
+<td>
+<p>Maximum width of the body (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h_max</code></td>
+<td>
+<p>Maximum height of the body (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_bmax</code></td>
+<td>
+<p>x location of the maximum width of the body (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_leg</code></td>
+<td>
+<p>width of the body at leg insertion (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_leg</code></td>
+<td>
+<p>x location of the leg insertion point (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_tot</code></td>
+<td>
+<p>length of body from clavicle to beginning of the tail (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CG_true_x</code></td>
+<td>
+<p>x location of the CG for the torso and legs,
+origin is at the VRP, measured positive if aft of the VRP (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CG_true_z</code></td>
+<td>
+<p>z location of the CG for the torso and legs,
+origin is at the VRP (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>a 1x3 vector (x,y,z) representing the 3D point where torso starts.
+Frame of reference: VRP | Origin: VRP</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+<p>a 1x3 vector (x,y,z) representing the 3D point where tail ends.
+Frame of reference: VRP | Origin: VRP</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns a list that includes:
+</p>
+
+<ul>
+<li>
+<p>Ia 3x3 matrix representing the moment of inertia tensor of the
+torso and leg composite body
+</p>
+</li>
+<li>
+<p>CGa 1x3 vector representing the center of gravity position of the
+torso and leg composite body
+</p>
+</li>
+<li>
+<p>ma double that returns the mass of the torso and leg composite body
+</p>
+</li>
+</ul>
+<h3>Warning</h3>
+
+<p>Parallel axis theorem does not apply between two arbitrary points.
+One point must be the object's center of gravity.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Christina Harvey
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

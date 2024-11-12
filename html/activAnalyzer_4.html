@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_intensity_distri_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute intensity distribution metrics</h2>
+
+<h3>Description</h3>
+
+<p>This function computes metrics that describe the distribution of intensity for each day of a dataset. Computations are performed
+based on the daily periods set for analysis and on the detected wear time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_intensity_distri_metrics(
+  data,
+  col_axis = "vm",
+  col_time = "time",
+  valid_wear_time_start = "00:00:00",
+  valid_wear_time_end = "23:59:59",
+  start_first_bin = 0,
+  start_last_bin = 10000,
+  bin_width = 500
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe obtained using the <code>prepare_dataset</code>, <code>mark_wear_time</code>, and then the <code>mark_intensity</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_axis</code></td>
+<td>
+<p>A character value to indicate the name of the variable to be used to compute total time per bin of intensity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_time</code></td>
+<td>
+<p>A character value to indicate the name of the variable to be used to determine the epoch length of the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valid_wear_time_start</code></td>
+<td>
+<p>A character value with the HH:MM:SS format to set the start of the daily period that will be considered for computing metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valid_wear_time_end</code></td>
+<td>
+<p>A character value with the HH:MM:SS format to set the end of the daily period that will be considered for computing metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_first_bin</code></td>
+<td>
+<p>A numeric value to set the lower bound of the first bin of the intensity band (in counts/epoch duration).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_last_bin</code></td>
+<td>
+<p>A numeric value to set the lower bound of the last bin of the intensity band (in counts/epoch duration).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin_width</code></td>
+<td>
+<p>A numeric value to set the width of the bins of the intensity band (in counts/epoch duration).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of objects: <code>metrics</code>, <code>p_band</code>, and <code>p_log</code>. <code>metrics</code> is a dataframe containing
+the intensity gradients and the MX metrics (in counts/epoch duration used) as described in Rowlands et al. (2018; doi:10.1249/MSS.0000000000001561).
+The graphic <code>p_band</code> shows the distribution of time spent in the configured bins of intensity for each day of the dataset.
+The graphic <code>p_log</code> shows, for each day, the relationship between the natural log of time spent in each bin with the natural
+log of the middle values of the intensity bins.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+file &lt;- system.file("extdata", "acc.agd", package = "activAnalyzer")
+mydata &lt;- prepare_dataset(data = file)
+mydata_with_wear_marks &lt;- mark_wear_time(
+    dataset = mydata, 
+    TS = "TimeStamp", 
+    to_epoch = 60,
+    cts  = "vm",
+    frame = 90, 
+    allowanceFrame = 2, 
+    streamFrame = 30
+    )
+mydata_with_intensity_marks &lt;- mark_intensity(
+    data = mydata_with_wear_marks, 
+    col_axis = "vm", 
+    equation = "Sasaki et al. (2011) [Adults]",
+    sed_cutpoint = 200, 
+    mpa_cutpoint = 2690, 
+    vpa_cutpoint = 6167, 
+    age = 32,
+    weight = 67,
+    sex = "male"
+    )
+compute_intensity_distri_metrics(
+   data = mydata_with_intensity_marks,
+   col_axis = "vm",
+   col_time = "time",
+   valid_wear_time_start = "00:00:00",
+   valid_wear_time_end = "23:59:59",
+   start_first_bin = 0,
+   start_last_bin = 10000,
+   bin_width = 500
+    )
+ 
+
+</code></pre>
+
+
+</div>

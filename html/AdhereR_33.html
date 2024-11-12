@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>last.plot.get.info</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Access last adherence plot info.</h2>
+
+<h3>Description</h3>
+
+<p>Returns the full info the last adherence plot, to be used to modify and/or to
+add new elements to this plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">last.plot.get.info()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>This is intended for advanced users only.
+It may return <code>NULL</code> if no plotting was generated yet, but if one was, a
+list contaning one named element for each type of plot produced (currently only
+<em>baseR</em> and <em>SVG</em> are used).
+For all types of plots there are a set of <em>mapping</em> functions useful for
+transforming events in plotting coordinates: <code>.map.event.x(x)</code> takes a
+number of days <code>x</code>, <code>.map.event.date(d, adjust.for.earliest.date=TRUE)</code>
+takes a <code>Date</code> <code>d</code> (and implictely adjusts for the earilerst date
+plotted), and  <code>.map.event.y(y)</code> takes a row ("event" number) <code>y</code>.
+Besides the shared elements (see the returned value), there are specific ones
+as well.
+For <em>baseR</em>, the members <em>old.par</em> and <em>used.par</em> contain the
+original (pre-plot) <code>par()</code> environment and the one used within
+<code>plot()</code>, respectively, in case these need restoring.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> (possibly empty) contaning one named element for each type
+of plot produced (currently only <em>baseR</em> and <em>SVG</em>). Each may contain
+shared and specific fields concerning:
+</p>
+
+<ul>
+<li>
+<p> the values of the parameters with which <code>plot()</code> was invoked.
+</p>
+</li>
+<li>
+<p> actual plot size and other characteristics.
+</p>
+</li>
+<li>
+<p> actual title, axis names and labels and their position and size.
+</p>
+</li>
+<li>
+<p> legend size, position and size and position of its components.
+</p>
+</li>
+<li>
+<p> expanded <code>cma$data</code> contaning, for each event, info about its
+plotting, including the corresponding fullow-uo and observation windows,
+event start and end, dose text (if any) and other graphical elements.
+</p>
+</li>
+<li>
+<p> position, size of the partial CMAs (if any) and of their components.
+</p>
+</li>
+<li>
+<p> position, size of the plotted CMAs (if any) and of their components.
+</p>
+</li>
+<li>
+<p> rescaling function(s) useful for mapping events to plotting coordinates.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">cma7 &lt;- CMA7(data=med.events[med.events$PATIENT_ID %in% c(1,2),],
+             ID.colname="PATIENT_ID",
+             event.date.colname="DATE",
+             event.duration.colname="DURATION",
+             event.daily.dose.colname="PERDAY",
+             medication.class.colname="CATEGORY",
+             followup.window.start=0,
+             followup.window.start.unit="days",
+             followup.window.duration=2*365,
+             followup.window.duration.unit="days",
+             observation.window.start=30,
+             observation.window.start.unit="days",
+             observation.window.duration=365,
+             observation.window.duration.unit="days",
+             date.format="%m/%d/%Y",
+             summary="Base CMA");
+plot(cma7);
+tmp &lt;- last.plot.get.info();
+names(tmp);
+tmp$baseR$legend$box; # legend position and size
+head(tmp$baseR$cma$data); # events + plotting info
+# Add a transparent blue rect between days 270 and 900:
+rect(tmp$baseR$.map.event.x(270), tmp$baseR$.map.event.y(1-0.5),
+     tmp$baseR$.map.event.x(900), tmp$baseR$.map.event.y(nrow(tmp$baseR$cma$data)+0.5),
+     col=adjustcolor("blue",alpha.f=0.5), border="blue");
+# Add a transparent rect rect between dates 03/15/2036 and 03/15/2037:
+rect(tmp$baseR$.map.event.date(as.Date("03/15/2036", format="%m/%d/%Y")),
+     tmp$baseR$.map.event.y(1-0.5),
+     tmp$baseR$.map.event.date(as.Date("03/15/2037", format="%m/%d/%Y")),
+     tmp$baseR$.map.event.y(nrow(tmp$baseR$cma$data)+0.5),
+     col=adjustcolor("red",alpha.f=0.5), border="blue");
+</code></pre>
+
+
+</div>

@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>retList</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generic constructor function</h2>
+
+<h3>Description</h3>
+
+<p>This functions can be used to construct a list with class attribute and
+merged with another list called super. The constructed list will contain (by
+default) all visible objects from the environment from which <code>retList</code>
+is called.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">retList(class = NULL, public = ls(envir), super = list(),
+  superEnv = asEnv(super), mergeFun = envMerge, envir = parent.frame())
+
+funNames(envir = parent.frame())
+
+asEnv(x)
+
+stripSelf(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>character giving the class name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>public</code></td>
+<td>
+<p>character with the names to include.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>super</code></td>
+<td>
+<p>a list/object to be extended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>superEnv</code></td>
+<td>
+<p>environment where new methods will live in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mergeFun</code></td>
+<td>
+<p>function with two arguments. Knows how to join/merge
+environments - <code>mergeFun(envir, superEnv)</code>. Default: envMerge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>this is the environment you want to convert into the list.
+Default is the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a list</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>funNames</code> returns the names of functions in the environment
+from which it is called.
+</p>
+<p><code>asEnv</code> trys to find an environment for x. If x is NULL or an
+empty list, the function returns <code>NULL</code>. (Else) If x has an attribute
+called <code>.self</code> it is this attribute which is returned. (Else) If x is
+a list it is converted to an environment.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>ls, +.Infix, print.Print
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># To get a quick overview of the package:
+vignette("Introduction", "aoos")
+
+# To get more infos about retList:
+vignette("retListClasses", "aoos")
+
+# To get some infos about performance:
+vignette("performance", "aoos")
+
+# A simple class with one method:
+Test &lt;- function(.x) {
+  getX &lt;- function() .x
+  retList("Test")
+}
+
+stopifnot(Test(2)$getX() == 2)
+
+# A second example inheriting from Test
+Test2 &lt;- function(.y) {
+  getX2 &lt;- function() .x * 2
+  retList("Test2", super = Test(.y))
+}
+
+stopifnot(Test2(2)$getX() == 2)
+stopifnot(Test2(2)$getX2() == 4)
+
+### Rational numbers example with infix operators and print method
+
+Rational &lt;- function(numer, denom) {
+
+  gcd &lt;- function(a, b) if(b == 0) a else Recall(b, a %% b)
+
+  g &lt;- gcd(numer, denom)
+  numer &lt;- numer / g
+  denom &lt;- denom / g
+
+  print &lt;- function(x, ...) cat(paste0(numer, "/", denom, "\n"))
+
+  ".+" &lt;- function(that) {
+    Rational(numer = numer * that$denom + that$numer * denom,
+             denom = denom * that$denom)
+  }
+
+  ".-" &lt;- function(that) {
+    if (missing(that)) {
+      Rational(-numer, denom)
+    } else {
+      .self + (-that)
+    }
+  }
+
+  # Return only what should be visible from this scope:
+  retList(c("Rational", "Infix", "Print"),
+          c("numer", "denom", "neg", "print"))
+
+}
+
+rational &lt;- Rational(2, 3)
+rational + rational
+rational - rational
+</code></pre>
+
+
+</div>

@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adpclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast Clustering Using Adaptive Density Peak Detection</h2>
+
+<h3>Description</h3>
+
+<p>Clustering of data by finding cluster centers from estimated density peaks. ADPclust is a non-iterative procedure that incorporates multivariate Gaussian density estimation. The number of clusters as well as bandwidths can either be selected by the user or selected automatically through an internal clustering criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adpclust(x = NULL, distm = NULL, p = NULL, centroids = "auto",
+  h = NULL, htype = "amise", nclust = 2:10, ac = 1, f.cut = c(0.1,
+  0.2, 0.3), fdelta = "mnorm", dmethod = "euclidean", draw = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric data frame where rows are observations and columns are variables. One of x and distm must be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distm</code></td>
+<td>
+<p>distance matrix of class 'dist'. distm is ignored if x is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>number of variables (ncol(x)). This is only needed if neither x nor h is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centroids</code></td>
+<td>
+<p>character string specifying how cluster centroids are selected. Valid options are "user" and "auto".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>nonnegative number specifying the bandwidth in density estimation. If h is NULL, the algorithm attempts to find h in a neighborhood centered at either the AMISE bandwidth or ROT bandwidth (see htype).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htype</code></td>
+<td>
+<p>character string specifying the method used to calculate a reference bandwidth for the density estimation. htype is ignored if h is given. Valid options of are "ROT" and "AMISE" (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclust</code></td>
+<td>
+<p>integer, or a vector of integers specifying the pool of the number of clusters in automatic variation. The default is 2:10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ac</code></td>
+<td>
+<p>integer indicating which automatic cut method is used. This is ignored if centroids = 'user'. The valid options are:
+</p>
+
+<ul>
+<li>
+<p>ac = 1: centroids are chosen to be the data points x's with the largest delta values such that f(x) &gt;= a'th percentile of all f(x). The number of centroids is given by the parameter nclust. The cutting percentile(s) is given by the parameter f.cut. 
+</p>
+</li>
+<li>
+<p>ac = 2: let l denote the straight line connecting (min(f), max(delta)) and (max(f), min(delta)). The centroids are selected to be data points above l and farthest away from it. The number of centroids is given by the parameter nclust.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f.cut</code></td>
+<td>
+<p>number between (0, 1) or numeric vector of numbers between (0, 1). f.cut is used when centroids = "auto" and ac = 1 to automatically select cluster centroids from the decision plot (see ac). The default is c(0.1, 0.2, 0.3).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdelta</code></td>
+<td>
+<p>character string that specifies the method used to estimate local density f(x) at each data point x. The default (recommended) is "mnorm" that uses a multivariate Gaussian density estimation to calculate f. Other options are listed below. Here 'distm' denotes the distance matrix. 
+</p>
+
+<ul>
+<li>
+<p>unorm(f &lt;- 1/(h * sqrt(2 * pi)) * rowSums(exp(-(distm/h)^2/2))); Univariate Gaussian smoother
+</p>
+</li>
+<li>
+<p>weighted(f &lt;- rowSums(exp(-(distm/h)^2))); Univariate weighted smoother
+</p>
+</li>
+<li>
+<p>count(f &lt;- rowSums(distm &lt; h) - 1); Histogram estimator (used in Rodriguez [2014])
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmethod</code></td>
+<td>
+<p>character string that is passed to the 'method' argument in function dist(), which is used to calculate the distance matrix if 'distm' is not given. The default is "euclidean".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>draw</code></td>
+<td>
+<p>boolean. If draw = TRUE the clustering result is plotted after the algorithm finishes. The plot is produced by by plot.adpclust(ans), where 'ans' is the outcome of 'adpclust()'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given n data points x's in p dimensions, adpclust() calculates f(x) and delta(x) for each data point x, where f(x) is the local density at x, and delta(x) is the shortest distance between x and y for all y such that f(x) &lt;= f(y). Data points with large f and large delta values are labeled class centroids. In other words, they appear as isolated points in the upper right corner of the f vs. delta plot (the decision plot). After cluster centroids are determined, other data points are clustered according to their distances to the closes centroids.
+</p>
+<p>A bandwidth (smoothing parameter) h is used to calculate local density f(x) in various ways. See parameter 'fdelta' for details. If centroids = 'user', then h must be explicitly provided. If centroids = 'auto' and h is not specified, then it is automatically selected from a range of testing values: First a reference bandwidth h0 is calculated by one of the two methods: Scott's Rule-of-Thumb value (htype = "ROT") or Wand's Asymptotic-Mean-Integrated-Squared-Error value (htype = "AMISE"), then 10 values equally spread in the range [1/3h0, 3h0] are tested. The value that yields the highest silhouette score is chosen as the final h.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An 'adpclust' object that contains the list of the following items.
+</p>
+
+<ul>
+<li>
+<p>clusters Cluster assignments. A vector of the same length as the number of observations.
+</p>
+</li>
+<li>
+<p>centers: Indices of the clustering centers.
+</p>
+</li>
+<li>
+<p>silhouette: Silhouette score from the final clustering result.
+</p>
+</li>
+<li>
+<p>nclust: Number of clusters.
+</p>
+</li>
+<li>
+<p>h: Final bandwidth.
+</p>
+</li>
+<li>
+<p>f: Final density vector f(x).
+</p>
+</li>
+<li>
+<p>delta: Final delta vector delta(x).
+</p>
+</li>
+<li>
+<p>selection.type: 'user' or 'auto'.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>GitHub: <a href="https://github.com/ethanyxu/ADPclust">https://github.com/ethanyxu/ADPclust</a>
+</p>
+</li>
+<li>
+<p>Xiao-Feng Wang, and Yifan Xu, (2015) "Fast Clustering Using Adaptive Density Peak Detection." Statistical Methods in Medical Research, doi:10.1177/0962280215609948. 
+</p>
+</li>
+<li>
+<p>PubMed: <a href="http://www.ncbi.nlm.nih.gov/pubmed/26475830">http://www.ncbi.nlm.nih.gov/pubmed/26475830</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load a data set with 3 clusters
+data(clust3)
+
+# Automatically select cluster centroids
+ans &lt;- adpclust(clust3, centroids = "auto", draw = FALSE)
+summary(ans)
+plot(ans)
+
+# Specify distm instead of data
+distm &lt;- FindDistm(clust3, normalize = TRUE)
+ans.distm &lt;- adpclust(distm = distm, p = 2, centroids = "auto", draw = FALSE)
+identical(ans, ans.distm)
+
+# Specify the grid of h and nclust
+ans &lt;- adpclust(clust3, centroids = "auto", h = c(0.1, 0.2, 0.3), nclust = 2:6)
+
+# Specify that bandwidths should be searched around
+# Wand's Asymptotic-Mean-Integrated-Squared-Error bandwidth
+# Also test 3 to 6 clusters.
+ans &lt;- adpclust(clust3, centroids = "auto", htype = "AMISE", nclust = 3:6)
+
+# Set a specific bandwidth value.
+ans &lt;- adpclust(clust3, centroids = "auto", h = 5)
+
+# Change method of automatic selection of centers
+ans &lt;- adpclust(clust3, centroids = "auto", nclust = 2:6, ac = 2)
+
+# Specify that the single "ROT" bandwidth value by
+# using the 'ROT()' function
+ans &lt;- adpclust(clust3, centroids = "auto", h = ROT(clust3))
+
+# Centroids selected by user
+## Not run: 
+ans &lt;- adpclust(clust3, centroids = "user", h = ROT(clust3))
+
+## End(Not run)
+
+# A larger data set
+data(clust5)
+ans &lt;- adpclust(clust5, centroids = "auto", htype = "ROT", nclust = 3:5)
+summary(ans)
+plot(ans)
+</code></pre>
+
+
+</div>

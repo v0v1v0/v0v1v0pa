@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orthobasis.phylo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes Moran's eigenvectors from a tree or a phylogenetic proximity matrix</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>orthobasis.phylo</code> (also nicknamed <code>me.phylo</code>)
+computes Moran's eigenvectors (ME) associated to a tree. If the tree has 'n'
+tips, (n-1) vectors will be produced. These vectors form an orthonormal
+basis: they are centred to mean zero, have unit variance, and are
+uncorrelated. Each vector models a different pattern of phylogenetic
+autocorrelation. The first vectors are those with maximum positive
+autocorrelation, while the last vectors are those with maximum negative
+autocorrelation. ME can be used, for instance, as regressors to remove
+phylogenetic autocorrelation from data (see references).<br></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orthobasis.phylo(
+  x = NULL,
+  prox = NULL,
+  method = c("patristic", "nNodes", "oriAbouheif", "Abouheif", "sumDD"),
+  f = function(x) {
+     1/x
+ }
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A tree of class <code>phylo</code>,
+phylo4 or phylo4d.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prox</code></td>
+<td>
+<p>a matrix of phylogenetic proximities as returned by
+<code>proxTips</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string (full or abbreviated without ambiguity)
+specifying the method used to compute proximities; possible values are:<br> -
+<code>patristic</code>: (inversed sum of) branch lengths <br> - <code>nNodes</code>:
+(inversed) number of nodes on the path between the nodes <br> -
+<code>oriAbouheif</code>: original Abouheif's proximity, with diagonal (see
+details in <code>proxTips</code>) <br> - <code>Abouheif</code>: Abouheif's
+proximity (see details in <code>proxTips</code>) <br> - <code>sumDD</code>:
+(inversed) sum of direct descendants of all nodes on the path (see details
+in <code>proxTips</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>a function to change a distance into a proximity.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>ME can be obtained from a tree, specifying the phylogenetic proximity to be
+used. Alternatively, they can be obtained directly from a matrix of
+phylogenetic proximities as constructed by <code>proxTips</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>orthobasis</code>. This is a data.frame with
+Moran's eigenvectors in column, with special attributes:<br> -
+attr(...,"values"): Moran's index for each vector - attr(...,"weights"):
+weights of tips; current implementation uses only uniform weights
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:tjombart@imperial.ac.uk">tjombart@imperial.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Peres-Neto, P. (2006) A unified strategy for estimating and
+controlling spatial, temporal and phylogenetic autocorrelation in ecological
+models <em>Oecologica Brasiliensis</em> <b>10</b>: 105-119.<br></p>
+<p>Dray, S.; Legendre, P. and Peres-Neto, P. (2006) Spatial modelling: a
+comprehensive framework for principal coordinate analysis of neighbours
+matrices (PCNM) <em>Ecological Modelling</em> <b>196</b>: 483-493.<br></p>
+<p>Griffith, D. and Peres-Neto, P. (2006) Spatial modeling in ecology: the
+flexibility of eigenfunction spatial analyses <em>Ecology</em> <b>87</b>:
+2603-2613.<br></p>
+
+
+<h3>See Also</h3>
+
+<p>- <code>proxTips</code> which computes phylogenetic proximities
+between tips.<br></p>
+<p>- <code>treePart</code> which can compute an orthobasis based on the
+topology of a phylogeny.<br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require(ape) &amp;&amp; require(phylobase)){
+
+## SIMPLE EXAMPLE ##
+## make a tree
+x &lt;- rtree(50)
+
+## compute Moran's eigenvectors
+ME &lt;- me.phylo(x, met="Abouheif")
+ME
+
+## plot the 10 first vectors
+obj &lt;- phylo4d(x, as.data.frame(ME[,1:10]))
+table.phylo4d(obj, cex.sym=.7, cex.lab=.7)
+
+
+
+## REMOVING PHYLOGENETIC AUTOCORRELATION IN A MODEL ##
+## use example in ungulates dataset
+data(ungulates)
+tre &lt;- read.tree(text=ungulates$tre)
+plot(tre)
+
+## look at two traits
+afbw &lt;- log(ungulates$tab[,1])
+neonatw &lt;- log((ungulates$tab[,2]+ungulates$tab[,3])/2)
+names(afbw) &lt;- tre$tip.label
+names(neonatw) &lt;- tre$tip.label
+plot(afbw, neonatw) # relationship between traits
+lm1 &lt;- lm(neonatw~afbw)
+abline(lm1)
+
+lm1
+resid1 &lt;- residuals(lm1)
+orthogram(resid1, tre) # residuals are autocorrelated
+
+## compute Moran's eigenvectors (ME)
+myME &lt;- me.phylo(tre, method="Abou")
+lm2 &lt;- lm(neonatw ~ myME[,1] + afbw) # use for ME as covariable
+resid2 &lt;- residuals(lm2)
+orthogram(resid2, tre) # there is no longer phylogenetic autocorrelation
+
+## see the difference
+table.phylo4d(phylo4d(tre, cbind.data.frame(resid1, resid2)))
+}
+
+
+</code></pre>
+
+
+</div>

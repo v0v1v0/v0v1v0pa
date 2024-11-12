@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ActExtendCosinor_long</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cosinor Model for Circadian Rhythmicity for the Whole Dataset</h2>
+
+<h3>Description</h3>
+
+<p>Extended cosinor model based on sigmoidally transformed cosine curve using anti-logistic transformation.This function is a whole dataset
+wrapper for <code>ActExtendCosinor</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ActExtendCosinor_long(
+  count.data,
+  window = 1,
+  lower = c(0, 0, -1, 0, -3),
+  upper = c(Inf, Inf, 1, Inf, 27),
+  export_ts = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>count.data</code></td>
+<td>
+<p><code>data.frame</code> of dimension n * (p+2) containing the
+p dimensional activity data for all n subject days.
+The first two columns have to be ID and Day. ID can be
+either <code>character</code> or <code>numeric</code>. Day has to be <code>numeric</code> indicating
+the sequence of days within each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+<p>The calculation needs the window size of the data. E.g window = 1 means each epoch is in one-minute window.
+window size as an argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>A numeric vector of lower bounds on each of the five parameters (in the order of minimum, amplitude, alpha, beta, acrophase) for the NLS. If not given, the default lower bound for each parameter is set to <code>-Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>A numeric vector of upper bounds on each of the five parameters (in the order of minimum, amplitude, alpha, beta, acrophase) for the NLS. If not given, the default lower bound for each parameter is set to <code>Inf</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_ts</code></td>
+<td>
+<p>A Boolean to indicate whether time series should be exported (notice: it takes time and storage space to export time series data for all subject-days. Use this with caution. Suggest to only export time series for selected subjects)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with the following 11 columns
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndays</code></td>
+<td>
+<p>number of days</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum</code></td>
+<td>
+<p>Minimum value of the of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amp</code></td>
+<td>
+<p>amplitude, a measure of half the extend of predictable variation within a cycle. This represents the highest activity one can achieve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>It determines whether the peaks of the curve are wider than the troughs: when alpha is small, the troughs are narrow and the peaks are wide; when alpha is large, the troughs are wide and the peaks are narrow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>It dertermines whether the transformed function rises and falls more steeply than the cosine curve: large values of beta produce curves that are nearly square waves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acrotime</code></td>
+<td>
+<p>acrophase is the time of day of the peak in the unit of the time (hours)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F_pseudo</code></td>
+<td>
+<p>Measure the improvement of the fit obtained by the non-linear estimation of the transformed cosine model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UpMesor</code></td>
+<td>
+<p>Time of day of switch from low to high activity. Represents the timing of the rest- activity rhythm. Lower (earlier) values indicate increase in activity earlier in the day and suggest a more advanced circadian phase.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DownMesor</code></td>
+<td>
+<p>Time of day of switch from high to low activity. Represents the timing of the rest-activity rhythm. Lower (earlier) values indicate decline in activity earlier in the day, suggesting a more advanced circadian phase.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MESOR</code></td>
+<td>
+<p>A measure analogous to the MESOR of the cosine model (or half the deflection of the curve) can be obtained from mes=min+amp/2. However, it goes through the middle of the peak, and is therefore not equal to the MESOR of the cosine model, which is the mean of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cosinor_ts</code></td>
+<td>
+<p>Exported data frame with time, time over days, original time series, fitted time series using cosinor model from step 1, and fitted extended cosinor model from step 2</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">counts_1 = example_activity_data$count[c(1:12),]
+cos_all_1 = ActExtendCosinor_long(count.data = counts_1, window = 1, export_ts = TRUE)
+counts_10 = cbind(counts_1[,1:2],
+as.data.frame(t(apply(counts_1[,-c(1:2)], 1,
+FUN = bin_data, window = 10, method = "average"))))
+cos_all_10 = ActExtendCosinor_long(count.data = counts_10, window = 10, export_ts = FALSE)
+
+</code></pre>
+
+
+</div>

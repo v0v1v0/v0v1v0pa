@@ -1,0 +1,266 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aem</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Construct asymmetric eigenvector maps (AEM)</h2>
+
+<h3>Description</h3>
+
+<p>This function constructs eigenvectors of a site-by-link matrix. Weights can 
+be applied to the links.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aem(
+  aem.build.binary,
+  binary.mat,
+  weight,
+  rm.link0 = FALSE,
+  print.binary.mat = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>aem.build.binary</code></td>
+<td>
+<p>Object created by function <code>aem.build.binary</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary.mat</code></td>
+<td>
+<p>Site (n rows) by link (k columns) matrix. The 1s in the 
+matrix represents the presence of a link influencing a site, directly or 
+indirectly, otherwise the values are 0s.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>Vector of weights of length k, to be applied to the links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm.link0</code></td>
+<td>
+<p>Logical (<code>TRUE</code>, <code>FALSE</code>) determining if the links 
+directly connecting a site to the origin (site 0) should be removed. 
+Default value: <code>FALSE</code>. This parameter is only used when an object of 
+class <code>aem.build.binary</code> is provided to the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.binary.mat</code></td>
+<td>
+<p>Logical (<code>TRUE</code>, <code>FALSE</code>) determining if 
+the site-by-link matrix used in the analysis should be printed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If only an object of class <code>aem.build.binary</code> is given to this function, The
+argument <code>binary.mat</code> is not considered. <code>binary.mat</code> is only 
+considered when the argument <code>aem.build.binary</code> is missing.
+</p>
+<p>If weights are applied to the links, the length of vector <code>weight</code> has 
+to take into account wether the links connecting real sites to the origin 
+(the fictitious site 0) have been kept or removed.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>A vector of singular values associated with the AEM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vectors</code></td>
+<td>
+<p>A matrix of eigenvector. Each column is an AEM 
+eigenfunction (or variable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod.binary.mat</code></td>
+<td>
+<p>A site-by-link 
+matrix modified through the function.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>It sometimes happens that AEM eigenfunctions have equal singular values. In 
+that case, different sets of AEM eigenfunctions may be produced on different 
+plateforms.
+</p>
+<p>Eigenvectors associated to an eigenvalue that is smaller than <code class="reqn">10^{-12}</code> 
+are considered negligeable. They have been removed from the created AEM 
+eigenfunctions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>F. Guillaume Blanchet
+</p>
+
+
+<h3>References</h3>
+
+<p>Blanchet F.G., P. Legendre and Borcard D. (2008) Modelling directional 
+spatial processes in ecological data. <em>Ecological Modelling</em>, 215, 
+325-336.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aem.build.binary</code>, <code>svd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Construction of object of class nb (spdep)
+if(require("spdep", quietly = TRUE)){
+nb &lt;- cell2nb(5,5,"queen")
+
+# Create fictitious geographical coordinates 
+xy &lt;- cbind(1:25,expand.grid(1:5,1:5))
+
+# Build binary site-by-link matrix
+bin.mat &lt;- aem.build.binary(nb,xy)
+
+# Construct AEM eigenfunctions from an object of class aem.build.binary
+res &lt;- aem(aem.build.binary=bin.mat,rm.link0=FALSE)
+res$values
+
+# Illustrate 4 AEM eigenfunctions using bubble plots
+opal &lt;- palette()
+palette(c("black","white"))
+oldpar &lt;- par(mfrow=c(2,2))
+symbols(x=xy[,2:3], circles=abs(res$vectors[,1]), inches=FALSE, asp=1,
+ fg=ifelse(sign(-res$vectors[,1])+1&gt;0,1,0), 
+ bg=ifelse(sign(res$vectors[,1])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 1")
+symbols(x=xy[,2:3], circles=abs(res$vectors[,2]), inches=FALSE, 
+asp=1, fg=ifelse(sign(-res$vectors[,2])+1&gt;0,1,0),
+ bg=ifelse(sign(res$vectors[,2])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 2")
+symbols(x=xy[,2:3], circles=abs(res$vectors[,3]), inches=FALSE, 
+asp=1, fg=ifelse(sign(-res$vectors[,3])+1&gt;0,1,0), 
+bg=ifelse(sign(res$vectors[,3])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 3")
+symbols(x=xy[,2:3], circles=abs(res$vectors[,4]), inches=FALSE, asp=1,
+ fg=ifelse(sign(-res$vectors[,4])+1&gt;0,1,0), 
+ bg=ifelse(sign(res$vectors[,4])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 4")
+
+# Construct AEM eigenfunctions using only a site-by-link matrix
+res2 &lt;- aem(binary.mat=bin.mat[[1]])
+res2$values
+
+# Illustrate 4 AEM eigenfunctions using bubble plots
+par(mfrow=c(2,2))
+symbols(x=xy[,2:3], circles=abs(res2$vectors[,1]), inches=FALSE, 
+asp=1, fg=ifelse(sign(-res2$vectors[,1])+1&gt;0,1,0), 
+bg=ifelse(sign(res2$vectors[,1])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 1")
+symbols(x=xy[,2:3], circles=abs(res2$vectors[,2]), inches=FALSE,
+asp=1, fg=ifelse(sign(-res2$vectors[,2])+1&gt;0,1,0), 
+bg=ifelse(sign(res2$vectors[,2])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 2")
+symbols(x=xy[,2:3], circles=abs(res2$vectors[,3]), inches=FALSE,
+asp=1, fg=ifelse(sign(-res2$vectors[,3])+1&gt;0,1,0), 
+bg=ifelse(sign(res2$vectors[,3])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 3")
+symbols(x=xy[,2:3], circles=abs(res2$vectors[,4]), inches=FALSE,asp=1,
+ fg=ifelse(sign(-res2$vectors[,4])+1&gt;0,1,0), 
+ bg=ifelse(sign(res2$vectors[,4])+1&gt;0,1,0), xlab="x", ylab="y")
+title("AEM 4")
+
+palette(opal)
+par(oldpar)
+
+# Construct AEM eigenfunctions with a function of the distance
+# as weights to put on the links
+
+# Construction of object of class nb (spdep)
+nb&lt;-cell2nb(5,5,"queen")
+
+# Create fictitious geographical coordinates
+xy &lt;- cbind(1:25,expand.grid(1:5,1:5))
+
+# Build binary site-by-link matrix
+bin.mat &lt;- aem.build.binary(nb,xy)
+
+# Construct a matrix of distances
+long.lien.mat&lt;-as.matrix(dist(xy))
+
+# Extract the edges, remove the ones directly linked to site 0
+lien.b&lt;-bin.mat$edges[-1:-5,]
+
+# Construct a vector giving the length of each edge
+long.lien&lt;-vector(length=nrow(lien.b))
+
+for(i in 1:nrow(lien.b)){
+	long.lien[i]&lt;-long.lien.mat[lien.b[i,1],lien.b[i,2]]
+}
+
+# Construct a vector of weights based on distance
+weight.vec&lt;-1-(long.lien/max(long.lien))^2
+
+# Construct AEM eigenfunctions from an object of class aem.build.binary
+res &lt;- aem(aem.build.binary=bin.mat,weight=weight.vec,rm.link0=TRUE)
+res
+
+# Computing Moran's I for AEMs
+
+# Building AEMs
+xy &lt;- cbind(1:25,expand.grid(1:5,1:5))
+Wdist &lt;- 1/as.matrix(dist(xy[,2:3]))
+
+nb &lt;- cell2nb(5,5,"queen")
+bin.mat &lt;- aem.build.binary(nb,xy)
+linkBase &lt;- bin.mat[[2]]
+link &lt;- linkBase[-which(linkBase[,1] == 0),]
+weight &lt;- numeric()
+
+for(i in 1:nrow(link)){
+   weight[i] &lt;- Wdist[link[i,1],link[i,2]]
+}
+
+AEM &lt;- aem(bin.mat, weight = weight, rm.link0 = TRUE)
+
+# Constructing asymmetric matrix
+matasym &lt;- matrix(0,ncol=25, nrow=25)
+
+for(i in 1:nrow(link)){
+    matasym[link[i,1],link[i,2]]&lt;- weight[i]
+}
+
+# Build a listw object from the asymmetric matrix
+listwAsym &lt;-  mat2listw(matasym, style = "B", zero.policy = TRUE)
+
+# Calculate Moran's I for AEM
+MoranIAEM &lt;- moran.randtest(AEM$vectors, listwAsym)
+
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>varbin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate of a Probability from Clustered Binomial Data</h2>
+
+<h3>Description</h3>
+
+<p>The function estimates a probability and its variance from clustered binomial data
+</p>
+<p>{<code class="reqn">(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)</code>},
+</p>
+<p>where <code class="reqn">n_i</code> is the size of cluster <code class="reqn">i</code>, <code class="reqn">m_i</code> the number of “successes” (proportions are <code class="reqn">y = m/n</code>), and <code class="reqn">N</code> the number of clusters. Confidence intervals are calculated using a normal approximation, which might be inappropriate when the probability is close to 0 or 1.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  varbin(n, m, alpha = 0.05, R = 5000)
+  
+  ## S3 method for class 'varbin'
+print(x, ...)
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A vector of the sizes of the clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>A vector of the numbers of successes (proportions are eqny = m / n).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The significance level for the confidence intervals. Default to 0.05, providing 95% CI's.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>The number of bootstrap replicates to compute bootstrap mean and variance. Default to 5000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class “varbin”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to “print”.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Five methods are used for the estimations. Let us consider <code class="reqn">N</code> clusters of sizes <code class="reqn">n_1, \ldots, n_N</code> with observed count responses <code class="reqn">m_1, \ldots, m_N</code>. We note <code class="reqn">y_i = m_i/n_i (i = 1, \ldots, N)</code> the observed proportions. The underlying assumption is that the probability, say <code class="reqn">mu</code>, is homogeneous across the clusters.
+</p>
+<p><b>Binomial method:</b> the probability estimate and its variance are calculated by
+</p>
+<p><code class="reqn">\mu = (sum_{i} (m_i)) / (sum_{i} (n_i))</code> (ratio estimate) and
+</p>
+<p><code class="reqn">\mu * (1 - \mu) / (sum_{i} (n_i) - 1)</code>, respectively.
+</p>
+<p><b>Ratio method:</b> the probability <code class="reqn">\mu</code> is estimated as for the binomial method (ratio estimate). The one-stage cluster sampling formula is used to calculate the variance of <code class="reqn">\mu</code> (see Cochran, 1999, p. 32 and p. 66).
+</p>
+<p><b>Arithmetic method:</b> the probability is estimated by <code class="reqn">\mu = sum_{i} (y_i) / N</code>. The variance of <code class="reqn">\mu</code> is estimated by <code class="reqn">sum_{i} (y_i - \mu)^2 / (N * (N - 1))</code>.
+</p>
+<p><b>Jackknife method:</b> the probability is estimated by <code class="reqn">\mu</code> defined by the arithmetic mean of the pseudovalues <code class="reqn">y_{v,i}</code>. The variance is estimated  by <code class="reqn">sum_{i} (y_{v,i} - \mu)^2 / (N * (N - 1))</code> (Gladen, 1977, Paul, 1982).
+</p>
+<p><b>Bootstrap method:</b> <code class="reqn">R</code> samples of clusters of size <code class="reqn">N</code> are drawn with equal probability from the initial sample <code class="reqn">(y_1, \ldots , y_N)</code> (Efron and Tibshirani, 1993). The bootstrap estimate <code class="reqn">\mu</code> and its estimated variance  are the arithmetic mean and the empirical variance (computed with denominator <code class="reqn">R - 1</code>) of the <code class="reqn">R</code> binomial ratio estimates, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>varbin</code>, printed with <code>print.varbin</code>.</p>
+
+
+<h3>References</h3>
+
+<p>Cochran, W.G., 1999, 3th ed. <em>Sampling techniques</em>. Wiley, New York.<br>
+Efron, B., Tibshirani, R., 1993. <em>An introduction to the bootstrap</em>. Chapman and Hall, London.<br>
+Gladen, B., 1977. <em>The use of the jackknife to estimate proportions from toxicological data in the presence 
+of litter effects</em>. JASA 74(366), 278-283.<br>
+Paul, S.R., 1982. <em>Analysis of proportions of affected foetuses in teratological experiments</em>. 
+Biometrics 38, 361-370.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>boot</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(rabbits)
+z &lt;- rabbits[rabbits$group == "M", ]
+varbin(z$n, z$m)
+by(rabbits,
+	list(group = rabbits$group),
+  function(x) varbin(n = x$n, m = x$m, R = 1000))
+</code></pre>
+
+
+</div>

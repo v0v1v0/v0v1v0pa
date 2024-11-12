@@ -1,0 +1,315 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_extreme_dt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive First or Last Date from Multiple Sources</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_var_extreme_dt()</code>
+function has been superseded in favor of <code>derive_vars_extreme_event()</code>.
+</p>
+<p>Add the first or last date from multiple sources to the
+dataset, e.g., the last known alive date (<code>LSTALVDT</code>).
+</p>
+<p><strong>Note:</strong> This is a wrapper function for the function <code>derive_var_extreme_dtm()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_extreme_dt(
+  dataset,
+  new_var,
+  ...,
+  source_datasets,
+  mode,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>subject_keys</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>Name of variable to create</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Source(s) of dates. One or more <code>date_source()</code> objects are
+expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>A named <code>list</code> containing datasets in which to search
+for the first or last date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If <code>"first"</code> is specified, the first date for each subject is selected. If
+<code>"last"</code> is specified, the last date for each subject is selected.
+</p>
+<p>Permitted Values:  <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of expressions where the expressions are symbols as returned by
+<code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following steps are performed to create the output dataset:
+</p>
+
+<ol>
+<li>
+<p> For each source dataset the observations as specified by the <code>filter</code>
+element are selected and observations where <code>date</code> is <code>NA</code> are removed.
+Then for each patient the first or last observation (with respect to <code>date</code>
+and <code>mode</code>) is selected.
+</p>
+</li>
+<li>
+<p> The new variable is set to the variable or expression specified by the
+<code>date</code> element.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> element are added.
+</p>
+</li>
+<li>
+<p> The selected observations of all source datasets are combined into a
+single dataset.
+</p>
+</li>
+<li>
+<p> For each patient the first or last observation (with respect to the new
+variable and <code>mode</code>) from the single dataset is selected and the new
+variable is merged to the input dataset.
+</p>
+</li>
+<li>
+<p> The time part is removed from the new variable.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the new variable added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>date_source()</code>, <code>derive_var_extreme_dtm()</code>, <code>derive_vars_merged()</code>
+</p>
+<p>Other superseded: 
+<code>date_source()</code>,
+<code>derive_param_extreme_record()</code>,
+<code>derive_var_dthcaus()</code>,
+<code>derive_var_extreme_dtm()</code>,
+<code>dthcaus_source()</code>,
+<code>get_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+ae &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~AESEQ,     ~AESTDTC,     ~AEENDTC,
+  "PILOT01",    "AE", "01-1130",      5, "2014-05-09", "2014-05-09",
+  "PILOT01",    "AE", "01-1130",      6, "2014-05-22",           NA,
+  "PILOT01",    "AE", "01-1130",      4, "2014-05-09", "2014-05-09",
+  "PILOT01",    "AE", "01-1130",      8, "2014-05-22",           NA,
+  "PILOT01",    "AE", "01-1130",      7, "2014-05-22",           NA,
+  "PILOT01",    "AE", "01-1130",      2, "2014-03-09", "2014-03-09",
+  "PILOT01",    "AE", "01-1130",      1, "2014-03-09", "2014-03-16",
+  "PILOT01",    "AE", "01-1130",      3, "2014-03-09", "2014-03-16",
+  "PILOT01",    "AE", "01-1133",      1, "2012-12-27",           NA,
+  "PILOT01",    "AE", "01-1133",      3, "2012-12-27",           NA,
+  "PILOT01",    "AE", "01-1133",      2, "2012-12-27",           NA,
+  "PILOT01",    "AE", "01-1133",      4, "2012-12-27",           NA,
+  "PILOT01",    "AE", "01-1211",      5, "2012-11-29",           NA,
+  "PILOT01",    "AE", "01-1211",      1, "2012-11-16",           NA,
+  "PILOT01",    "AE", "01-1211",      7, "2013-01-11",           NA,
+  "PILOT01",    "AE", "01-1211",      8, "2013-01-11",           NA,
+  "PILOT01",    "AE", "01-1211",      4, "2012-11-22",           NA,
+  "PILOT01",    "AE", "01-1211",      2, "2012-11-21", "2012-11-21",
+  "PILOT01",    "AE", "01-1211",      3, "2012-11-21",           NA,
+  "PILOT01",    "AE", "01-1211",      6, "2012-12-09",           NA,
+  "PILOT01",    "AE", "01-1211",      9, "2013-01-14", "2013-01-14",
+  "PILOT01",    "AE", "09-1081",      2, "2014-05-01",           NA,
+  "PILOT01",    "AE", "09-1081",      1, "2014-04-07",           NA,
+  "PILOT01",    "AE", "09-1088",      1, "2014-05-08",           NA,
+  "PILOT01",    "AE", "09-1088",      2, "2014-08-02",           NA
+)
+
+adsl &lt;- tribble(
+  ~STUDYID,   ~USUBJID,              ~TRTEDTM,      ~TRTEDT,
+  "PILOT01", "01-1130", "2014-08-16 23:59:59", "2014-08-16",
+  "PILOT01", "01-1133", "2013-04-28 23:59:59", "2013-04-28",
+  "PILOT01", "01-1211", "2013-01-12 23:59:59", "2013-01-12",
+  "PILOT01", "09-1081", "2014-04-27 23:59:59", "2014-04-27",
+  "PILOT01", "09-1088", "2014-10-09 23:59:59", "2014-10-09"
+) %&gt;%
+  mutate(
+    across(TRTEDTM:TRTEDT, as.Date)
+  )
+
+
+lb &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~LBSEQ,             ~LBDTC,
+  "PILOT01",    "LB", "01-1130",    219, "2014-06-07T13:20",
+  "PILOT01",    "LB", "01-1130",    322, "2014-08-16T13:10",
+  "PILOT01",    "LB", "01-1133",    268, "2013-04-18T15:30",
+  "PILOT01",    "LB", "01-1133",    304, "2013-04-29T10:13",
+  "PILOT01",    "LB", "01-1211",      8, "2012-10-30T14:26",
+  "PILOT01",    "LB", "01-1211",    162, "2013-01-08T12:13",
+  "PILOT01",    "LB", "09-1081",     47, "2014-02-01T10:55",
+  "PILOT01",    "LB", "09-1081",    219, "2014-05-10T11:15",
+  "PILOT01",    "LB", "09-1088",    283, "2014-09-27T12:13",
+  "PILOT01",    "LB", "09-1088",    322, "2014-10-09T13:25"
+)
+
+dm &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~AGE,   ~AGEU,
+  "PILOT01",    "DM", "01-1130",   84, "YEARS",
+  "PILOT01",    "DM", "01-1133",   81, "YEARS",
+  "PILOT01",    "DM", "01-1211",   76, "YEARS",
+  "PILOT01",    "DM", "09-1081",   86, "YEARS",
+  "PILOT01",    "DM", "09-1088",   69, "YEARS"
+)
+
+ae_start &lt;- date_source(
+  dataset_name = "ae",
+  date = convert_dtc_to_dt(AESTDTC, highest_imputation = "M")
+)
+ae_end &lt;- date_source(
+  dataset_name = "ae",
+  date = convert_dtc_to_dt(AEENDTC, highest_imputation = "M")
+)
+
+ae_ext &lt;- ae %&gt;%
+  derive_vars_dt(
+    dtc = AESTDTC,
+    new_vars_prefix = "AEST",
+    highest_imputation = "M"
+  ) %&gt;%
+  derive_vars_dt(
+    dtc = AEENDTC,
+    new_vars_prefix = "AEEN",
+    highest_imputation = "M"
+  )
+
+lb_date &lt;- date_source(
+  dataset_name = "lb",
+  date = convert_dtc_to_dt(LBDTC)
+)
+
+lb_ext &lt;- derive_vars_dt(
+  lb,
+  dtc = LBDTC,
+  new_vars_prefix = "LB"
+)
+
+adsl_date &lt;- date_source(dataset_name = "adsl", date = TRTEDT)
+
+dm %&gt;%
+  derive_var_extreme_dt(
+    new_var = LSTALVDT,
+    ae_start, ae_end, lb_date, adsl_date,
+    source_datasets = list(
+      adsl = adsl,
+      ae = ae_ext,
+      lb = lb_ext
+    ),
+    mode = "last"
+  ) %&gt;%
+  select(USUBJID, LSTALVDT)
+
+# derive last alive date and traceability variables
+ae_start &lt;- date_source(
+  dataset_name = "ae",
+  date = convert_dtc_to_dt(AESTDTC, highest_imputation = "M"),
+  set_values_to = exprs(
+    LALVDOM = "AE",
+    LALVSEQ = AESEQ,
+    LALVVAR = "AESTDTC"
+  )
+)
+
+ae_end &lt;- date_source(
+  dataset_name = "ae",
+  date = convert_dtc_to_dt(AEENDTC, highest_imputation = "M"),
+  set_values_to = exprs(
+    LALVDOM = "AE",
+    LALVSEQ = AESEQ,
+    LALVVAR = "AEENDTC"
+  )
+)
+
+lb_date &lt;- date_source(
+  dataset_name = "lb",
+  date = convert_dtc_to_dt(LBDTC),
+  set_values_to = exprs(
+    LALVDOM = "LB",
+    LALVSEQ = LBSEQ,
+    LALVVAR = "LBDTC"
+  )
+)
+
+adsl_date &lt;- date_source(
+  dataset_name = "adsl",
+  date = TRTEDT,
+  set_values_to = exprs(
+    LALVDOM = "ADSL",
+    LALVSEQ = NA_integer_,
+    LALVVAR = "TRTEDT"
+  )
+)
+
+dm %&gt;%
+  derive_var_extreme_dt(
+    new_var = LSTALVDT,
+    ae_start, ae_end, lb_date, adsl_date,
+    source_datasets = list(
+      adsl = adsl,
+      ae = ae_ext,
+      lb = lb_ext
+    ),
+    mode = "last"
+  ) %&gt;%
+  select(USUBJID, LSTALVDT, LALVDOM, LALVSEQ, LALVVAR)
+</code></pre>
+
+
+</div>

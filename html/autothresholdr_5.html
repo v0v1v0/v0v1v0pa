@@ -1,0 +1,310 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auto_thresh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatically threshold an array of non-negative integers.</h2>
+
+<h3>Description</h3>
+
+<p>These functions apply the ImageJ "Auto Threshold" plugin's image thresholding
+methods. The available methods are "IJDefault", "Huang", "Huang2",
+"Intermodes", "IsoData", "Li", "MaxEntropy", "Mean", "MinErrorI", "Minimum",
+"Moments", "Otsu", "Percentile", "RenyiEntropy", "Shanbhag", "Triangle" and
+"Yen". Read about them at <a href="https://imagej.net/plugins/auto-threshold">https://imagej.net/plugins/auto-threshold</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auto_thresh(
+  int_arr,
+  method,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+
+auto_thresh_mask(
+  int_arr,
+  method,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+
+auto_thresh_apply_mask(
+  int_arr,
+  method,
+  fail = NA,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+
+mask(
+  int_arr,
+  method,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+
+apply_mask(
+  int_arr,
+  method,
+  fail = NA,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>int_arr</code></td>
+<td>
+<p>An array (or vector) of non-negative <em>integers</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The name of the thresholding method you wish to use. The
+available methods are <code>"IJDefault"</code>, <code>"Huang"</code>, <code>"Huang2"</code>, <code>"Intermodes"</code>,
+<code>"IsoData"</code>, <code>"Li"</code>, <code>"MaxEntropy"</code>, <code>"Mean"</code>, <code>"MinErrorI"</code>, <code>"Minimum"</code>,
+<code>"Moments"</code>, <code>"Otsu"</code>, <code>"Percentile"</code>, <code>"RenyiEntropy"</code>, <code>"Shanbhag"</code>,
+<code>"Triangle"</code> and <code>"Yen"</code>. Partial matching is performed i.e. <code>method = "h"</code>
+is enough to get you <code>"Huang"</code> and <code>method = "in"</code> is enough to get you
+<code>"Intermodes"</code>. To perform <em>manual</em> thresholding (where you set the
+threshold yourself), supply the threshold here as a number e.g. <code>method = 3</code>; so note that this would <em>not</em> select the third method in the above
+list of methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_black</code></td>
+<td>
+<p>Ignore black pixels/elements (zeros) when performing the
+thresholding?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_white</code></td>
+<td>
+<p>Ignore white pixels when performing the thresholding? If
+set to <code>TRUE</code>, the function makes a good guess as to what the white
+(saturated) value would be (see 'Details'). If this is set to a number, all
+pixels with value greater than or equal to that number are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_na</code></td>
+<td>
+<p>This should be <code>TRUE</code> if <code>NA</code>s in <code>int_arr</code> should be
+ignored or <code>FALSE</code> if you want the presence of <code>NA</code>s in <code>int_arr</code> to throw
+an error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fail</code></td>
+<td>
+<p>When using <code>auto_thresh_apply_mask()</code>, to what value do you wish
+to set the pixels which fail to exceed the threshold? <code>fail = 'saturate'</code>
+sets them to saturated value (see "Details"). <code>fail = 'zero'</code> sets them to
+zero. You can also specify directly here a natural number (must be between
+<code>0</code> and <code>2^16 - 1</code>) to use.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p>Values greater than or equal to the found threshold
+<em>pass</em> the thresholding and values less than the threshold <em>fail</em>
+the thresholding.
+</p>
+</li>
+<li>
+<p>For <code>ignore_white = TRUE</code>, if the maximum value in the array is one of
+<code>2^8-1</code>, <code>2^12-1</code>, <code>2^16-1</code> or <code>2^32-1</code>, then those max values are ignored.
+That's because they're the white values in 8, 12, 16 and 32-bit images
+respectively (and these are the common image bit sizes to work with). This
+guesswork has to be done because <code>R</code> does not know how many bits the image
+was on disk. This guess is very unlikely to be wrong, and if it is, the
+consequences are negligible anyway. If you're very concerned, then just
+specify the white value as an integer in this <code>ignore_white</code> argument.
+</p>
+</li>
+<li>
+<p>If you have set <code>ignore_black = TRUE</code> and/or <code>ignore_white = TRUE</code> but
+you are still getting error/warning messages telling you to try them, then
+your chosen method is not working for the given array, so you should try a
+different method.
+</p>
+</li>
+<li>
+<p>For a given array, if all values are less than <code>2^8</code>, saturated value
+is <code>2^8 - 1</code>, otherwise, if all values are less than <code>2^16</code>, the saturated
+value is <code>2^16 - 1</code>, otherwise the saturated value is <code>2^32-1</code>.
+</p>
+</li>
+<li>
+<p>For the <code>auto_thresh()</code> function, if you pass <code>int_arr</code> as a data frame
+with column names <code>value</code> and <code>n</code>, that's the same as passing an integer
+array having <code>n</code> entries of each <code>value</code>. For this form of <code>int_arr</code>,
+<code>ignore_white</code> and <code>ignore_black</code> are irrelevant.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>auto_thresh()</code> returns an object of class th containing the
+threshold value. Pixels exceeding this threshold pass the thresholding,
+pixels at or below this level fail.
+</p>
+<p><code>auto_thresh_mask()</code> returns an object of class masked_arr which is a
+binarized version of the input, with a value of <code>TRUE</code> at points which
+exceed the threshold and <code>FALSE</code> at those which do not.
+</p>
+<p><code>auto_thresh_apply_mask()</code> returns and object of class threshed_arr which
+is the original input masked by the threshold, i.e. all points not
+exceeding the threshold are set to a user-defined value (default <code>NA</code>).
+</p>
+<p><code>mask()</code> is the same as <code>auto_thresh_mask()</code> and <code>apply_mask()</code> is the same
+as <code>auto_thresh_apply_mask()</code>.
+</p>
+
+
+<h3>Acknowledgements</h3>
+
+<p>Gabriel Landini coded all of these functions in
+Java. These java functions were then translated to C++.
+</p>
+
+
+<h3>References</h3>
+
+ <ul>
+<li>
+<p>Huang, L-K &amp; Wang, M-J J (1995), "Image
+thresholding by minimizing the measure of fuzziness", Pattern Recognition
+28(1): 41-51 </p>
+</li>
+<li>
+<p>Prewitt, JMS &amp; Mendelsohn, ML (1966), "The analysis of
+cell images", Annals of the New York Academy of Sciences 128: 1035-1053
+</p>
+</li>
+<li>
+<p>Ridler, TW &amp; Calvard, S (1978), "Picture thresholding using an
+iterative selection method", IEEE Transactions on Systems, Man and
+Cybernetics 8: 630-632 </p>
+</li>
+<li>
+<p>Li, CH &amp; Lee, CK (1993), "Minimum Cross
+Entropy Thresholding", Pattern Recognition 26(4): 617-625 </p>
+</li>
+<li>
+<p>Li, CH &amp;
+Tam, PKS (1998), "An Iterative Algorithm for Minimum Cross Entropy
+Thresholding", Pattern Recognition Letters 18(8): 771-776 </p>
+</li>
+<li>
+<p>Sezgin, M
+&amp; Sankur, B (2004), "Survey over Image Thresholding Techniques and
+Quantitative Performance Evaluation", Journal of Electronic Imaging 13(1):
+146-165 </p>
+</li>
+<li>
+<p>Kapur, JN; Sahoo, PK &amp; Wong, ACK (1985), "A New Method for
+Gray-Level Picture Thresholding Using the Entropy of the Histogram",
+Graphical Models and Image Processing 29(3): 273-285 </p>
+</li>
+<li>
+<p>Glasbey, CA
+(1993), "An analysis of histogram-based thresholding algorithms", CVGIP:
+Graphical Models and Image Processing 55: 532-537 </p>
+</li>
+<li>
+<p>Kittler, J &amp;
+Illingworth, J (1986), "Minimum error thresholding", Pattern Recognition
+19: 41-47 </p>
+</li>
+<li>
+<p>Prewitt, JMS &amp; Mendelsohn, ML (1966), "The analysis of
+cell images", Annals of the New York Academy of Sciences 128: 1035-1053
+</p>
+</li>
+<li>
+<p>Tsai, W (1985), "Moment-preserving thresholding: a new approach",
+Computer Vision, Graphics, and Image Processing 29: 377-393 </p>
+</li>
+<li>
+<p>Otsu, N
+(1979), "A threshold selection method from gray-level histograms", IEEE
+Trans. Sys., Man., Cyber. 9: 62-66, doi:10.1109/TSMC.1979.4310076
+</p>
+</li>
+<li>
+<p>Doyle, W (1962), "Operation useful for similarity-invariant pattern
+recognition", Journal of the Association for Computing Machinery 9:
+259-267, doi:10.1145/321119.321123 </p>
+</li>
+<li>
+<p>Kapur, JN; Sahoo, PK &amp; Wong, ACK
+(1985), "A New Method for Gray-Level Picture Thresholding Using the Entropy
+of the Histogram", Graphical Models and Image Processing 29(3): 273-285
+</p>
+</li>
+<li>
+<p>Shanbhag, Abhijit G. (1994), "Utilization of information measure as a
+means of image thresholding", Graph. Models Image Process. (Academic Press,
+Inc.) 56 (5): 414–419, ISSN 1049-9652 </p>
+</li>
+<li>
+<p>Zack GW, Rogers WE, Latt SA
+(1977), "Automatic measurement of sister chromatid exchange frequency", J.
+Histochem. Cytochem. 25 (7): 74153, PMID 70454 </p>
+</li>
+<li>
+<p>Yen JC, Chang FJ,
+Chang S (1995), "A New Criterion for Automatic Multilevel Thresholding",
+IEEE Trans. on Image Processing 4 (3): 370-378, ISSN 1057-7149,
+doi:10.1109/83.366472 </p>
+</li>
+<li>
+<p>Sezgin, M &amp; Sankur, B (2004), "Survey over
+Image Thresholding Techniques and Quantitative Performance Evaluation",
+Journal of Electronic Imaging 13(1): 146-165 </p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+img_location &lt;- system.file("extdata", "eg.tif", package = "autothresholdr")
+img &lt;- ijtiff::read_tif(img_location)
+auto_thresh(img, "huang")
+img_value_count &lt;- magrittr::set_names(as.data.frame(table(img)),
+                                      c("value", "n"))
+print(head(img_value_count))
+auto_thresh(img_value_count, "Huang")
+auto_thresh(img, "tri")
+auto_thresh(img, "Otsu")
+auto_thresh(img, 9)
+mask &lt;- auto_thresh_mask(img, "huang")
+ijtiff::display(mask[, , 1, 1])
+masked &lt;- auto_thresh_apply_mask(img, "huang")
+ijtiff::display(masked[, , 1, 1])
+masked &lt;- auto_thresh_apply_mask(img, 25)
+ijtiff::display(masked[, , 1, 1])
+
+</code></pre>
+
+
+</div>

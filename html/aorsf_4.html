@@ -1,0 +1,897 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Oblique Random Forests</h2>
+
+<h3>Description</h3>
+
+<p>Grow or specify an oblique random forest. While the name <code>orsf()</code>
+implies that this function only works for survival forests,
+it can be used for classification, regression, or survival
+forests.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf(
+  data,
+  formula,
+  control = NULL,
+  weights = NULL,
+  n_tree = 500,
+  n_split = 5,
+  n_retry = 3,
+  n_thread = 0,
+  mtry = NULL,
+  sample_with_replacement = TRUE,
+  sample_fraction = 0.632,
+  leaf_min_events = 1,
+  leaf_min_obs = 5,
+  split_rule = NULL,
+  split_min_events = 5,
+  split_min_obs = 10,
+  split_min_stat = NULL,
+  oobag_pred_type = NULL,
+  oobag_pred_horizon = NULL,
+  oobag_eval_every = NULL,
+  oobag_fun = NULL,
+  importance = "anova",
+  importance_max_pvalue = 0.01,
+  group_factors = TRUE,
+  tree_seeds = NULL,
+  attach_data = TRUE,
+  no_fit = FALSE,
+  na_action = "fail",
+  verbose_progress = FALSE,
+  ...
+)
+
+orsf_train(object, attach_data = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame, tibble, or data.table that contains the
+relevant variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>(<em>formula</em>) Two sided formula with a single outcome.
+The terms on the right are names of predictor variables, and the
+symbol '.' may be used to indicate all variables in the data
+except the response. The symbol '-' may also be used to indicate
+removal of a predictor. Details on the response vary depending
+on forest type:
+</p>
+
+<ul>
+<li> <p><em>Classification</em>: The response should be a single variable,
+and that variable should have type <code>factor</code> in <code>data</code>.
+</p>
+</li>
+<li> <p><em>Regression</em>: The response should be a single variable, and
+that variable should have typee <code>double</code> or <code>integer</code> with at
+least 10 unique numeric values in <code>data</code>.
+</p>
+</li>
+<li> <p><em>Survival</em>: The response should include a time variable,
+followed by a status variable, and may be written inside a
+call to Surv (see examples).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>(<em>orsf_control</em>) An object returned from one of the
+<code>orsf_control</code> functions: orsf_control_survival,
+orsf_control_classification, and orsf_control_regression. If
+<code>NULL</code> (the default) will use an accelerated control, which is the
+fastest available option. For survival and classification, this is
+Cox and Logistic regression with 1 iteration, and for regression
+it is ordinary least squares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>(<em>numeric vector</em>) Optional. If given, this input should
+have length equal to <code>nrow(data)</code> for complete or imputed data and should
+have length equal to <code>nrow(na.omit(data))</code> if <code>na_action</code> is <code>"omit"</code>.
+As the weights vector is used to count observations and events prior to
+growing a node for a tree, <code>orsf()</code> scales <code>weights</code> so that
+<code>sum(weights) == nrow(data)</code>. This helps to make tree depth consistent
+between weighted and un-weighted fits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_tree</code></td>
+<td>
+<p>(<em>integer</em>) the number of trees to grow.
+Default is <code>n_tree = 500.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_split</code></td>
+<td>
+<p>(<em>integer</em>) the number of cut-points assessed when splitting
+a node in decision trees. Default is <code>n_split = 5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_retry</code></td>
+<td>
+<p>(<em>integer</em>) when a node is splittable, but the current
+linear combination of inputs is unable to provide a valid split, <code>orsf</code>
+will try again with a new linear combination based on a different set
+of randomly selected predictors, up to <code>n_retry</code> times. Default is
+<code>n_retry = 3</code>. Set <code>n_retry = 0</code> to prevent any retries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_thread</code></td>
+<td>
+<p>(<em>integer</em>) number of threads to use while growing trees, computing predictions, and computing importance. Default is 0, which allows a suitable number of threads to be used based on availability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtry</code></td>
+<td>
+<p>(<em>integer</em>) Number of predictors randomly included as candidates
+for splitting a node. The default is the smallest integer greater than
+the square root of the number of total predictors, i.e.,
+<code style="white-space: pre;">⁠mtry = ceiling(sqrt(number of predictors))⁠</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_with_replacement</code></td>
+<td>
+<p>(<em>logical</em>) If <code>TRUE</code> (the default),
+observations are sampled with replacement when an in-bag sample
+is created for a decision tree. If <code>FALSE</code>, observations are
+sampled without replacement and each tree will have an in-bag sample
+containing <code>sample_fraction</code>% of the original sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_fraction</code></td>
+<td>
+<p>(<em>double</em>) the proportion of observations that
+each trees' in-bag sample will contain, relative to the number of
+rows in <code>data</code>. Only used if <code>sample_with_replacement</code> is <code>FALSE</code>.
+Default value is 0.632.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leaf_min_events</code></td>
+<td>
+<p>(<em>integer</em>) This input is only relevant for
+survival analysis, and specifies the minimum number of events in a
+leaf node. Default is <code>leaf_min_events = 1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leaf_min_obs</code></td>
+<td>
+<p>(<em>integer</em>) minimum number of observations in a
+leaf node. Default is <code>leaf_min_obs = 5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_rule</code></td>
+<td>
+<p>(<em>character</em>) how to assess the quality of a potential
+splitting rule for a node. Valid options for survival are:
+</p>
+
+<ul>
+<li>
+<p> 'logrank' : a log-rank test statistic (default).
+</p>
+</li>
+<li>
+<p> 'cstat'   : Harrell's concordance statistic.
+</p>
+</li>
+</ul>
+<p>For classification, valid options are:
+</p>
+
+<ul>
+<li>
+<p> 'gini'  : gini impurity (default)
+</p>
+</li>
+<li>
+<p> 'cstat' : area underneath the ROC curve (AUC-ROC)
+</p>
+</li>
+</ul>
+<p>For regression, valid options are:
+</p>
+
+<ul><li>
+<p> 'variance' : variance reduction (default)
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_min_events</code></td>
+<td>
+<p>(<em>integer</em>) minimum number of events required
+in a node to consider splitting it. Default is <code>split_min_events = 5</code>.
+This input is only relevant for survival trees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_min_obs</code></td>
+<td>
+<p>(<em>integer</em>) minimum number of observations required
+in a node to consider splitting it. Default is <code>split_min_obs = 10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_min_stat</code></td>
+<td>
+<p>(double) minimum test statistic required to split
+a node. If no splits are found with a statistic exceeding <code>split_min_stat</code>,
+the given node either becomes a leaf or a retry occurs (up to <code>n_retry</code>
+retries). Defaults are
+</p>
+
+<ul>
+<li>
+<p> 3.84 if <code>split_rule = 'logrank'</code>
+</p>
+</li>
+<li>
+<p> 0.55 if <code>split_rule = 'cstat'</code> (see first note below)
+</p>
+</li>
+<li>
+<p> 0.00 if <code>split_rule = 'gini'</code> (see second note below)
+</p>
+</li>
+<li>
+<p> 0.00 if <code>split_rule = 'variance'</code>
+</p>
+</li>
+</ul>
+<p><strong>Note 1</strong> For C-statistic splitting, if C is &lt; 0.50, we consider the statistic
+value to be 1 - C to allow for good 'anti-predictive' splits. So,
+if a C-statistic is initially computed as 0.1, it will be considered
+as 1 - 0.10 = 0.90.
+</p>
+<p><strong>Note 2</strong> For Gini impurity, a value of 0 and 1 usually indicate the best and
+worst possible scores, respectively. To make things simple and to avoid
+introducing a <code>split_max_stat</code> input, we flip the values of Gini
+impurity so that 1 and 0 indicate the best and worst possible scores,
+respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag_pred_type</code></td>
+<td>
+<p>(<em>character</em>) The type of out-of-bag predictions
+to compute while fitting the ensemble. Valid options for any tree type:
+</p>
+
+<ul>
+<li>
+<p> 'none' : don't compute out-of-bag predictions
+</p>
+</li>
+<li>
+<p> 'leaf' : the ID of the predicted leaf is returned for each tree
+</p>
+</li>
+</ul>
+<p>Valid options for survival:
+</p>
+
+<ul>
+<li>
+<p> 'risk' : probability of event occurring at or before
+<code>oobag_pred_horizon</code> (default).
+</p>
+</li>
+<li>
+<p> 'surv' : 1 - risk.
+</p>
+</li>
+<li>
+<p> 'chf'  : cumulative hazard function at <code>oobag_pred_horizon</code>.
+</p>
+</li>
+<li>
+<p> 'mort' : mortality, i.e., the number of events expected if all
+observations in the training data were identical to a
+given observation.
+</p>
+</li>
+</ul>
+<p>Valid options for classification:
+</p>
+
+<ul>
+<li>
+<p> 'prob'  : probability of each class (default)
+</p>
+</li>
+<li>
+<p> 'class' : class (i.e., which.max(prob))
+</p>
+</li>
+</ul>
+<p>Valid options for regression:
+</p>
+
+<ul><li>
+<p> 'mean' : mean value (default)
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag_pred_horizon</code></td>
+<td>
+<p>(<em>numeric</em>) A numeric value indicating what time
+should be used for out-of-bag predictions. Default is the median
+of the observed times, i.e., <code>oobag_pred_horizon = median(time)</code>.
+This input is only relevant for survival trees that have prediction
+type of 'risk', 'surv', or 'chf'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag_eval_every</code></td>
+<td>
+<p>(<em>integer</em>) The out-of-bag performance of the
+ensemble will be checked every <code>oobag_eval_every</code> trees. So, if
+<code>oobag_eval_every = 10</code>, then out-of-bag performance is checked
+after growing the 10th tree, the 20th tree, and so on. Default
+is <code>oobag_eval_every = n_tree</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag_fun</code></td>
+<td>
+<p>(<em>function</em>) to be used for evaluating out-of-bag prediction accuracy every <code>oobag_eval_every</code>
+trees. When <code>oobag_fun = NULL</code> (the default), the evaluation statistic is selected based on tree type
+</p>
+
+<ul>
+<li>
+<p> survival: Harrell's C-statistic (1982)
+</p>
+</li>
+<li>
+<p> classification: Area underneath the ROC curve (AUC-ROC)
+</p>
+</li>
+<li>
+<p> regression: Traditional prediction R-squared
+</p>
+</li>
+</ul>
+<p>if you use your own <code>oobag_fun</code> note the following:
+</p>
+
+<ul>
+<li> <p><code>oobag_fun</code> should have three inputs: <code>y_mat</code>, <code>w_vec</code>, and <code>s_vec</code>
+</p>
+</li>
+<li>
+<p> For survival trees, <code>y_mat</code> should be a two column matrix with first column named 'time' and second named 'status'. For classification trees, <code>y_mat</code> should be a matrix with number of columns = number of distinct classes in the outcome. For regression, <code>y_mat</code> should be a matrix with one column.
+</p>
+</li>
+<li> <p><code>s_vec</code> is a numeric vector containing predictions
+</p>
+</li>
+<li> <p><code>oobag_fun</code> should return a numeric output of length 1
+</p>
+</li>
+</ul>
+<p>For more details, see the out-of-bag <a href="https://docs.ropensci.org/aorsf/articles/oobag.html#user-supplied-out-of-bag-evaluation-functions">vignette</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importance</code></td>
+<td>
+<p>(<em>character</em>) Indicate method for variable importance:
+</p>
+
+<ul>
+<li>
+<p> 'none': no variable importance is computed.
+</p>
+</li>
+<li>
+<p> 'anova': compute analysis of variance (ANOVA) importance
+</p>
+</li>
+<li>
+<p> 'negate': compute negation importance
+</p>
+</li>
+<li>
+<p> 'permute': compute permutation importance
+</p>
+</li>
+</ul>
+<p>For details on these methods, see orsf_vi.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importance_max_pvalue</code></td>
+<td>
+<p>(<em>double</em>) Only relevant if <code>importance</code>
+is <code>"anova"</code>. The maximum p-value that will register as a positive
+case when counting the number of times a variable was found to be
+'significant' during tree growth. Default is 0.01, as recommended
+by Menze et al.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_factors</code></td>
+<td>
+<p>(<em>logical</em>) Only relevant if variable importance is
+being estimated. if <code>TRUE</code>, the importance of factor variables will be reported overall by aggregating the importance of individual levels of the factor. If <code>FALSE</code>, the importance of individual factor levels will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tree_seeds</code></td>
+<td>
+<p>(<em>integer vector</em>) Optional. if specified, random seeds
+will be set using the values in <code>tree_seeds[i]</code>  before growing tree <code>i</code>.
+Two forests grown with the same number of trees and the same seeds will
+have the exact same out-of-bag samples, making out-of-bag error
+estimates of the forests more comparable. If <code>NULL</code> (the default),
+seeds are picked at random.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attach_data</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, a copy of the training
+data will be attached to the output. This is required if you
+plan on using functions like orsf_pd_oob or orsf_summarize_uni
+to interpret the forest using its training data. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no_fit</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, model fitting steps are defined and
+saved, but training is not initiated. The object returned can be
+directly submitted to <code>orsf_train()</code> so long as <code>attach_data</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_action</code></td>
+<td>
+<p>(<em>character</em>) what should happen when <code>data</code> contains missing values (i.e., <code>NA</code> values). Valid options are:
+</p>
+
+<ul>
+<li>
+<p> 'fail' : an error is thrown if <code>data</code> contains <code>NA</code> values
+</p>
+</li>
+<li>
+<p> 'omit' : rows in <code>data</code> with incomplete data will be dropped
+</p>
+</li>
+<li>
+<p> 'impute_meanmode' : missing values for continuous and categorical variables in <code>data</code> will be imputed using the mean and mode, respectively.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress messages are
+printed in the console. If <code>FALSE</code> (the default), nothing is printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an untrained 'aorsf' object, created by setting
+<code>no_fit = TRUE</code> in <code>orsf()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Why isn't this function called <code>orf()</code>? In its earlier versions, the
+<code>aorsf</code> package was exclusively for <em>o</em>blique <em>r</em>andom <em>s</em>urvival <em>f</em>orests.
+</p>
+<p><strong>formula for survival oblique RFs</strong>:
+</p>
+
+<ul>
+<li>
+<p> The response in <code>formula</code> can be a survival
+object as returned by the Surv function,
+but can also just be the time and status variables. I.e.,
+<code>Surv(time, status) ~ .</code> works and <code>time + status ~ .</code> works
+</p>
+</li>
+<li>
+<p> The response can also be a survival object stored in <code>data</code>.
+For example, <code>y ~ .</code> is a valid formula if <code>data$y</code> inherits
+from the <code>Surv</code> class.
+</p>
+</li>
+</ul>
+<p><strong>mtry</strong>:
+</p>
+<p>The <code>mtry</code> parameter may be temporarily reduced to ensure that linear
+models used to find combinations of predictors remain stable. This occurs
+because coefficients in linear model fitting algorithms may become infinite
+if the number of predictors exceeds the number of observations.
+</p>
+<p><strong>oobag_fun</strong>:
+</p>
+<p>If <code>oobag_fun</code> is specified, it will be used in to compute negation
+importance or permutation importance, but it will not have any role
+for ANOVA importance.
+</p>
+<p><strong>n_thread</strong>:
+</p>
+<p>If an R function is to be called from C++ (i.e., user-supplied function to
+compute out-of-bag error or identify linear combinations of variables),
+<code>n_thread</code> will automatically be set to 1 because attempting to run R
+functions in multiple threads will cause the R session to crash.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an <em>obliqueForest</em> object
+</p>
+
+
+<h3>What is an oblique decision tree?</h3>
+
+<p>Decision trees are developed by splitting a set of training data into two
+new subsets, with the goal of having more similarity within the new subsets
+than between them. This splitting process is repeated on the resulting
+subsets of data until a stopping criterion is met. When the new subsets of
+data are formed based on a single predictor, the decision tree is said to
+be axis-based because the splits of the data appear perpendicular to the
+axis of the predictor. When linear combinations of variables are used
+instead of a single variable, the tree is oblique because the splits of
+the data are neither parallel nor at a right angle to the axis
+</p>
+<p><em>Figure</em> : Decision trees for classification with axis-based splitting
+(left) and oblique splitting (right). Cases are orange squares; controls
+are purple circles. Both trees partition the predictor space defined by
+variables X1 and X2, but the oblique splits do a better job of separating
+the two classes.
+</p>
+<p><img src="../help/figures/tree_axis_v_oblique.png" width="95%" alt="tree_axis_v_oblique.png"></p>
+
+
+<h3>What is a random forest?</h3>
+
+<p>Random forests are collections of de-correlated decision trees.
+Predictions from each tree are aggregated to make an ensemble
+prediction for the forest. For more details, see Breiman at el, 2001.
+</p>
+
+
+<h3>Training, out-of-bag error, and testing</h3>
+
+<p>In random forests, each tree is grown with a bootstrapped version of
+the training set. Because bootstrap samples are selected with replacement,
+each bootstrapped training set contains about two-thirds of instances in
+the original training set. The 'out-of-bag' data are instances that are
+<em>not</em> in the bootstrapped training set. Each tree in the random forest
+can make predictions for its out-of-bag data, and the out-of-bag
+predictions can be aggregated to make an ensemble out-of-bag prediction.
+Since the out-of-bag data are not used to grow the tree, the accuracy of
+the ensemble out-of-bag predictions approximate the generalization error
+of the random forest. Generalization error refers to the error of a
+random forest's predictions when it is applied to predict outcomes for
+data that were not used to train it, i.e., testing data.
+</p>
+
+
+<h3>Examples</h3>
+
+<div class="sourceCode r"><pre>library(aorsf)
+library(magrittr) # for %&gt;%
+</pre></div>
+<div class="sourceCode"><pre>## 
+## Attaching package: 'magrittr'
+
+## The following object is masked from 'package:tidyr':
+## 
+##     extract
+
+## The following objects are masked from 'package:testthat':
+## 
+##     equals, is_less_than, not
+</pre></div>
+<p><code>orsf()</code> is the entry-point of the <code>aorsf</code> package. It can be used to
+fit classification, regression, and survival forests.
+</p>
+<p>For classification, we fit an oblique RF to predict penguin species
+using <code>penguin</code> data from the magnificent <code>palmerpenguins</code> <a href="https://allisonhorst.github.io/palmerpenguins/">R package</a>
+</p>
+<div class="sourceCode r"><pre># An oblique classification RF
+penguin_fit &lt;- orsf(data = penguins_orsf,
+                    n_tree = 5, 
+                    formula = species ~ .)
+
+penguin_fit
+</pre></div>
+<div class="sourceCode"><pre>## ---------- Oblique random classification forest
+## 
+##      Linear combinations: Accelerated Logistic regression
+##           N observations: 333
+##                N classes: 3
+##                  N trees: 5
+##       N predictors total: 7
+##    N predictors per node: 3
+##  Average leaves per tree: 4.6
+## Min observations in leaf: 5
+##           OOB stat value: 0.99
+##            OOB stat type: AUC-ROC
+##      Variable importance: anova
+## 
+## -----------------------------------------
+</pre></div>
+<p>For regression, we use the same data but predict bill length of
+penguins:
+</p>
+<div class="sourceCode r"><pre># An oblique regression RF
+bill_fit &lt;- orsf(data = penguins_orsf, 
+                 n_tree = 5, 
+                 formula = bill_length_mm ~ .)
+
+bill_fit
+</pre></div>
+<div class="sourceCode"><pre>## ---------- Oblique random regression forest
+## 
+##      Linear combinations: Accelerated Linear regression
+##           N observations: 333
+##                  N trees: 5
+##       N predictors total: 7
+##    N predictors per node: 3
+##  Average leaves per tree: 51
+## Min observations in leaf: 5
+##           OOB stat value: 0.70
+##            OOB stat type: RSQ
+##      Variable importance: anova
+## 
+## -----------------------------------------
+</pre></div>
+<p>My personal favorite is the oblique survival RF with accelerated Cox
+regression because it was the first type of oblique RF that <code>aorsf</code>
+provided (see <a href="https://arxiv.org/abs/2208.01129">ArXiv paper</a>; the paper
+is also published in <em>Journal of Computational and Graphical Statistics</em>
+but is not publicly available there). Here, we use it to predict
+mortality risk following diagnosis of primary biliary cirrhosis:
+</p>
+<div class="sourceCode r"><pre># An oblique survival RF
+pbc_fit &lt;- orsf(data = pbc_orsf, 
+                n_tree = 5,
+                formula = Surv(time, status) ~ . - id)
+
+pbc_fit
+</pre></div>
+<div class="sourceCode"><pre>## ---------- Oblique random survival forest
+## 
+##      Linear combinations: Accelerated Cox regression
+##           N observations: 276
+##                 N events: 111
+##                  N trees: 5
+##       N predictors total: 17
+##    N predictors per node: 5
+##  Average leaves per tree: 22.2
+## Min observations in leaf: 5
+##       Min events in leaf: 1
+##           OOB stat value: 0.78
+##            OOB stat type: Harrell's C-index
+##      Variable importance: anova
+## 
+## -----------------------------------------
+</pre></div>
+
+
+<h4>More than one way to grow a forest</h4>
+
+<p>You can use <code>orsf(no_fit = TRUE)</code> to make a <em>specification</em> to grow a
+forest instead of a fitted forest.
+</p>
+<div class="sourceCode r"><pre>orsf_spec &lt;- orsf(pbc_orsf, 
+                  formula = time + status ~ . - id,
+                  no_fit = TRUE)
+
+orsf_spec
+</pre></div>
+<div class="sourceCode"><pre>## Untrained oblique random survival forest
+## 
+##      Linear combinations: Accelerated Cox regression
+##           N observations: 276
+##                 N events: 111
+##                  N trees: 500
+##       N predictors total: 17
+##    N predictors per node: 5
+##  Average leaves per tree: 0
+## Min observations in leaf: 5
+##       Min events in leaf: 1
+##           OOB stat value: none
+##            OOB stat type: Harrell's C-index
+##      Variable importance: anova
+## 
+## -----------------------------------------
+</pre></div>
+<p>Why would you do this? Two reasons:
+</p>
+
+<ol><li>
+<p> For very computational tasks, you may want to check how long it will
+take to fit the forest before you commit to it:
+</p>
+</li></ol>
+<div class="sourceCode r"><pre>orsf_spec %&gt;% 
+ orsf_update(n_tree = 10000) %&gt;%
+ orsf_time_to_train()
+</pre></div>
+<div class="sourceCode"><pre>## Time difference of 2.429678 secs
+</pre></div>
+
+<ol><li>
+<p> If fitting multiple forests, use the blueprint along with
+<code>orsf_train()</code> and <code>orsf_update()</code> to simplify your code:
+</p>
+</li></ol>
+<div class="sourceCode r"><pre>orsf_fit &lt;- orsf_train(orsf_spec)
+orsf_fit_10 &lt;- orsf_update(orsf_fit, leaf_min_obs = 10)
+orsf_fit_20 &lt;- orsf_update(orsf_fit, leaf_min_obs = 20)
+
+orsf_fit$leaf_min_obs
+</pre></div>
+<div class="sourceCode"><pre>## [1] 5
+</pre></div>
+<div class="sourceCode r"><pre>orsf_fit_10$leaf_min_obs
+</pre></div>
+<div class="sourceCode"><pre>## [1] 10
+</pre></div>
+<div class="sourceCode r"><pre>orsf_fit_20$leaf_min_obs
+</pre></div>
+<div class="sourceCode"><pre>## [1] 20
+</pre></div>
+
+
+
+<h4>tidymodels</h4>
+
+<p><code>tidymodels</code> includes support for <code>aorsf</code> as a computational engine:
+</p>
+<div class="sourceCode r"><pre>library(tidymodels)
+library(censored)
+library(yardstick)
+
+pbc_tidy &lt;- pbc_orsf %&gt;% 
+ mutate(event_time = Surv(time, status), .before = 1) %&gt;% 
+ select(-c(id, time, status)) %&gt;% 
+ as_tibble()
+
+split  &lt;- initial_split(pbc_tidy)
+
+orsf_spec &lt;- rand_forest() %&gt;% 
+ set_engine("aorsf") %&gt;% 
+ set_mode("censored regression")
+
+orsf_fit &lt;- fit(orsf_spec, 
+                formula = event_time ~ ., 
+                data = training(split))
+</pre></div>
+<p>Prediction with <code>aorsf</code> models at different times is also supported:
+</p>
+<div class="sourceCode r"><pre>time_points &lt;- seq(500, 3000, by = 500)
+
+test_pred &lt;- augment(orsf_fit, 
+                     new_data = testing(split), 
+                     eval_time = time_points)
+
+brier_scores &lt;- test_pred %&gt;% 
+  brier_survival(truth = event_time, .pred)
+
+brier_scores
+</pre></div>
+<div class="sourceCode"><pre>## # A tibble: 6 x 4
+##   .metric        .estimator .eval_time .estimate
+##   &lt;chr&gt;          &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;
+## 1 brier_survival standard          500    0.0597
+## 2 brier_survival standard         1000    0.0943
+## 3 brier_survival standard         1500    0.0883
+## 4 brier_survival standard         2000    0.102 
+## 5 brier_survival standard         2500    0.137 
+## 6 brier_survival standard         3000    0.153
+</pre></div>
+<div class="sourceCode r"><pre>roc_scores &lt;- test_pred %&gt;% 
+  roc_auc_survival(truth = event_time, .pred)
+
+roc_scores
+</pre></div>
+<div class="sourceCode"><pre>## # A tibble: 6 x 4
+##   .metric          .estimator .eval_time .estimate
+##   &lt;chr&gt;            &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;
+## 1 roc_auc_survival standard          500     0.957
+## 2 roc_auc_survival standard         1000     0.912
+## 3 roc_auc_survival standard         1500     0.935
+## 4 roc_auc_survival standard         2000     0.931
+## 5 roc_auc_survival standard         2500     0.907
+## 6 roc_auc_survival standard         3000     0.889
+</pre></div>
+
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> Harrell, E F, Califf, M R, Pryor, B D, Lee, L K, Rosati, A R (1982).
+"Evaluating the yield of medical tests." <em>Jama</em>, <em>247</em>(18), 2543-2546.
+</p>
+</li>
+<li>
+<p> Breiman, Leo (2001). "Random Forests." <em>Machine Learning</em>, <em>45</em>(1),
+5-32. ISSN 1573-0565.
+</p>
+</li>
+<li>
+<p> Ishwaran H, Kogalur UB, Blackstone EH, Lauer MS (2008). "Random
+survival forests." <em>The Annals of Applied Statistics</em>, <em>2</em>(3).
+</p>
+</li>
+<li>
+<p> Menze, H B, Kelm, Michael B, Splitthoff, N D, Koethe, Ullrich,
+Hamprecht, A F (2011). "On oblique random forests." In <em>Machine
+Learning and Knowledge Discovery in Databases: European Conference,
+ECML PKDD 2011, Athens, Greece, September 5-9, 2011, Proceedings, Part
+II 22</em>, 453-469. Springer.
+</p>
+</li>
+<li>
+<p> Jaeger BC, Long DL, Long DM, Sims M, Szychowski JM, Min Y, Mcclure LA,
+Howard G, Simon N (2019). "Oblique random survival forests." <em>The
+Annals of Applied Statistics</em>, <em>13</em>(3).
+</p>
+</li>
+<li>
+<p> Jaeger BC, Welden S, Lenoir K, Speiser JL, Segar MW, Pandey A, Pajewski
+NM (2023). "Accelerated and interpretable oblique random survival
+forests." <em>Journal of Computational and Graphical Statistics</em>, 1-16.
+</p>
+</li>
+</ol>
+</div>

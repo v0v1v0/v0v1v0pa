@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>partial_eval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partially evaluate an expression.</h2>
+
+<h3>Description</h3>
+
+<p>This function partially evaluates an expression, using information from
+the tbl to determine whether names refer to local expressions
+or remote variables. This simplifies translation because expressions
+don't need to carry around their environment - all relevant information
+is incorporated into the expression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">partial_eval(call, vars = character(), env = caller_env())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>an unevaluated expression, as produced by <code>quote()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>character vector of variable names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>environment in which to search for local values</p>
+</td>
+</tr>
+</table>
+<h3>Symbol substitution</h3>
+
+<p><code>partial_eval()</code> needs to guess if you're referring to a variable on the
+server (remote), or in the current environment (local).
+</p>
+<p>You can override the guesses using <code>local()</code> and <code>remote()</code> to force
+computation, or by using the <code>.data</code> and <code>.env</code> pronouns of tidy evaluation.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">vars &lt;- c("year", "id")
+partial_eval(quote(year &gt; 1980), vars = vars)
+
+ids &lt;- c("ansonca01", "forceda01", "mathebo01")
+partial_eval(quote(id %in% ids), vars = vars)
+
+# cf.
+partial_eval(quote(id == .data$ids), vars = vars)
+
+# You can use local() or .env to disambiguate between local and remote
+# variables: otherwise remote is always preferred
+year &lt;- 1980
+partial_eval(quote(year &gt; year), vars = vars)
+partial_eval(quote(year &gt; local(year)), vars = vars)
+partial_eval(quote(year &gt; .env$year), vars = vars)
+
+# Functions are always assumed to be remote. Use local to force evaluation
+# in R.
+f &lt;- function(x) x + 1
+partial_eval(quote(year &gt; f(1980)), vars = vars)
+partial_eval(quote(year &gt; local(f(1980))), vars = vars)
+</code></pre>
+
+
+</div>

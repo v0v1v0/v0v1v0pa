@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update.scaledTrellis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Update Method for scaledTrellis Objects
+</h2>
+
+<h3>Description</h3>
+
+<p>Updates both <code>addScale</code> parameters, including those passed to the <code>panelFUN</code>,
+and components of the original <code>trellis</code> object. Note that this may produce
+undesirable results if the axis limits are changed via updating trellis
+parameters without updating scaleline limits. See the examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   ## S3 method for class 'scaledTrellis'
+update(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p><code>scaledTrellis</code> object: The object on which method dispatch is carried out.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Any number of name = value pairs giving arguments that will be used to update <code>object</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Arguments to <code>addScales</code> and those to (the most recent version of) the original
+<code>trellis</code> object are separated and <code>update.trellis</code> is first called on the latter.
+This means that any <code>trellis</code> argument changes must satisfy the restrictions
+on what <code>update.trellis</code> can change, basically, anything but
+the data used for plotting. <em>All</em> <code>addScales</code> and <code>panelFUN</code>
+parameters can be changed as long as such changes are possible
+(e.g. no scale lines can be added for factors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The updated object of class <code>c("scaledTrellis","trellis")</code> if successful.<br>
+The unmodified object if an error occurs.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bert Gunter <a href="mailto:bgunter.4567@gmail.com">bgunter.4567@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>update.trellis</code>, <code>addScales</code>,
+<code>panel.addScales</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Replicate the USAcrimes example in ?addScales
+##
+data(USAcrime)
+state.smpl &lt;- c("CA","TX","GA","CO","VA","FL","NY","OH","MO","UT","MA","TN")
+wh &lt;- USAcrime$State %in% state.smpl
+pcols &lt;- hcl.colors(n = 55, rev = TRUE)
+crm &lt;-xyplot(allViolent ~ allProperty|State, data = USAcrime[wh,],
+             subscripts = TRUE,
+             as.table = TRUE,
+             layout = c(4,3), type = c("p", "g"),
+             cex= .75,  pch = 19,
+             col = pcols[USAcrime[wh,'Year'] -1959],
+             par.strip.text = list(lines = .7, cex = .7),
+             between = list(x = 1),
+             scales = list(axs="i",relation = "free", draw = FALSE),
+             xlab = "Property Crime Rate (incidents/100,000 population)",
+             ylab = "Violent Crime Rate (incidents/100,000 population)",
+             main = paste0("Violent vs. Property Crime Rates from 1960-2014 For 12 States"),
+             sub = "Point Darkness Codes Years: Darker = Later Years",
+             panel = function(subscripts,col,...)
+                panel.xyplot(col = col[subscripts],...)
+   )
+crm
+ads.1 &lt;- addScales(crm, scaleline = TRUE)
+ads.1 ## plot it
+
+## Change the plotting symbol, add a fitted line to the panel,
+## remove the grid, change the layout,
+## color code the midline and use shaded scale regions instead
+## of lines, and put the legend on the right.
+##
+## Note that the arguments can be given in any order.
+## (automatically plotted since no return value)
+update(ads.1, pch = 19,layout = c(3,4), type = "p",
+       colCode = "m", scaleType = "reg", legend.loc = "right",
+       panel = function(x, y,  ...){
+          panel.xyplot(x, y,...)
+          panel.abline(reg = lm(y ~ x), col = "darkred", lwd = 2)
+       }
+)
+
+## example of problems that can occur when updating trellis scales without
+## updating addScales.
+##
+## Example from addScales() help:
+x &lt;- rep(0:10, 4)
+scaling &lt;- rep(c(1, 2, 5, 10), e = 11)
+y &lt;- sin(pi*x/10)*scaling + scaling ## add some structure
+f &lt;- factor(rep(LETTERS[1:4], e = 11))
+
+## Now add noise proportional to data mean (= constant CV)
+set.seed(91834)
+y &lt;- y + rnorm(44,sd = scaling/3)
+
+## Plot this with the default "same" scaling and a loess curve
+
+samescale &lt;- xyplot(y ~ x| f, layout = c(4,1), col = "darkblue",
+                    scales = list(alternating = 1, tck = c(1,0)),
+                    panel = function(...){
+                        panel.points(...)
+                        panel.loess(..., span = .6, col.line = "blue")
+                    })
+samescale
+
+## Call addScales and then update scale. This uses update.scaledTrellis:
+
+update(addScales(samescale, scaleType = "region"),
+       scales =  list(y = list(relation = "free", draw = FALSE)))
+
+## This will generate a warning message, shown after the examples complete,
+## and useless scaleline regions.
+##
+## Repeat, but now update the scaleline argument of addScales() also:
+
+update(addScales(samescale, scaleType = "region"),
+       scaleline = list(h = TRUE, v = FALSE),
+       scales =  list(y = list(relation = "free", draw = FALSE))
+)
+
+## The updated scale regions are now appropriate.
+## This could also have been done by first updating the trellis object
+## (which would use the update.trellis method) and **then** calling
+## addScales() on that, i.e.
+
+addScales(update(samescale, scales =
+                     list(y = list(relation = "free", draw = FALSE))),
+          scaleType = "region")
+## cleanup
+rm(ads.1, crm, pcols, wh, state.smpl, samescale,
+   scaling, x, y, f)
+
+</code></pre>
+
+
+</div>

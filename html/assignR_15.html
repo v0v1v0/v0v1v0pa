@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>QA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Quality assessment of geographic assignments
+</h2>
+
+<h3>Description</h3>
+
+<p>How well does a given isoscape and/or known origin data set constrain the geographic origin of samples? Uses iterative re-sampling of known origin data to evaluate sample assignments and reports a suite of quality metrics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">QA(known, isoscape, bySite = TRUE, valiStation = 1, valiTime = 50, 
+  recal = TRUE, by = 2, prior = NULL, mask = NULL, setSeed = TRUE, 
+  name = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>known</code></td>
+<td>
+
+<p>subOrigData, list of subOrigData, or SpatVector. Known-origin tissue isotope data from the <code>subOrigData</code> function or provided by user. User-provided data must be formatted as subOrigData objects (see <code>subOrigData</code>) or a SpatVector (see Details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isoscape</code></td>
+<td>
+<p>SpatRaster with two layers or <code>isoStack</code> object. For user-generated raster objects, the first layer must be the isoscape (mean prediction) and the second the isoscape prediction uncertainty (1 standard deviation).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bySite</code></td>
+<td>
+<p>logical. Resample known by site (TRUE) or by sample (FALSE)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valiStation</code></td>
+<td>
+<p>numeric. How many sites or samples from known are withheld for validation? Must be two or more smaller than the length of <code>known</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valiTime</code></td>
+<td>
+<p>numeric. How many times do you want to randomly draw validation samples and run the validation? Must be an integer greater than one.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recal</code></td>
+<td>
+<p>logical. Recalibrate the isoscape(s) using the known-origin data? If FALSE, <code>isoscape</code> should be a calibrated product appropriate to the samples, and a single iteration is run for each sample in <code>known</code>; parameters <code>bySite</code>, <code>valiStation</code>, and <code>valiTime</code> are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>integer. Threshold increment to use in evaluating assignment performance. Must be between 1 and 25.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>SpatRaster. Optional layer with prior probabilities, which has the same projection, resolution and extent as <code>isoscape</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p>SpatVector. Constrains the area of the analysis. If this is not provided, the entire area of <code>isoscape</code> is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setSeed</code></td>
+<td>
+<p>logical. Do you want to <code>set.seed()</code> when you randomly draw validation stations? “TRUE” gives the same sequence of random draws each time the function is called.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>character. Useful for identifying the QA output in subsequent plotting.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>known</code> is a user-provided SpatVector, the first data field must include the measured value for the first (or only) isotope marker and the second the one standard deviation uncertainty on that value. Subsequent fields must include the same information for all other isotope markers included in the analysis, and these markers must appear in the same order as in <code>isoscape</code>. A user-provided SpatVector must include a field named “Site_ID” containing unique values for each sampling site to support the “bySite” option, otherwise use <code>bySite = FALSE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class “QA”.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>val_stations</code></td>
+<td>
+<p>numeric. An X*Y data.frame of validation station IDs for all valiTime. X = <code>valiTime</code> and Y = <code>valiStation</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pd_val</code></td>
+<td>
+<p>numeric. An X*Y data.frame containing the posterior probability density for the validation stations. X = <code>valiTime</code> and Y = <code>valiStation</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prption_byArea</code></td>
+<td>
+<p>numeric. An X*Y data.frame showing the proportion of validation individuals for which the known origin is contained within the top 0.00 to 1.00 area quantile (with increment of <code>by / 100</code>; Y = <code>ceiling(100 / by) + 1</code>). X = <code>valiTime</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prption_byProb</code></td>
+<td>
+<p>numeric. An X*Y data.frame showing the proportion of validation individuals for which the known origin is contained within the top 0.00 to 1.00 probability quantile (with increment of <code>by / 100</code>; Y = <code>ceiling(100 / by) + 1</code>). X = <code>valiTime</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precision</code></td>
+<td>
+<p>list. The length of the list is <code>valiTime</code>. Each element is an X*Y matrix showing the proportional area of the total assignment surface covered by the assignment region at a given probability quantile from 0.00 to 1.00 (with increment of <code>by / 100</code>; X = <code>ceiling(100 / by) + 1</code>) for each validation sample (Y = <code>valiStation</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_prob_density</code></td>
+<td>
+<p>Random probability of assignment to any given grid cell on the assignment surface(i.e. 1 divided by the total number of grid cells).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>character. Name assigned to the QA object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>integer. Value of by used.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>See Ma et al. (2020) for methodological details.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ma, C. et al. (2020) assignR : An R package for isotope-based geographic assignment. <em>Methods in Ecology and Evolution</em> <strong>11</strong> 996–1001. <a href="https://doi.org/10.1111/2041-210X.13426">doi:10.1111/2041-210X.13426</a>.
+</p>
+<p>Vander Zanden, H. B. et al. (2014) Contrasting assignment of migratory organisms to geographic origins using long-term versus year-specific precipitation isotope maps. <em>Methods in Ecology and Evolution</em> <strong>5</strong> 891–900. <a href="https://doi.org/10.1111/2041-210X.12229">doi:10.1111/2041-210X.12229</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.QA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># extract some known-origin data
+d1 = subOrigData(taxon = "Buteo lagopus")
+
+# run quality assessment based on precipitation hydrogen isotopes and 
+# known-origin samples; small values of valiStation and valiTime 
+# are used in example to reduce run time
+
+# first with one example
+# gives warning because a small number of samples are available
+qa1 = QA(known = d1, isoscape = d2h_lrNA, valiTime = 2, by = 10, 
+          mask = naMap, name = "Buteo")
+                    
+# plot the qa result
+plot(qa1)
+
+# now compare with a second data set
+d2 = subOrigData(taxon = "Charadrius montanus")
+qa2 = QA(known = d2, isoscape = d2h_lrNA, valiTime = 2, by = 10, 
+          mask = naMap, name = "Charadrius")
+plot(qa1, qa2)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.ahaz</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prediction methods for ahaz</h2>
+
+<h3>Description</h3>
+
+<p>Compute regression coefficients, linear predictor, cumulative hazard function, or
+integrated martingale residuals for a fitted semiparametric additive hazards model. </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ahaz'
+predict(object, newX, type=c("coef", "lp",
+       "residuals", "cumhaz"), beta=NULL, ...)
+## S3 method for class 'ahaz'
+coef(object, ...)
+## S3 method for class 'ahaz'
+vcov(object, ...)
+## S3 method for class 'ahaz'
+residuals(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The result of an <code>ahaz</code> fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newX</code></td>
+<td>
+<p>Optional new matrix of covariates at which to do
+predictions. Currently only supported for <code>type="lp"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of prediction. Options are the regression coefficients
+("<code>coef</code>"), the linear
+predictor ("<code>lp</code>"),  the martingale residuals
+("<code>residuals</code>"), or the cumulative hazard
+("<code>cumhaz</code>"). See the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Optional vector of regression coefficients. If unspecified,
+the regression coefficients derived from <code>object</code> are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For future methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Breslow estimator of the baseline cumulative hazard is described
+in Lin &amp; Ying (1994).
+</p>
+<p>The regression coefficients <code class="reqn">\beta_0</code> in the semiparametric additive hazards
+model are obtained as the
+solution <code class="reqn">\hat{\beta}</code> to a quadratic  system of linear equations
+<code class="reqn">D\beta=d</code>. The
+(integrated) martingale residuals <code class="reqn">\epsilon_i</code> for
+<code class="reqn">i=1,...,n</code> are vectors, of length
+corresponding to the number of covariates, so that
+</p>
+<p style="text-align: center;"><code class="reqn">D(\hat{\beta}-\beta_0) -d \approx \epsilon_1+\cdots+\epsilon_n</code>
+</p>
+
+<p>The residuals estimate integrated
+martingales and are
+asymptotically distributed as mean-zero IID multivariate Gaussian. They can be used to derive a sandwich-type variance
+estimator for regression coefficients (implemented in
+<code>summary.ahaz</code> when <code>robust=TRUE</code> is specified).  They can moreover be used for implementing consistent standard error
+estimation under clustering; or for implementing resampling-based
+inferential methods.
+</p>
+<p>See Martinussen &amp; Scheike (2006), Chapter 5.4 for details.  </p>
+
+
+<h3>Value</h3>
+
+<p>For <code>type="coef"</code> and <code>type="lp"</code>, a vector of
+predictions.
+</p>
+<p>For <code>type="coef"</code>, a matrix of (integrated) martingale
+residuals, with number of columns corresponding to the number of
+covariates.
+</p>
+<p>For <code>type="cumhaz"</code>, an object with S3 class <code>"cumahaz"</code>
+consisting of:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Jump times for the cumulative hazard estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumhaz</code></td>
+<td>
+<p>The cumulative hazard estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>Status at jump times (1 corresponds to death, 0
+corresponds to entry/exit).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Martinussen, T. &amp; Scheike, T. H. &amp;  (2006). <em>Dynamic Regression Models for Survival Data.</em> Springer.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ahaz</code>,  <code>summary.ahaz</code>, <code>plot.cumahaz</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+set.seed(10101)
+
+# Break ties
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,15:24])
+
+# Fit additive hazards regression model
+fit &lt;- ahaz(surv, X)
+
+# Parameter estimates
+coef(fit)
+
+# Linear predictor, equivalent to X%*%coef(fit)
+predict(fit,type="lp")
+
+# Cumulative baseline hazard
+cumahaz &lt;- predict(fit, type="cumhaz")
+
+# Residuals - model fit
+resid &lt;- predict(fit, type = "residuals")
+# Decorrelate, standardize, and check QQ-plots
+stdres &lt;- apply(princomp(resid)$scores,2,function(x){x/sd(x)})
+par(mfrow = c(2,2))
+for(i in 1:4){
+  qqnorm(stdres[,i])
+  abline(c(0,1))
+}
+
+# Residuals - alternative variance estimation
+resid &lt;- residuals(fit)
+cov1 &lt;- summary(fit)$coef[,2]
+invD &lt;- solve(fit$D)
+Best&lt;-t(resid)%*%resid
+cov2 &lt;- invD %*% Best %*% invD
+# Compare with (nonrobust) SEs from 'summary.ahaz'
+plot(cov1, sqrt(diag(cov2)),xlab="Nonrobust",ylab="Robust")
+abline(c(0,1))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,231 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create exposure records from census records</h2>
+
+<h3>Description</h3>
+
+<p>Convert a data frame of census-level records to exposure-level
+records.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">expose(
+  .data,
+  end_date,
+  start_date = as.Date("1900-01-01"),
+  target_status = NULL,
+  cal_expo = FALSE,
+  expo_length = c("year", "quarter", "month", "week"),
+  col_pol_num = "pol_num",
+  col_status = "status",
+  col_issue_date = "issue_date",
+  col_term_date = "term_date",
+  default_status
+)
+
+expose_py(...)
+
+expose_pq(...)
+
+expose_pm(...)
+
+expose_pw(...)
+
+expose_cy(...)
+
+expose_cq(...)
+
+expose_cm(...)
+
+expose_cw(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A data frame with census-level records</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>Experience study end date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Experience study start date. Default value = 1900-01-01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_status</code></td>
+<td>
+<p>Character vector of target status values. Default value
+= <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cal_expo</code></td>
+<td>
+<p>Set to TRUE for calendar year exposures. Otherwise policy
+year exposures are assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expo_length</code></td>
+<td>
+<p>Exposure period length</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_pol_num</code></td>
+<td>
+<p>Name of the column in <code>.data</code> containing the policy number</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_status</code></td>
+<td>
+<p>Name of the column in <code>.data</code> containing the policy status</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_issue_date</code></td>
+<td>
+<p>Name of the column in <code>.data</code> containing the issue date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_term_date</code></td>
+<td>
+<p>Name of the column in <code>.data</code> containing the termination
+date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_status</code></td>
+<td>
+<p>Optional scalar character representing the default
+active status code. If not provided, the most common status is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>expose()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Census-level data refers to a data set wherein there is one row
+per unique policy. Exposure-level data expands census-level data such that
+there is one record per policy per observation period. Observation periods
+could be any meaningful period of time such as a policy year, policy month,
+calendar year, calendar quarter, calendar month, etc.
+</p>
+<p><code>target_status</code> is used in the calculation of exposures. The annual
+exposure method is applied, which allocates a full period of exposure for
+any statuses in <code>target_status</code>. For all other statuses, new entrants
+and exits are partially exposed based on the time elapsed in the observation
+period. This method is consistent with the Balducci Hypothesis, which assumes
+that the probability of termination is proportionate to the time elapsed
+in the observation period. If the annual exposure method isn't desired,
+<code>target_status</code> can be ignored. In this case, partial exposures are
+always applied regardless of status.
+</p>
+<p><code>default_status</code> is used to indicate the default active status that
+should be used when exposure records are created.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A tibble with class <code>exposed_df</code>, <code>tbl_df</code>, <code>tbl</code>,
+and <code>data.frame</code>. The results include all existing columns in
+<code>.data</code> plus new columns for exposures and observation periods. Observation
+periods include counters for policy exposures, start dates, and end dates.
+Both start dates and end dates are inclusive bounds.
+</p>
+<p>For policy year exposures, two observation period columns are returned.
+Columns beginning with (<code>pol_</code>) are integer policy periods. Columns
+beginning with (<code>pol_date_</code>) are calendar dates representing
+anniversary dates, monthiversary dates, etc.
+</p>
+
+
+<h3>Policy period and calendar period variations</h3>
+
+<p>The functions <code>expose_py()</code>, <code>expose_pq()</code>, <code>expose_pm()</code>,
+<code>expose_pw()</code>, <code>expose_cy()</code>, <code>expose_cq()</code>,
+<code>expose_cm()</code>, <code>expose_cw()</code> are convenience functions for
+specific implementations of <code>expose()</code>. The two characters after the
+underscore describe the exposure type and exposure period, respectively.
+</p>
+<p>For exposures types:
+</p>
+
+<ul>
+<li> <p><code>p</code> refers to policy years
+</p>
+</li>
+<li> <p><code>c</code> refers to calendar years
+</p>
+</li>
+</ul>
+<p>For exposure periods:
+</p>
+
+<ul>
+<li> <p><code>y</code> = years
+</p>
+</li>
+<li> <p><code>q</code> = quarters
+</p>
+</li>
+<li> <p><code>m</code> = months
+</p>
+</li>
+<li> <p><code>w</code> = weeks
+</p>
+</li>
+</ul>
+<p>All columns containing dates must be in YYYY-MM-DD format.
+</p>
+
+
+<h3>References</h3>
+
+<p>Atkinson and McGarry (2016). Experience Study Calculations.
+<a href="https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf">https://www.soa.org/49378a/globalassets/assets/files/research/experience-study-calculations.pdf</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>expose_split()</code> for information on splitting calendar year
+exposures by policy year.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">toy_census |&gt; expose("2020-12-31")
+
+census_dat |&gt; expose_py("2019-12-31", target_status = "Surrender")
+
+</code></pre>
+
+
+</div>

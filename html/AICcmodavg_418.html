@@ -1,0 +1,532 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mb.gof.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute MacKenzie and Bailey Goodness-of-fit Test for Single Season,
+Dynamic, and Royle-Nichols Occupancy Models
+</h2>
+
+<h3>Description</h3>
+
+<p>These functions compute the MacKenzie and Bailey (2004) goodness-of-fit
+test for single season occupancy models based on Pearson's chi-square
+and extend it to dynamic (multiple season) and Royle-Nichols (2003)
+occupancy models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mb.chisq(mod, print.table = TRUE, ...)
+
+## S3 method for class 'unmarkedFitOccu'
+mb.chisq(mod, print.table = TRUE, ...)
+
+## S3 method for class 'unmarkedFitColExt'
+mb.chisq(mod, print.table = TRUE, ...)
+
+## S3 method for class 'unmarkedFitOccuRN'
+mb.chisq(mod, print.table = TRUE,
+                  maxK = NULL, ...)
+
+mb.gof.test(mod, nsim = 5, plot.hist = TRUE, report = NULL,
+            parallel = TRUE, ncores, cex.axis = 1, cex.lab = 1,
+            cex.main = 1, lwd = 1, ...)
+
+## S3 method for class 'unmarkedFitOccu'
+mb.gof.test(mod, nsim = 5, plot.hist = TRUE,
+                     report = NULL, parallel = TRUE, ncores,
+                     cex.axis = 1, cex.lab = 1, cex.main = 1,
+                     lwd = 1, ...)
+
+## S3 method for class 'unmarkedFitColExt'
+mb.gof.test(mod, nsim = 5, plot.hist = TRUE,
+                     report = NULL, parallel = TRUE,
+                     ncores, cex.axis = 1, cex.lab = 1, cex.main = 1,
+                     lwd = 1, plot.seasons = FALSE, ...) 
+
+## S3 method for class 'unmarkedFitOccuRN'
+mb.gof.test(mod, nsim = 5, plot.hist = TRUE,
+                     report = NULL, parallel = TRUE, ncores,
+                     cex.axis = 1, cex.lab = 1, cex.main = 1,
+                     lwd = 1, maxK = NULL, ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+
+<p>the model for which a goodness-of-fit test is required.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.table</code></td>
+<td>
+<p>logical.  Specifies if the detailed table of observed
+and expected values is to be included in the output.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>the number of bootstrapped samples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.hist</code></td>
+<td>
+<p>logical.  Specifies that a histogram of the
+bootstrapped test statistic is to be included in the output.  For
+dynamic occupancy models, this produces a histogram of the sum of the
+season-specific chi-squares for each bootstrap sample.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>If <code>NULL</code>, the test statistic for each iteration is
+not printed in the terminal.  Otherwise, an integer indicating the
+number of values of the test statistic that should be printed on
+the same line.  For example, if <code>report = 3</code>, the values of the
+test statistic for three iterations are reported on each line.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>logical.  If <code>TRUE</code>, requests that <code>parboot</code>
+use multiple cores to accelerate computations of the bootstrap.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>integer indicating the number of cores to use when
+bootstrapping in parallel during the analysis of simulated data sets.
+If <code>ncores</code> is not specified, one less than the number of
+available cores on the computer is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.axis</code></td>
+<td>
+<p>expansion factor influencing the size of axis
+annotations on plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.lab</code></td>
+<td>
+<p>expansion factor influencing the size of axis labels on
+plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.main</code></td>
+<td>
+<p>expansion factor influencing the size of the main title
+above plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>expansion factor of line width on plots produced by the
+function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.seasons</code></td>
+<td>
+<p>logical.  For dynamic occupancy models, specifies
+that a histogram of the bootstrapped test statistic for each primary
+period (season) is to be included in the output. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxK</code></td>
+<td>
+<p>the number of support points used as the summation index in
+the likelihood of the Royle-Nichols model (2003).  If <code>NULL</code>,
+extracts the value of <code>K</code> used by <code>occuRN</code> to fit the model
+to the original data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>MacKenzie and Bailey (2004) and MacKenzie et al. (2006) suggest using
+the Pearson chi-square to assess the fit of single season occupancy
+models (MacKenzie et al. 2002).  Given low expected frequencies, the
+chi-square statistic will deviate from the theoretical distribution and
+it is recommended to use a parametric bootstrap approach to obtain
+P-values with the <code>parboot</code> function of the <code>unmarked</code>
+package.  <code>mb.chisq</code> computes the table of observed and expected
+values based on the detection histories and single season occupancy
+model used. <code>mb.gof.test</code> calls internally <code>mb.chisq</code> and
+<code>parboot</code> to generate simulated data sets based on the model and
+compute the MacKenzie and Bailey test statistic.  Missing values are
+accomodated by creating cohorts for each pattern of missing values.
+</p>
+<p>It is also possible to obtain an estimate of the overdispersion
+parameter (c-hat) for the model at hand by dividing the observed
+chi-square statistic by the mean of the statistics obtained from
+simulation. 
+</p>
+<p>This test is extended to dynamic occupancy models of MacKenzie et
+al. (2003) by using the occupancy estimates for each season obtained
+from the model.  These estimates are then used to compute the predicted
+and observed frequencies separately within each season.  The chi-squares
+are then summed to be used as the test statistic for the dynamic
+occupancy model.
+</p>
+<p>Note that values of c-hat &gt; 1 indicate overdispersion (variance &gt; mean),
+but that values much higher than 1 (i.e., &gt; 4) probably indicate
+lack-of-fit.  In cases of moderate overdispersion, one usually
+multiplies the variance-covariance matrix of the estimates by c-hat.  As
+a result, the SE's of the estimates are inflated (c-hat is also known as
+a variance inflation factor). 
+</p>
+<p>In model selection, c-hat should be estimated from the global model and
+the same value of c-hat applied to the entire model set.  Specifically,
+a global model is the most complex model from which all the other models
+of the set are simpler versions (nested).  When no single global model
+exists in the set of models considered, such as when sample size does
+not allow a complex model, one can estimate c-hat from 'subglobal'
+models.  Here, 'subglobal' models denote models from which only a subset
+of the models of the candidate set can be derived.  In such cases, one
+can use the smallest value of c-hat for model selection (Burnham and
+Anderson 2002).
+</p>
+<p>Note that c-hat counts as an additional parameter estimated and should
+be added to K.  All functions in package <code>AICcmodavg</code> automatically
+add 1 when the <code>c.hat</code> argument &gt; 1 and apply the same value of
+c-hat for the entire model set.  When c-hat &gt; 1, functions compute
+quasi-likelihood information criteria (either QAICc or QAIC, depending
+on the value of the <code>second.ord</code> argument) by scaling the
+log-likelihood of the model by c-hat.  The value of c-hat can influence
+the ranking of the models:  as c-hat increases, QAIC or QAICc will favor
+models with fewer parameters.  As an additional check against this
+potential problem, one can generate several model selection tables by
+incrementing values of c-hat to assess the model selection uncertainty.
+If ranking changes little up to the c-hat value observed, one can be
+confident in making inference.
+</p>
+<p>In cases of underdispersion (c-hat &lt; 1), it is recommended to keep the
+value of c-hat to 1.  However, note that values of c-hat &lt;&lt; 1 can also
+indicate lack-of-fit and that an alternative model should be investigated. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>mb.chisq</code> returns the following components for single-season and
+Royle-Nichols occupancy models:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>chisq.table</code></td>
+<td>
+<p>the table of observed and expected values for each
+detection history and its chi-square component (if <code>print.table
+    = TRUE</code>).  Note that the table only shows the observed detection
+histories.  Unobserved detection histories are not shown, but are
+included in the computation of the test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.square</code></td>
+<td>
+<p>the Pearson chi-square statistic.  This test
+statistic should be compared against a bootstrap distribution
+instead of the theoretical chi-square distribution because low
+expected frequencies invalidate the chi-square assumption.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>the model type, either <code>single-season</code>,
+<code>royle-nichols</code>, or <code>dynamic</code>. 
+</p>
+</td>
+</tr>
+</table>
+<p><code>mb.chisq</code> returns the following additional components for dynamic
+occupancy models:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>tables</code></td>
+<td>
+<p>a list containing the season-specific chi-square tables
+(if <code>print.table = TRUE</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.chisq</code></td>
+<td>
+<p>an element containing the season-specific chi-squares.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.seasons</code></td>
+<td>
+<p>the number of primary periods (seasons).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.seasons</code></td>
+<td>
+<p>the number of primary periods (seasons).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing.seasons</code></td>
+<td>
+<p>logical vector indicating whether data were
+collected or not during a given season (primary period), where
+<code>TRUE</code> indicates that no data were collected during the season.
+</p>
+</td>
+</tr>
+</table>
+<p><code>mb.gof.test</code> returns the following components for single-season
+and Royle-Nichols occupancy models:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>chisq.table</code></td>
+<td>
+<p>the table of observed and expected values for each
+detection history and its chi-square component.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.square</code></td>
+<td>
+<p>the Pearson chi-square statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.star</code></td>
+<td>
+<p>the bootstrapped chi-square test statistics (i.e.,
+obtained for each of the simulated data sets).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>the P-value assessed from the parametric bootstrap,
+computed as the proportion of the simulated test statistics greater
+than or equal to the observed test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat.est</code></td>
+<td>
+<p>the estimate of the overdispersion parameter, c-hat,
+computed as the observed test statistic divided by the mean of the
+simulated test statistics.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>the number of bootstrap samples. The recommended number of
+samples varies with the data set, but should be on the order of 1000
+or 5000, and in cases with a large number of visits, even 10 000
+samples, namely to reduce the effect of unusually small values of the
+test statistics.
+</p>
+</td>
+</tr>
+</table>
+<p><code>mb.gof.test</code> returns the following additional components for
+dynamic occupancy models:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>chisq.table</code></td>
+<td>
+<p>a list including the table of observed and expected
+values for each detection history and its chi-square component for
+each primary period (season).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.square</code></td>
+<td>
+<p>the chi-square test statistic, as the sum of the 
+chi-squares across the primary periods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>a list of the P-values for each of the primary periods,
+computed separately as the proportion of the simulated test
+statistics greater than or equal to the observed test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.global</code></td>
+<td>
+<p>the P-value of the chi-square test statistic for the
+dynamic occupancy model.  This P-value is computed as the proportion
+of the simulated sums of chi-squares greater than or equal to the
+observed sum of chi-squares across the primary periods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York.
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Lachman, G. B., Droege, S., Royle,
+J. A., Langtimm, C. A. (2002) Estimating site occupancy rates when
+detection probabilities are less than one. <em>Ecology</em> <b>83</b>,
+2248–2255.
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Hines, J. E., Knutson, M. G.,
+Franklin, A. B. (2003) Estimating site occupancy, colonization, and
+local extinction when a species is detected imperfectly. <em>Ecology</em>
+<b>84</b>, 2200–2207.  
+</p>
+<p>MacKenzie, D. I., Bailey, L. L. (2004) Assessing the fit of
+site-occupancy models. <em>Journal of Agricultural, Biological, and
+Environmental Statistics</em> <b>9</b>, 300–318.
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Royle, J. A., Pollock, K. H., Bailey,
+L. L., Hines, J. E. (2006) <em>Occupancy estimation and
+modeling: inferring patterns and dynamics of species
+occurrence</em>. Academic Press: New York.
+</p>
+<p>Royle, J. A., Nichols, J. D. (2003) Estimating abundance from repeated
+presence-absence data or point counts. <em>Ecology</em> <b>84</b>,
+777–790.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AICc</code>, <code>c_hat</code>,
+<code>colext</code>, <code>evidence</code>,
+<code>modavg</code>, <code>importance</code>,
+<code>modavgPred</code>, <code>Nmix.gof.test</code>,
+<code>occu</code>, <code>parboot</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##single-season occupancy model example modified from ?occu
+## Not run: 
+require(unmarked)
+##single season
+data(frogs)
+pferUMF &lt;- unmarkedFrameOccu(pfer.bin)
+## add some fake covariates for illustration
+siteCovs(pferUMF) &lt;- data.frame(sitevar1 = rnorm(numSites(pferUMF)),
+                                sitevar2 = rnorm(numSites(pferUMF))) 
+     
+## observation covariates are in site-major, observation-minor order
+obsCovs(pferUMF) &lt;- data.frame(obsvar1 = rnorm(numSites(pferUMF) *
+                                 obsNum(pferUMF))) 
+
+##run model
+fm1 &lt;- occu(~ obsvar1 ~ sitevar1, pferUMF)
+
+##compute observed chi-square
+obs &lt;- mb.chisq(fm1)
+obs
+##round to 4 digits after decimal point
+print(obs, digits.vals = 4)
+
+
+##compute observed chi-square, assess significance, and estimate c-hat
+obs.boot &lt;- mb.gof.test(fm1, nsim = 3)
+##note that more bootstrap samples are recommended
+##(e.g., 1000, 5000, or 10 000)
+obs.boot
+print(obs.boot, digits.vals = 4, digits.chisq = 4)
+
+
+##data with missing values
+mat1 &lt;- matrix(c(0, 0, 0), nrow = 120, ncol = 3, byrow = TRUE)
+mat2 &lt;- matrix(c(0, 0, 1), nrow = 23, ncol = 3, byrow = TRUE)
+mat3 &lt;- matrix(c(1, NA, NA), nrow = 42, ncol = 3, byrow = TRUE)
+mat4 &lt;- matrix(c(0, 1, NA), nrow = 33, ncol = 3, byrow = TRUE)
+y.mat &lt;- rbind(mat1, mat2, mat3, mat4)
+y.sim.data &lt;- unmarkedFrameOccu(y = y.mat)
+m1 &lt;- occu(~ 1 ~ 1, data = y.sim.data)
+
+mb.gof.test(m1, nsim = 3)
+##note that more bootstrap samples are recommended
+##(e.g., 1000, 5000, or 10 000)
+
+##modifying graphical parameters
+mb.gof.test(m1, nsim = 3,
+cex.axis = 1.2, #axis annotations are 1.2 the default size
+cex.lab = 1.2,  #axis labels are 1.2 the default size
+lwd = 2)        #line width is twice the default width
+detach(package:unmarked)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>admm.sdp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Semidefinite Programming</h2>
+
+<h3>Description</h3>
+
+<p>We solve the following standard semidefinite programming (SDP) problem
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{min}_X ~ \textrm{tr}(CX)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\textrm{s.t.} A(X)=b, ~ X \geq 0 </code>
+</p>
+
+<p>with <code class="reqn">A(X)_i = \textrm{tr}(A_i^\top X) = b_i</code> for <code class="reqn">i=1,\ldots,m</code> and <code class="reqn">X \geq 0</code> stands for positive-definiteness of the matrix <code class="reqn">X</code>. In the standard form,
+matrices <code class="reqn">C, A_1,A_2,\ldots,A_m</code> are symmetric and solution <code class="reqn">X</code> would be symmetric and positive semidefinite. This function implements alternating direction augmented Lagrangian methods.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">admm.sdp(
+  C,
+  A,
+  b,
+  mu = 1,
+  rho = 1,
+  abstol = 1e-10,
+  maxiter = 496,
+  print.progress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>an <code class="reqn">(n\times n)</code> symmetric matrix for cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>a length-<code class="reqn">m</code> list of <code class="reqn">(n\times n)</code> symmetric matrices for constraint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>a length-<code class="reqn">m</code> vector for equality condition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>penalty parameter; positive real number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>step size for updating in <code class="reqn">(0, \frac{1+\sqrt{5}}{2})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abstol</code></td>
+<td>
+<p>absolute tolerance stopping criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.progress</code></td>
+<td>
+<p>a logical; <code>TRUE</code> to show the progress, <code>FALSE</code> to go silent.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>x</dt>
+<dd>
+<p>a length-<code class="reqn">n</code> solution vector</p>
+</dd>
+<dt>history</dt>
+<dd>
+<p>dataframe recording iteration numerics. See the section for more details.</p>
+</dd>
+</dl>
+<h3>Iteration History</h3>
+
+<p>When you run the algorithm, output returns not only the solution, but also the iteration history recording
+following fields over iterates,
+</p>
+
+<dl>
+<dt>objval</dt>
+<dd>
+<p>object (cost) function value</p>
+</dd>
+<dt>eps_pri</dt>
+<dd>
+<p>feasibility tolerance for primal feasibility condition</p>
+</dd>
+<dt>eps_dual</dt>
+<dd>
+<p>feasibility tolerance for dual feasibility condition</p>
+</dd>
+<dt>gap</dt>
+<dd>
+<p>gap between primal and dual cost function.</p>
+</dd>
+</dl>
+<p>We use the stopping criterion which breaks the iteration when all <code>eps_pri</code>,<code>eps_dual</code>, and <code>gap</code>
+become smaller than <code>abstol</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kisung You
+</p>
+
+
+<h3>References</h3>
+
+<p>Wen Z, Goldfarb D, Yin W (2010).
+“Alternating direction augmented Lagrangian methods for semidefinite programming.”
+<em>Mathematical Programming Computation</em>, <b>2</b>(3-4), 203–230.
+ISSN 1867-2949, 1867-2957, doi: <a href="https://doi.org/10.1007/s12532-010-0017-1">10.1007/s12532-010-0017-1</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## a toy example
+#  generate parameters
+C  = matrix(c(1,2,3,2,9,0,3,0,7),nrow=3,byrow=TRUE)
+A1 = matrix(c(1,0,1,0,3,7,1,7,5),nrow=3,byrow=TRUE)
+A2 = matrix(c(0,2,8,2,6,0,8,0,4),nrow=3,byrow=TRUE)
+
+A  = list(A1, A2)
+b  = c(11, 19)
+
+# run the algorithm
+run = admm.sdp(C,A,b)
+hst = run$history
+
+# visualize
+opar &lt;- par(no.readonly=TRUE)
+par(mfrow=c(2,2))
+plot(hst$objval,   type="b", cex=0.25, main="objective value")
+plot(hst$eps_pri,  type="b", cex=0.25, main="primal feasibility")
+plot(hst$eps_dual, type="b", cex=0.25, main="dual feasibility")
+plot(hst$gap,      type="b", cex=0.25, main="primal-dual gap")
+par(opar)
+
+## Not run: 
+## comparison with CVXR's result
+require(CVXR)
+
+#  problems definition
+X = Variable(3,3,PSD=TRUE)
+myobj = Minimize(sum_entries(C*X)) # objective
+mycon = list(                      # constraint
+  sum_entries(A[[1]]*X) == b[1],
+  sum_entries(A[[2]]*X) == b[2]
+)
+myp = Problem(myobj, mycon)        # problem
+
+# run and visualize
+res  = solve(myp)
+Xsol = res$getValue(X)
+
+opar = par(no.readonly=TRUE)
+par(mfrow=c(1,2), pty="s")
+image(run$X, axes=FALSE, main="ADMM result")
+image(Xsol,  axes=FALSE, main="CVXR result")
+par(opar)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>snc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a model to discovery records</h2>
+
+<h3>Description</h3>
+
+<p>Fit a model to a time series describing first records of alien species.
+If no external data is provided, the function fits the model described in Solow and Costello (2004).
+When external data on either <code class="reqn">\mu_t</code> or <code class="reqn">\Pi_{st}</code> is provided, the function fits the
+modified model (sampling-proxy model in the case of <code class="reqn">\Pi_{st}</code>) as described in Buba et al (2024).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">snc(
+  y,
+  mu = NULL,
+  pi = NULL,
+  data = NULL,
+  init = NULL,
+  growth = TRUE,
+  type = "exponential",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>either a vector describing the number of discovered alien and invasive species (IAS) over a given time period, or the name (quoted or unquoted) of the corresponding column in the provided data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>a formula defining the predictors for <code class="reqn">\mu_t</code>, the annual introduction rate. Formulas should be provided in the syntax <code>~ x1 + x2 + ... + xn</code>. Use <code>~ 1</code> for an intercept only model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi</code></td>
+<td>
+<p>a formula defining the predictors for <code class="reqn">\Pi_{st}</code>, the annual probability of detection. Formulas should be provided in the syntax <code>~ x1 + x2 + ... + xn</code>. Use <code>~ 1</code> for an intercept only model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the variables in the model(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>Optional. Initial values supplied to <code>optim</code>. Must be same length as the total number of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth</code></td>
+<td>
+<p>logical. Should the population growth parameter <code class="reqn">\gamma_2</code> be included in the model for <code class="reqn">\Pi_{st}</code>?. Note that values for <code>init</code>, if provided, need to include an initial value for the growth parameter, when <code>growth = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Define whether the mu function should be on "linear" or "exponential" scale. Defaults to "exponential".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>optim</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function expands on the model described in Solow and Costello (2004) by facilitating the
+inclusion of external data to describe either introduction rate <code class="reqn">\mu_t</code> or detection probability <code class="reqn">\Pi_{st}</code>.
+The model with external data for detection probability (sampling-proxy model) is described fully in Buba et al (2024).
+The use of external data to describe the introduction rate has not been thoroughly evaluated.
+When no formula is defined for either, the function automatically fits the original Solow and Costello (2004)
+model using the length of the vector data as the independent variable <code class="reqn">t</code>.
+All models return estimated parameters for both the introduction rate and the detection probability,
+with the parameter of interest usually being the change of introduction rate - <code class="reqn">\beta_1</code>.
+For more details see the Basic Usage vignette:
+<code>vignette("basic_usage", package = "alien")</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>snc</code> returns an object of class "snc" containing: </p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>records</code> </td>
+<td style="text-align: left;"> the supplied first records data </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>convergence</code> </td>
+<td style="text-align: left;"> the <code>optim</code> convergence code.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>log-likelihood</code> </td>
+<td style="text-align: left;"> the maximum log-likelihood.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>coefficients</code> </td>
+<td style="text-align: left;"> a named vector of the ML estimates of the   coefficients.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>fitted.values</code> </td>
+<td style="text-align: left;"> the fitted mean <code class="reqn">\lambda</code> values.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>predict</code> </td>
+<td style="text-align: left;"> a data frame containing the estimated mean +- Standard error <code class="reqn">\mu</code> values.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Solow, A. R., &amp; Costello, C. J. (2004). Estimating the rate of species introductions from the discovery record. Ecology, 85(7), 1822–1825. https://doi.org/10.1890/03-3102
+</p>
+<p>Buba, Y., Kiflwai, M., McGeoch, M. A., Belmaker, J. (2024) Evaluating models for estimating introduction rates of alien species from discovery records. https://doi.org/10.1111/geb.13859
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Solow and Costello (2004) model:
+data(sfestuary)
+example_model &lt;- snc(sfestuary)
+print(example_model)
+
+# Buba et al (2024) sampling-proxy model:
+data(medfish)
+example_buba &lt;- snc(y = aliens, pi = ~ natives, data = medfish)
+print(example_buba)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>argos</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic Regression for Governing Equations (ARGOS)</h2>
+
+<h3>Description</h3>
+
+<p>This function performs sparse regression on a data set to identify the
+governing equations of the system. It takes a list of data from
+'build_design_matrix' then applies the Lasso or Adaptive Lasso for variable
+selection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">argos(
+  design_matrix,
+  library_type = c("poly", "four", "poly_four"),
+  state_var_deriv = 1,
+  alpha_level = 0.05,
+  num_samples = 2000,
+  sr_method = c("lasso", "alasso"),
+  weights_method = NULL,
+  ols_ps = TRUE,
+  parallel = c("no", "multicore", "snow"),
+  ncpus = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design_matrix</code></td>
+<td>
+<p>A list containing data frame, vector of predictor
+variable orders for 'theta', and derivative matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>library_type</code></td>
+<td>
+<p>A character vector (default: c("poly", "four",
+"poly_four")) specifying the type of library being used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state_var_deriv</code></td>
+<td>
+<p>An integer. The index of the state variable for which
+the derivative is calculated. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha_level</code></td>
+<td>
+<p>A numeric scalar. The level of significance for
+confidence intervals. Default is 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_samples</code></td>
+<td>
+<p>An integer. The number of bootstrap samples. Default is
+2000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sr_method</code></td>
+<td>
+<p>A character string. The sparse regression method to be used,
+either "lasso" or "alasso". Default is "lasso".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights_method</code></td>
+<td>
+<p>A string or NULL. The method for calculating weights in
+the Adaptive Lasso. If NULL, ridge regression pilot
+estimates are used. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ols_ps</code></td>
+<td>
+<p>A logical. If TRUE, post-selection OLS is performed after the
+Lasso or Adaptive Lasso. Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>A character string. The type of parallel computation to be
+used, either "no", "multicore" or "snow". Default is "no".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p>An integer or NULL. The number of cores to be used in parallel
+computation. If NULL, the function will try to detect the
+number of cores. Default is NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with three elements:
+- point_estimates: a vector of point estimates for the coefficients.
+- ci: a matrix where each column represents the lower and upper bounds of
+the confidence interval for a coefficient.
+- identified_model: a matrix of coefficients of the identified model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Identify the x1 equation of the Duffing Oscillator with ARGOS.
+# Output provides point estimates, confidence intervals, and identified model.
+x_t &lt;- duffing_oscillator(n=1000, dt = 0.01,
+                          init_conditions = c(1, 0),
+                          gamma_value = 0.1, kappa_value = 1,
+                          epsilon_value = 5, snr = 49)
+duffing_design_matrix &lt;-
+       build_design_matrix(x_t, dt = 0.01, sg_poly_order = 4,
+                           library_degree = 5, library_type = "poly")
+design_matrix &lt;- duffing_design_matrix
+state_var_deriv = 1 # Denotes first equation/derivative to be identified
+alpha_level = 0.05
+num_samples = 10
+sr_method = "lasso"
+weights_method = NULL
+ols_ps = TRUE
+parallel = "no"
+ncpus = NULL
+library_type &lt;- "poly"
+perform_argos &lt;- argos(design_matrix = design_matrix,
+                       library_type = library_type,
+                       state_var_deriv = state_var_deriv,
+                       alpha_level = alpha_level,
+                       num_samples = num_samples,
+                       sr_method = "lasso",
+                       weights_method = NULL,
+                       ols_ps = TRUE,
+                       parallel = "no",
+                       ncpus = NULL)
+perform_argos$point_estimates
+perform_argos$ci
+perform_argos$identified_model
+</code></pre>
+
+
+</div>

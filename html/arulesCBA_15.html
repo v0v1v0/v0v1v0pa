@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FOIL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Use FOIL to learn a rule set for classification</h2>
+
+<h3>Description</h3>
+
+<p>Build a classifier rule base using FOIL (First Order Inductive Learner), a
+greedy algorithm that learns rules to distinguish positive from negative
+examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FOIL(
+  formula,
+  data,
+  max_len = 3,
+  min_gain = 0.7,
+  best_k = 5,
+  disc.method = "mdlp"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A symbolic description of the model to be fitted. Has to be
+of form <code>class ~ .</code> or <code>class ~ predictor1 + predictor2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or arules::transactions containing the training data.
+Data frames are automatically discretized and converted to transactions with
+<code>prepareTransactions()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_len</code></td>
+<td>
+<p>maximal length of the LHS of the created rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_gain</code></td>
+<td>
+<p>minimal gain required to expand a rule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best_k</code></td>
+<td>
+<p>use the average expected accuracy (laplace) of the best k
+rules per class for prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disc.method</code></td>
+<td>
+<p>Discretization method used to discretize continuous
+variables if data is a data.frame (default: <code>"mdlp"</code>). See
+<code>discretizeDF.supervised()</code> for more supervised discretization methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implements FOIL (Quinlan and Cameron-Jones, 1995) to learn rules and then
+use them as a classifier following Xiaoxin and Han (2003).
+</p>
+<p>For each class, we find the positive and negative examples and learn the
+rules using FOIL. Then the rules for all classes are combined and sorted by
+Laplace accuracy on the training data.
+</p>
+<p>Following Xiaoxin and Han (2003), we classify new examples by
+</p>
+
+<ol>
+<li>
+<p> select all the rules whose bodies are satisfied by the example;
+</p>
+</li>
+<li>
+<p>from the rules select the best k rules per class (highest expected Laplace
+accuracy);
+</p>
+</li>
+<li>
+<p> average the expected Laplace accuracy per class and choose
+the class with the highest average.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>Returns an object of class CBA representing the
+trained classifier.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>References</h3>
+
+<p>Quinlan, J.R., Cameron-Jones, R.M. Induction of logic programs:
+FOIL and related systems. NGCO 13, 287-312 (1995).
+<a href="https://doi.org/10.1007/BF03037228">doi:10.1007/BF03037228</a>
+</p>
+<p>Yin, Xiaoxin and Jiawei Han. CPAR: Classification based on Predictive
+Association Rules, SDM, 2003.
+<a href="https://doi.org/10.1137/1.9781611972733.40">doi:10.1137/1.9781611972733.40</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other classifiers: 
+<code>CBA()</code>,
+<code>CBA_helpers</code>,
+<code>CBA_ruleset()</code>,
+<code>LUCS_KDD_CBA</code>,
+<code>RCAR()</code>,
+<code>RWeka_CBA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("iris")
+
+# learn a classifier using automatic default discretization
+classifier &lt;- FOIL(Species ~ ., data = iris)
+classifier
+
+# inspect the rule base
+inspect(classifier$rules)
+
+# make predictions for the first few instances of iris
+predict(classifier, head(iris))
+</code></pre>
+
+
+</div>

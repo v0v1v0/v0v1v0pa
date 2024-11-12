@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.aggTrees</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot Method for aggTrees Objects</h2>
+
+<h3>Description</h3>
+
+<p>Plots an <code>aggTrees</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'aggTrees'
+plot(x, leaves = get_leaves(x$tree), sequence = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>aggTrees</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leaves</code></td>
+<td>
+<p>Number of leaves of the desired tree. This can be used to plot subtrees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sequence</code></td>
+<td>
+<p>If <code>TRUE</code>, the whole sequence of optimal groupings is displayed in a short animation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments from <code>prp</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Nodes are colored using a diverging palette. Nodes with predictions smaller than the ATE (i.e., the root
+prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red
+shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
+This way, we have an immediate understanding of the groups with extreme GATEs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Plots an <code>aggTrees</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Riccardo Di Francesco
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p> Di Francesco, R. (2022). Aggregation Trees. CEIS Research Paper, 546. <a href="https://doi.org/10.2139/ssrn.4304256">doi:10.2139/ssrn.4304256</a>.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>build_aggtree</code>, <code>inference_aggtree</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate data.
+set.seed(1986)
+
+n &lt;- 1000
+k &lt;- 3
+
+X &lt;- matrix(rnorm(n * k), ncol = k)
+colnames(X) &lt;- paste0("x", seq_len(k))
+D &lt;- rbinom(n, size = 1, prob = 0.5)
+mu0 &lt;- 0.5 * X[, 1]
+mu1 &lt;- 0.5 * X[, 1] + X[, 2]
+Y &lt;- mu0 + D * (mu1 - mu0) + rnorm(n)
+
+## Training-honest sample split.
+honest_frac &lt;- 0.5
+splits &lt;- sample_split(length(Y), training_frac = (1 - honest_frac))
+training_idx &lt;- splits$training_idx
+honest_idx &lt;- splits$honest_idx
+
+Y_tr &lt;- Y[training_idx]
+D_tr &lt;- D[training_idx]
+X_tr &lt;- X[training_idx, ]
+
+Y_hon &lt;- Y[honest_idx]
+D_hon &lt;- D[honest_idx]
+X_hon &lt;- X[honest_idx, ]
+
+## Construct sequence of groupings. CATEs estimated internally.
+groupings &lt;- build_aggtree(Y_tr, D_tr, X_tr,
+                           Y_hon, D_hon, X_hon)
+
+## Plot.
+plot(groupings)
+plot(groupings, leaves = 3)
+plot(groupings, sequence = TRUE)
+
+</code></pre>
+
+
+</div>

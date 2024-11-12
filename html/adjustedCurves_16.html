@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cif_iptw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Inverse Probability of Treatment Weighted CIFs
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating inverse probability of treatment weighted cumulative incidence functions in a competing risks setting (<code>method="iptw"</code> in the <code>adjustedcif</code> function). All regular arguments of the <code>adjustedcif</code> function can be used. Additionally, the <code>treatment_model</code> argument has to be specified in the <code>adjustedcif</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>treatment_model</code></td>
+<td>
+
+<p>[<strong>required</strong>] Must be a <code>glm</code> or <code>multinom</code> model object with <code>variable</code> as response variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censoring_model</code></td>
+<td>
+
+<p>Either <code>NULL</code> (default) to make no adjustments for dependent censoring, or a <code>coxph</code> object. See <code>?ate</code> for more details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>Whether to print estimation information of the <code>ate</code> function in the <span class="pkg">riskRegression</span> package. Defaults to <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to <code>ate</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> Requires a model describing the treatment assignment mechanism. This must be either a <code>glm</code> or a <code>multinom</code> object.
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Any number of levels in <code>variable</code> are allowed. Must be a factor variable.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are available.
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method relies on the <span class="pkg">riskRegression</span> package
+</p>
+</li>
+</ul>
+<p>This method works by modeling the treatment assignment mechanism. Adjusted CIFs are calculated by first estimating appropriate case-weights for each observation in <code>data</code>. Those weights are used in a weighted version of the Aalen-Johansen estimator. If the weights are correctly estimated the resulting estimates will be unbiased. A more detailed description can be found in Neumann et al. (2016) and Choi et al. (2019). By utilizing another set of weights, this function can also correct the estimates for covariate-dependent censoring (Ozenne et al. 2020). Asymptotic variance calculations are based on the efficient influence curve.
+</p>
+<p>Internally, this function simply calls the <code>ate</code> function with appropriate arguments. The three-dot syntax can be used to pass further arguments to that function. It is however recommended to use the <code>ate</code> function directly when specific settings are required.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds the following additional objects to the output of the <code>adjustedcif</code> function:
+</p>
+
+<ul><li> <p><code>ate_object</code>: The object returned by the <code>ate</code> function.
+</p>
+</li></ul>
+<h3>Author(s)</h3>
+
+<p>The wrapper function was written by Robin Denz, the <code>ate</code> function itself was written by other people. See <code>?ate</code> for more information.
+</p>
+
+
+<h3>References</h3>
+
+<p>Anke Neumann and Cécile Billionnet (2016). "Covariate Adjustment of Cumulative Incidence Functions for Competing Risks Data Using Inverse Probability of Treatment Weighting". In: Computer Methods and Programs in Biomedicine 129, pp. 63-70
+</p>
+<p>Sangbum Choi, Chaewon Kim, Hua Zhong, Eun-Seok Ryu, and Sung Won Han (2019). "Adjusted-Crude-Incidence Analysis of Multiple Treatments and Unbalanced Samples on Competing Risks". In: Statistics and Its Inference 12, pp. 423-437
+</p>
+<p>Brice Maxime Hugues Ozenne, Thomas Harder Scheike, and Laila Stærk (2020). "On the Estimation of Average Treatment Effects with Right-Censored Time to Event Outcome and Competing Risks". In: Biometrical Journal 62, pp. 751-763
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ate</code>, <code>glm</code>, <code>multinom</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+
+if (requireNamespace("riskRegression")) {
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_crisk(n=50, max_t=5)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# estimate a treatment assignment model
+glm_mod &lt;- glm(group ~ x1 + x3 + x5 + x6, data=sim_dat, family="binomial")
+
+# use it to calculate adjusted CIFs
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="iptw",
+                      treatment_model=glm_mod)
+plot(adjcif)
+}
+</code></pre>
+
+
+</div>

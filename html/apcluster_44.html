@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>conversions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversions Between Dense and Sparse Similarity Matrices</h2>
+
+<h3>Description</h3>
+
+<p>Converts a dense similarity matrix into a sparse one or vice versa
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'matrix'
+as.SparseSimilarityMatrix(s, lower=-Inf)
+## S4 method for signature 'Matrix'
+as.SparseSimilarityMatrix(s, lower=-Inf)
+## S4 method for signature 'sparseMatrix'
+as.SparseSimilarityMatrix(s, lower=-Inf)
+## S4 method for signature 'matrix'
+as.DenseSimilarityMatrix(s, fill=-Inf)
+## S4 method for signature 'Matrix'
+as.DenseSimilarityMatrix(s, fill=-Inf)
+## S4 method for signature 'sparseMatrix'
+as.DenseSimilarityMatrix(s, fill=-Inf)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>a similarity matrix in sparse or dense format (see details
+below)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>cut-off threshold to apply when converting similarity
+matrices into sparse format. All similarities lower than or equal to
+<code>lower</code> will be omitted from the result. The default is
+<code>-Inf</code>), i.e. only <code>-Inf</code> values are removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>value to fill in for entries that are missing from sparse
+similarity matrix 's' (defaults to <code>-Inf</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>as.SparseSimilarityMatrix</code> takes a matrix argument,
+removes all diagonal elements and all values that are lower than or
+equal to the cut-off threshold <code>lower</code> and returns a sparse
+matrix of class <code>dgTMatrix</code>.
+</p>
+<p>If the function <code>as.DenseSimilarityMatrix</code> is called for a
+sparse matrix (class <code>sparseMatrix</code> or any
+class derived from this class), a dense matrix is returned, where all
+values that were missing in the sparse matrix are replaced with
+<code>fill</code>.
+</p>
+<p><code>as.DenseSimilarityMatrix</code> can also be called for dense
+<code>matrix</code> and <code>Matrix</code> objects.
+In this case, <code>as.DenseSimilarityMatrix</code> assumes that the
+matrices have three columns that encode for a sparse matrix
+in the same way as the Matlab implementation of Frey's and Dueck's
+sparse affinity propagation accepts it:
+the first column contains 1-based row indices, the second column
+contains 1-based column indices, and the third column contains the
+similarity values. The same format is also accepted by
+<code>as.SparseSimilarityMatrix</code> to convert a sparse similarity matrix
+of this format into a <code>dgTMatrix</code> object.
+Note that, for matrices of this format,
+<code>as.DenseSimilarityMatrix</code> replaces the deprectated function
+<code>sparseToFull</code> that was used in older versions of the package.
+</p>
+<p>Note that <code>as.SparseSimilarityMatrix</code> and
+<code>as.DenseSimilarityMatrix</code> are no S4 coercion methods.
+There are no classes named <code>SparseSimilarityMatrix</code>
+or <code>DenseSimilarityMatrix</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns a square similarity matrix in sparse format (class
+<code>dgTMatrix</code> or in dense format (standard class
+<code>matrix</code>).</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ulrich Bodenhofer</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://github.com/UBod/apcluster">https://github.com/UBod/apcluster</a>
+</p>
+<p>Frey, B. J. and Dueck, D. (2007) Clustering by passing messages
+between data points. <em>Science</em> <b>315</b>, 972-976.
+DOI: <a href="https://doi.org/10.1126/science.1136800">doi:10.1126/science.1136800</a>.
+</p>
+<p>Bodenhofer, U., Kothmeier, A., and Hochreiter, S. (2011)
+APCluster: an R package for affinity propagation clustering.
+<em>Bioinformatics</em> <b>27</b>, 2463-2464.
+DOI: <a href="https://doi.org/10.1093/bioinformatics/btr406">doi:10.1093/bioinformatics/btr406</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## create similarity matrix in sparse format according to Frey and Dueck
+sp &lt;- matrix(c(1, 2, 0.5, 3, 1, 0.2, 5, 4, -0.2, 3, 4, 1.2), 4, 3, byrow=TRUE)
+sp
+
+## perform conversions
+as.DenseSimilarityMatrix(sp, fill=0)
+as.SparseSimilarityMatrix(sp)
+
+## create dense similarity matrix
+cl1 &lt;- cbind(rnorm(20, 0.2, 0.05), rnorm(20, 0.8, 0.06))
+cl2 &lt;- cbind(rnorm(20, 0.7, 0.08), rnorm(20, 0.3, 0.05))
+x &lt;- rbind(cl1, cl2)
+
+sim &lt;- negDistMat(x, r=2)
+ssim &lt;- as.SparseSimilarityMatrix(sim, lower=-0.2)
+
+## run apcluster() on the sparse similarity matrix
+apres &lt;- apcluster(ssim, q=0)
+apres
+</code></pre>
+
+
+</div>

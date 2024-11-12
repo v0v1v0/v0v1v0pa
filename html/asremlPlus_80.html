@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LSD.frame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Description of an LSD frame</h2>
+
+<h3>Description</h3>
+
+<p>A <code>data.frame</code> that stores  
+Least Significant differences (LSDs) for <code>predictions</code> for a fitted model.</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> that can be a component of an <code>alldiffs.object</code> and that 
+contains LSD values and statistics to be used in determining the significance of the 
+pairwise differences. In particular, they are used in calculating 
+<code>halfLeastSignificant</code> limits to be included in a <code>predictions.frame</code>.
+</p>
+<p>Exactly what an <code>LSD.frame</code> contains is 
+determined by the following arguments to functions that return an 
+<code>alldiffs.object</code>: <code>LSDtype</code>, <code>LSDby</code>, <code>LSDstatistic</code>, 
+<code>LSDaccuracy</code> and <code>LSDsupplied</code>. The <code>rownames</code> of the <code>LSD.frame</code> 
+indicate, for each of its rows, for what group of predictions the entries in the row were calculated, 
+this being controlled by the <code>LSDtype</code> and <code>LSDby</code> arguments. The values for 
+all of the LSD arguments are stored as attributes to the <code>alldiffs.object</code> and the 
+<code>predictions</code> and, if present <code>backtransforms</code>, components of the 
+<code>alldiffs.object</code>.
+</p>
+<p>An <code>LSD.frame</code> always has the eight columns <code>c</code>, <code>minimumLSD</code>, <code>meanLSD</code>, 
+<code>maximumLSD</code>, <code>assignedLSD</code>, <code>accuracyLSD</code>, <code>falsePos</code> and 
+<code>falseNeg</code>.
+</p>
+
+<ol>
+<li> <p><code>c</code>: This gives the number of pairwise comparison of predictions for the combinations of 
+the factor levels given by the row name. If the row name is <code>overall</code> then it is for 
+all predictions.
+</p>
+</li>
+<li> <p><code>minimumLSD, meanLSD, maximumLSD</code>: These are computed for either <code>overall</code>, 
+<code>factor.combinations</code>, <code>per.prediction</code> or <code>supplied</code> LSD values, as specified by the 
+<code>LSDtype</code> argument.  The <code>meanLSD</code> is calculated using the square root of the mean of 
+the variances of set of pairwise differences appropriate to the specific <code>LSDtype</code> argument.
+</p>
+<p>For <code>overall</code>, the mean, minimum and maximum of the LSDs for all pairwise 
+comparisons are computed.  
+</p>
+<p>If <code>factor.combinations</code> was specified for 
+<code>LSDtype</code> when the LSDs were being calculated, then the <code>LSD.frame</code> 
+contains a row for each combination of the values of the <code>factors</code> and 
+<code>numerics</code> specified by <code>LSDby</code>. The values in a row  are calculated 
+from the LSD values for the pairwise differences for each combination of the 
+<code>factors</code> and <code>numerics</code> values, unless there is only one 
+prediction for a combination, when notional LSDs are calculated that are based on the 
+standard error of the prediction multiplied by the square root of two. 
+</p>
+<p>For <code>per.prediction</code>, the minimum, mean and maximum LSD, based, for each prediction, 
+on the LSD values for all pairwise differences involving that prediction are computed.
+</p>
+<p>For <code>supplied</code>, the <code>LSD.frame</code> is set up based on the setting of <code>LSDby</code>: 
+a single row with name <code>overall</code> if <code>LSDby</code> is <code>NULL</code> or, if <code>LSDby</code> 
+is a vector of <code>factor</code> and <code>numeric</code> names, rows for each observed 
+combinations of the values of the named <code>factors</code> and <code>numerics</code>. 
+The <code>LSDsupplied</code> argument is used to provide the values to be stored in the column 
+<code>assignedLSD</code>.
+</p>
+</li>
+<li> <p><code>assignedLSD</code>: The <code>assignedLSD</code> column contains the values that are assigned for 
+use in calculating <code>halfLeastSignificant</code> <code>error.intervals</code>. Its contents are 
+determined by <code>LSDstatistic</code> and <code>LSDsupplied</code> arguments. The 
+<code>LSDsupplied</code> argument allows the direct specification of values to be placed 
+in the <code>assignedLSD</code> column of the <code>LSD.frame</code>. The default is to use the 
+values in the <code>meanLSD</code> column.
+</p>
+</li>
+<li> <p><code>LSDaccuracy</code>: The <code>LSDaccuracy</code> gives an indication of the proportion that the 
+correct LSD for a single <code>predicted.value</code> might deviate from its <code>assignedLSD</code> value. 
+The contents of the <code>accuracyLSD</code> column is controlled by the <code>LSDaccuracy</code> 
+argument.
+</p>
+</li>
+<li> <p><code>falsePos</code> and <code>falseNeg</code>: These columns contain the number of false positives 
+and negatives if the <code>assignedLSD</code> value(s) is(are) used to determine the significance 
+of the pairwise predictions differences. Each LSD value in the <code>assignedLSD</code> 
+column is used to determine the significance of pairwise differences that involve 
+predictions for the combination of values given by the row name for the LSD value.
+</p>
+</li>
+</ol>
+<p>See <code>recalcLSD.alldiffs</code> for more information.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>recalcLSD.alldiffs</code>, <code>redoErrorIntervals.alldiffs</code>, 
+<code>predictPresent.asreml</code>, <br><code>predictPlus.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Oats.dat)
+  
+  ## Use asreml to get predictions and associated statistics
+
+  ## Not run: 
+  m1.asr &lt;- asreml(Yield ~ Nitrogen*Variety, 
+                   random=~Blocks/Wplots,
+                   data=Oats.dat)
+  current.asrt &lt;- as.asrtests(m1.asr)
+  Var.diffs &lt;- predictPlus(m1.asr, classify="Nitrogen:Variety", 
+                          wald.tab = current.asrt$wald.tab, 
+                          tables = "none")
+  
+## End(Not run)
+  
+  ## Use lmerTest and emmmeans to get predictions and associated statistics
+   if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+      requireNamespace("emmeans", quietly = TRUE))
+  {
+    m1.lmer &lt;- lmerTest::lmer(Yield ~ Nitrogen*Variety + (1|Blocks/Wplots),
+                              data=Oats.dat)
+    #Get predictions
+    Var.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Nitrogen:Variety)
+    Var.preds &lt;- summary(Var.emm)
+    ## Modify Var.preds to be compatible with a predictions.frame
+    Var.preds &lt;- as.predictions.frame(Var.preds, predictions = "emmean", 
+                                      se = "SE", interval.type = "CI", 
+                                      interval.names = c("lower.CL", "upper.CL"))
+    Var.vcov &lt;- vcov(Var.emm)
+    Var.sed &lt;- NULL
+
+    #Set up an alldiffs object, which includes overall LSDs
+    Var.diffs &lt;- allDifferences(predictions = Var.preds, classify = "Variety:Nitrogen", 
+                                     sed = Var.sed, vcov = Var.vcov, tdf = 45)
+  }
+
+  if (exists("Var.diffs"))
+  {
+    ## Use recalcLSD to get LSDs for within Variety differences
+    Var.LSD.diffs &lt;- recalcLSD(Var.diffs, 
+                               LSDtype = "factor.combinations", LSDby = "Variety")
+    print(Var.LSD.diffs$LSD)
+  }
+</code></pre>
+
+
+</div>

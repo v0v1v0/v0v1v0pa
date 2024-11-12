@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulateColor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate Soil Colors</h2>
+
+<h3>Description</h3>
+
+<p>Simulate plausible soil colors based on several possible parameterization of a "range in characteristics" (RIC). Soil color RIC can be specified by a list of parameters:
+</p>
+
+<ul>
+<li>
+<p> soil color proportions, as output from <code>aggregateColor()</code> – <code>method = 'proportions'</code>
+</p>
+</li>
+<li>
+<p> most likely Munsell color, CIE2000 threshold, and vector of acceptable hues – <code>method = 'dE00'</code>
+</p>
+</li>
+<li> <p><code>data.frame</code> of Munsell hue, value, and chroma representing observed soil colors – <code>method = 'mvnorm'</code>
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">simulateColor(
+  method = c("dE00", "proportions", "mvnorm"),
+  n,
+  parameters,
+  SPC = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>simulation method, see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of simulated colors per group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>a <code>list</code>, format depends on <code>method</code>:
+</p>
+
+<ul>
+<li> <p><code>proportions</code>: output from <code>aggregateColor()</code>
+</p>
+</li>
+<li> <p><code>dE00</code>: formatted as <code>list(m = '7.5YR 3/3', thresh = 5, hues = c('7.5YR'))</code>
+</p>
+</li>
+<li> <p><code>mvnorm</code>: formatted as <code>list(hvc = x)</code>
+</p>
+</li>
+</ul>
+<p>Where <code>m</code> is a single representative Munsell chip, <code>thresh</code> is a threshold specified in CIE2000 color contrast (dE00), <code>hues</code> is a vector of allowed Munsell hues, and <code>x</code> is a <code>data.frame</code> representing columns of Munsell hue, value, and chroma having at least 3 rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SPC</code></td>
+<td>
+<p><code>SoilProfileCollection</code>, attempt to modify <code>SPC</code> with simulated colors</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>list</code>, unless <code>SPC</code> is specified, then a <code>SoilProfileCollection</code> object
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# restrict examples to 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+# m: representative or most likely color
+# thresh: dE00 threshold
+# hues: allowed Munsell hues
+p &lt;- list(
+  'A' = list(m = '7.5YR 3/3', thresh = 5, hues = c('7.5YR')),
+  'BA' = list(m = '7.5YR 4/4', thresh = 8, hues = c('7.5YR')),
+  'Bt1' = list(m = '7.5YR 4/4', thresh = 8, hues = c('5YR', '7.5YR')),
+  'Bt2' = list(m = '5YR 4/5', thresh = 8, hues = c('5YR', '7.5YR')),
+  'Bt3' = list(m = '10YR 4/6', thresh = 10, hues = c('10YR', '7.5YR')),
+  'Cr' = list(m = '2.5G 6/2', thresh = 15, hues = c('2.5G', '2.5GY', '2.5BG'))
+)
+
+# simulate
+(cols &lt;- simulateColor(method = 'dE00', n = 10, parameters = p))
+
+# preview
+previewColors(parseMunsell(unlist(cols)), method = 'MDS')
+
+# another example, this time using a larger dE00 threshold
+p &lt;- list(
+  'A' = list(m = '7.5YR 3/3', thresh = 20, hues = c('10YR', '7.5YR', '5YR'))
+)
+
+# simulate
+set.seed(54654)
+cols &lt;- simulateColor(method = 'dE00', n = 200, parameters = p)
+
+# flatten
+cols &lt;- unlist(cols)
+
+# tabulate, sort: most frequent color should be 7.5YR 3/3
+sort(table(cols), decreasing = TRUE)
+
+# review colors
+previewColors(parseMunsell(cols))
+
+# what does a dE00 threshold look like on 3 pages of hue?
+contrastChart('7.5YR 3/3', hues = c('10YR', '7.5YR', '5YR'), thresh = 20)
+
+</code></pre>
+
+
+</div>

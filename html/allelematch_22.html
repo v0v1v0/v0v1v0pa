@@ -1,0 +1,377 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amUnique</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Identification of unique genotypes
+</h2>
+
+<h3>Description</h3>
+
+<p>Identifies unique genotypes and generates analysis output in formatted text, HTML, or
+CSV. Samples are clustered and matched based on their dissimilarity score (see
+<code>amMatrix</code>). Also calculated is the match probability, Psib, which is the
+probability that a sample is a sibling of a unique genotype (and therefore not a
+replicate sample) given the allele frequencies in a population consisting of only the
+unique genotypes (Wilberg &amp; Dreher, 2004).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	amUnique(
+		amDatasetFocal,
+		multilocusMap = NULL,
+		alleleMismatch = NULL,
+		matchThreshold = NULL,
+		cutHeight = NULL,
+		doPsib = "missing",
+		consensusMethod = 1,
+		verbose = TRUE
+		)
+
+	amHTML.amUnique(
+		x,
+		htmlFile = NULL,
+		htmlCSS = amCSSForHTML()
+		)
+
+	amCSV.amUnique(
+		x,
+		csvFile,
+		uniqueOnly = FALSE
+		)
+
+
+  ## S3 method for class 'amUnique'
+summary(
+    object,
+    html = NULL,
+    csv = NULL,
+    ...
+    )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>amDatasetFocal</code></td>
+<td>
+
+<p>An <code>amDataset</code> object containing genotypes in which an unknown number of
+individuals are sampled multiple times
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multilocusMap</code></td>
+<td>
+
+<p>Optional.<br>
+A vector of integers or strings giving the mappings onto loci for all genotype
+columns in amDatasetFocal.<br>
+When omitted, columns are assumed to be paired (i.e., diploid loci with alleles in
+adjacent columns).<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alleleMismatch</code></td>
+<td>
+
+<p>Optional.<br>
+Maximum number of mismatching alleles which will be tolerated when identifying
+individuals; also known as m-hat parameter.<br>
+If specified, then <code>matchThreshold</code> and <code>cutHeight</code> should be
+omitted.<br>
+All three parameters are related.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matchThreshold</code></td>
+<td>
+
+<p>Optional.<br>
+Minimum dissimilarity score which constitutes a match when identifying
+individuals; also known as s-hat parameter.<br>
+If specified, then <code>alleleMismatch</code> and <code>cutHeight</code> should be omitted;
+all three parameters are related.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutHeight</code></td>
+<td>
+
+<p>Optional.<br>
+The <code>cutHeight</code> parameter used in dynamic tree cutting by <code>amCluster</code>;
+also known as d-hat parameter.<br>
+If specified, then <code>alleleMismatch</code> and <code>matchThreshold</code> should be
+omitted.<br>
+All three parameters are related.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doPsib</code></td>
+<td>
+
+<p>String specifying how match probability should be calculated.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensusMethod</code></td>
+<td>
+
+<p>The method (an integer) used to determine the consensus multilocus genotype from a
+cluster of multilocus genotypes.<br>
+See <code>amCluster</code> for details.<br>
+Typically the default is adequate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>If <code>verbose = TRUE</code>, report the progress of the analysis to the console.<br>
+Useful with datasets consisting of thousands of samples where progress may be
+slow.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object, x</code></td>
+<td>
+
+<p>An <code>amUnique</code> object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htmlFile</code></td>
+<td>
+
+<p>HTML filepath to create.<br>
+If <code>htmlFile = NULL</code>, a file is created in the operating system temporary
+directory and is then opened in the default browser.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>htmlCSS</code></td>
+<td>
+
+<p>A string containing a valid cascading style sheet.<br>
+A default style sheet is provided in <code>amCSSForHTML</code>.<br>
+See <code>amCSSForHTML</code> for details of how to tweak this CSS.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>html</code></td>
+<td>
+
+<p>If <code>html = TRUE</code>, the <code>summary.amUnique</code> method produces and loads an HTML file in the
+default browser.<br><code>html</code> can also contain a path to a file where HTML output will be
+written.<br>
+Note that <code>summary.amUnique</code> does not produce formatted output for the
+console.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csvFile, csv</code></td>
+<td>
+
+<p>CSV filepath to create containing a representation of the <code>amUnique</code>
+analysis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniqueOnly</code></td>
+<td>
+
+<p>If <code>uniqueOnly = TRUE</code>, only the unique genotypes will be saved to a CSV,
+with no additional information associated with the analysis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional arguments to <code>summary.amUnique</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Only one of <code>alleleMismatch</code>, <code>cutHeight</code>, <code>matchThreshold</code> can be
+specified, as the three parameters are related.<br></p>
+<p><code>alleleMismatch</code> is the most intuitive way to understand how the identification
+of unique genotypes proceeds. For example, a setting of <code>alleleMismatch = 4</code>
+implies that up to four alleles may be different for multiple samples to be
+representatives of the same individual. In practice, however, this value is only an
+approximation of the amount of mismatch that may be tolerated. This is because the
+clustering process used to identify unique genotypes, and the subsequent matching
+which identifies samples that match these unique genotypes is based on a dissimilarity
+metric or score (see <code>amMatrix</code>) that incorporates both allele mismatches
+and missing data. <code>alleleMismatch</code> is not used in analyses and is converted to
+this dissimilarity metric in the following manner: <code>cutHeight</code> which is parameter
+for <code>amCluster</code> and called from this function is <code>cutHeight =
+	alleleMismatch/(number of allele columns)</code> and <code>matchThreshold</code> which is a
+parameter for <code>amPairwise</code> and also called from this function is
+<code>matchThreshold = 1 - cutHeight</code>.<br></p>
+<p>Selecting the appropriate value for <code>alleleMismatch</code>, <code>cutHeight</code>, or
+<code>matchThreshold</code> is an important task. Use <code>amUniqueProfile</code> to
+assist in this process. Seethe Data S1 Supplementary documentation and tutorials (PDF)
+located at &lt;doi:10.1111/j.1755-0998.2012.03137.x&gt;<br></p>
+<p><code>doPsib = "missing"</code> is the default and specifies that match probability Psib
+should be calculated for samples that match unique genotypes and have no allele
+mismatches, but may differ by having missing data. <code>doPsib = "all"</code> specifies
+that Psib should be calculated for all samples that match unique genotypes. In this
+case, if allele mismatches occur, alleles are assumed to be missing at the mismatching
+loci.<br></p>
+<p><code>multilocusMap</code> is often not required, as amDataset objects will typically
+consist of paired columns of genotypes, where each pair is a separate locus. In cases
+where this is not the case (e.g., gender is in only one column), a map vector must be
+specified.<br></p>
+<p>Example: <code>amDataset</code> consists of gender followed by 4 diploid loci in paired
+columns<br><code>multilocusMap = c(1, 2, 2, 3, 3, 4, 4, 5, 5)</code><br>
+or equally<br><code>multilocusMap=c("GENDER", "LOC1", "LOC1", "LOC2", "LOC2", "LOC3", "LOC4",
+	"LOC4")</code>
+</p>
+<p>For more information on selecting <code>consensusMethod</code> see <code>amCluster</code>.
+The default <code>consensusMethod = 1</code> is typically adequate.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>amUnique</code> object or side effects: analysis summary written to an HTML file or to
+the console, or written to a CSV file.
+</p>
+
+
+<h3>Note</h3>
+
+<p>There is an additional side effect of <code>html = TRUE</code> (or of <code>htmlFile =
+	NULL</code>). If required, there is a clean up of the operating system temporary directory
+where AlleleMatch temporary HTML files are stored. Files that match the pattern
+am*.html and are older 24 hours are deleted from this temporary directory.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Paul Galpern (<a href="mailto:pgalpern@gmail.com">pgalpern@gmail.com</a>)
+</p>
+
+
+<h3>References</h3>
+
+<p>For a complete vignette, please access via the Data S1 Supplementary documentation and
+tutorials (PDF) located at &lt;doi:10.1111/j.1755-0998.2012.03137.x&gt;.<br></p>
+<p>Wilberg MJ, Dreher BP (2004) GENECAP: a program for analysis of multilocus genotype
+data for non-invasive sampling and capture-recapture population estimation.
+<em>Molecular Ecology Notes</em>, 4, 783-785.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>amDataset</code>, <code>amMatrix</code>, <code>amPairwise</code>,
+<code>amCluster</code>, <code>amUniqueProfile</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 
+	data("amExample2")
+
+	## Produce amDataset object
+	myDataset &lt;-
+		amDataset(
+			amExample2,
+			missingCode = "-99",
+			indexColumn = 1,
+			ignoreColumn = 2
+			)
+
+	## Usage
+	## Optimal alleleMismatch parameter previously found using amUniqueProfile()
+	myUnique &lt;-
+		amUnique(
+		myDataset,
+		alleleMismatch = 3
+		)
+
+	## Display analysis as HTML in default browser
+	summary.amUnique(
+		myUnique,
+		html = TRUE
+		)
+
+	## Save analysis to HTML file
+	summary.amUnique(
+		myUnique,
+		html = "myUnique.htm"
+		)
+
+	## Save analysis to a CSV file
+	summary.amUnique(
+		myUnique,
+		csv = "myUnique.csv"
+		)
+
+	## Save unique genotypes only to a CSV file
+	summary.amUnique(
+		myUnique,
+		csv = "myUnique.csv",
+		uniqueOnly = TRUE
+		)
+
+	## Data set with gender information
+	data("amExample5")
+
+	## Produce amDataset object
+	myDataset2 &lt;-
+		amDataset(
+			amExample5,
+			missingCode = "-99",
+			indexColumn = 1,
+			metaDataColumn = 2
+			)
+
+	## Usage
+	## Optimal alleleMismatch parameter previously found using amUniqueProfile()
+	myUniqueProfile &lt;-
+		amUnique(
+			myDataset2,
+			multilocusMap = c(1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10,
+			11, 11),
+			alleleMismatch = 3
+			)
+
+	
+## End(Not run)
+
+</code></pre>
+
+
+</div>

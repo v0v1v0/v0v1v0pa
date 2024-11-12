@@ -1,0 +1,365 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate data</h2>
+
+<h3>Description</h3>
+
+<p>Simulate data using item response theory (IRT) models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim(psi, xi)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+<p>A matrix of item parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>A matrix of person parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list is returned. Possible elements include:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix of item scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A matrix of item distractors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>A matrix of item responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A matrix of item log response times.</p>
+</td>
+</tr>
+</table>
+<h3>Models for Item Scores</h3>
+
+<p>The <strong>Rasch</strong>, <strong>2PL</strong>, and <strong>3PL models</strong> (Birnbaum, 1968; Rasch, 1960) are
+given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(X_{vi} = 1 | \theta_v, a_i, b_i, c_i) =
+c_i + \frac{1 - c_i}{1 + \exp\{-a_i(\theta_v - b_i)\}}.</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"a"</code>, <code>"b"</code>, and <code>"c"</code> for the item
+discrimination, difficulty, and pseudo-guessing parameters, respectively.
+</p>
+</li>
+<li> <p><code>xi</code> must contain a column named <code>"theta"</code> for the person ability
+parameters.
+</p>
+</li>
+</ul>
+<p>The <strong>partial credit model</strong> (PCM; Masters, 1982) and the <strong>generalized
+partial credit model</strong> (GPCM; Muraki, 1992) are given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(X_{vi} = j | \theta_v, a_i, \boldsymbol{c_i}) =
+\frac{\exp\{\sum_{k=0}^j a_i(\theta_v - c_{ik})\}}
+{\sum_{l=0}^{m_i} \exp\{\sum_{k=0}^l a_i(\theta_v - c_{ik})\}}.</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"a"</code> for the item discrimination
+parameter and <code>"c0"</code>, <code>"c1"</code>, <code>...</code>, for the item category parameters.
+</p>
+</li>
+<li> <p><code>xi</code> must contain a column named <code>"theta"</code> for the person ability
+parameters.
+</p>
+</li>
+</ul>
+<p>The <strong>graded response model</strong> (GRM; Samejima, 1969) is given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(X_{vi} = j | \theta_v, a_i, \boldsymbol{b_i}) =
+P(X_{vi} \ge j | \theta_v, a_i, \boldsymbol{b_i}) -
+P(X_{vi} \ge j + 1 | \theta_v, a_i, \boldsymbol{b_i}),</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">P(X_{vi} \ge j | \theta_v, a_i, \boldsymbol{b_i}) = \begin{cases}
+1 &amp;\text{if } j = 0, \\
+\frac{1}{1 + \exp\{-a_i(\theta_v - b_{ij})\}}
+&amp;\text{if } 1 \le j \le m_i, \\
+0 &amp;\text{if } j = m_i + 1.
+\end{cases}</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"a"</code> for the item discrimination
+parameter and <code>"b1"</code>, <code>"b2"</code>, <code>...</code>, for the item location parameters
+listed in increasing order.
+</p>
+</li>
+<li> <p><code>xi</code> must contain a column named <code>"theta"</code> for the person ability
+parameters.
+</p>
+</li>
+</ul>
+<h3>Models for Item Distractors</h3>
+
+<p>The <strong>nested logit model</strong> (NLM; Bolt et al., 2012) is given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(D_{vi} = j | \theta_v, \eta_v,
+a_i, b_i, c_i, \boldsymbol{\lambda_i}, \boldsymbol{\zeta_i}) =
+[1 - P(X_{vi} = 1 | \theta_v, a_i, b_i, c_i)] \times
+P(D_{vi} = j | X_{vi} = 0, \eta_v,
+\boldsymbol{\lambda_i}, \boldsymbol{\zeta_i}),</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">P(D_{vi} = j | X_{vi} = 0, \eta_v,
+\boldsymbol{\lambda_i}, \boldsymbol{\zeta_i}) =
+\frac{\exp(\lambda_{ij} \eta_v + \zeta_{ij})}
+{\sum_{k=1}^{m_i-1} \exp(\lambda_{ik} \eta_v + \zeta_{ik})}.</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"a"</code>, <code>"b"</code>, and <code>"c"</code> for the item
+discrimination, difficulty, and pseudo-guessing parameters, respectively,
+<code>"lambda1"</code>, <code>"lambda2"</code>, <code>...</code>, for the item slope parameters, and
+<code>"zeta1"</code>, <code>"zeta2"</code>, <code>...</code>, for the item intercept parameters.
+</p>
+</li>
+<li> <p><code>xi</code> must contain columns named <code>"theta"</code> and <code>"eta"</code> for the person
+parameters that govern response correctness and distractor selection,
+respectively.
+</p>
+</li>
+</ul>
+<h3>Models for Item Responses</h3>
+
+<p>The <strong>nominal response model</strong> (NRM; Bock, 1972) is given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(R_{vi} = j | \eta_v,
+\boldsymbol{\lambda_i}, \boldsymbol{\zeta_i}) =
+\frac{\exp(\lambda_{ij} \eta_v + \zeta_{ij})}
+{\sum_{k=1}^{m_i} \exp(\lambda_{ik} \eta_v + \zeta_{ik})}.</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"lambda1"</code>, <code>"lambda2"</code>, <code>...</code>, for the
+item slope parameters and <code>"zeta1"</code>, <code>"zeta2"</code>, <code>...</code>, for the item
+intercept parameters. If there is a correct response category, its
+parameters should be listed last.
+</p>
+</li>
+<li> <p><code>xi</code> must contain a column named <code>"eta"</code> for the person parameters that
+govern response selection.
+</p>
+</li>
+</ul>
+<h3>Models for Item Log Response Times</h3>
+
+<p>The <strong>lognormal model</strong> (van der Linden, 2006) is given by
+</p>
+<p style="text-align: center;"><code class="reqn">f(Y_{vi} | \tau_v, \alpha_i, \beta_i) =
+\frac{\alpha_i}{\sqrt{2 \pi}}
+\exp\{-\frac{1}{2}[\alpha_i(Y_{vi} - (\beta_i - \tau_v))]^2\}.</code>
+</p>
+
+
+<ul>
+<li> <p><code>psi</code> must contain columns named <code>"alpha"</code> and <code>"beta"</code> for the item time
+discrimination and time intensity parameters, respectively.
+</p>
+</li>
+<li> <p><code>xi</code> must contain a column named <code>"tau"</code> for the person speed parameters.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Birnbaum, A. (1968). Some latent trait models and their use in inferring an
+examinee's ability. In F. M. Lord &amp; M. R. Novick (Eds.), <em>Statistical
+theories of mental test scores</em> (pp. 397–479). Addison-Wesley.
+</p>
+<p>Bock, R. D. (1972). Estimating item parameters and latent ability when
+responses are scored in two or more nominal categories. <em>Psychometrika</em>,
+<em>37</em>(1), 29–51.
+</p>
+<p>Bolt, D. M., Wollack, J. A., &amp; Suh, Y. (2012). Application of a
+multidimensional nested logit model to multiple-choice test items.
+<em>Psychometrika</em>, <em>77</em>(2), 339–357.
+</p>
+<p>Masters, G. N. (1982). A Rasch model for partial credit scoring.
+<em>Psychometrika</em>, <em>47</em>(2), 149–174.
+</p>
+<p>Muraki, E. (1992). A generalized partial credit model: Application of an EM
+algorithm. <em>Applied Psychological Measurement</em>, <em>16</em>(2), 159–176.
+</p>
+<p>Rasch, G. (1960). <em>Probabilistic models for some intelligence and attainment
+tests</em>. Danish Institute for Educational Research.
+</p>
+<p>Samejima, F. (1969). Estimation of latent ability using a response pattern of
+graded scores. <em>Psychometrika</em>, <em>34</em>(S1), 1–97.
+</p>
+<p>van der Linden, W. J. (2006). A lognormal model for response times on test
+items. <em>Journal of Educational and Behavioral Statistics</em>, <em>31</em>(2), 181–204.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup for Examples 1 to 5 -------------------------------------------------
+
+# Settings
+set.seed(0)     # seed for reproducibility
+N &lt;- 500        # number of persons
+n &lt;- 40         # number of items
+
+# Example 1: 3PL Model and Lognormal Model ----------------------------------
+
+# Generate person parameters
+xi &lt;- MASS::mvrnorm(
+  N,
+  mu = c(theta = 0.00, tau = 0.00),
+  Sigma = matrix(c(1.00, 0.25, 0.25, 0.25), ncol = 2)
+)
+
+# Generate item parameters
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  b = NA,
+  c = runif(n, min = 0.05, max = 0.30),
+  alpha = runif(n, min = 1.50, max = 2.50),
+  beta = NA
+)
+
+# Generate positively correlated difficulty and time intensity parameters
+psi[, c("b", "beta")] &lt;- MASS::mvrnorm(
+  n,
+  mu = c(b = 0.00, beta = 3.50),
+  Sigma = matrix(c(1.00, 0.20, 0.20, 0.15), ncol = 2)
+)
+
+# Simulate item scores and log response times
+dat &lt;- sim(psi, xi)
+x &lt;- dat$x
+y &lt;- dat$y
+
+# Example 2: Generalized Partial Credit Model -------------------------------
+
+# Generate person parameters
+xi &lt;- cbind(theta = rnorm(N, mean = 0.00, sd = 1.00))
+
+# Generate item parameters
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  c0 = 0,
+  c1 = rnorm(n, mean = -1.00, sd = 0.50),
+  c2 = rnorm(n, mean = 0.00, sd = 0.50),
+  c3 = rnorm(n, mean = 1.00, sd = 0.50)
+)
+
+# Simulate item scores
+x &lt;- sim(psi, xi)$x
+
+# Example 3: Graded Response Model ------------------------------------------
+
+# Generate person parameters
+xi &lt;- cbind(theta = rnorm(N, mean = 0.00, sd = 1.00))
+
+# Generate item parameters
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  b1 = rnorm(n, mean = -1.00, sd = 0.50),
+  b2 = rnorm(n, mean = 0.00, sd = 0.50),
+  b3 = rnorm(n, mean = 1.00, sd = 0.50)
+)
+
+# Sort item location parameters in increasing order
+psi[, paste0("b", 1:3)] &lt;- t(apply(psi[, paste0("b", 1:3)], 1, sort))
+
+# Simulate item scores
+x &lt;- sim(psi, xi)$x
+
+# Example 4: Nested Logit Model ---------------------------------------------
+
+# Generate person parameters
+xi &lt;- MASS::mvrnorm(
+  N,
+  mu = c(theta = 0.00, eta = 0.00),
+  Sigma = matrix(c(1.00, 0.80, 0.80, 1.00), ncol = 2)
+)
+
+# Generate item parameters
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  b = rnorm(n, mean = 0.00, sd = 1.00),
+  c = runif(n, min = 0.05, max = 0.30),
+  lambda1 = rnorm(n, mean = 0.00, sd = 1.00),
+  lambda2 = rnorm(n, mean = 0.00, sd = 1.00),
+  lambda3 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta1 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta2 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta3 = rnorm(n, mean = 0.00, sd = 1.00)
+)
+
+# Simulate item scores and distractors
+dat &lt;- sim(psi, xi)
+x &lt;- dat$x
+d &lt;- dat$d
+
+# Example 5: Nominal Response Model -----------------------------------------
+
+# Generate person parameters
+xi &lt;- cbind(eta = rnorm(N, mean = 0.00, sd = 1.00))
+
+# Generate item parameters
+psi &lt;- cbind(
+  lambda1 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda2 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda3 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda4 = rnorm(n, mean = 1.50, sd = 0.50),
+  zeta1 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta2 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta3 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta4 = rnorm(n, mean = 1.50, sd = 0.50)
+)
+
+# Simulate item responses
+r &lt;- sim(psi, xi)$r
+</code></pre>
+
+
+</div>

@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_moment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute moments</h2>
+
+<h3>Description</h3>
+
+<p>Compute the moment of any function ff using AGHQ.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_moment(obj, ...)
+
+## S3 method for class 'list'
+compute_moment(
+  obj,
+  ff = function(x) 1,
+  gg = NULL,
+  nn = NULL,
+  type = c("raw", "central"),
+  method = c("auto", "reuse", "correct"),
+  ...
+)
+
+## S3 method for class 'aghq'
+compute_moment(
+  obj,
+  ff = function(x) 1,
+  gg = NULL,
+  nn = NULL,
+  type = c("raw", "central"),
+  method = c("auto", "reuse", "correct"),
+  ...
+)
+
+## Default S3 method:
+compute_moment(
+  obj,
+  ff = function(x) 1,
+  gg = NULL,
+  method = c("auto", "reuse", "correct"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>Object of class <code>aghq</code> output by <code>aghq::aghq()</code>. See <code>?aghq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass additional argument <code>ff</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ff</code></td>
+<td>
+<p>Any R function which takes in a numeric vector and returns a numeric vector. Exactly one of <code>ff</code> or <code>gg</code> must be provided. If both are provided, <code>aghq::compute_moment()</code> will use <code>gg</code>,
+without warning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gg</code></td>
+<td>
+<p>The output of, or an object which may be input to <code>aghq::make_moment_function()</code>. See documentation of that function. Exactly one of <code>ff</code> or <code>gg</code> must be provided. If both are provided, <code>aghq::compute_moment()</code> will use <code>gg</code>,
+without warning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>A numeric scalar. Compute the approximate moment of this order, <code>E(theta^nn|Y)</code>. See details.
+If <code>nn</code> is provided, <code>compute_moment</code> will use it over <code>ff</code> or <code>gg</code>,
+without warning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Either <code>'raw'</code> (default) or <code>'central'</code>, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method for computing the quadrature points used to approximate moment. One of <code>'reuse'</code> (default) or <code>'correct'</code>. See details. The default SHOULD be <code>'correct'</code>; it is currently
+set to <code>'reuse'</code> to maintain compatibility of results with previous versions. This will be switched in a future major release.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If multiple of <code>nn</code>, <code>gg</code>, and <code>ff</code> are provided, then <code>compute_moment</code>
+will use <code>nn</code>, <code>gg</code>, or <code>ff</code>, in that order, without warning.
+</p>
+<p>There are several approximations available. The "best" one is obtained by specifying <code>gg</code>
+and using <code>method = 'correct'</code>. This recomputes the mode and curvature for the
+function <code>g(theta)posterior(theta)</code>, and takes the ratio of the AGHQ approximation
+to this function to the AGHQ approximation to the marginal likelihood. This obtains the
+same relative rate of convergence as the AGHQ approximation to the marginal likelihood. It
+may take a little extra time, and only works for <strong>positive, scalar-valued</strong> functions <code>g</code>.
+</p>
+<p><code>method = 'reuse'</code> re-uses the AGHQ adapted points and weights. It's faster than the
+correct method, because it does not involve any new optimization, it's just a weighted sum.
+No convergence theory. Seems to work ok in "practice". "Works" for arbitrary <code>g</code>.
+</p>
+<p>Specifying <code>ff</code> instead of <code>gg</code> automatically uses <code>method = 'reuse'</code>. This
+interface is provided for backwards compatibility mostly. However, one advantage is that
+it allows for <strong>vector-valued</strong> functions, in which case it just returns the corresponding
+vector of approximate moments. Also, it only requires the adapted nodes and weights, not
+the ability to evaluate the log-posterior and its derivatives, although this is unlikely
+to be a practical concern.
+</p>
+<p>Specifying a numeric value <code>nn</code> will return the moment <code>E(theta^nn|Y)</code>.
+This automatically does some internal shifting to get the evaluations away from zero,
+to avoid the inherent problem of multi-modal "posteriors" that occurs when the posterior
+mode is near zero, and account for the fact that some of the new adapted quadrature points
+may be negative. So, the actual return value is <code>E(theta^nn + a|Y) - a</code> for a cleverly-chosen
+value <code>a</code>.
+</p>
+<p>Finally, <code>type='raw'</code> computes raw moments <code>E(g(theta)|Y)</code>, where <code>type='central'</code>
+computes central moments, <code>E(g(theta - E(g(theta)|Y))|Y)</code>. See examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector containing the moment(s) of ff with respect to the joint
+distribution being approximated using AGHQ.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+funlist2d &lt;- list(
+  fn = objfunc2d,
+  gr = function(x) numDeriv::grad(objfunc2d,x),
+  he = function(x) numDeriv::hessian(objfunc2d,x)
+)
+quad &lt;- aghq(funlist2d,7,c(0,0))
+
+</code></pre>
+
+
+</div>

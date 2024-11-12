@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_isric_soil_profile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a synthetic APSIM soil profile from the ISRIC soil database</h2>
+
+<h3>Description</h3>
+
+<p>Retrieves soil data from the ISRIC global database and converts it to an APSIM soil_profile object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_isric_soil_profile(
+  lonlat,
+  statistic = c("mean", "Q0.5"),
+  soil.profile,
+  find.location.name = TRUE,
+  fix = FALSE,
+  verbose = TRUE,
+  check = TRUE,
+  physical = c("default", "SR"),
+  xargs = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lonlat</code></td>
+<td>
+<p>Longitude and latitude vector (e.g. c(-93, 42)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>default is the mean</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.profile</code></td>
+<td>
+<p>a soil profile to fill in in case the default one is not appropriate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>find.location.name</code></td>
+<td>
+<p>default is TRUE. Use either maps package or photon API to find Country/State.
+If you are running this function many times it might be better to set this to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix</code></td>
+<td>
+<p>whether to fix compatibility between saturation and bulk density (default is FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>argument passed to the fix function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check</code></td>
+<td>
+<p>whether to check the soil profile (default is TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>physical</code></td>
+<td>
+<p>whether soil physical properties are obtained from the data base or through ‘SR’, Saxton and Rawls pedotransfer functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xargs</code></td>
+<td>
+<p>additional arguments passed to <code>apsimx_soil_profile</code> or ‘apsimx:::approx_soil_variable’ function. At the moment these are:
+‘soil.bottom’, ‘method’ and ‘nlayers’.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Source: https://www.isric.org/ <br>
+Details: https://www.isric.org/explore/soilgrids/faq-soilgrids <br></p>
+<p>Pedotransfer functions: Saxton and Rawls, 2006. Soil Water Characteristic Estimates by Texture and Organic Matter for Hydrologic Solutions.
+Soil Sci. Soc. Am. J. 70:1569–1578. <br></p>
+<p>TODO: need to look into how this is done in APSIM NG
+https://github.com/APSIMInitiative/ApsimX/pull/3994/files <br></p>
+<p>NOTE: Eric Zurcher provided help by sending me an R file originally written by
+Andrew Moore. It provides a bit of context for how some of the decisions
+were made for constructing the synthetic soil profiles in APSIM. (email from june 3 2021).
+</p>
+<p>Variable which are directly retrieved and a simple unit conversion is performed: <br>
+* Bulk density - bdod <br>
+* Carbon - soc <br>
+* Clay - clay <br>
+* Sand - sand <br>
+* PH - phh2o <br>
+* Nitrogen - nitrogen <br>
+Variables which are optionally estimated using pedotransfer functions: <br>
+LL15, DUL, SAT, KS, AirDry <br>
+TO-DO: <br>
+What do I do with nitrogen? <br>
+Can I use CEC? <br>
+How can I have a guess at FBiom and Finert? <br>
+FBiom does not depend on any soil property at the moment, should it? <br></p>
+
+
+<h3>Value</h3>
+
+<p>it generates an object of class ‘soil_profile’.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Fernando E. Miguez, Eric Zurcher (CSIRO) and Andrew Moore (CSIRO)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>apsimx_soil_profile</code>, <code>edit_apsim_replace_soil_profile</code>, <code>edit_apsimx_replace_soil_profile</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Only run this if rest.isric.org is working
+rest.isric.on &lt;- suppressWarnings(try(readLines("http://rest.isric.org", 
+n = 1, warn = FALSE), silent = TRUE))
+
+## Get soil profile properties for a single point
+if(!inherits(rest.isric.on, "try-error")){
+  sp1 &lt;- get_isric_soil_profile(lonlat = c(-93, 42), fix = TRUE, verbose = FALSE)
+  ## Visualize
+  plot(sp1)
+  plot(sp1, property = "water")
+ }
+
+## End(Not run)
+</code></pre>
+
+
+</div>

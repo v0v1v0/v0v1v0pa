@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>piFuns</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute multinomial cell probabilities
+</h2>
+
+<h3>Description</h3>
+
+<p>These functions are used internally in the multinomial-Poisson models <code>multinomPois</code> and <code>gmultmix</code> in package <span class="pkg">unmarked</span> to calculate the multinomial cell probabilities from the "raw" detection probabilities. See piFuns. These functions are customized for the examples in chapter 7 of AHM1 and only allow for 3 capture occasions.
+</p>
+<p>See makePiFuns for functions to construct piFuns with more occasions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">instRemPiFun(p)
+
+crPiFun(p)
+
+crPiFun.Mb(p)
+
+MhPiFun(p)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>a numeric matrix with rows for each site and 3 columns, see Details.
+</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p><code>instRemPiFun</code> defines the relationship between the multinomial cell probabilities and the underlying detection probability parameters in a removal design with 3 sampling periods of unequal length, specifically 2, 3 and 5 minutes. The columns of <code>p</code> give the detection probabilities per unit time (ie, per minute) for each site and sampling period. See AHM1 Section 7.7. This is the same as the function defined in the Examples section of piFuns in <span class="pkg">unmarked</span>.
+</p>
+<p><code>crPiFun</code> defines a pi function for capture-recapture design with 3 capture occasions. The columns of <code>p</code> give the detection probabilities for the three occasions. See AHM1 Section 7.8.5. <b>NOTE</b> that this is not the same as the custom <code>crPiFun</code> defined in Section 7.9.1.
+</p>
+<p><code>crPiFun.Mb</code> defines a pi function for capture-recapture design with 3 capture occasions with a behavioral response. Detection probabilities do not vary with time. Column #1 of <code>p</code> gives the probability of detection for animals not previously detected; column #3 gives detection probability after the first detection; column #2 is ignored. See AHM1 Section 7.8.2.
+</p>
+<p><code>MhPiFun</code> defines a pi function for a model with individual detection heterogeneity, modeled as a random effect with a logit-normal distribution. Column #1 of <code>p</code> gives the mean probability of detection; <code>p[1, 2]</code> is a value in [0, 1] which controls the scale parameter for the normal distribution; other entries are ignored. See Section 7.8.3.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with a row for each site corresponding to the rows of <code>p</code> and...
+</p>
+<p>...for <code>instRemPiFun</code>, a column for each detection occasion with the multinomial probability.
+</p>
+<p>...for other functions, a column for each detection history; for 3 detection occasions these are 001, 010, 011, 100, 101, 110, 111.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Richard Chandler, Andy Royle
+</p>
+
+
+<h3>References</h3>
+
+<p>Kéry, M. &amp; Royle, J.A. (2016) <em>Applied Hierarchical Modeling in Ecology</em> AHM1 - 7.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Capture probs for 5 sites, with 3 survey periods
+( p &lt;- matrix(0.4, nrow=5, ncol=3) )
+# Removal model
+instRemPiFun(p)
+# The corresponding obsToY matrix:
+matrix(1, 2, 3)
+
+# Capture-recapture model
+crPiFun(p)
+# The corresponding obsToY matrix:
+matrix(1, 3, 7)
+
+# Capture-recapture model with behavioural response
+( pMb &lt;- cbind(rep(0.7, 5), NA, 0.3) )
+crPiFun.Mb(pMb)
+# The corresponding obsToY matrix:
+matrix(1, 3, 7)
+
+# Capture-recapture model with heterogeneity
+pMh &lt;- cbind(rep(0.4, 5), NA, NA)
+pMh[1, 2] &lt;- 0.3
+pMh
+MhPiFun(pMh)
+# The corresponding obsToY matrix:
+matrix(1, 3, 7)
+</code></pre>
+
+
+</div>

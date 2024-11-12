@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cumulative_cutoff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cumulative access based on a travel cost cutoff</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the number of opportunities accessible under a given specified
+travel cost cutoff.
+</p>
+<p>This function is generic over any kind of numeric travel cost,
+such as distance, time and money.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cumulative_cutoff(
+  travel_matrix,
+  land_use_data,
+  opportunity,
+  travel_cost,
+  cutoff,
+  group_by = character(0),
+  active = TRUE,
+  fill_missing_ids = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>travel_matrix</code></td>
+<td>
+<p>A data frame. The travel matrix describing the costs
+(i.e. travel time, distance, monetary cost, etc.) between the origins and
+destinations in the study area. Must contain the columns <code>from_id</code>, <code>to_id</code>
+and any others specified in <code>travel_cost</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>land_use_data</code></td>
+<td>
+<p>A data frame. The distribution of opportunities within
+the study area cells. Must contain the columns <code>id</code> and any others
+specified in <code>opportunity</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opportunity</code></td>
+<td>
+<p>A string. The name of the column in <code>land_use_data</code>
+with the number of opportunities/resources/services to be considered when
+calculating accessibility levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>travel_cost</code></td>
+<td>
+<p>A <code>character</code> vector. The name of the columns in
+<code>travel_matrix</code> with the travel costs between origins and destinations to
+be considered in the calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>Either a <code>numeric</code> vector or a list of <code>numeric</code> vectors, one
+for each cost specified in <code>travel_cost</code>. The travel cost cutoffs to
+consider when calculating accessibility levels. If a list, the function
+finds every single possible cutoff combination and use them to calculate
+accessibility (e.g. if one specifies that travel time cutoffs should be 30
+and 60 minutes and that monetary cost cutoffs should be 5 and 10 dollars,
+the output includes accessibility estimates limited at 30 min &amp; 5 dollars,
+30 min &amp; 10 dollars, 60 min &amp; 5 dollars and 60 min &amp; 10 dollars). In these
+cases, cost constraints are considered simultaneously - i.e. only trips
+that take 30 minutes or less AND 5 dollars or less to be completed, for
+example, are included in the accessibility output. The cutoff parameter is
+not included in the final output if the input includes only a single cutoff
+for a single travel cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_by</code></td>
+<td>
+<p>A <code>character</code> vector. When not <code>character(0)</code> (the default),
+indicates the <code>travel_matrix</code> columns that should be used to group the
+accessibility estimates by. For example, if <code>travel_matrix</code> includes a
+departure time column, that specifies the departure time of each entry in
+the data frame, passing <code>"departure_time"</code> to this parameter results in
+accessibility estimates grouped by origin and by departure time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>A logical. Whether to calculate active accessibility (the
+of opportunities that can be reached from a given origin, the default) or
+passive accessibility (by how many people each destination can be reached).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill_missing_ids</code></td>
+<td>
+<p>A <code>logical</code>. Calculating cumulative accessibility may
+result in missing ids if the they cannot reach any of the destinations
+within the specified travel cost cutoff. For example, using a travel time
+cutoff of 20 minutes, when estimating the accessibility of origin <code>A</code> that
+can only reach destinations with more than 40 minutes results in id <code>A</code>
+not being included in the output. When <code>TRUE</code> (the default), the function
+identifies which origins would be left out and fills their respective
+accessibility values with 0, which incurs in a performance penalty.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame containing the accessibility estimates for each
+origin/destination (depending if <code>active</code> is <code>TRUE</code> or <code>FALSE</code>) in the
+travel matrix.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other cumulative access: 
+<code>cumulative_interval()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data_dir &lt;- system.file("extdata", package = "accessibility")
+travel_matrix &lt;- readRDS(file.path(data_dir, "travel_matrix.rds"))
+land_use_data &lt;- readRDS(file.path(data_dir, "land_use_data.rds"))
+
+# active accessibility: number of schools accessible from each origin
+df &lt;- cumulative_cutoff(
+  travel_matrix = travel_matrix,
+  land_use_data = land_use_data,
+  cutoff = 30,
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+head(df)
+
+df &lt;- cumulative_cutoff(
+  travel_matrix = travel_matrix,
+  land_use_data = land_use_data,
+  cutoff = c(30, 60),
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+head(df)
+
+# passive accessibility: number of people that can reach each destination
+df &lt;- cumulative_cutoff(
+  travel_matrix = travel_matrix,
+  land_use_data = land_use_data,
+  cutoff = 30,
+  opportunity = "population",
+  travel_cost = "travel_time",
+  active = FALSE
+)
+head(df)
+
+# using multiple travel costs
+pareto_frontier &lt;- readRDS(file.path(data_dir, "pareto_frontier.rds"))
+
+df &lt;- cumulative_cutoff(
+  pareto_frontier,
+  land_use_data = land_use_data,
+  opportunity = "jobs",
+  travel_cost = c("travel_time", "monetary_cost"),
+  cutoff = list(c(20, 30), c(0, 5, 10))
+)
+head(df)
+
+</code></pre>
+
+
+</div>

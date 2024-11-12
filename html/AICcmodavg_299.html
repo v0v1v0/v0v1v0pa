@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dictab</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create Model Selection Tables from Bayesian Analyses
+</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a model selection table based on the deviance
+information criterion (DIC).  The table ranks the models based on the
+DIC and also provides delta DIC and DIC weights.  <code>dictab</code> selects
+the appropriate function to create the model selection table based on
+the object class.  The current version works with objects of <code>bugs</code>,
+<code>rjags</code>, <code>jagsUI</code> classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dictab(cand.set, modnames = NULL, sort = TRUE, ...)
+
+## S3 method for class 'AICbugs'
+dictab(cand.set, modnames = NULL, sort = TRUE, ...)
+
+## S3 method for class 'AICrjags'
+dictab(cand.set, modnames = NULL, sort = TRUE, ...)
+
+## S3 method for class 'AICjagsUI'
+dictab(cand.set, modnames = NULL, sort = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cand.set</code></td>
+<td>
+
+<p>a list storing each of the models in the candidate model set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modnames</code></td>
+<td>
+
+<p>a character vector of model names to facilitate the identification of
+each model in the model selection table. If <code>NULL</code>, the function
+uses the names in the cand.set list of candidate models. If no names
+appear in the list, generic names (e.g., <code>Mod1</code>, <code>Mod2</code>) are
+supplied in the table in the same order as in the list of candidate
+models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+
+<p>logical.  If <code>TRUE</code>, the model selection table is ranked according
+to the DIC values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>dictab</code> internally creates a new class for the <code>cand.set</code>
+list of candidate models, according to the contents of the list.  The
+current function is implemented for <code>bugs</code>, <code>jags</code>,
+<code>jagsUI</code> classes. The function constructs a model selection table
+based on the DIC (Spiegelhalter et al. 2002).  Note that DIC might not
+be appropriate to select among a set of hierarchical models and that
+modifications to the information criterion have been proposed (Millar
+2009).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>dictab</code> creates an object of class <code>dictab</code> with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Modname</code></td>
+<td>
+<p>the name of each model of the candidate model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pD</code></td>
+<td>
+<p>the effective number of estimated parameters for each
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DIC</code></td>
+<td>
+<p>the deviance information criterion for each model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Delta_DIC</code></td>
+<td>
+<p>the delta DIC of each model, measuring the difference
+in DIC between each model and the top-ranked model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ModelLik</code></td>
+<td>
+<p>the relative likelihood of the model given the
+data (exp(-0.5*delta[i])).  This is not to be confused with the
+likelihood of the parameters given the data.  The relative likelihood
+can then be normalized across all models to get the model probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DICWt</code></td>
+<td>
+<p>the DIC weights, sensu Burnham and Anderson (2002) and
+Anderson (2008). These measures indicate the level of support (i.e.,
+weight of evidence) in favor of any given model being the most
+parsimonious among the candidate model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cum.Wt</code></td>
+<td>
+<p>the cumulative DIC weights.  These are only meaningful
+if results in table are sorted in decreasing order of DIC weights
+(i.e., <code>sort = TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Deviance</code></td>
+<td>
+<p>the deviance of each model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Anderson, D. R. (2008) <em>Model-based Inference in the Life Sciences:
+a primer on evidence</em>. Springer: New York.
+</p>
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York.
+</p>
+<p>Spiegelhalter, D. J., Best, N. G., Carlin, B. P., van der Linde,
+A. (2002). Bayesian measures of complexity and fit. <em>Journal of the
+Royal Statistical Society, Series B</em> <b>64</b>, 583–639.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aictabCustom</code>, <code>aictab</code>, <code>confset</code>,
+<code>DIC</code>, <code>evidence</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##from ?jags example in R2jags package
+## Not run: 
+require(R2jags)
+model.file &lt;- system.file(package="R2jags", "model", "schools.txt")
+file.show(model.file)     
+
+##data
+J &lt;- 8.0
+y &lt;- c(28.4,7.9,-2.8,6.8,-0.6,0.6,18.0,12.2)
+sd &lt;- c(14.9,10.2,16.3,11.0,9.4,11.4,10.4,17.6)
+     
+     
+jags.data &lt;- list (J = J, y = y, sd = sd)
+jags.inits &lt;- function(){
+  list(theta=rnorm(J, 0, 100), mu=rnorm(1, 0, 100),
+       sigma=runif(1, 0, 100))
+}
+jags.parameters &lt;- c("theta", "mu", "sigma")
+     
+##run model
+schools.sim &lt;- jags(data = jags.data, inits = jags.inits,
+                    parameters = jags.parameters,
+                    model.file = model.file,
+                    n.chains = 3, n.iter = 10)
+#note that n.iter should be higher
+
+##set up in list
+Cand.mods &lt;- list(schools.sim)
+Model.names &lt;- "hierarchical model"
+##other models can be added to Cand.mods
+##to compare them to the top model
+
+##model selection table
+dictab(cand.set = Cand.mods, modnames = Model.names)
+detach(package:R2jags)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

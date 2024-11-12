@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filter_repeat_visits</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter observations to repeat visits for hierarchical modeling</h2>
+
+<h3>Description</h3>
+
+<p>Hierarchical modeling of abundance and occurrence requires repeat visits to
+sites to estimate detectability. These visits should be all be within a
+period of closure, i.e. when the population can be assumed to be closed.
+eBird data, and many other data sources, do not explicitly follow this
+protocol; however, subsets of the data can be extracted to produce data
+suitable for hierarchical modeling. This function extracts a subset of
+observation data that have a desired number of repeat visits within a period
+of closure.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filter_repeat_visits(
+  x,
+  min_obs = 2L,
+  max_obs = 10L,
+  annual_closure = TRUE,
+  n_days = NULL,
+  date_var = "observation_date",
+  site_vars = c("locality_id", "observer_id"),
+  ll_digits = 6L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>data.frame</code>; observation data, e.g. data from the eBird Basic
+Dataset (EBD) zero-filled with <code>auk_zerofill()</code>. This function will also
+work with an <code>auk_zerofill</code> object, in which case it will be converted to
+a data frame with <code>collapse_zerofill()</code>.
+<strong>Note that these data must for a single species</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_obs</code></td>
+<td>
+<p>integer; minimum number of observations required for each
+site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_obs</code></td>
+<td>
+<p>integer; maximum number of observations allowed for each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>annual_closure</code></td>
+<td>
+<p>logical; whether the entire year should be treated as
+the period of closure (the default). This can be useful, for example, if
+the data have been subset to a period of closure prior to calling
+<code>filter_repeat_visits()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_days</code></td>
+<td>
+<p>integer; number of days defining the temporal length of
+closure. If <code>annual_closure = TRUE</code> closure periods will be split at year
+boundaries. If <code>annual_closure = FALSE</code> the closure periods will ignore
+year boundaries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_var</code></td>
+<td>
+<p>character; column name of the variable in <code>x</code> containing the
+date. This column should either be in <code>Date</code> format or convertible to
+<code>Date</code> format with <code>as.Date()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>site_vars</code></td>
+<td>
+<p>character; names of one of more columns in <code>x</code> that define a
+site, typically the location (e.g. latitude/longitude) and observer ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll_digits</code></td>
+<td>
+<p>integer; the number of digits to round latitude and longitude
+to. If latitude and/or longitude are used as <code>site_vars</code>, it's usually best
+to round them prior to identifying sites, otherwise locations that are only
+slightly offset (e.g. a few centimeters) will be treated as different. This
+argument can also be used to group sites together that are close but not
+identical. Note that 1 degree of latitude is approximately 100 km, so the
+default value of 6 for <code>ll_digits</code> is equivalent to about 10 cm.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In addition to specifying the minimum and maximum number of
+observations per site, users must specify the variables in the dataset that
+define a "site". This is typically a combination of IDs defining the
+geographic site and the unique observer (repeat visits are meant to be
+conducted by the same observer). Finally, the closure period must be
+defined, which is a period within which the population of the focal species
+can reasonably be assumed to be closed. This can be done using a
+combination of the <code>n_days</code> and <code>annual_closure</code> arguments.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> filtered to only retain observations from sites with
+the allowed number of observations within the period of closure. The
+results will be sorted such that sites are together and in chronological
+order. The following variables are added to the data frame:
+</p>
+
+<ul>
+<li> <p><code>site</code>: a unique identifier for each "site" corresponding to all the
+variables in <code>site_vars</code> and <code>closure_id</code> concatenated together with
+underscore separators.
+</p>
+</li>
+<li> <p><code>closure_id</code>: a unique ID for each closure period. If <code>annual_closure =   TRUE</code> this ID will include the year. If <code>n_days</code> is used an index given the
+number of blocks of <code>n_days</code> days since the earliest observation will be
+included. Note that in this case, there may be gaps in the IDs.
+</p>
+</li>
+<li> <p><code>n_observations</code>: number of observations at each site after all
+filtering.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other modeling: 
+<code>format_unmarked_occu()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># read and zero-fill the ebd data
+f_ebd &lt;- system.file("extdata/zerofill-ex_ebd.txt", package = "auk")
+f_smpl &lt;- system.file("extdata/zerofill-ex_sampling.txt", package = "auk")
+# data must be for a single species
+ebd_zf &lt;- auk_zerofill(x = f_ebd, sampling_events = f_smpl,
+                       species = "Collared Kingfisher",
+                       collapse = TRUE)
+filter_repeat_visits(ebd_zf, n_days = 30)
+</code></pre>
+
+
+</div>

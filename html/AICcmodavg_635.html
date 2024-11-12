@@ -1,0 +1,334 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Nmix.gof.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute Chi-square Goodness-of-fit Test for N-mixture Models
+</h2>
+
+<h3>Description</h3>
+
+<p>These functions compute a goodness-of-fit test for N-mixture models
+based on Pearson's chi-square.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">##methods for 'unmarkedFitPCount', 'unmarkedFitPCO', 
+##'unmarkedFitDS', 'unmarkedFitGDS', 'unmarkedFitGMM',
+##'unmarkedFitGPC', and 'unmarkedFitMPois' classes
+Nmix.chisq(mod, ...)
+
+Nmix.gof.test(mod, nsim = 5, plot.hist = TRUE, report = NULL,
+parallel = TRUE, ncores, cex.axis = 1, cex.lab = 1, cex.main = 1,
+lwd = 1, ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+
+<p>the <em>N</em>-mixture model of <code>unmarkedFitPCount</code>,
+<code>unmarkedFitPCO</code>, <code>unmarkedFitDS</code>, <code>unmarkedFitGDS</code>,
+<code>unmarkedFitGMM</code>, <code>unmarkedFitGPC</code>,
+<code>unmarkedFitMPois</code>, <code>unmarkedFitMMO</code>, or
+<code>unmarkedFitDSO</code> classes for which a goodness-of-fit test is
+required. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>the number of bootstrapped samples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.hist</code></td>
+<td>
+<p>logical.  Specifies that a histogram of the
+bootstrapped test statistic is to be included in the output.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>If <code>NULL</code>, the test statistic for each iteration is
+not printed in the terminal.  Otherwise, an integer indicating the
+number of values of the test statistic that should be printed on
+the same line.  For example, if <code>report = 3</code>, the values of the
+test statistic for three iterations are reported on each line.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>logical.  If <code>TRUE</code>, requests that <code>parboot</code>
+use multiple cores to accelerate computations of the bootstrap.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>integer indicating the number of cores to use when
+bootstrapping in parallel during the analysis of simulated data sets.
+If <code>ncores</code> is not specified, one less than the number of
+available cores on the computer is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.axis</code></td>
+<td>
+<p>expansion factor influencing the size of axis
+annotations on plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.lab</code></td>
+<td>
+<p>expansion factor influencing the size of axis labels on
+plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.main</code></td>
+<td>
+<p>expansion factor influencing the size of the main title
+above plots produced by the function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>expansion factor of line width on plots produced by the
+function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Pearson chi-square can be used to assess the fit of N-mixture
+models.  Instead of relying on the theoretical distribution of the
+chi-square, a parametric bootstrap approach is implemented to obtain
+<em>P</em>-values with the <code>parboot</code> function of the <code>unmarked</code>
+package.  <code>Nmix.chisq</code> computes the observed chi-square statistic
+based on the observed and expected counts from the model.
+<code>Nmix.gof.test</code> calls internally <code>Nmix.chisq</code> and
+<code>parboot</code> to generate simulated data sets based on the model and
+compute the chi-square test statistic.
+</p>
+<p>It is also possible to obtain an estimate of the overdispersion
+parameter (c-hat) for the model at hand by dividing the observed
+chi-square statistic by the mean of the statistics obtained from
+simulation (MacKenzie and Bailey 2004, McKenny et al. 2006).  This
+method of estimating c-hat is similar to the one implemented for
+capture-mark-recapture models in program MARK (White and Burnham 1999).
+</p>
+<p>Note that values of c-hat &gt; 1 indicate overdispersion (variance &gt;
+mean).  Values much higher than 1 (i.e., &gt; 4) probably indicate
+lack-of-fit.  In cases of moderate overdispersion, one can multiply the
+variance-covariance matrix of the estimates by c-hat.  As a result, the
+SE's of the estimates are inflated (c-hat is also known as a variance
+inflation factor).
+</p>
+<p>In model selection, c-hat should be estimated from the global model and
+the same value of c-hat applied to the entire model set.  Specifically,
+a global model is the most complex model which can be simplified to
+yield all the other (nested) models of the set.  When no single global
+model exists in the set of models considered, such as when sample size
+does not allow a complex model, one can estimate c-hat from 'subglobal'
+models.  Here, 'subglobal' models denote models from which only a subset
+of the models of the candidate set can be derived.  In such cases, one
+can use the smallest value of c-hat for model selection (Burnham and
+Anderson 2002).
+</p>
+<p>Note that c-hat counts as an additional parameter estimated and should 
+be added to <em>K</em>.  All functions in package <code>AICcmodavg</code>
+automatically add 1 when the <code>c.hat</code> argument &gt; 1 and apply the
+same value of c-hat for the entire model set.  When c-hat &gt; 1, functions
+compute quasi-likelihood information criteria (either QAICc or QAIC,
+depending on the value of the <code>second.ord</code> argument) by scaling the
+log-likelihood of the model by c-hat.  The value of c-hat can influence
+the ranking of the models:  as c-hat increases, QAIC or QAICc will favor
+models with fewer parameters.  As an additional check against this
+potential problem, one can generate several model selection tables by
+incrementing values of c-hat to assess the model selection uncertainty.
+If ranking changes only slightly up to the c-hat value observed, one can
+be confident in making inference.
+</p>
+<p>In cases of underdispersion (c-hat &lt; 1), it is recommended to keep the
+value of c-hat to 1.  However, note that values of c-hat &lt;&lt; 1 can also
+indicate lack-of-fit and that an alternative model should be investigated. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>Nmix.chisq</code> returns two value:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>chi.square</code></td>
+<td>
+<p>the Pearson chi-square statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>the class of the fitted model.
+</p>
+</td>
+</tr>
+</table>
+<p><code>Nmix.gof.test</code> returns the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>the class of the fitted model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.square</code></td>
+<td>
+<p>the Pearson chi-square statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.star</code></td>
+<td>
+<p>the bootstrapped chi-square test statistics (i.e.,
+obtained for each of the simulated data sets).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>the <em>P</em>-value assessed from the parametric bootstrap,
+computed as the proportion of the simulated test statistics greater
+than or equal to the observed test statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat.est</code></td>
+<td>
+<p>the estimate of the overdispersion parameter, c-hat,
+computed as the observed test statistic divided by the mean of the
+simulated test statistics.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>the number of bootstrap samples. The recommended number of
+samples varies with the data set, but should be on the order of 1000
+or 5000, and in cases with a large number of visits, even 10 000
+samples, namely to reduce the effect of unusually small values of the
+test statistics.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York.
+</p>
+<p>MacKenzie, D. I., Bailey, L. L. (2004) Assessing the fit of
+site-occupancy models. <em>Journal of Agricultural, Biological, and
+Environmental Statistics</em> <b>9</b>, 300–318.
+</p>
+<p>McKenny, H. C., Keeton, W. S., Donovan, T. M. (2006). Effects of
+structural complexity enhancement on eastern red-backed salamander
+(<em>Plethodon cinereus</em>) populations in northern hardwood
+forests. <em>Forest Ecology and Management</em> <b>230</b>, 186–196.
+</p>
+<p>White, G. C., Burnham, K. P. (1999). Program MARK: Survival estimation
+from populations of marked animals. <em>Bird Study</em> <b>46
+(Supplement)</b>, 120–138. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AICc</code>, <code>c_hat</code>, <code>evidence</code>,
+<code>modavg</code>, <code>importance</code>,
+<code>mb.gof.test</code>, <code>modavgPred</code>,
+<code>pcount</code>, <code>pcountOpen</code>,
+<code>parboot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##N-mixture model example modified from ?pcount
+## Not run: 
+require(unmarked)
+##single season
+data(mallard)
+mallardUMF &lt;- unmarkedFramePCount(mallard.y, siteCovs = mallard.site,
+                                  obsCovs = mallard.obs)
+##run model
+fm.mallard &lt;- pcount(~ ivel+ date + I(date^2) ~ length + elev + forest,
+                     mallardUMF, K=30)
+
+##compute observed chi-square
+obs &lt;- Nmix.chisq(fm.mallard)
+obs
+
+##round to 4 digits after decimal point
+print(obs, digits.vals = 4)
+
+##compute observed chi-square, assess significance, and estimate c-hat
+obs.boot &lt;- Nmix.gof.test(fm.mallard, nsim = 10)
+##note that more bootstrap samples are recommended
+##(e.g., 1000, 5000, or 10 000)
+obs.boot
+print(obs.boot, digits.vals = 4, digits.chisq = 4)
+detach(package:unmarked)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

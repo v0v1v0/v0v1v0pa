@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>map</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimized profile HMM construction.</h2>
+
+<h3>Description</h3>
+
+<p>Assigns match and insert states to alignment columns using the maximum
+<em>a posteriori</em> algorithm outlined in Durbin et al (1998) chapter 5.7.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">map(
+  x,
+  seqweights = NULL,
+  residues = NULL,
+  gap = "-",
+  endchar = "?",
+  pseudocounts = "background",
+  lambda = 0,
+  qa = NULL,
+  qe = NULL,
+  cpp = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix of aligned sequences. Accepted modes are "character"
+and "raw" (the latter being used for "DNAbin" and "AAbin" objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seqweights</code></td>
+<td>
+<p>either NULL (default; all sequences are given
+weights of 1) or a numeric vector the same length as <code>x</code> representing
+the sequence weights used to derive the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residues</code></td>
+<td>
+<p>either NULL (default; emitted residues are automatically
+detected from the sequences), a case sensitive character vector
+specifying the residue alphabet, or one of the character strings
+"RNA", "DNA", "AA", "AMINO". Note that the default option can be slow for
+large lists of character vectors. Furthermore, the default setting
+<code>residues = NULL</code> will not detect rare residues that are not present
+in the sequences, and thus will not assign them emission probabilities
+in the model. Specifying the residue alphabet is therefore
+recommended unless x is a "DNAbin" or "AAbin" object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap</code></td>
+<td>
+<p>the character used to represent gaps in the alignment matrix
+(if applicable). Ignored for <code>"DNAbin"</code> or <code>"AAbin"</code> objects.
+Defaults to "-" otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>endchar</code></td>
+<td>
+<p>the character used to represent unknown residues in
+the alignment matrix (if applicable). Ignored for <code>"DNAbin"</code> or
+<code>"AAbin"</code> objects. Defaults to "?" otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudocounts</code></td>
+<td>
+<p>character string, either "background", Laplace"
+or "none". Used to account for the possible absence of certain
+transition and/or emission types in the input sequences.
+If <code>pseudocounts = "background"</code> (default), pseudocounts
+are calculated from the background transition and emission
+frequencies in the sequences.
+If <code>pseudocounts = "Laplace"</code> one of each possible transition
+and emission type is added to the transition and emission counts.
+If <code>pseudocounts = "none"</code> no pseudocounts are added (not
+generally recommended, since low frequency transition/emission types
+may be excluded from the model).
+Alternatively this argument can be a two-element list containing
+a matrix of transition pseudocounts
+as its first element and a matrix of emission pseudocounts as its
+second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>penalty parameter used to favour models with fewer match
+states. Equivalent to the log of the prior probability of marking each
+column (Durbin et al 1998, chapter 5.7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qa</code></td>
+<td>
+<p>an optional named 9-element vector of background transition
+probabilities with <code>dimnames(qa) = c("DD", "DM", "DI", "MD", "MM",
+"MI", "ID", "IM", "II")</code>, where M, I and D represent match, insert and
+delete states, respectively. If <code>NULL</code>, background transition
+probabilities are estimated from the sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qe</code></td>
+<td>
+<p>an optional named vector of background emission probabilities
+the same length as the residue alphabet (i.e. 4 for nucleotides and 20
+for amino acids) and with corresponding names (i.e. <code>c("A", "T",
+"G", "C")</code> for DNA). If <code>qe = NULL</code>, background emission probabilities
+are automatically derived from the sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpp</code></td>
+<td>
+<p>logical, indicates whether the dynamic programming matrix
+should be filled using compiled C++ functions (default; many times faster).
+The FALSE option is primarily retained for bug fixing and experimentation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>see Durbin et al (1998) chapter 5.7 for details of
+the maximum <em>a posteriori</em> algorithm for optial match and insert
+state assignment.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a logical vector with length = ncol(x) indicating the columns to be
+assigned as match states (<code>TRUE</code>) and those assigned as inserts
+(<code>FALSE</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Shaun Wilkinson
+</p>
+
+
+<h3>References</h3>
+
+<p>Durbin R, Eddy SR, Krogh A, Mitchison G (1998) Biological
+sequence analysis: probabilistic models of proteins and nucleic acids.
+Cambridge University Press, Cambridge, United Kingdom.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>derivePHMM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Maximum a posteriori assignment of match states to the small
+## alignment example in Figure 5.3, Durbin et al (1998)
+data(globins)
+map(globins)
+</code></pre>
+
+
+</div>

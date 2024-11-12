@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>QuadPredmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>QuadPredmp</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the prediction lifting step using a quadratic regression curve given a configuration of neighbours, for multiple point data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">QuadPredmp(pointsin, X, coefflist, coeff, nbrs, newnbrs, remove, intercept,
+ neighbours, mpdet, g)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>The indices of gridpoints still to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the vector of grid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>the vector of detail and scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefflist</code></td>
+<td>
+<p>the list of detail and multiple scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices (into <span class="env">X</span>) of the neighbours to be used in the prediction step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newnbrs</code></td>
+<td>
+<p>as nbrs, but repeated according to the multiple point structure of the grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove</code></td>
+<td>
+<p>the index (into <span class="env">X</span>) of the point to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>Boolean value for whether or not an intercept is used in the prediction step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighbours</code></td>
+<td>
+<p>the number of neighbours in the computation of the predicted value. This is not actually used specifically in <code>QuadPredmp</code>, since this is known already from <span class="env">nbrs</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mpdet</code></td>
+<td>
+<p>how the mutiple point detail coefficients are computed.  Possible values are "ave", in which the multiple detail coefficients produced when performing the multiple predictions are averaged, or "min", where the overall minimum detail coefficient is taken.  Note that this is taken to standardise the input when <span class="env">LocalPredmp</span> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>the group structure of the multiple point data.  Note that this is taken to standardise the input when <span class="env">LocalPredmp</span> is called.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The procedure performs quadratic regression using the given neighbours using an intercept if chosen. The regression coefficients (<span class="env">weights</span>) are used to predict the new function value at the removed point.   
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xneigh</code></td>
+<td>
+<p>matrix of X values corresponding to the neighbours of the removed point. The matrix consists of the column X[newnbrs] augmented with a column of ones if an intercept is used. Refer to any reference on linear regression for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mm</code></td>
+<td>
+<p>the matrix from which the prediction is made. In terms of <span class="env">Xneigh</span>, it is <br><code class="reqn">(Xneigh^T Xneigh)^{-1} Xneigh^T </code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bhat</code></td>
+<td>
+<p>The regression coefficients used in prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the prediction weights for the neighbours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>the predicted function value obtained from the regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of (modified) detail and scaling coefficients to be used in the update step of the transform.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>CubicPredmp</code>, <code>fwtnpmp</code>, <code>LinearPredmp</code>     </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#read in data with multiple values...
+
+data(motorcycledata)
+times&lt;-motorcycledata$time
+accel&lt;-motorcycledata$accel
+short&lt;-adjustx(times,accel,"mean")
+X&lt;-short$sepx
+coeff&lt;-short$sepx
+g&lt;-short$g
+
+coefflist&lt;-list()
+for (i in 1:length(g)){
+coefflist[[i]]&lt;-accel[g[[i]]]
+}
+
+#work out neighbours of point to be removed (31)
+
+out&lt;-getnbrs(X,31,order(X),2,TRUE)
+nbrs&lt;-out$n
+
+nbrs
+
+newnbrs&lt;-NULL
+for (i in 1:length(nbrs)){
+newnbrs&lt;-c(newnbrs,rep(nbrs[i],times=length(g[[nbrs[i]]])))
+}
+
+#work out repeated neighbours using g...
+newnbrs
+
+QuadPredmp(order(X),X,coefflist,coeff,nbrs,newnbrs,31,TRUE,2,"ave",g)
+
+
+</code></pre>
+
+
+</div>

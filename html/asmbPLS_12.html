@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asmbPLSDA.vote.predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Using an asmbPLS-DA vote model for classification of new samples</h2>
+
+<h3>Description</h3>
+
+<p>Function to make the classification using the weights and fitted model 
+obtained from <code>asmbPLSDA.vote.fit</code>. The final classification 
+results are the weighted classification using the decision rules included.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asmbPLSDA.vote.predict(fit.results, X.matrix.new)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit.results</code></td>
+<td>
+<p>The output of <code>asmbPLSDA.vote.fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.matrix.new</code></td>
+<td>
+<p>A predictors matrix, whose predictors are the same as 
+the predictors in model fitting.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>Y_pred</code></td>
+<td>
+<p>Predicted class for the new sampels.</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Use the example dataset
+data(asmbPLSDA.example)
+X.matrix = asmbPLSDA.example$X.matrix
+X.matrix.new = asmbPLSDA.example$X.matrix.new
+Y.matrix.binary = asmbPLSDA.example$Y.matrix.binary
+X.dim = asmbPLSDA.example$X.dim
+PLS.comp = asmbPLSDA.example$PLS.comp
+quantile.comb.table.cv = asmbPLSDA.example$quantile.comb.table.cv
+
+## Cross validaiton based on fixed cutoff
+cv.results.cutoff &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                  Y.matrix = Y.matrix.binary,
+                                  PLS.comp = PLS.comp, 
+                                  X.dim = X.dim, 
+                                  quantile.comb.table = quantile.comb.table.cv, 
+                                  outcome.type = "binary", 
+                                  method = "fixed_cutoff",
+                                  k = 3,
+                                  ncv = 1)
+quantile.comb.cutoff &lt;- cv.results.cutoff$quantile_table_CV
+
+## Cross validation using Euclidean distance of X super score
+cv.results.EDX &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                               Y.matrix = Y.matrix.binary,
+                               PLS.comp = PLS.comp, 
+                               X.dim = X.dim, 
+                               quantile.comb.table = quantile.comb.table.cv, 
+                               outcome.type = "binary", 
+                               method = "Euclidean_distance_X",
+                               k = 3,
+                               ncv = 1)
+quantile.comb.EDX &lt;- cv.results.EDX$quantile_table_CV
+
+## Cross validation using Mahalanobis distance of X super score
+cv.results.MDX &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                  Y.matrix = Y.matrix.binary,
+                                  PLS.comp = PLS.comp, 
+                                  X.dim = X.dim, 
+                                  quantile.comb.table = quantile.comb.table.cv, 
+                                  outcome.type = "binary", 
+                                  method = "Mahalanobis_distance_X",
+                                  k = 3,
+                                  ncv = 1)
+quantile.comb.MDX &lt;- cv.results.MDX$quantile_table_CV
+
+#### vote list ####
+cv.results.list = list(fixed_cutoff = quantile.comb.cutoff,
+                       Euclidean_distance_X = quantile.comb.EDX,
+                       Mahalanobis_distance_X = quantile.comb.MDX)
+
+## vote models fit
+vote.fit &lt;- asmbPLSDA.vote.fit(X.matrix = X.matrix, 
+                               Y.matrix = Y.matrix.binary, 
+                               X.dim = X.dim, 
+                               nPLS = c(cv.results.cutoff$optimal_nPLS, 
+                               cv.results.EDX$optimal_nPLS, 
+                               cv.results.MDX$optimal_nPLS),
+                               cv.results.list = cv.results.list, 
+                               outcome.type = "binary",
+                               method = "weighted")
+
+## classification
+vote.predict &lt;- asmbPLSDA.vote.predict(vote.fit, X.matrix.new)
+
+</code></pre>
+
+
+</div>

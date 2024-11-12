@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Wqls</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+W Quasi-Likelihood Score
+</h2>
+
+<h3>Description</h3>
+
+<p>The W Quasi-Likelihood Score, Wqls(), is a score for multiple rare variant association tests
+using the difference of the sum of minor allele frequencies between cases and controls.
+This test handles related individuals, unrelated individuals, or both. This test is expected
+to be similar to a linear mixed model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Wqls(Genotypes, MAF, Pheno, Kin, Correlation, Weights)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Genotypes</code></td>
+<td>
+
+<p>matrix(#Subjects * #Snps). The genotypes are coded as 0, 1, or 2 copies of the minor allele.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MAF</code></td>
+<td>
+
+<p>matrix (#Snps * 2): First column contains Minor Allele Frequency (MAF) in cases; Second column contains MAF in controls.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pheno</code></td>
+<td>
+
+<p>matrix (#subjects * 1): this one-column matrix contains 0's amd 1's: 1 for cases and 0 for controls. No missing values are allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kin</code></td>
+<td>
+
+<p>The kinship matrix (#subjects * #subjects): the subjects must be ordered as the Pheno variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Correlation</code></td>
+<td>
+
+<p>Correlation matrix between SNPs (#Snps * #Snps). The user should calculate this matrix beforehand. Either based on own genotype data (in cases, controls, or both) or based on public databases (e.g., 1000 Genomes Projects, ESP, etc.). NA values are not allowed. They have to be replaced by zeros.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Weights</code></td>
+<td>
+
+<p>The weights values that can be used to up-weight or down-weight SNPs. This size of this
+vector is the number of Snps by 1. By default, the weights are 1 for all Snps.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector with the following values: the sum of MAF for cases, the sum of MAF for controls, the sum of MAF for all weighted by the phenotype, the numerator of the test, the denominator of the test, the Wqls value (the main value calculated by the test), and the P-value.
+</p>
+
+
+<h3>References</h3>
+
+<p>Saad M and Wijsman EM, Association score testing for rare variants and binary traits in family
+data with shared controls, Briefings in Bioinformatics, 2017.
+Bourgain C , Hoffjan S , Nicolae R , et al.   Novel case-control test in a founder population
+identifies P-selectin as an atopy-susceptibility locus . Am J Hum Genet 2003 ;73 :612 –26.
+Thornton T , McPeek MS.  Case-control association testing with related individuals: a more
+powerful quasi-likelihood score test. Am J Hum Genet 2007 ;81 :321 –37.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AssocAFC</code>
+<code>Wcorrected</code>
+<code>afcSKAT</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+P_WQLS &lt;- vector("numeric")
+#This data corresponds to what is used in the 1st iteration with the raw data
+data("geno.afc")
+data("maf.afc")
+data("phenotype.afc")
+data("kin.afc")
+data("cor.afc")
+data("weights.afc")
+QLS &lt;- Wqls(Genotypes = geno.afc, MAF = maf.afc, Pheno = phenotype.afc, Kin = kin.afc,
+                                        Correlation = cor.afc, Weights = weights.afc)
+P_WQLS &lt;- c(P_WQLS, QLS[7])
+print(P_WQLS)
+
+## Not run: 
+#This example shows processing the raw data and uses kinship2,
+#which AFC does not depend on
+
+library(kinship2)
+library(CompQuadForm)
+
+P_WQLS &lt;- vector("numeric")
+
+for (j in 1:10)
+{
+  geno.afc &lt;- read.table(system.file("extdata", "Additive_Genotyped_Truncated.txt",
+                         package = "AFC"), header = TRUE)
+  geno.afc[ , "IID"] &lt;- paste(geno.afc[ , "FID"]  , geno.afc[ , "IID"]  ,sep=".")
+  geno.afc[geno.afc[,"FA"]!=0 , "FA"] &lt;- paste(geno.afc[geno.afc[,"FA"]!=0 , "FID"],
+                                      geno.afc[geno.afc[,"FA"]!=0 , "FA"]  ,sep=".")
+  geno.afc[geno.afc[,"FA"]!=0 , "MO"] &lt;- paste(geno.afc[geno.afc[,"FA"]!=0 , "FID"],
+                                      geno.afc[geno.afc[,"FA"]!=0 , "MO"]  ,sep=".")
+  Kinship &lt;- makekinship(geno.afc$FID , geno.afc$IID , geno.afc$FA, geno.afc$MO)
+  kin.afc &lt;- as.matrix(Kinship)
+  pheno.afc &lt;- read.table(system.file("extdata", "Phenotype", package = "AFC"))
+  phenotype.afc &lt;- matrix(pheno.afc[,j],nc=1,nr=nrow(pheno.afc))
+  geno.afc &lt;- geno.afc[,7:ncol(geno.afc)]
+  Na &lt;- nrow(pheno.afc[pheno.afc[,j]==1,])
+  Nu &lt;- nrow(pheno.afc[pheno.afc[,j]==0,])
+  N &lt;- Nu + Na
+  maf.afc &lt;- matrix(NA , nr=ncol(geno.afc) , nc=2)
+  maf.afc[,1] &lt;- colMeans(geno.afc[phenotype.afc==1,])/2;
+  maf.afc[,2] &lt;- colMeans(geno.afc[phenotype.afc==0,])/2;
+  P  &lt;- (maf.afc[,1]*Na + maf.afc[,2]*Nu)/N
+  Set &lt;- which(P&lt;0.05)
+  maf.afc &lt;- maf.afc[c(Set),]
+  cor.afc &lt;- cor(geno.afc[,c(Set)])
+  cor.afc[is.na(cor.afc)] &lt;- 0
+  geno.afc &lt;- as.matrix(geno.afc[,Set])
+  weights.afc &lt;- matrix(1/(maf.afc[,2]+1),nc=1,nr=length(Set))
+  QLS &lt;- Wqls(Genotypes = geno.afc, MAF = maf.afc, Pheno = phenotype.afc, Kin = kin.afc,
+                                        Correlation = cor.afc, Weights = weights.afc)
+  P_WQLS &lt;- c(P_WQLS, QLS[7])
+}
+print(P_WQLS)
+
+## End(Not run)
+
+## The function is currently defined as
+function(Genotypes, MAF, Pheno, Kin, Correlation, Weights)
+{
+  Na     &lt;- length(Pheno[Pheno[,1]==1,])
+  Nu     &lt;- length(Pheno[Pheno[,1]==0,])
+  N      &lt;- Na + Nu
+
+  # The three following lines: prepare the Phenotype variables
+  OneN  &lt;- matrix(1, ncol=1, nrow = N)
+  Y  &lt;- Pheno
+  OneHat &lt;- matrix( Na/N, ncol=1 , nrow=N)
+  temp &lt;- Y - OneHat
+
+  # Estimate MAF in all subjects
+  P  &lt;- (MAF[,1]*Na + MAF[,2]*Nu)/N
+  # Number of Snps
+  Nsnps   &lt;- nrow(MAF)
+  if (is.null(Weights))
+  {
+    # Variance of SNPs (2p(1-p))
+    VarSnps &lt;- sqrt(P*(1-P))
+  } else
+  {
+    # Variance of SNPs (2p(1-p)) accounting for the prespecified Snp weights
+    VarSnps &lt;- Weights*sqrt(P*(1-P))
+  }
+  VarSnps &lt;- matrix(VarSnps,ncol=1)
+  # This value will account for the correlation between Snps.
+  cs      &lt;- 2*t(VarSnps) %*% Correlation %*% VarSnps
+
+  if (Nsnps==1)
+  {
+    S&lt;-Genotypes
+  }else
+  {
+    if (is.null(Weights))
+    {
+      # Rare variant score: sum of minor alleles accross all Snps.
+      S &lt;- apply(Genotypes , 1 , sum)
+    }else
+    {
+      # Rare variant score: sum of minor alleles accross all Snps.
+      S &lt;- Genotypes %*% Weights
+    }
+  }
+  S &lt;- matrix(S,ncol=1,nrow=length(S))
+  Kin &lt;- 2*Kin
+  KinInv &lt;- solve(Kin)
+  A &lt;- as.numeric(t(Y) %*% KinInv %*% OneN %*% solve(t(OneN) %*% KinInv %*% OneN))
+  V &lt;- KinInv %*% Y - A * KinInv %*% OneN
+  if (is.null(Weights))
+  {
+    num &lt;- (sum((S[Y==1]) * rowSums(KinInv[Y==1,Y==1]))*(1-A) -2*sum(MAF[,2])*(A)*Nu)^2;
+  }else
+  {
+    num &lt;- (sum((S[Y==1]) * rowSums(KinInv[Y==1,Y==1]))*(1-A) -2*sum(Weights*MAF[,2])*(A)*Nu)^2;
+  }
+  denom &lt;- as.numeric(cs) * (t(V)%*% Kin %*% V) ;
+  W &lt;- num/denom ;
+  Pvalue &lt;- 1-pchisq(W,1) ;
+  out &lt;- t(data.frame(c(sum(MAF[,1]), sum(MAF[,2]), sum(P), num, denom, W, Pvalue)))
+  colnames(out) &lt;- c("Sum MAF Cases", "Sum MAF Controls", "Sum MAF All Weighted", "Numerator",
+                     "Denominator", "Wqls", "Pvalue")
+  rownames(out) &lt;- "Statistics"
+  return(out)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>residuals.prcurve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Residuals of a principal curve fit.
+</h2>
+
+<h3>Description</h3>
+
+<p>Returns various representations of the residuals of a principal curve
+fit.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'prcurve'
+residuals(object, which = c("distance", "raw", "smooths", "pca"),
+          ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"prcurve"</code>, the result of a
+call to <code>prcurve</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>character; the type of residuals to return. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to other methods. See Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Various types of residual are available for the principal curve. In a
+departure from the usual convention, which residuals are returned is
+controlled via the <code>which</code> argument. This is to allow users to
+pass a <code>type</code> argument to the <code>residuals</code> method for the
+function used to fit the individual smooth functions when <code>which
+    = "smooths"</code>.
+</p>
+<p>The types of residuals available are
+</p>
+
+<dl>
+<dt><code>"distance"</code></dt>
+<dd>
+<p>the default residual for a principal
+curve. This residual is taken as the Euclidean distance between each
+observations and the point on the principal curve to which it
+projects, in full multivariate space.</p>
+</dd>
+<dt><code>"raw"</code></dt>
+<dd>
+<p>raw residuals are the basis for
+<code>"distance"</code> residuals, and are the difference between the
+observed and fitted values (position on the curve) for each
+observation in terms of each variable in the data set. These
+residuals are in the form of a matrix with number of observation
+<em>rows</em> and number of variables <em>cols</em>.</p>
+</dd>
+<dt><code>"smooths"</code></dt>
+<dd>
+<p>these residuals are the result of calling
+<code>residuals()</code> on each of the smooth models fitted to the
+individual variables. See below for further details. A matrix of
+the same dimensions as for <code>which = "raw"</code> is returned.</p>
+</dd>
+<dt><code>"pca"</code></dt>
+<dd>
+<p>similar to the raw residuals, but expressed in
+terms of the principal components of the input data. Hence these
+residuals are the difference between each observation's location
+in PCA space and their corresponding location on the curve.</p>
+</dd>
+</dl>
+<p>For <code>"smooths"</code> residuals, what is returned is governed by the
+<code>residuals</code> method available for the smooth model fitted to the
+individual variables. For principal curves fitted using the
+<code>smoothSpline</code> plugin, see
+<code>smooth.spline</code>. For principal curves fitted via the
+<code>smoothGAM</code> plugin, see
+<code>residuals.gam</code>.
+</p>
+<p>... can be used to pass additional arguments to these
+<code>residuals</code> methods. In particular, the <code>type</code> argument is
+commonly used to choose which type of residual is returned by the
+specific methods.
+</p>
+<p>In the case of principal curves fitted using the plugin
+<code>smoothSpline</code>, residuals for <code>which = "smooths"</code> are
+only available if the the additional argument <code>keep.data</code> was
+specified during fitting via <code>prcurve</code>. See the examples
+for an illustration of this usage.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of residual distances (<code>which = "distance"</code>) or a matrix
+of residuals (for the other options).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>See Also</h3>
+
+<p><code>prcurve</code> for fitting a principal curve.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  
+  ## Load Abernethy Forest data set
+  data(abernethy)
+
+  ## Remove the Depth and Age variables
+  abernethy2 &lt;- abernethy[, -(37:38)]
+  
+  ## Fit the principal curve, preserving the data in the smooth.spline
+  ## smooth functions fitted via keep.data = TRUE
+  aber.pc &lt;- prcurve(abernethy2, method = "ca", keep.data = TRUE)
+
+  ## default "distance" residuals
+  res &lt;- resid(aber.pc)
+  head(res)
+
+  ## residuals from the underlying smooth models, also illustrates
+  ## how to select specific types of residual from the individual
+  ## method using argument 'type'
+  res &lt;- resid(aber.pc, which = "smooths", type = "deviance")
+  dim(res)
+  head(res[, 1:5])		# just show a few species residuals
+  
+</code></pre>
+
+
+</div>

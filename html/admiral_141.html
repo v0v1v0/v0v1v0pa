@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_flagged_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an Existence Flag</h2>
+
+<h3>Description</h3>
+
+<p>Create a flag variable for the input dataset which indicates if
+there exists at least one observation in the input dataset fulfilling a certain
+condition.
+</p>
+<p><strong>Note:</strong> This is a helper function for <code>derive_vars_merged_exist_flag()</code> which
+inputs this result into <code>derive_vars_merged()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_flagged_records(dataset, new_var, condition, filter = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>New variable
+</p>
+<p>The specified variable is added to the input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>Condition
+</p>
+<p>The condition is evaluated at the dataset (<code>dataset</code>). For
+all rows where it evaluates as <code>TRUE</code> the new variable
+is set to <code>1</code> in the new column. Otherwise, it is set to <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Filter for additional data
+</p>
+<p>Only observations fulfilling the specified condition are taken into account
+for flagging. If the argument is not specified, all observations are
+considered.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The output dataset is the input dataset filtered by the <code>filter</code> condition
+and with the variable specified for <code>new_var</code> representing a flag for the condition.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Utilities used within Derivation functions: 
+<code>call_user_fun()</code>,
+<code>extract_unit()</code>,
+<code>get_not_mapped()</code>,
+<code>get_vars_query()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr, warn.conflicts = FALSE)
+
+
+ae &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID,    ~AETERM,     ~AEREL,
+  "PILOT01",    "AE", "01-1028", "ERYTHEMA", "POSSIBLE",
+  "PILOT01",    "AE", "01-1028", "PRURITUS", "PROBABLE",
+  "PILOT01",    "AE", "06-1049",  "SYNCOPE", "POSSIBLE",
+  "PILOT01",    "AE", "06-1049",  "SYNCOPE", "PROBABLE"
+)
+
+
+get_flagged_records(
+  dataset = ae,
+  new_var = AERELFL,
+  condition = AEREL == "PROBABLE"
+) %&gt;%
+  select(STUDYID, USUBJID, AERELFL)
+
+vs &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID,      ~VISIT, ~VSTESTCD, ~VSSTRESN, ~VSBLFL,
+  "PILOT01",    "VS", "01-1028", "SCREENING",  "HEIGHT",     177.8,      NA,
+  "PILOT01",    "VS", "01-1028", "SCREENING",  "WEIGHT",     98.88,      NA,
+  "PILOT01",    "VS", "01-1028",  "BASELINE",  "WEIGHT",     99.34,     "Y",
+  "PILOT01",    "VS", "01-1028",    "WEEK 4",  "WEIGHT",     98.88,      NA,
+  "PILOT01",    "VS", "04-1127", "SCREENING",  "HEIGHT",     165.1,      NA,
+  "PILOT01",    "VS", "04-1127", "SCREENING",  "WEIGHT",     42.87,      NA,
+  "PILOT01",    "VS", "04-1127",  "BASELINE",  "WEIGHT",     41.05,     "Y",
+  "PILOT01",    "VS", "04-1127",    "WEEK 4",  "WEIGHT",     41.73,      NA,
+  "PILOT01",    "VS", "06-1049", "SCREENING",  "HEIGHT",    167.64,      NA,
+  "PILOT01",    "VS", "06-1049", "SCREENING",  "WEIGHT",     57.61,      NA,
+  "PILOT01",    "VS", "06-1049",  "BASELINE",  "WEIGHT",     57.83,     "Y",
+  "PILOT01",    "VS", "06-1049",    "WEEK 4",  "WEIGHT",     58.97,      NA
+)
+get_flagged_records(
+  dataset = vs,
+  new_var = WTBLHIFL,
+  condition = VSSTRESN &gt; 90,
+  filter = VSTESTCD == "WEIGHT" &amp; VSBLFL == "Y"
+) %&gt;%
+  select(STUDYID, USUBJID, WTBLHIFL)
+
+</code></pre>
+
+
+</div>

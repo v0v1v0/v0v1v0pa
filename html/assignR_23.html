@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wDist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Probability weighted distances and bearings
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the distance and bearing of migration for one or more samples, weighted by probabilities from a <code>pdRaster</code> analysis. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wDist(pdR, sites, maxpts = 1e5, bw = "sj")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pdR</code></td>
+<td>
+
+<p>SpatRaster of n probability density maps, e.g., as produced by <code>pdRaster</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sites</code></td>
+<td>
+
+<p>SpatVector object containing the collection locations for the n samples represented in <code>pdR</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxpts</code></td>
+<td>
+
+<p>numeric. Maximum number of grid cells at which to calculate bearing and distance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+
+<p>character or numeric. Smoothing bandwidth to be used in kernel density estimation. See bandwidth.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pdR</code> and <code>sites</code> must be of equal length and corresponding order, or if <code>length(sites) == 1 &amp; nlyr(pdR) &gt; 1</code> then the location in sites is recycled with a message. Names in the output object are taken from the names of the layers in <code>pdR</code>.
+</p>
+<p>Distances and bearings are calculated on the WGS84 geoid using functions from the <span class="pkg">terra</span> and <span class="pkg">geosphere</span> package. These calculations can take a long time for large rasters. If <code>maxpts</code> is less than the number of grid cells in each <code>pdR</code> layer, calculations are carried out for <code>maxpts</code> randomly selected cells.
+</p>
+<p>Bearing values correspond to the initial bearing from source to collection location, and are reported on a scale of -180 to +180 degrees. The statistical metrics are rectified so that values for distributions spanning due south are reported correctly. Both weighted bearing and distance distributions are often multimodal, and it is recommended to review the distribution densities to assess the representativeness of the statistics (e.g., using <code>plot.wDist</code>).
+</p>
+<p>When algorithmic bandwidth selection is used weights are ignored for this step and warnings to this effect are suppressed. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class “wDist”, a list of length n. Each item contains three named objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+
+<p>named number. Statistics for the distance (dist, meters) and bearing (bear, degrees) between source and collection locations, including the weighted mean (wMean) and quantile (wXX) values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d.dens</code></td>
+<td>
+
+<p>density. Weighted kernel density for the distance between source and collection locations (meters). See <code>density</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b.dens</code></td>
+<td>
+
+<p>density. Weighted kernel density for the bearing between source and collection locations (degrees). See <code>density</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load hydrogen isotope data for human hair in North America
+d = subOrigData(group = "Modern human", mask = naMap, genplot = FALSE)
+
+# rescale from environmental isoscape to tissue isoscape
+r = calRaster(d, d2h_lrNA, naMap, genplot = FALSE)
+
+# four unknown-origin examples
+id = c("A", "B", "C", "D")
+d2H = c(-110, -90, -105, -102)
+un = data.frame(id, d2H)
+
+# posterior probabilities
+pp = pdRaster(r, un, mask = naMap, genplot = FALSE)
+
+# random collection locations
+sites = d$data[sample(seq(length(d$data)), 4),]
+
+# generate a wDist object
+wd = wDist(pp, sites)
+
+# structure of the wDist object
+str(wd, 2)
+</code></pre>
+
+
+</div>

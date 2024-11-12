@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_argument</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a filter argument to a list</h2>
+
+<h3>Description</h3>
+
+<p>This function adds an argument to a list containing filter arguments later used to select data from the database.
+When supplying the variable used for filtering, the operator and the value, an SQL query will be constructed for the user and added as the next object to the list of arguments.#' When supplying only variable, operator and value, a SQL query will be constructed for the user and added as the next object to a list.
+Alternatively, the user may specify an SQL query manually.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_argument(list, conn, variable, operator, values, statement = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>list</code></td>
+<td>
+<p>The list to which the argument will be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conn</code></td>
+<td>
+<p>The connection object or database connection string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>The variable name to be used in the argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operator</code></td>
+<td>
+<p>The operator to be used in the argument (i.e., "greater", "between", "equal", "less").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>The values to be used in the argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statement</code></td>
+<td>
+<p>The manual SQL query to be used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list object with the new argument (SQL query) added.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+conn &lt;- connect_to_db(":memory:")
+
+mtcars$mtcars_id = 1:nrow(mtcars)
+
+example_data = data.frame(
+  example_id = 1:150,
+  mtcars_id = rep(1:30, each = 5),
+  example_value = runif(150, 0, 1)
+)
+
+DBI::dbWriteTable(conn, "mtcars_table", mtcars)
+DBI::dbWriteTable(conn, "example_table", example_data)
+
+# Initializing argument list
+arguments = list()
+
+# Using "equal" operator
+arguments = add_argument(
+ list = arguments,
+ conn = conn,
+ variable = "cyl",
+ operator = "equal",
+ values = c(4, 6)
+)
+
+# Using "greater" operator
+arguments = add_argument(
+ list = arguments,
+ conn = conn,
+ variable = "cyl",
+ operator = "greater",
+ values = 2
+)
+
+# Using "between" operator
+arguments = add_argument(
+ list = arguments,
+ conn = conn,
+ variable = "cyl",
+ operator = "between",
+ values = c(2, 8)
+)
+
+# Manully constructing a filter statement
+manual_arguments = add_argument(
+ list = arguments,
+ conn = conn,
+ statement = "SELECT mtcars_id FROM mtcars WHERE cyl = 4 OR cyl = 6)"
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.mic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform Input to Minimum Inhibitory Concentrations (MIC)</h2>
+
+<h3>Description</h3>
+
+<p>This transforms vectors to a new class <code>mic</code>, which treats the input as decimal numbers, while maintaining operators (such as "&gt;=") and only allowing valid MIC values known to the field of (medical) microbiology.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.mic(x, na.rm = FALSE)
+
+NA_mic_
+
+is.mic(x)
+
+## S3 method for class 'mic'
+droplevels(x, as.mic = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a character or numeric vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>a logical indicating whether missing values should be removed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.mic</code></td>
+<td>
+<p>a logical to indicate whether the <code>mic</code> class should be kept - the default is <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed on to methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To interpret MIC values as SIR values, use <code>as.sir()</code> on MIC values. It supports guidelines from EUCAST (2011-2023) and CLSI (2011-2023).
+</p>
+<p>This class for MIC values is a quite a special data type: formally it is an ordered factor with valid MIC values as factor levels (to make sure only valid MIC values are retained), but for any mathematical operation it acts as decimal numbers:
+</p>
+<div class="sourceCode"><pre>x &lt;- random_mic(10)
+x
+#&gt; Class 'mic'
+#&gt;  [1] 16     1      8      8      64     &gt;=128  0.0625 32     32     16
+
+is.factor(x)
+#&gt; [1] TRUE
+
+x[1] * 2
+#&gt; [1] 32
+
+median(x)
+#&gt; [1] 26
+</pre></div>
+<p>This makes it possible to maintain operators that often come with MIC values, such "&gt;=" and "&lt;=", even when filtering using numeric values in data analysis, e.g.:
+</p>
+<div class="sourceCode"><pre>x[x &gt; 4]
+#&gt; Class 'mic'
+#&gt; [1] 16    8     8     64    &gt;=128 32    32    16
+
+df &lt;- data.frame(x, hospital = "A")
+subset(df, x &gt; 4) # or with dplyr: df %&gt;% filter(x &gt; 4)
+#&gt;        x hospital
+#&gt; 1     16        A
+#&gt; 5     64        A
+#&gt; 6  &gt;=128        A
+#&gt; 8     32        A
+#&gt; 9     32        A
+#&gt; 10    16        A
+</pre></div>
+<p>The following generic functions are implemented for the MIC class: <code>!</code>, <code>!=</code>, <code>%%</code>, <code>%/%</code>, <code>&amp;</code>, <code>*</code>, <code>+</code>, <code>-</code>, <code>/</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>==</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>^</code>, <code>|</code>, <code>abs()</code>, <code>acos()</code>, <code>acosh()</code>, <code>all()</code>, <code>any()</code>, <code>asin()</code>, <code>asinh()</code>, <code>atan()</code>, <code>atanh()</code>, <code>ceiling()</code>, <code>cos()</code>, <code>cosh()</code>, <code>cospi()</code>, <code>cummax()</code>, <code>cummin()</code>, <code>cumprod()</code>, <code>cumsum()</code>, <code>digamma()</code>, <code>exp()</code>, <code>expm1()</code>, <code>floor()</code>, <code>gamma()</code>, <code>lgamma()</code>, <code>log()</code>, <code>log1p()</code>, <code>log2()</code>, <code>log10()</code>, <code>max()</code>, <code>mean()</code>, <code>min()</code>, <code>prod()</code>, <code>range()</code>, <code>round()</code>, <code>sign()</code>, <code>signif()</code>, <code>sin()</code>, <code>sinh()</code>, <code>sinpi()</code>, <code>sqrt()</code>, <code>sum()</code>, <code>tan()</code>, <code>tanh()</code>, <code>tanpi()</code>, <code>trigamma()</code> and <code>trunc()</code>. Some functions of the <code>stats</code> package are also implemented: <code>median()</code>, <code>quantile()</code>, <code>mad()</code>, <code>IQR()</code>, <code>fivenum()</code>. Also, <code>boxplot.stats()</code> is supported. Since <code>sd()</code> and <code>var()</code> are non-generic functions, these could not be extended. Use <code>mad()</code> as an alternative, or use e.g. <code>sd(as.numeric(x))</code> where <code>x</code> is your vector of MIC values.
+</p>
+<p>Using <code>as.double()</code> or <code>as.numeric()</code> on MIC values will remove the operators and return a numeric vector. Do <strong>not</strong> use <code>as.integer()</code> on MIC values as by the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> convention on factors, it will return the index of the factor levels (which is often useless for regular users).
+</p>
+<p>Use <code>droplevels()</code> to drop unused levels. At default, it will return a plain factor. Use <code>droplevels(..., as.mic = TRUE)</code> to maintain the <code>mic</code> class.
+</p>
+<p><code>NA_mic_</code> is a missing value of the new <code>mic</code> class, analogous to e.g. base <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>'s <code>NA_character_</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Ordered factor with additional class <code>mic</code>, that in mathematical operations acts as decimal numbers. Bare in mind that the outcome of any mathematical operation on MICs will return a numeric value.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.sir()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mic_data &lt;- as.mic(c("&gt;=32", "1.0", "1", "1.00", 8, "&lt;=0.128", "8", "16", "16"))
+mic_data
+is.mic(mic_data)
+
+# this can also coerce combined MIC/SIR values:
+as.mic("&lt;=0.002; S")
+
+# mathematical processing treats MICs as numeric values
+fivenum(mic_data)
+quantile(mic_data)
+all(mic_data &lt; 512)
+
+# interpret MIC values
+as.sir(
+  x = as.mic(2),
+  mo = as.mo("Streptococcus pneumoniae"),
+  ab = "AMX",
+  guideline = "EUCAST"
+)
+as.sir(
+  x = as.mic(c(0.01, 2, 4, 8)),
+  mo = as.mo("Streptococcus pneumoniae"),
+  ab = "AMX",
+  guideline = "EUCAST"
+)
+
+# plot MIC values, see ?plot
+plot(mic_data)
+plot(mic_data, mo = "E. coli", ab = "cipro")
+
+if (require("ggplot2")) {
+  autoplot(mic_data, mo = "E. coli", ab = "cipro")
+}
+if (require("ggplot2")) {
+  autoplot(mic_data, mo = "E. coli", ab = "cipro", language = "nl") # Dutch
+}
+</code></pre>
+
+
+</div>

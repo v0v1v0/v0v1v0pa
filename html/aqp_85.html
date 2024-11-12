@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>evalMissingData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate Missing Data within a SoilProfileCollection</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate missing data within a <code>SoilProfileCollection</code> object
+</p>
+<p>Data completeness is evaluated by profile or by horizon. Profile-level evaluation is based on the thickness of horizons (<code>method = absolute</code>) with complete horizon-level attributes (<code>vars</code>), optionally divided by the total thickness (<code>method = relative</code>). The REGEX pattern (<code>p</code>) is used to filter non-soil horizons from the calculation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">evalMissingData(
+  x,
+  vars,
+  name = hzdesgnname(x),
+  p = "Cr|R|Cd",
+  method = c("relative", "absolute", "horizon")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>SoilProfileCollection</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>character vector, naming horizon-level attributes in <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>character, the name of a horizon-level attribute where horizon designations are stored, defaults to <code>hzdesgnname(x)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>character, REGEX pattern used to match non-soil horizons</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character, one of: 'relative' (proportion of total) depth, 'absolute' depth, or 'horizon' (fraction not-missing by horizon)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector values ranging from 0 to 1 (<code>method = 'relative'</code>) or 0 to maximum depth in specified depth units (<code>method = 'absolute'</code>) representing the quantity of non-missing data (as specified in <code>vars</code>) for each profile. When <code>method = 'horizon'</code> a non-missing data fraction is returned for each horizon.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# example data
+data("jacobs2000")
+
+# fully populated
+plotSPC(jacobs2000, name.style = 'center-center', 
+        cex.names = 0.8, color = 'time_saturated')
+
+# missing some data
+plotSPC(jacobs2000, name.style = 'center-center', 
+        cex.names = 0.8, color = 'concentration_color')
+
+# very nearly complete
+plotSPC(jacobs2000, name.style = 'center-center', 
+        cex.names = 0.8, color = 'matrix_color')
+
+
+# variables to consider
+v &lt;- c('time_saturated', 'concentration_color', 'matrix_color')
+
+# compute data completeness by profile
+# ignore 2C horizons
+jacobs2000$data.complete &lt;- evalMissingData(
+  jacobs2000, 
+  vars = v, 
+  method = 'relative',
+  p = '2C'
+)
+
+jacobs2000$data.complete.abs &lt;- evalMissingData(
+  jacobs2000, 
+  vars = v, 
+  method = 'absolute',
+  p = '2C'
+)
+
+# compute data completeness by horizon
+# ignore 2C horizons
+jacobs2000$hz.data.complete &lt;- evalMissingData(
+  jacobs2000, 
+  vars = v, 
+  method = 'horizon',
+  p = '2C'
+)
+
+
+# "fraction complete" by horizon
+plotSPC(
+  jacobs2000, name.style = 'center-center', 
+  cex.names = 0.8, color = 'hz.data.complete'
+)
+
+
+# rank on profile completeness
+new.order &lt;- order(jacobs2000$data.complete)
+
+# plot along data completeness ranking
+plotSPC(
+  jacobs2000, name.style = 'center-center', 
+  cex.names = 0.8, color = 'concentration_color', 
+  plot.order = new.order
+)
+
+# add relative completeness axis
+# note re-ordering of axis labels
+axis(
+  side = 1, at = 1:length(jacobs2000), 
+  labels = round(jacobs2000$data.complete[new.order], 2),
+  line = 0, cex.axis = 0.75
+)
+
+# add absolute completeness (cm)
+axis(
+  side = 1, at = 1:length(jacobs2000), 
+  labels = jacobs2000$data.complete.abs[new.order],
+  line = 2.5, cex.axis=0.75
+)
+
+</code></pre>
+
+
+</div>

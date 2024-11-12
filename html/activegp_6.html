@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>C_Q</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Active subspace for second order linear model</h2>
+
+<h3>Description</h3>
+
+<p>Active subspace for second order linear model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">C_Q(design, response)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>A matrix of design points, one in each row, in [-1,1]^d</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>A vector of observations at each design point.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix corresponding to the active subspace C matrix.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(42) 
+A &lt;- matrix(c(1, -1, 0, -1, 2, -1.5, 0, -1.5, 4), nrow = 3, byrow = TRUE)
+b &lt;- c(1, 4, 9)
+
+# Quadratic function
+ftest &lt;- function(x, sd = 1e-6){
+   if(is.null(dim(x))) x &lt;- matrix(x, nrow = 1)
+   return(3 + drop(diag(x %*% A %*% t(x)) + x %*% b) + 
+     rnorm(nrow(x), sd = sd))
+}
+
+ntrain &lt;- 10000
+design &lt;- 2 * matrix(runif(ntrain * 3), ntrain) - 1
+response &lt;- ftest(design)
+
+C_hat &lt;- C_Q(design, response)
+
+plot(design %*% eigen(C_hat)$vectors[,1], response)
+
+# Test 
+gfun &lt;- function(x){2 * A %*% t(x) + matrix(b, nrow = nrow(A), ncol = nrow(x))}
+grads &lt;- gfun(design)
+C_MC &lt;- tcrossprod(grads)/ntrain
+C_true &lt;- 4/3 * A %*% A + tcrossprod(b)
+subspace_dist(eigen(C_MC)$vectors[,1:2], eigen(C_true)$vectors[,1:2]) 
+</code></pre>
+
+
+</div>

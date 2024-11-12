@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>analog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Analogue matching</h2>
+
+<h3>Description</h3>
+
+<p>Analogue matching is a  more general implementation of the modern
+analogue methodology than MAT, where we are only interested in
+identifying sufficiently similar samples from a modern training as
+being suitable modern analogues for one or more fossil samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">analog(x, ...)
+
+## Default S3 method:
+analog(x, y,
+       method = c("euclidean", "SQeuclidean", "chord", "SQchord",
+                  "bray", "chi.square", "SQchi.square",
+                  "information", "chi.distance", "manhattan",
+                  "kendall", "gower", "alt.gower", "mixed"),
+       keep.train = TRUE, ...)
+
+## S3 method for class 'distance'
+analog(x, train = NULL, keep.train = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>data frames with same columns. <code>x</code> is training data
+and <code>y</code>, the test data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character string naming the dissimilarity methods to be
+used. See Details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.train</code></td>
+<td>
+<p>logical; should the dissimilarity matrix for the
+training set be stored?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train</code></td>
+<td>
+<p>a pre-computed dissimilarity matrix for the training set
+samples. Objects of classes <code>"dist"</code>, <code>"vegdist"</code>, and
+<code>"distance"</code> are currently accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>analog</code> implements analogue matching <em>sensu</em> Flower et
+al (1997) and Simpson et al (2005), where the aim is to identify
+suitable close analogues of fossil samples from a modern training
+set. These results are generally used within ecological restoration,
+but the identification of close modern analogues for fossil samples is
+also used as a technique for assessing transfer function
+reconstructions.
+</p>
+<p><code>analog</code> is a simple and very general function that generates a
+pairwise dissimilarity matrix for the modern training set, and a second
+matrix containing the pairwise dissimilarities between each fossil
+sample and each sample in the training set. These results can then be
+assessed using other functions and to extract the close modern
+analogues using function <code>cma</code>. See the See Also section
+below.
+</p>
+<p>Analysis of the pairwise dissimilarity matrix for the modern training
+set can be used to decide on a suitable dissimilarity threshold
+for defining close modern analogues. By default this matrix is
+returned as part of the output from the <code>analog</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>"analog"</code> with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>analogs</code></td>
+<td>
+<p>matrix of pairwise dissimilarities between each fossil
+sample (<code>y</code>) and each sample in the modern training set
+(<code>x</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train</code></td>
+<td>
+<p>if argument <code>keep.train</code> is <code>TRUE</code> then a
+pairwise dissimilarity matrix for the modern training set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; the dissimilarity coefficient used.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Flower, R.J., Juggins, S. and Battarbee, R.W. (1997) Matching diatom
+assemblages in lake sediment cores and modern surface sediment
+samples: the implications for lake conservation and restoration with
+special reference to acidified systems. <em>Hydrobiologia</em>
+<strong>344</strong>; 27–40.
+</p>
+<p>Simpson, G.L., Shilland, E.M., Winterbottom, J. M. and Keay, J. (2005)
+Defining reference conditions for acidified waters using a modern
+analogue approach. <em>Environmental Pollution</em> <strong>137</strong>;
+119–133.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>distance</code> for the function that calculates the
+dissimilarity matrices.
+<code>cma</code> for extraction of close modern analogues.
+<code>dissimilarities</code> and <code>plot.dissimilarities</code>
+for analysis of distribution of pairwise dissimilarity matrix for
+modern training set.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Imbrie and Kipp example
+## load the example data
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training and test set on columns
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+V12.122 &lt;- dat[[2]] / 100
+
+## Imbrie and Kipp foraminfera sea-surface temperature
+
+## analog matching between SWAP and RLGH core
+ik.analog &lt;- analog(ImbrieKipp, V12.122, method = "chord")
+ik.analog
+summary(ik.analog)
+
+## Can take pre-computed dissimilarity objects
+d1 &lt;- distance(ImbrieKipp, V12.122)
+d2 &lt;- distance(ImbrieKipp)
+ik &lt;- analog(d1, d2, keep.train = TRUE)
+ik
+
+</code></pre>
+
+
+</div>

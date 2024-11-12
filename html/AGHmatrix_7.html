@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Gmatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Construction of Relationship Matrix G</h2>
+
+<h3>Description</h3>
+
+<p>Given a matrix (individual x markers), a method, a missing value, and a maf threshold, return a additive or non-additive relationship matrix. For diploids, the methods "Yang" and "VanRaden" for additive relationship matrices, and "Su" and "Vitezica" for non-additive relationship matrices are implemented. For autopolyploids, the method "VanRaden" for additive relationship, method "Slater" for full-autopolyploid model including non-additive effects, and pseudo-diploid parametrization are implemented. Weights are implemented for "VanRaden" method as described in Liu (2020).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Gmatrix(
+  SNPmatrix = NULL,
+  method = "VanRaden",
+  missingValue = -9,
+  maf = 0,
+  thresh.missing = 0.5,
+  verify.posdef = FALSE,
+  ploidy = 2,
+  pseudo.diploid = FALSE,
+  integer = TRUE,
+  ratio = FALSE,
+  impute.method = "mean",
+  rmv.mono = FALSE,
+  thresh.htzy = 0,
+  ratio.check = TRUE,
+  weights = NULL,
+  ploidy.correction = FALSE,
+  ASV = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>SNPmatrix</code></td>
+<td>
+<p>matrix (n x m), where n is is individual names and m is marker names (coded inside the matrix as 0, 1, 2, ..., ploidy, and, missingValue).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"Yang" or "VanRaden" for marker-based additive relationship matrix. "Su" or "Vitezica" for marker-based dominance relationship matrix. "Slater" for full-autopolyploid model including non-additive effects. "Endelman" for autotetraploid dominant (digentic) relationship matrix. "MarkersMatrix" for a matrix with the amount of shared markers between individuals (3). Default is "VanRaden", for autopolyploids will be computed a scaled product (similar to Covarrubias-Pazaran, 2006).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missingValue</code></td>
+<td>
+<p>missing value in data. Default=-9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maf</code></td>
+<td>
+<p>minimum allele frequency accepted to each marker. Default=0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh.missing</code></td>
+<td>
+<p>threshold on missing data, SNPs below of this frequency value will be maintained, if equal to 1, no threshold and imputation is considered. Default = 0.50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verify.posdef</code></td>
+<td>
+<p>verify if the resulting matrix is positive-definite. Default=FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ploidy</code></td>
+<td>
+<p>data ploidy (an even number between 2 and 20). Default=2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudo.diploid</code></td>
+<td>
+<p>if TRUE, uses pseudodiploid parametrization of Slater (2016).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integer</code></td>
+<td>
+<p>if FALSE, not check for integer numbers. Default=TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>if TRUE, molecular data are considered ratios and its computed the scaled product of the matrix (as in "VanRaden" method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute.method</code></td>
+<td>
+<p>"mean" to impute the missing data by the mean per marker, "mode" to impute the missing data by the mode per marker, "global.mean" to impute the missing data by the mean across all markers, "global.mode" to impute the missing data my the mode across all marker. Default = "mean".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmv.mono</code></td>
+<td>
+<p>if monomorphic markers should be removed. Default=FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh.htzy</code></td>
+<td>
+<p>threshold heterozigosity, remove SNPs below this threshold. Default=0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio.check</code></td>
+<td>
+<p>if TRUE, run Mcheck with ratio data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>vector with weights for each marker. Only works if method="VanRaden". Default is a vector of 1's (equal weight).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ploidy.correction</code></td>
+<td>
+<p>It sets the denominator (correction) of the crossprod. Used only when ploidy &gt; 2 for "VanRaden" and ratio models. If TRUE, it uses the sum of "Ploidy" times "Frequency" times "(1-Frequency)" of each marker as method 1 in VanRaden 2008 and Endelman (2018). When ratio=TRUE, it uses "1/Ploidy" times "Frequency" times "(1-Frequency)". If FALSE, it uses the sum of the sampling variance of each marker. Default = FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ASV</code></td>
+<td>
+<p>if TRUE, transform matrix into average semivariance (ASV) equivalent (K = K / (trace(K) / (nrow(K)-1))). Details formula 2 of Fieldmann et al. (2022). Default = FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Matrix with the marker-bases relationships between the individuals
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rodrigo R Amadeu <a href="mailto:rramadeu@gmail.com">rramadeu@gmail.com</a>, Marcio Resende Jr, Letícia AC Lara, Ivone Oliveira, and Felipe V Ferrao
+</p>
+
+
+<h3>References</h3>
+
+<p><em>Covarrubias-Pazaran, G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.</em>
+</p>
+<p><em>Endelman, JB, et al., 2018. Genetic variance partitioning and genome-wide prediction with allele dosage information in autotetraploid potato. Genetics, 209(1) pp. 77-87.</em>
+</p>
+<p><em>Feldmann MJ, et al. 2022. Average semivariance directly yields accurate estimates of the genomic variance in complex trait analyses. G3 (Bethesda), 12(6).</em>
+</p>
+<p><em>Liu, A, et al. 2020. Weighted single-step genomic best linear unbiased prediction integrating variants selected from sequencing data by association and bioinformatics analyses. Genet Sel Evol 52, 48.</em>
+</p>
+<p><em>Slater, AT, et al. 2016. Improving genetic gain with genomic selection in autotetraploid potato. The Plant Genome 9(3), pp.1-15.</em>
+</p>
+<p><em>Su, G, et al. 2012. Estimating additive and non-additive genetic variances and predicting genetic merits using genome-wide dense single nucleotide polymorphism markers. PloS one, 7(9), p.e45293.</em>
+</p>
+<p><em>VanRaden, PM, 2008. Efficient methods to compute genomic predictions. Journal of dairy science, 91(11), pp.4414-4423.</em>
+</p>
+<p><em>Vitezica, ZG, et al. 2013. On the additive and dominant variance and covariance of individuals within the genomic selection scope. Genetics, 195(4), pp.1223-1230.</em>
+</p>
+<p><em>Yang, J, et al. 2010. Common SNPs explain a large proportion of the heritability for human height. Nature genetics, 42(7), pp.565-569.</em>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Diploid Example
+data(snp.pine)
+#Verifying if data is coded as 0,1,2 and missing value.
+str(snp.pine)
+#Build G matrices
+Gmatrix.Yang &lt;- Gmatrix(snp.pine, method="Yang", missingValue=-9, maf=0.05)
+Gmatrix.VanRaden &lt;- Gmatrix(snp.pine, method="VanRaden", missingValue=-9, maf=0.05)
+Gmatrix.Su &lt;- Gmatrix(snp.pine, method="Su", missingValue=-9, maf=0.05)
+Gmatrix.Vitezica &lt;- Gmatrix(snp.pine, method="Vitezica", missingValue=-9, maf=0.05)
+
+## Autetraploid example
+data(snp.sol)
+#Build G matrices
+Gmatrix.VanRaden &lt;- Gmatrix(snp.sol, method="VanRaden", ploidy=4)
+Gmatrix.Endelman &lt;- Gmatrix(snp.sol, method="Endelman", ploidy=4) 
+Gmatrix.Slater &lt;- Gmatrix(snp.sol, method="Slater", ploidy=4)
+Gmatrix.Pseudodiploid &lt;- Gmatrix(snp.sol, method="VanRaden", ploidy=4, pseudo.diploid=TRUE) 
+
+#Build G matrix with weights
+Gmatrix.weighted &lt;- Gmatrix(snp.sol, method="VanRaden", weights = runif(3895,0.001,0.1), ploidy=4)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimateSoilDepth</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Soil Depth</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the soil depth of a single profile within a <code>SoilProfileCollection</code> object. This function would typically be called by <code>profileApply()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimateSoilDepth(
+  f,
+  name = hzdesgnname(f),
+  p = "Cr|R|Cd",
+  selection = min,
+  no.contact.depth = NULL,
+  no.contact.assigned = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>SoilProfileCollection object of length 1, e.g. a single profile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>name of the column that contains horizon designations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>REGEX pattern for determining "contact", or depth to some morphologic feature (e.g. <code>Bt</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>an R function applied in the presence of multiple matching horizons: <code>min</code> (default), <code>max</code>, <code>mean</code>, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no.contact.depth</code></td>
+<td>
+<p>in the absence of contact matching <code>p</code>, a depth at which we can assume a standard depth-to-contact</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no.contact.assigned</code></td>
+<td>
+<p>value assigned when no contact is encountered at or below <code>no.contact.depth</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The choice of a <code>selection</code> function usually follows:
+</p>
+<p><code>min</code>: the top of the first matching horizon, <code>max</code>: the top bot the last matching horizon,
+or possibly <code>mean</code>: somewhere in-between.
+</p>
+
+
+<h3>Value</h3>
+
+<p>single value representing the depth to <code>contact</code> or <code>no.contact.assigned</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette and J.M. Skovlin
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>getSoilDepthClass</code>, <code>profileApply</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+## consider a situation where there were multiple candidate
+## "contacts": 2 Cd horizons over an R
+
+# init hypothetical profile
+d &lt;- data.frame(
+  id = '1',
+  top = c(0, 10, 20, 30, 40, 50, 60),
+  bottom = c(10, 20, 30, 40, 50, 60, 80),
+  name = c('A', 'Bt1', 'Bt2', 'BC', 'Cd1', 'Cd2', 'R'),
+  stringsAsFactors = FALSE
+)
+
+# upgrade to SPC
+depths(d) &lt;- id ~ top + bottom
+
+# init horizon designation
+hzdesgnname(d) &lt;- 'name'
+
+# visual check
+par(mar = c(0, 0, 0, 2))
+plotSPC(d, hz.depths = TRUE, name.style = 'center-center', cex.names = 1, width = 0.1)
+
+# top of the first Cd
+estimateSoilDepth(d, name = 'name')
+
+# top of the first Cd
+estimateSoilDepth(d, name = 'name', selection = min)
+
+# top of the R
+estimateSoilDepth(d, name = 'name', selection = max)
+
+# top of the second Cd
+estimateSoilDepth(d, name = 'name', selection = max, p = 'Cd')
+
+
+## another example
+
+data(sp1)
+depths(sp1) &lt;- id ~ top + bottom
+
+# init horizon designation
+hzdesgnname(d) &lt;- 'name'
+
+# apply to each profile in a collection, and save as site-level attribute
+sp1$depth &lt;- profileApply(sp1, estimateSoilDepth, name='name')
+
+# this function can be used to "find" depth to any feature 
+# that can be defined via REGEX pattern matching on the horizon name
+# for example, locate the depth to the top "Bt" horizon
+# returning NA when there is no match
+sp1$top_Bt &lt;- profileApply(
+  sp1, estimateSoilDepth, 
+  name='name', 
+  p='Bt', 
+  no.contact.depth=0, 
+  no.contact.assigned=NA
+)
+
+# reduced margins
+par(mar=c(1,1,1,2))
+# adjust default y-offset and depth scaling for following examples
+plotSPC(sp1, y.offset=10, scaling.factor=0.5)
+
+# get plotting parameters for profile widths and depth scaling factors
+lsp &lt;- get("last_spc_plot", envir = aqp.env)
+
+# positions on x-axis, same for both depth and top "Bt" horizon
+x.positions &lt;- (1:length(sp1)) - lsp$width
+
+# annotate contact with unicode right-arrow
+# y-position is adjusted based on plot y-offset and scaling factor
+y.positions &lt;- lsp$y.offset + (sp1$depth * lsp$scaling.factor)
+text(x.positions, y.positions, '\u2192', col='red', adj=1, cex=1.25, lwd=2)
+
+# annotate top "Bt" depth with unicode right-arrow
+# y-position is adjusted based on plot y-offset and scaling factor
+y.positions &lt;- lsp$y.offset + (sp1$top_Bt * lsp$scaling.factor)
+text(x.positions, y.positions, '\u2192', col='blue', adj=1, cex=1.25, lwd=2)
+
+
+## Not run: 
+  # sample data
+  data(gopheridge, package='soilDB')
+  
+  # run on a single profile
+  estimateSoilDepth(gopheridge[1, ], name = 'hzname')
+  
+  # apply to an entire collection
+  profileApply(gopheridge, estimateSoilDepth, name = 'hzname')
+
+## End(Not run)
+</code></pre>
+
+
+</div>

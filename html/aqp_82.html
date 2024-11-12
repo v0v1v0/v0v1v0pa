@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimateSoilColor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate dry soil colors from moist soil colors and vice versa.</h2>
+
+<h3>Description</h3>
+
+<p>Soil color is typically described at dry and moist conditions. This function attempts to estimate soil color at dry or moist condition when one is missing. Estimation proceeds as:
+</p>
+
+<ul>
+<li>
+<p> convert Munsell notation to CIELAB color coordinates via <code>munsell2rgb()</code>
+</p>
+</li>
+<li>
+<p> apply scaling, rotation, and translation parameters in CIELAB color space
+</p>
+</li>
+<li>
+<p> locate closest Munsell chip to CIELAB coordinates via <code>col2munsell()</code>
+</p>
+</li>
+</ul>
+<p>Estimation of dry from moist soil color state is not guaranteed to be symmetric with estimation of moist from dry.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimateSoilColor(hue, value, chroma, sourceMoistureState = c("dry", "moist"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>hue</code></td>
+<td>
+<p>vector of Munsell hue ('10YR', '2.5Y', etc.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>vector of Munsell value (2,2.5 2.5, 3, 5, 6, etc.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chroma</code></td>
+<td>
+<p>vector of Munsell chroma (2, 3, 4, etc.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sourceMoistureState</code></td>
+<td>
+<p>character, source colors are either 'dry' or 'moist'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Scaling, rotation, and translation parameters for shifting between dry &lt;–&gt; moist CIELAB coordinates was determined using <code>vegan::procrustes()</code>, from those official series descriptions (OSD) where moist and dry soil colors were available.
+</p>
+<p>Estimates for colors having a (dry or moist) Munsell value of 10 are not likely correct.
+</p>
+<p>This is still a work in progress.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>data.frame</code> of estimated colors in Munsell notation. The <code>sigma</code> column contains CIE2000 color contrast metric values describing the perceptual distance between estimated color in CIELAB coordinates and closest Munsell chip.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+estimateSoilColor(hue = '10YR', value = 3, chroma = 3, sourceMoistureState = 'moist')
+
+# note that estimation is not symmetric
+estimateSoilColor(hue = '10YR', value = 5, chroma = 3, sourceMoistureState = 'dry')
+
+</code></pre>
+
+
+</div>

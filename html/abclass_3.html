@@ -1,0 +1,303 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abclass</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multi-Category Angle-Based Classification</h2>
+
+<h3>Description</h3>
+
+<p>Multi-category angle-based large-margin classifiers with regularization by
+the elastic-net or groupwise penalty.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abclass(
+  x,
+  y,
+  intercept = TRUE,
+  weight = NULL,
+  loss = c("logistic", "boost", "hinge-boost", "lum"),
+  control = list(),
+  ...
+)
+
+abclass.control(
+  lambda = NULL,
+  alpha = 1,
+  nlambda = 50L,
+  lambda_min_ratio = NULL,
+  grouped = TRUE,
+  group_weight = NULL,
+  group_penalty = c("lasso", "scad", "mcp"),
+  dgamma = 1,
+  lum_a = 1,
+  lum_c = 1,
+  boost_umin = -5,
+  maxit = 100000L,
+  epsilon = 1e-04,
+  standardize = TRUE,
+  varying_active_set = TRUE,
+  verbose = 0L,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric matrix representing the design matrix.  No missing valus
+are allowed.  The coefficient estimates for constant columns will be
+zero.  Thus, one should set the argument <code>intercept</code> to <code>TRUE</code>
+to include an intercept term instead of adding an all-one column to
+<code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>An integer vector, a character vector, or a factor vector
+representing the response label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>A logical value indicating if an intercept should be
+considered in the model.  The default value is <code>TRUE</code> and the
+intercept is excluded from regularization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>A numeric vector for nonnegative observation weights. Equal
+observation weights are used by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>A character value specifying the loss function.  The available
+options are <code>"logistic"</code> for the logistic deviance loss,
+<code>"boost"</code> for the exponential loss approximating Boosting machines,
+<code>"hinge-boost"</code> for hybrid of SVM and AdaBoost machine, and
+<code>"lum"</code> for largin-margin unified machines (LUM).  See Liu, et
+al. (2011) for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of control parameters. See <code>abclass.control()</code>
+for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other control parameters passed to <code>abclass.control()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A numeric vector specifying the tuning parameter
+<em>lambda</em>.  A data-driven <em>lambda</em> sequence will be generated
+and used according to specified <code>alpha</code>, <code>nlambda</code> and
+<code>lambda_min_ratio</code> if this argument is left as <code>NULL</code> by
+default.  The specified <code>lambda</code> will be sorted in decreasing order
+internally and only the unique values will be kept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A numeric value in [0, 1] representing the mixing parameter
+<em>alpha</em>.  The default value is <code>1.0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>A positive integer specifying the length of the internally
+generated <em>lambda</em> sequence.  This argument will be ignored if a
+valid <code>lambda</code> is specified.  The default value is <code>50</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_min_ratio</code></td>
+<td>
+<p>A positive number specifying the ratio of the
+smallest lambda parameter to the largest lambda parameter.  The default
+value is set to <code>1e-4</code> if the sample size is larger than the number
+of predictors, and <code>1e-2</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grouped</code></td>
+<td>
+<p>A logicial value.  Experimental flag to apply group
+penalties.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_weight</code></td>
+<td>
+<p>A numerical vector with nonnegative values representing
+the adaptive penalty factors for the specified group penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_penalty</code></td>
+<td>
+<p>A character vector specifying the name of the group
+penalty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dgamma</code></td>
+<td>
+<p>A positive number specifying the increment to the minimal
+gamma parameter for group SCAD or group MCP.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lum_a</code></td>
+<td>
+<p>A positive number greater than one representing the parameter
+<em>a</em> in LUM, which will be used only if <code>loss = "lum"</code>.  The
+default value is <code>1.0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lum_c</code></td>
+<td>
+<p>A nonnegative number specifying the parameter <em>c</em> in LUM,
+which will be used only if <code>loss = "hinge-boost"</code> or <code>loss =
+"lum"</code>.  The default value is <code>1.0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boost_umin</code></td>
+<td>
+<p>A negative number for adjusting the boosting loss for the
+internal majorization procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>A positive integer specifying the maximum number of iteration.
+The default value is <code>10^5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>A positive number specifying the relative tolerance that
+determines convergence.  The default value is <code>1e-4</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>A logical value indicating if each column of the design
+matrix should be standardized internally to have mean zero and standard
+deviation equal to the sample size.  The default value is <code>TRUE</code>.
+Notice that the coefficient estimates are always returned on the
+original scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varying_active_set</code></td>
+<td>
+<p>A logical value indicating if the active set
+should be updated after each cycle of coordinate-majorization-descent
+algorithm.  The default value is <code>TRUE</code> for usually more efficient
+estimation procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A nonnegative integer specifying if the estimation procedure
+is allowed to print out intermediate steps/results.  The default value
+is <code>0</code> for silent estimation procedure.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function <code>abclass()</code> returns an object of class
+<code>abclass</code> representing a trained classifier; The function
+<code>abclass.control()</code> returns an object of class abclass.control
+representing a list of control parameters.
+</p>
+
+
+<h3>References</h3>
+
+<p>Zhang, C., &amp; Liu, Y. (2014). Multicategory Angle-Based Large-Margin
+Classification. <em>Biometrika</em>, 101(3), 625–640.
+</p>
+<p>Liu, Y., Zhang, H. H., &amp; Wu, Y. (2011). Hard or soft classification?
+large-margin unified machines. <em>Journal of the American Statistical
+Association</em>, 106(493), 166–177.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(abclass)
+set.seed(123)
+
+## toy examples for demonstration purpose
+## reference: example 1 in Zhang and Liu (2014)
+ntrain &lt;- 100 # size of training set
+ntest &lt;- 100  # size of testing set
+p0 &lt;- 5       # number of actual predictors
+p1 &lt;- 5       # number of random predictors
+k &lt;- 5        # number of categories
+
+n &lt;- ntrain + ntest; p &lt;- p0 + p1
+train_idx &lt;- seq_len(ntrain)
+y &lt;- sample(k, size = n, replace = TRUE)         # response
+mu &lt;- matrix(rnorm(p0 * k), nrow = k, ncol = p0) # mean vector
+## normalize the mean vector so that they are distributed on the unit circle
+mu &lt;- mu / apply(mu, 1, function(a) sqrt(sum(a ^ 2)))
+x0 &lt;- t(sapply(y, function(i) rnorm(p0, mean = mu[i, ], sd = 0.25)))
+x1 &lt;- matrix(rnorm(p1 * n, sd = 0.3), nrow = n, ncol = p1)
+x &lt;- cbind(x0, x1)
+train_x &lt;- x[train_idx, ]
+test_x &lt;- x[- train_idx, ]
+y &lt;- factor(paste0("label_", y))
+train_y &lt;- y[train_idx]
+test_y &lt;- y[- train_idx]
+
+## Regularization through ridge penalty
+control1 &lt;- abclass.control(nlambda = 5, lambda_min_ratio = 1e-3,
+                            alpha = 1, grouped = FALSE)
+model1 &lt;- abclass(train_x, train_y, loss = "logistic",
+                  control = control1)
+pred1 &lt;- predict(model1, test_x, s = 5)
+table(test_y, pred1)
+mean(test_y == pred1) # accuracy
+
+## groupwise regularization via group lasso
+model2 &lt;- abclass(train_x, train_y, loss = "boost",
+                  grouped = TRUE, nlambda = 5)
+pred2 &lt;- predict(model2, test_x, s = 5)
+table(test_y, pred2)
+mean(test_y == pred2) # accuracy
+</code></pre>
+
+
+</div>

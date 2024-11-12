@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cba_manual</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>CBA Classifier from provided rules</h2>
+
+<h3>Description</h3>
+
+<p>Learns a CBA rule set from supplied rules
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cba_manual(
+  train_raw,
+  rules,
+  txns,
+  rhs,
+  classAtt,
+  cutp,
+  pruning_options = list(input_list_sorted_by_length = FALSE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>train_raw</code></td>
+<td>
+<p>a data frame with raw data (numeric attributes are not discretized).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>Rules class instance  output by the apriori package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>txns</code></td>
+<td>
+<p>Transactions class instance  passed to  the arules method invocation. Transactions are created over discretized data frame  - numeric values are replaced  with intervals such as "(13;45]".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>character vectors giving the labels of the items which can appear in the RHS
+($rhs element of the APappearance class instance passed to the arules call)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classAtt</code></td>
+<td>
+<p>the name of the class attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutp</code></td>
+<td>
+<p>list of cutpoints used to discretize data (required for application of the model on continuous data)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pruning_options</code></td>
+<td>
+<p>custom options for the pruning algorithm overriding the default values.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of class CBARuleModel.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(humtemp)
+  data_raw&lt;-humtemp
+  data_discr &lt;- humtemp
+
+  #custom discretization
+  data_discr[,1]&lt;-cut(humtemp[,1],breaks=seq(from=15,to=45,by=5))
+  data_discr[,2]&lt;-cut(humtemp[,2],breaks=c(0,40,60,80,100))
+
+  #change interval syntax from (15,20] to (15;20], which is required by MARC
+  data_discr[,1]&lt;-as.factor(unlist(lapply(data_discr[,1], function(x) {gsub(",", ";", x)})))
+  data_discr[,2]&lt;-as.factor(unlist(lapply(data_discr[,2], function(x) {gsub(",", ";", x)})))
+  data_discr[,3] &lt;- as.factor(humtemp[,3])
+
+  #mine rules
+  classAtt="Class"
+  appearance &lt;- getAppearance(data_discr, classAtt)
+  txns_discr &lt;- as(data_discr, "transactions")
+  rules &lt;- apriori(txns_discr, parameter =
+   list(confidence = 0.5, support= 3/nrow(data_discr), minlen=1, maxlen=5), appearance=appearance)
+  inspect(rules)
+
+
+  rmCBA &lt;- cba_manual(data_raw,  rules, txns_discr, appearance$rhs,
+  classAtt, cutp= list(), pruning_options=NULL)
+  inspect (rmCBA@rules)
+  prediction &lt;- predict(rmCBA,data_discr,discretize=FALSE)
+  acc &lt;- CBARuleModelAccuracy(prediction, data_discr[[classAtt]])
+  print(paste("Accuracy:",acc))
+</code></pre>
+
+
+</div>

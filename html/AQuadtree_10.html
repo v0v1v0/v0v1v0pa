@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createAQuadtree</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a Quadtree grid to anonymise spatial point data</h2>
+
+<h3>Description</h3>
+
+<p><code>createAQuadtree</code> returns a SpatialPointsDataFrame representing a Quadtree
+hierarchical geographic dataset. The resulting grid contains varying size cells
+depending on a given threshold and column.
+with identifiers
+A <code>cellCode</code> and <code>cellNum</code> is created for each cell as in INSPIRE
+Specification on Geographical Grid Systems.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">createAQuadtree(
+  points,
+  dim = 1000,
+  layers = 5,
+  colnames = NULL,
+  threshold = 100,
+  thresholdField = NULL,
+  funs = NULL,
+  as = "Spatial",
+  ineq.threshold = 0.25,
+  loss.threshold = 0.4
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>points</code></td>
+<td>
+<p>object of class "SpatialPoints" or "SpatialPointsDataFrame".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p>a single integer specifying the initial cell sizes in meters, defaults to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layers</code></td>
+<td>
+<p>a single integer specifying the number of divisions of the
+initial cells, defaults to 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnames</code></td>
+<td>
+<p>character or character vector specifying the
+columns to summarise in the resulting quadtree. For columns of class factor,
+a column for each factor level cill be created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>number. The threshold minimum value each cell must have
+in the column <code>thresholdField</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholdField</code></td>
+<td>
+<p>character or character vector specifying the
+columns to which the <code>threshold</code> value will apply. If not specified,
+threshold value will be applied over the total cell points number.
+ThresholdField must be one of the colnames.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>funs</code></td>
+<td>
+<p>character or character vector specifying the summary
+functions for each of the <code>colnames</code>. If vector, the size must be the
+same as colnames.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as</code></td>
+<td>
+<p>character indicating return type, if "AQuadtree" a quadtree
+class element will be returned, otherwise a SpatialPolygonsDataFrame
+will ber returned. Defaults to "Spatial".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ineq.threshold</code></td>
+<td>
+<p>inequality threshold value to be considered on the
+disaggregation process. Forces disaggregation under the given inequality
+threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss.threshold</code></td>
+<td>
+<p>loss threshold value to be considered on the
+disaggregation process. Stops disaggregation when there's much loss
+(i.e loss rate &gt; ineq.threshold ).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given a set of points a varying size Quadtree grid is created performing a
+bottom-up aggregation considering a minimum threshold for each cell.
+Cells with a value under the threshold for the <code>thresholdField</code> are
+aggregated to the upper level in a quadtree manner.<br>
+When no <code>thresholdField</code> is given, total number  of points in the cell
+will be used, and so, given a threshold of k, none of the cells in the
+resulting grid have a value less than k individuals as in a k-anonymity model.<br>
+The Quadtree produced balances information loss and accuracy. For instance,
+for the set of cells in the left image, where numbers in the cells represent
+the values in the <code>thresholdField</code>, using a <code>threshold</code> value of 100,
+the resulting Quadtree will be the one on the right. As we can see, some cells
+will be discarded, and some aggregated to maintain as much information as
+possible, keeping at the same time as much disaggregation as possible<br><img src="../help/figures/QTexampleA.png" width="260" alt="62.5m2 cells"><img src="../help/figures/QTexampleB.png" width="250" alt="resulting Quadtree"><br>
+The INSPIRE coding system for cell identifiers will be used to generate a
+cellCode and cellNum for each cell in the Quadtree.
+The objective of the coding system is to generate unique
+identifiers for each cell, for any of the resolutions.<br>
+The cellCode is a text string, composed of cell size and cell coordinates.
+Cell codes start with a cell size prefix. The cell size is denoted in meter (m)
+for cell sizes below 1000 m and kilometre (km) for cell sizes from 1000 m and
+above.<br>
+Examples: a 100 meter cell has an identifier starting with “100m”, the
+identifier  of a 10000 meter cell starts with “10km”.<br>
+The coordinate part of the cell code reflects the distance of the lower left
+grid cell corner from the false origin of the CRS. In order to reduce the
+length of the string, Easting (E) and Northing (N) values are divided by
+10^n (n is the number of zeros in the cell size value). Example for a cell
+size of 10000 meters: The number of zeros in the cell size value is 4.
+The resulting divider for Easting and Northing values is 10^4 = 10000.<br>
+The cellNum is a sequence of concatenated integers identifying all the
+hierarchical partitions of the main cell in which the point resides.
+For instance, the cellNum of the top right cell would be 416 (fourth
+in first partition, sixteenth in second partition)<br>
+The input object must be projected and units should be in 'meters'
+because the system uses the INSPIRE coding system.
+</p>
+
+
+<h3>Value</h3>
+
+<p>SpatialPolygonsDataFrame representing a varying size Quadtree
+aggregation for the given points.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p>D2.8.I.2 INSPIRE Specification on Geographical Grid Systems – Guidelines
+<a href="https://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_Specification_GGS_v3.0.1.pdf">https://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_Specification_GGS_v3.0.1.pdf</a>
+
+</p>
+</li>
+<li>
+<p>EEA reference grid dataset
+<a href="https://data.europa.eu/euodp/data/dataset/data_eea-reference-grids-2">https://data.europa.eu/euodp/data/dataset/data_eea-reference-grids-2</a>
+
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("CharlestonPop")
+aQuadtree.Charleston&lt;-createAQuadtree(CharlestonPop, threshold=10,
+  colnames="sex", thresholdField=c("sex.male", "sex.female"))
+
+</code></pre>
+
+
+</div>

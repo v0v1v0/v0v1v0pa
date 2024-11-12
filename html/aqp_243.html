@@ -1,0 +1,670 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotSPC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Soil Profile Sketches</h2>
+
+<h3>Description</h3>
+
+<p>Generate a diagram of soil profile sketches from a <code>SoilProfileCollection</code> object. The <a href="http://ncss-tech.github.io/aqp/articles/Introduction-to-SoilProfileCollection-Objects.html">Introduction to SoilProfileCollection Objects Vignette</a> contains many examples and discussion of the large number of arguments to this function. The <a href="https://ncss-tech.github.io/AQP/aqp/sketches.html">Soil Profile Sketches</a> tutorial has longer-form discussion and examples pertaining to suites of related arguments.
+</p>
+<p>Options can be used to conveniently specify sets of arguments that will be used in several calls to <code>plotSPC()</code> within a single R session. For example, arguments can be specified in a named list (<code>.a</code>) and set using: <code>options(.aqp.plotSPC.args = .a)</code>. Reset these options via <code>options(.aqp.plotSPC.args = NULL)</code>. Arguments explicitly passed to <code>plotSPC()</code> will override arguments set via <code>options()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotSPC(
+  x,
+  color = "soil_color",
+  width = ifelse(length(x) &lt; 2, 0.15, 0.25),
+  name = hzdesgnname(x),
+  name.style = "right-center",
+  label = idname(x),
+  raggedBottom = NULL,
+  hz.depths = FALSE,
+  hz.depths.offset = ifelse(fixLabelCollisions, 0.03, 0),
+  hz.depths.lines = fixLabelCollisions,
+  depth.axis = list(style = "traditional", cex = cex.names * 1.15),
+  alt.label = NULL,
+  alt.label.col = "black",
+  cex.names = 0.5,
+  cex.id = cex.names + (0.2 * cex.names),
+  font.id = 2,
+  srt.id = 0,
+  print.id = TRUE,
+  id.style = "auto",
+  plot.order = 1:length(x),
+  relative.pos = 1:length(x),
+  add = FALSE,
+  scaling.factor = 1,
+  y.offset = rep(0, times = length(x)),
+  x.idx.offset = 0,
+  n = length(x),
+  max.depth = ifelse(is.infinite(max(x)), 200, max(x)),
+  n.depth.ticks = 10,
+  shrink = FALSE,
+  shrink.cutoff = 3,
+  shrink.thin = NULL,
+  abbr = FALSE,
+  abbr.cutoff = 5,
+  divide.hz = TRUE,
+  hz.distinctness.offset = NULL,
+  hz.topography.offset = NULL,
+  hz.boundary.lty = NULL,
+  density = NULL,
+  show.legend = TRUE,
+  col.label = color,
+  col.palette = c("#5E4FA2", "#3288BD", "#66C2A5", "#ABDDA4", "#E6F598", "#FEE08B",
+    "#FDAE61", "#F46D43", "#D53E4F", "#9E0142"),
+  col.palette.bias = 1,
+  col.legend.cex = 1,
+  n.legend = 8,
+  lwd = 1,
+  lty = 1,
+  default.color = grey(0.95),
+  fixLabelCollisions = hz.depths,
+  fixOverlapArgs = list(method = "E", q = 1),
+  cex.depth.axis = cex.names,
+  axis.line.offset = -2,
+  plot.depth.axis = TRUE,
+  ...
+)
+
+## S4 method for signature 'SoilProfileCollection,ANY'
+plot(x, y, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>SoilProfileCollection</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>quoted column name containing R-compatible color descriptions, or numeric / categorical data to be displayed thematically; see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>scaling of profile widths (typically 0.1 - 0.4)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>quoted column name of the (horizon-level) attribute containing horizon designations or labels, if missing <code>hzdesgnname(x)</code> is used. Suppress horizon name printing by setting <code>name = NA</code> or <code>name = ''</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.style</code></td>
+<td>
+<p>one of several possible horizon designations labeling styles: <code>c('right-center', 'left-center', 'left-top', 'center-center', 'center-top')</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>quoted column name of the (site-level) attribute used to identify profile sketches</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raggedBottom</code></td>
+<td>
+<p>either quoted column name of the (site-level) attribute (logical) used to mark profiles with a truncated lower boundary, or <code>FALSE</code> suppress ragged bottom depths when <code>max.depth &lt; max(x)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.depths</code></td>
+<td>
+<p>logical, annotate horizon top depths to the right of each sketch (<code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.depths.offset</code></td>
+<td>
+<p>numeric, user coordinates for left-right adjustment for horizon depth annotation; reasonable values are usually within 0.01-0.05 (default: 0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.depths.lines</code></td>
+<td>
+<p>logical, draw segments between horizon depth labels and actual horizon depth; this is useful when including horizon boundary distinctness and/or <code>fixLabelCollisions = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth.axis</code></td>
+<td>
+<p>logical or list. Use a logical to suppress (<code>FALSE</code>) or add depth axis using defaults (<code>TRUE</code>). Use a list to specify one or more of:
+</p>
+
+<ul>
+<li> <p><code>style</code>: character, one of 'traditional', 'compact', or 'tape'
+</p>
+</li>
+<li> <p><code>line</code>: numeric, negative values move axis to the left (does not apply to <code>style = 'tape'</code>)
+</p>
+</li>
+<li> <p><code>cex</code>: numeric, scaling applied to entire depth axis
+</p>
+</li>
+<li> <p><code>interval</code>: numeric, axis interval
+See examples.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt.label</code></td>
+<td>
+<p>quoted column name of the (site-level) attribute used for secondary annotation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt.label.col</code></td>
+<td>
+<p>color used for secondary annotation text</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.names</code></td>
+<td>
+<p>baseline character scaling applied to all text labels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.id</code></td>
+<td>
+<p>character scaling applied to <code>label</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>font.id</code></td>
+<td>
+<p>font style applied to <code>label</code>, default is 2 (bold)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>srt.id</code></td>
+<td>
+<p>rotation applied to <code>label</code>, only when <code>id.style = 'top'</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.id</code></td>
+<td>
+<p>logical, print <code>label</code> above/beside each profile? (<code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id.style</code></td>
+<td>
+<p><code>label</code> printing style: 'auto' (default) = simple heuristic used to select from: 'top' = centered above each profile, 'side' = 'along the top-left edge of profiles'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.order</code></td>
+<td>
+<p>integer vector describing the order in which individual soil profiles should be plotted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative.pos</code></td>
+<td>
+<p>vector of relative positions along the x-axis, within {1, n}, ignores <code>plot.order</code> see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>logical, add to an existing figure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaling.factor</code></td>
+<td>
+<p>vertical scaling of profile depths, useful for adding profiles to an existing figure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.offset</code></td>
+<td>
+<p>numeric vector of vertical offset for top of profiles in depth units of <code>x</code>, can either be a single numeric value or vector of length = <code>length(x)</code>. A vector of y-offsets will be automatically re-ordered according to <code>plot.order</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.idx.offset</code></td>
+<td>
+<p>integer specifying horizontal offset from 0 (left-hand edge)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>integer describing amount of space along x-axis to allocate, defaults to <code>length(x)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.depth</code></td>
+<td>
+<p>numeric. The lower depth for all sketches, deeper profiles are truncated at this depth. Use larger values to arbitrarily extend the vertical dimension, convenient for leaving extract space for annotation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.depth.ticks</code></td>
+<td>
+<p>suggested number of ticks in depth scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink</code></td>
+<td>
+<p>logical, reduce character scaling for 'long' horizon by 80%</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink.cutoff</code></td>
+<td>
+<p>character length defining 'long' horizon names</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink.thin</code></td>
+<td>
+<p>integer, horizon thickness threshold for shrinking horizon names by 80%, only activated when <code>shrink = TRUE</code> (<code>NULL</code> = no shrinkage)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abbr</code></td>
+<td>
+<p>logical, abbreviate <code>label</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abbr.cutoff</code></td>
+<td>
+<p>suggested minimum length for abbreviated <code>label</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>divide.hz</code></td>
+<td>
+<p>logical, divide horizons with line segment? (<code>TRUE</code>), see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.distinctness.offset</code></td>
+<td>
+<p><code>NULL</code>, or quoted column name (horizon-level attribute) containing vertical offsets used to depict horizon boundary distinctness (same units as profiles), see details and <code>hzDistinctnessCodeToOffset()</code>; consider setting <code>hz.depths.lines = TRUE</code> when used in conjunction with <code>hz.depths = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.topography.offset</code></td>
+<td>
+<p><code>NULL</code>, or quoted column name (horizon-level attribute) containing offsets used to depict horizon boundary topography (same units as profiles), see details and <code>hzTopographyCodeToOffset()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hz.boundary.lty</code></td>
+<td>
+<p>quoted column name (horizon-level attribute) containing line style (integers) used to encode horizon topography</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density</code></td>
+<td>
+<p>fill density used for horizon color shading, either a single integer or a quoted column name (horizon-level attribute) containing integer values (default is <code>NULL</code>, no shading)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.legend</code></td>
+<td>
+<p>logical, show legend? (default is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.label</code></td>
+<td>
+<p>thematic legend title</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.palette</code></td>
+<td>
+<p>color palette used for thematic sketches (default is <code>rev(brewer.pal(10, 'Spectral'))</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.palette.bias</code></td>
+<td>
+<p>color ramp bias (skew), see <code>colorRamp()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.legend.cex</code></td>
+<td>
+<p>scaling of thematic legend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.legend</code></td>
+<td>
+<p>approximate number of classes used in numeric legend, max number of items per row in categorical legend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwd</code></td>
+<td>
+<p>line width multiplier used for sketches</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lty</code></td>
+<td>
+<p>line style used for sketches</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default.color</code></td>
+<td>
+<p>default horizon fill color used when <code>color</code> attribute is <code>NA</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixLabelCollisions</code></td>
+<td>
+<p>use <code>fixOverlap()</code> to attempt fixing hz depth labeling collisions, will slow plotting of large collections; enabling also sets <code>hz.depths.lines = TRUE</code>. Additional arguments to <code>fixOverlap()</code> can be passed via <code>fixOverlapArgs</code>. Overlap collisions cannot be fixed within profiles containing degenerate or missing horizon depths (e.g. top == bottom).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixOverlapArgs</code></td>
+<td>
+<p>a named list of arguments to <code>fixOverlap()</code>. Overlap adjustments are attempted using electrostatic simulation with arguments: <code>list(method = 'E', q = 1)</code>. Alternatively, select adjustment by simulated annealing via <code>list(method = 'S')</code>. See <code>electroStatics_1D()</code> and <code>SANN_1D()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex.depth.axis</code></td>
+<td>
+<p>(deprecated, use <code>depth.axis</code> instead) character scaling applied to depth scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axis.line.offset</code></td>
+<td>
+<p>(deprecated, use <code>depth.axis</code> instead) horizontal offset applied to depth axis (default is -2, larger numbers move the axis to the right)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.depth.axis</code></td>
+<td>
+<p>(deprecated, use <code>depth.axis</code> instead) logical, plot depth axis?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed into lower level plotting functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>(not used)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Depth limits (<code>max.depth</code>) and number of depth ticks (<code>n.depth.ticks</code>) are <em>suggestions</em> to the <code>pretty()</code> function. You may have to tinker with both parameters to get what you want.
+</p>
+<p>The 'side' <code>id.style</code> is useful when plotting a large collection of profiles, and/or, when profile IDs are long.
+</p>
+<p>If the column containing horizon designations is not specified (the <code>name</code> argument), a column (presumed to contain horizon designation labels) is guessed based on regular expression matching of the pattern 'name'–this usually works, but it is best to manual specify the name of the column containing horizon designations.
+</p>
+<p>The <code>color</code> argument can either name a column containing R-compatible colors, possibly created via <code>munsell2rgb()</code>, or column containing either numeric or categorical (either factor or character) values. In the second case, values are converted into colors and displayed along with a simple legend above the plot. Note that this functionality makes several assumptions about plot geometry and is most useful in an interactive setting.
+</p>
+<p>Adjustments to the legend can be specified via <code>col.label</code> (legend title), <code>col.palette</code> (palette of colors, automatically expanded), <code>col.legend.cex</code> (legend scaling), and <code>n.legend</code> (approximate number of classes for numeric variables, or, maximum number of legend items per row for categorical variables). Currently, <code>plotSPC</code> will only generate two rows of legend items. Consider reducing the number of classes if two rows isn't enough room.
+</p>
+<p>Profile sketches can be added according to relative positions along the x-axis (vs. integer sequence) via <code>relative.pos</code> argument. This should be a vector of positions within {1,n} that are used for horizontal placement. Default values are <code>1:length(x)</code>. Care must be taken when both <code>plot.order</code> and <code>relative.pos</code> are used simultaneously: <code>relative.pos</code> specifies horizontal placement after sorting. <code>addDiagnosticBracket()</code> and <code>addVolumeFraction()</code> use the <code>relative.pos</code> values for subsequent annotation.
+</p>
+<p>Relative positions that are too close will result in overplotting of sketches. Adjustments to relative positions such that overlap is minimized can be performed with <code>fixOverlap(pos)</code>, where <code>pos</code> is the original vector of relative positions.
+</p>
+<p>The <code>x.idx.offset</code> argument can be used to shift a collection of pedons from left to right in the figure. This can be useful when plotting several different <code>SoilProfileCollection</code> objects within the same figure. Space must be pre-allocated in the first plotting call, with an offset specified in the second call. See examples below.
+</p>
+<p>Horizon depths (e.g. cm) are converted to figure y-coordinates via: y = (depth * scaling.factor) + y.offset.
+</p>
+
+
+<h3>Note</h3>
+
+<p>A new plot of soil profiles is generated, or optionally added to an existing plot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+<p>Beaudette, D.E., Roudier P., and A.T. O'Geen. 2013. Algorithms for Quantitative Pedology: A Toolkit for
+Soil Scientists. Computers &amp; Geosciences. 52:258 - 268.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fixOverlap()</code>, <code>explainPlotSPC()</code>, SoilProfileCollection, <code>pretty()</code>, <code>hzDistinctnessCodeToOffset()</code>, <code>addBracket()</code>, <code>profileGroupLabels()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+
+# example data
+data(sp1)
+# usually best to adjust margins
+par(mar = c(0,0,3,0))
+
+# add color vector
+sp1$soil_color &lt;- with(sp1, munsell2rgb(hue, value, chroma))
+
+# promote to SoilProfileCollection
+depths(sp1) &lt;- id ~ top + bottom
+
+# init horizon designation 
+hzdesgnname(sp1) &lt;- 'name'
+
+# plot profiles
+plotSPC(sp1, id.style = 'side')
+
+# title, note line argument:
+title('Sample Data 1', line = 1, cex.main = 0.75)
+
+# plot profiles without horizon-line divisions
+plotSPC(sp1, divide.hz = FALSE)
+
+# diagonal lines encode horizon boundary distinctness
+sp1$hzD &lt;- hzDistinctnessCodeToOffset(sp1$bound_distinct)
+plotSPC(sp1, hz.distinctness.offset = 'hzD', name.style = 'center-center')
+
+# plot horizon color according to some property
+data(sp4)
+depths(sp4) &lt;- id ~ top + bottom
+hzdesgnname(sp4) &lt;- 'name'
+plotSPC(sp4, color = 'clay')
+
+# another example
+data(sp2)
+depths(sp2) &lt;- id ~ top + bottom
+hzdesgnname(sp2) &lt;- 'name'
+site(sp2) &lt;- ~ surface
+
+# some of these profiles are very deep, truncate plot at 400cm
+# label / re-order with site-level attribute: `surface`
+plotSPC(sp2, label = 'surface', plot.order = order(sp2$surface), 
+max.depth = 400)
+
+# example using a categorical attribute
+plotSPC(sp2, color = "plasticity", 
+max.depth = 400)
+
+# plot two SPC objects in the same figure
+par(mar = c(1,1,1,1))
+
+# plot the first SPC object and
+# allocate space for the second SPC object
+plotSPC(sp1, n = length(sp1) + length(sp2))
+
+# plot the second SPC, starting from the first empty space
+plotSPC(sp2, x.idx.offset = length(sp1), add = TRUE)
+
+
+##
+## demonstrate horizon designation shrinkage
+##
+
+data("jacobs2000")
+
+# shrink "long" horizon names
+plotSPC(
+  jacobs2000, 
+  name = 'name',
+  name.style = 'center-center', 
+  shrink = TRUE, 
+  cex.names = 0.8
+)
+
+# shrink horizon names in "thin" horizons
+plotSPC(
+  jacobs2000, 
+  name = 'name',
+  name.style = 'center-center', 
+  shrink = TRUE, 
+  shrink.thin = 15,
+  cex.names = 0.8,
+)
+
+
+##
+## demonstrate adaptive legend
+##
+
+data(sp3)
+depths(sp3) &lt;- id ~ top + bottom
+
+# make some fake categorical data
+horizons(sp3)$fake.data &lt;- sample(letters[1:15], size = nrow(sp3), replace=TRUE)
+
+# better margins
+par(mar=c(0,0,3,1))
+
+# note that there are enough colors for 15 classes (vs. previous limit of 10)
+# note that the legend is split into 2 rows when length(classes) &gt; n.legend argument
+plotSPC(sp3, color='fake.data', name='fake.data', cex.names=0.8)
+
+# make enough room in a single legend row
+plotSPC(sp3, color='fake.data', name='fake.data', cex.names=0.8, n.legend=15)
+
+
+##
+## demonstrate y.offset argument
+## must be of length 1 or length(x)
+##
+
+# example data and local copy
+data("jacobs2000")
+x &lt;- jacobs2000
+hzdesgnname(x) &lt;- 'name'
+
+# y-axis offsets, simulating a elevation along a hillslope sequence
+# same units as horizon depths in `x`
+# same order as profiles in `x`
+y.offset &lt;- c(-5, -10, 22, 65, 35, 15, 12)
+
+par(mar = c(0, 0, 2, 2))
+
+# y-offset at 0
+plotSPC(x, color = 'matrix_color', cex.names = 0.66)
+
+# constant adjustment to y-offset
+plotSPC(x, color = 'matrix_color', cex.names = 0.66, y.offset = 50)
+
+# attempt using invalid y.offset
+# warning issued and default value of '0' used
+# plotSPC(x, color = 'matrix_color', cex.names = 0.66, y.offset = 1:2)
+
+# variable y-offset
+# fix overlapping horizon depth labels
+par(mar = c(0, 0, 1, 0))
+plotSPC(
+  x, 
+  y.offset = y.offset, 
+  color = 'matrix_color', 
+  cex.names = 0.75, 
+  shrink = TRUE,
+  hz.depths = TRUE, 
+  hz.depths.offset = 0.05,
+  fixLabelCollisions = TRUE,
+  name.style = 'center-center'
+)
+
+
+
+# random y-axis offsets
+yoff &lt;- runif(n = length(x), min = 1, max = 100)
+
+# random gradient of x-positions
+xoff &lt;- runif(n = length(x), min = 1, max = length(x))
+
+# note profiles overlap
+plotSPC(x, 
+        relative.pos = xoff, 
+        y.offset = yoff, 
+        color = 'matrix_color', 
+        cex.names = 0.66, 
+        hz.depths = TRUE, 
+        name.style = 'center-center'
+)
+
+
+# align / adjust relative x positions
+set.seed(111)
+pos &lt;- alignTransect(xoff, x.min = 1, x.max = length(x), thresh = 0.65)
+
+# y-offset is automatically re-ordered according to
+# plot.order
+
+par(mar = c(0.5, 0.5, 0.5, 0.5))
+plotSPC(x, 
+        plot.order = pos$order, 
+        relative.pos = pos$relative.pos, 
+        y.offset = yoff, 
+        color = 'matrix_color', 
+        cex.names = 0.66, 
+        hz.depths = TRUE, 
+        name.style = 'center-center'
+)
+
+box()
+
+</code></pre>
+
+
+</div>

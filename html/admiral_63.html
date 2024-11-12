@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_expected_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Expected Records</h2>
+
+<h3>Description</h3>
+
+<p>Add expected records as new observations for each 'by group' when the dataset
+contains missing observations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_expected_records(
+  dataset,
+  dataset_ref,
+  by_vars = NULL,
+  set_values_to = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>dataset_ref</code> and <code>by_vars</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_ref</code></td>
+<td>
+<p>Expected observations dataset
+</p>
+<p>Data frame with the expected observations, e.g., all the expected
+combinations of <code>PARAMCD</code>, <code>PARAM</code>, <code>AVISIT</code>, <code>AVISITN</code>, ...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>For each group defined by <code>by_vars</code> those observations from <code>dataset_ref</code>
+are added to the output dataset which do not have a corresponding observation
+in the input dataset.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations.
+</p>
+<p>A list of variable name-value pairs is expected.
+</p>
+
+<ul>
+<li>
+<p> LHS refers to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value, <code>NA</code>, or expressions, e.g., <code>exprs(PARAMCD =   "TDOSE", PARCAT1 = "OVERALL")</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each group (the variables specified in the <code>by_vars</code> parameter),
+those records from <code>dataset_ref</code> that are missing in the input
+dataset are added to the output dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the missed expected observations added for each
+<code>by_vars</code>. Note, a variable will only be populated in the new parameter rows
+if it is specified in <code>by_vars</code> or <code>set_values_to</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+adqs &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~AVISITN, ~AVISIT, ~AVAL,
+  "1",      "a",             1, "WEEK 1",   10,
+  "1",      "b",             1, "WEEK 1",   11,
+  "2",      "a",             2, "WEEK 2",   12,
+  "2",      "b",             2, "WEEK 2",   14
+)
+
+# Example 1. visit variables are parameter independent
+parm_visit_ref &lt;- tribble(
+  ~AVISITN, ~AVISIT,
+  1,        "WEEK 1",
+  2,        "WEEK 2"
+)
+
+derive_expected_records(
+  dataset = adqs,
+  dataset_ref = parm_visit_ref,
+  by_vars = exprs(USUBJID, PARAMCD),
+  set_values_to = exprs(DTYPE = "DERIVED")
+)
+
+# Example 2. visit variables are parameter dependent
+parm_visit_ref &lt;- tribble(
+  ~PARAMCD, ~AVISITN, ~AVISIT,
+  "a",             1, "WEEK 1",
+  "a",             2, "WEEK 2",
+  "b",             1, "WEEK 1"
+)
+
+derive_expected_records(
+  dataset = adqs,
+  dataset_ref = parm_visit_ref,
+  by_vars = exprs(USUBJID, PARAMCD),
+  set_values_to = exprs(DTYPE = "DERIVED")
+)
+
+</code></pre>
+
+
+</div>

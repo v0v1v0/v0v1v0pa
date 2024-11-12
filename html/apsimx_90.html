@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ssurgo2sp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Take in <abbr><span class="acronym">SSURGO</span></abbr> csv files and create a soil profile</h2>
+
+<h3>Description</h3>
+
+<p>Utility function to convert <abbr><span class="acronym">SSURGO</span></abbr> data to soil profile
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ssurgo2sp(
+  mapunit = NULL,
+  component = NULL,
+  chorizon = NULL,
+  mapunit.shp = NULL,
+  nmapunit = 1,
+  nsoil = 1,
+  xout = NULL,
+  soil.bottom = 200,
+  method = c("constant", "linear"),
+  nlayers = 10,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mapunit</code></td>
+<td>
+<p>mapunit <abbr><span class="acronym">SSURGO</span></abbr> file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>component</code></td>
+<td>
+<p>component <abbr><span class="acronym">SSURGO</span></abbr> file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chorizon</code></td>
+<td>
+<p>chorizon <abbr><span class="acronym">SSURGO</span></abbr> file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapunit.shp</code></td>
+<td>
+<p>mapunit shapefile for creating metadata</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmapunit</code></td>
+<td>
+<p>number of mapunits to select</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsoil</code></td>
+<td>
+<p>number of soil components (within a mapunit) to consider</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>vector for interpolation and extrapolation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.bottom</code></td>
+<td>
+<p>bottom of the soil profile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method used for interpolation (see <code>approx</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlayers</code></td>
+<td>
+<p>number of soil layers to generate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to print details of the process</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Some of the conversions use pedotrasnfer equations from Saxton and Rawls.
+Soil Water Characteristic Estimates by Texture and Organic Matter for Hydrologic Solutions.
+Soil Sci. Soc. Am. J. 70:1569–1578 (2006).
+</p>
+<p>Download the data from <abbr><span class="acronym">SSURGO</span></abbr> using the ‘FedData’ package <br>
+This will generate csv files ‘chorizon’, ‘component’ and ‘mapunit’, <br>
+but also many other files which are not needed for creating a soil profile.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list with soil profile matrices with length equal to nsoil
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+require(ggplot2)
+require(sf)
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+
+chorizon &lt;- read.csv(paste0(extd.dir,"/ISUAG/SSURGO/ISUAG_SSURGO_chorizon.csv"))
+component &lt;- read.csv(paste0(extd.dir,"/ISUAG/SSURGO/ISUAG_SSURGO_component.csv"))
+mapunit &lt;- read.csv(paste0(extd.dir,"/ISUAG/SSURGO/ISUAG_SSURGO_mapunit.csv"))
+mapunit.shp &lt;- st_read(paste0(extd.dir,"/ISUAG/SSURGO/ISUAG_SSURGO_Mapunits.shp"), quiet = TRUE)
+
+## Using default 'constant' method
+sp.c &lt;- ssurgo2sp(mapunit = mapunit, 
+                 component = component, 
+                 chorizon = chorizon, 
+                 mapunit.shp = mapunit.shp)
+
+sp.c &lt;- sp.c[[1]]
+
+ggplot(data = sp.c, aes(y = -Depth, x = Carbon)) + 
+geom_point() + 
+  geom_path() + 
+  ylab("Soil Depth (cm)") + xlab("Organic Matter (percent)") +
+  ggtitle("method = constant")
+  
+  
+## Using 'linear' method
+sp.l &lt;- ssurgo2sp(mapunit = mapunit, 
+                 component = component, 
+                 chorizon = chorizon, 
+                 mapunit.shp = mapunit.shp,
+                 method = "linear")
+                 
+sp.l &lt;- sp.l[[1]]
+                 
+ggplot(data = sp.l, aes(y = -Depth, x = Carbon)) + 
+geom_point() + 
+  geom_path() + 
+  ylab("Soil Depth (cm)") + xlab("Organic Matter (percent)") +
+  ggtitle("Method linear")
+
+
+## Not run: 
+## Method using get_ssurgo_tables
+
+require(soilDB)
+require(sp)
+require(sf)
+require(spData)
+## retrieve data from lon -93, lat = 42
+stbls &lt;- get_ssurgo_tables(lonlat = c(-93, 42))
+
+sp2.c &lt;- ssurgo2sp(mapunit = stbls$mapunit, 
+                 component = stbls$component, 
+                 chorizon = stbls$chorizon, 
+                 mapunit.shp = stbls$mapunit.shp)  
+names(sp2.c)
+
+metadata &lt;- attributes(sp2.c[[1]])
+metadata$names &lt;- NULL; metadata$class &lt;- NULL; metadata$row.names &lt;- NULL
+
+## Convert to an APSIM soil profile
+asp2.c &lt;- apsimx_soil_profile(nlayers = 10,
+                              Thickness = sp2.c[[1]]$Thickness * 10,
+                              BD = sp2.c[[1]]$BD,
+                              AirDry = sp2.c[[1]]$AirDry,
+                              LL15 = sp2.c[[1]]$LL15,
+                              DUL = sp2.c[[1]]$DUL,
+                              SAT = sp2.c[[1]]$SAT,
+                              KS = sp2.c[[1]]$KS,
+                              Carbon = sp2.c[[1]]$Carbon,
+                              PH = sp2.c[[1]]$PH,
+                              ParticleSizeClay = sp2.c[[1]]$ParticleSizeClay,
+                              ParticleSizeSilt = sp2.c[[1]]$ParticleSizeSilt,
+                              ParticleSizeSand = sp2.c[[1]]$ParticleSizeSand,
+                              metadata = metadata)
+                              
+plot(asp2.c)
+plot(asp2.c, property = "water")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_ssurgo_soil_profile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve soil profile data and convert it to an object of class ‘soil_profile’</h2>
+
+<h3>Description</h3>
+
+<p>Generate a synthetic soil profile based on the information in SSURGO database
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_ssurgo_soil_profile(
+  lonlat,
+  shift = -1,
+  nmapunit = 1,
+  nsoil = 1,
+  xout = NULL,
+  soil.bottom = 200,
+  method = c("constant", "linear"),
+  nlayers = 10,
+  check = TRUE,
+  fix = FALSE,
+  verbose = FALSE,
+  xargs = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lonlat</code></td>
+<td>
+<p>Longitude and latitude vector (e.g. c(-93, 42))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift</code></td>
+<td>
+<p>simple mechanism for creating an area of interest by displacing the point indicated in 
+lonlat by some amount of distance (e.g. 300 - in meters)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmapunit</code></td>
+<td>
+<p>number of mapunits to select (see <code>ssurgo2sp</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsoil</code></td>
+<td>
+<p>number of soils to select (see <code>ssurgo2sp</code>). If the 
+number of soils is negative or NA it will fetch all the soils in the mapunit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>see <code>ssurgo2sp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.bottom</code></td>
+<td>
+<p>see <code>ssurgo2sp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>interpolation method see <code>ssurgo2sp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlayers</code></td>
+<td>
+<p>number for layer for the new soil profile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check</code></td>
+<td>
+<p>whether to check for reasonable values using <code>check_apsimx_soil_profile</code>.
+TRUE by default. If ‘fix’ is TRUE, it will be applied only after the fix attempt.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix</code></td>
+<td>
+<p>whether to fix compatibility between saturation and bulk density (default is FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>default FALSE. Whether to print messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xargs</code></td>
+<td>
+<p>additional arguments passed to <code>apsimx_soil_profile</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data source is USDA-NRCS Soil Data Access. See package soilDB for more details
+</p>
+
+
+<h3>Value</h3>
+
+<p>this function will always return a list. Each element of the list will
+be an object of class ‘soil_profile’
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+require(soilDB)
+require(sp)
+require(sf)
+require(spData)
+require(ggplot2)
+## Soil inforation for a single point
+sp &lt;- get_ssurgo_soil_profile(lonlat = c(-93, 42))
+## The initial attempt throws warnings, so better to use 'fix'
+sp &lt;- get_ssurgo_soil_profile(lonlat = c(-93, 42), fix = TRUE)
+plot(sp[[1]])
+plot(sp[[1]], property = "water")
+## Add initial water
+iwat &lt;- initialwater_parms(Thickness = sp[[1]]$soil$Thickness,
+                           InitialValues = sp[[1]]$soil$DUL * 0.8)
+sp[[1]]$initialwater &lt;- iwat
+plot(sp[[1]], property = "initialwater")
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

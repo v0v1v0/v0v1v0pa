@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dither</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Image dithering</h2>
+
+<h3>Description</h3>
+
+<p>Dither is an intentional form of noise applied to an image to avoid colour
+banding when reducing the amount of colours in that image. This function
+applies dithering to a grDevices <code>raster</code> image.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dither(x, method, ...)
+
+## S3 method for class 'raster'
+dither(
+  x,
+  method = c("none", "floyd-steinberg", "JJN", "stucki", "atkinson", "burkse", "sierra",
+    "two-row-sierra", "sierra-lite"),
+  palette,
+  mode = c("none", "HAM6", "HAM8"),
+  ...
+)
+
+## S3 method for class 'matrix'
+dither(
+  x,
+  method = c("none", "floyd-steinberg", "JJN", "stucki", "atkinson", "burkse", "sierra",
+    "two-row-sierra", "sierra-lite"),
+  palette,
+  mode = c("none", "HAM6", "HAM8"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Original image data that needs to be dithered. Should be a raster object
+(<code>grDevices::as.raster()</code>), or a matrix of <code>character</code> string
+representing colours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A <code>character</code> string indicating which dithering method should
+be applied. See usage section for all possible options (Note that the "JJN" is
+the Jarvis, Judice, and Ninke algorithm). Default is "<code>none</code>", meaning that
+no dithering is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Currently ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palette</code></td>
+<td>
+<p>A palette to which the image should be dithered. It should be a
+<code>vector</code> of <code>character</code> strings representing colours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>A <code>character</code> string indicating whether a special
+Amiga display mode should be used when dithering. By default
+‘<code>none</code>’ is used (no special mode). In addition,
+‘<code>HAM6</code>’ and ‘<code>HAM8</code>’ are supported.
+See <code>rasterToBitmap()</code> for more details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The approaches implemented here all use error diffusion to achieve dithering.
+Each pixel is scanned (from top to bottom, from left to right), where the actual
+colour is sampled and compared with the closest matching colour in the palette.
+The error (the differences between the actual and used colour) is distributed over
+the surrounding pixels. The only difference between the methods implemented here
+is the way the error is distributed. The algorithm itself is identical. For more
+details consult the listed references.
+</p>
+<p>Which method results in the best quality image will depend on the original image
+and the palette colours used for dithering, but is also a matter of taste. Note
+that the dithering algorithm is relatively slow and is provided in this package
+for your convenience. As it is not in the main scope of this package you should
+use dedicated software for faster/better results.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>matrix</code> with the same dimensions as <code>x</code> containing
+<code>numeric</code> index values. The corresponding palette is returned as attribute,
+as well as the index value for the fully transparent colour in the palette.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pepijn de Vries
+</p>
+
+
+<h3>References</h3>
+
+<p>R.W. Floyd, L. Steinberg, <em>An adaptive algorithm for spatial grey scale</em>. Proceedings of the Society of Information Display 17, 75-77 (1976).
+</p>
+<p>J. F. Jarvis, C. N. Judice, and W. H. Ninke, <em>A survey of techniques for the display of continuous tone pictures on bilevel displays</em>. Computer Graphics and Image Processing, 5:1:13-40 (1976).
+</p>
+<p><a href="https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering">https://en.wikipedia.org/wiki/Floyd-Steinberg_dithering</a>
+</p>
+<p><a href="https://tannerhelland.com/4660/dithering-eleven-algorithms-source-code/">https://tannerhelland.com/4660/dithering-eleven-algorithms-source-code/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other colour.quantisation.operations: 
+<code>index.colours()</code>
+</p>
+<p>Other raster.operations: 
+<code>AmigaBitmapFont</code>,
+<code>as.raster.AmigaBasicShape()</code>,
+<code>bitmapToRaster()</code>,
+<code>index.colours()</code>,
+<code>rasterToAmigaBasicShape()</code>,
+<code>rasterToAmigaBitmapFont()</code>,
+<code>rasterToBitmap()</code>,
+<code>rasterToHWSprite()</code>,
+<code>rasterToIFF()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## first: Let's make a raster out of the 'volcano' data, which we can use in the example:
+volcano.raster &lt;- as.raster(t(matrix(terrain.colors(1 + diff(range(volcano)))[volcano -
+  min(volcano) + 1], nrow(volcano))))
+
+## let's dither the image, using a predefined two colour palette:
+volcano.dither &lt;- dither(volcano.raster,
+                         method = "floyd-steinberg",
+                         palette = c("yellow", "green"))
+
+## Convert the indices back into a raster object, such that we can plot it:
+volcano.dither &lt;- as.raster(apply(volcano.dither, 2, function(x) c("yellow", "green")[x]))
+par(mfcol = c(1, 2))
+plot(volcano.raster, interpolate = F)
+plot(volcano.dither, interpolate = F)
+
+## results will get better when a better matching colour palette is used.
+## for that purpose use the function 'index.colours'.
+
+## End(Not run)
+</code></pre>
+
+
+</div>

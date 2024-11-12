@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahaz</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit semiparametric additive hazards model</h2>
+
+<h3>Description</h3>
+
+<p>Fit a semiparametric additive hazards regression
+model. Right-censored and left-truncated survival data are supported.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahaz(surv, X, weights, univariate=FALSE, robust=FALSE)  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censoring
+and left-truncation is supported. Tied survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1 for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>univariate</code></td>
+<td>
+<p>Fit all univariate models instead of the joint
+model. Default is <code>univar =
+      FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Robust calculation of variance. Default is <code>robust = FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The semiparametric additive hazards model specifies a hazard function
+of the form:
+</p>
+<p style="text-align: center;"><code class="reqn">h(t) = h_0(t) + \beta' Z_i</code>
+</p>
+
+<p>for <code class="reqn">i=1,\ldots,n</code> where <code class="reqn">Z_i</code> is the vector of covariates,
+<code class="reqn">\beta</code> the vector of regression coefficients and <code class="reqn">h_0</code> is an
+unspecified baseline hazard. The semiparametric additive hazards model
+can be viewed as an
+additive analogue of the well-known Cox proportional hazards
+regression model.
+</p>
+<p>Estimation is based on the estimating equations of Lin &amp; Ying (1994).
+</p>
+<p>The option <code>univariate</code> is intended for screening purposes in
+data sets with a large number of covariates. It is substantially faster than the
+standard approach of combining <code>ahaz</code> with
+<code>apply</code>, see the examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ahaz"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>Number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvars</code></td>
+<td>
+<p>Number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>A <code>nvars x nvars</code>  matrix (or vector of length
+<code>nvars</code> if <code>univar =
+      TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A vector of length <code>nvars</code>; the
+regression coefficients equal <code>solve(D,d)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>An <code>nvars x nvars</code> matrix such that <code class="reqn">D^{-1} B
+  D^{-1}</code> estimates the
+covariance matrix of the regression coefficients. If <code>robust=FALSE</code>
+then <code>B</code> is estimated using an asymptotic approximation; if
+<code>robust=TRUE</code> then <code>B</code> is estimated from residuals, see <code>residuals</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>univariate</code></td>
+<td>
+<p>Is <code>univariate=TRUE</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Formatted version of original data (for internal use).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Is <code>robust=TRUE</code>?</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Lin, D.Y. &amp; Ying, Z. (1994). <em>Semiparametric analysis of
+the additive risk model.</em> Biometrika; <b>81</b>:61-71.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.ahaz</code>, <code>predict.ahaz</code>,
+<code>plot.ahaz</code>.
+The functions <code>coef</code>,
+<code>vcov</code>, <code>residuals</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,15:24])
+
+# Fit additive hazards model
+fit1 &lt;- ahaz(surv, X)
+summary(fit1)
+
+# Univariate models
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+fit2 &lt;- ahaz(surv, X, univariate = TRUE)
+# Equivalent to the following (slower) solution
+beta &lt;- apply(X,2,function(x){coef(ahaz(surv,x))})
+plot(beta,coef(fit2))
+
+</code></pre>
+
+
+</div>

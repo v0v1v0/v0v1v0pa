@@ -1,0 +1,315 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>envspace.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform a test of the shared space-environment fraction of a variation partitioning
+using torus-translation (TT) or Moran Spectral Randomisation (MSR)</h2>
+
+<h3>Description</h3>
+
+<p>The function uses two different spatially-constrained null models to test the shared 
+space-environment fraction (SSEF, or fraction [b]) of a variation partitioning of two 
+explanatory components.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">envspace.test(
+  spe,
+  env,
+  coord,
+  MEM.spe,
+  listw.env,
+  MEM.autocor = c("positive", "negative", "all"),
+  regular = FALSE,
+  nperm = 999,
+  MSR.method = "singleton",
+  alpha = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spe</code></td>
+<td>
+<p>Vector, matrix, or dataframe of response variable(s) (e.g. species abundances)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>Vector, matrix, or dataframe of environmental variables (rows = sites, 
+columns = variables)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coord</code></td>
+<td>
+<p>Matrix or dataframe of spatial coordinates of the sampled sites</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MEM.spe</code></td>
+<td>
+<p>Matrix or dataframe of spatial predictors (MEM variables) selected for 
+<code>spe</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>listw.env</code></td>
+<td>
+<p>An object of class <code>listw</code> (spatial weights) created by the functions
+of the <code>spdep</code> package or returned by <code>listw.candidates</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MEM.autocor</code></td>
+<td>
+<p>A string indicating the type of spatial structure of interest for 
+<code>env</code> (<code>"positive"</code>, <code>"negative"</code>, or <code>"all"</code>, for positive, negative, 
+or both types of spatial autocorrelations, respectively); Default is <code>"positive"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regular</code></td>
+<td>
+<p>Logical argument indicating whether a torus-translation test will be
+performed, in addition to the MSR. Set to <code>TRUE</code> only if the sampling design is regular 
+(same number of sites on each line, same number of sites on each column). Set to
+<code>FALSE</code> otherwise; Default is <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperm</code></td>
+<td>
+<p>Number of permutations performed; Default is 999</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MSR.method</code></td>
+<td>
+<p>Algorithm of <code>msr</code> to be used to perform the MSR. The
+three available procedures are <code>"singleton"</code> (default), <code>"pair"</code>, and 
+<code>"triplet"</code> (see <code>msr</code> for details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Threshold value of null hypothesis rejection for the test of a 
+spatial structure in the environment, and for the shared environment-space fraction of 
+the variation partitioning; Default is 0.05</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function tests the SSEF (also known as fraction [b]) of a variation 
+partitioning of a response variable or matrix (<code>y</code>) between an environmental and a
+spatial component (<code>env</code>, and <code>MEM.spe</code>, respectively). The SSEF is the 
+explained variation of <code>y</code> shared by <code>env</code> and <code>MEM.spe</code>. 
+The adjusted R-squared (Peres-Neto et al. 2006; R2adj) of the SSEF is not an 
+actual R2, as it is computed by subtracting the adjusted R2adj of other fractions and 
+therefore has zero degree of freedom (Legendre and Legendre 2012). 
+The SSEF can therefore not be computed in the classical way (residuals permutation; 
+Anderson and Legendre 1999, Legendre and Legendre 2012). 
+</p>
+<p>The function <code>envspace.test</code> provides two ways of testing this fraction, that is,
+spatially-constrained null models based either on a torus-translation test (TT) (for 
+regular sampling designs only), or on Moran spectral randomizations (MSR) (for any type
+of sampling design). The test of the SSEF should only be performed if both the global 
+models of <code>y</code> against all the environmental variables and against all spatial variables
+are significant (see Bauman et al. 2018c).
+The function first checks whether the environment displays significant spatial structures, 
+and then proceeds to the test of the SSEF if this condition is fulfilled (details in
+Bauman et al. 2018c).
+</p>
+<p><code>spe</code> can be a vector or a multicolumn matrix or dataframe (multivariate
+response data). If multivariate, it is greatly advised to transform <code>spe</code> prior
+to performing the variation partitioning and testing the SSEF (e.g., Hellinger 
+transformation; see Legendre and Gallagher 2001).
+</p>
+<p><code>MEM.spe</code> is a set of spatial predictors (MEM variables). It is recommended to be
+a well-defined subset of MEM variables selected among the complete set generated from 
+the spatial weighting matrix (SWM) (see review about spatial eigenvector selection in
+Bauman et al. 2018a). 
+Optimising the selection of a subset of forward-selected MEM variables
+among a set of candidate SWMs has been shown to increase statistical power as well as
+R2-estimation accuracy (Bauman et al. 2018b). To do so, <code>MEM.spe</code> can be generated
+using <code>listw.candidates</code> followed by <code>listw.select</code>. If a SWM has
+already been selected in another way, then <code>mem.select</code> can be used to
+generate the MEM variables and to select an optimal subset among them, which can then 
+be used as <code>MEM.spe</code> in <code>envspace.test</code> (see <code>Details</code> of function 
+<code>mem.select</code>).
+<code>listw.env</code> corresponds to the SWM that will be used to test for a spatial structure
+in <code>env</code>, and to build the MEM variables for the MSR test. 
+The choice of the SWM for <code>env</code> can also be optimised with <code>listw.select</code>.
+The SWMs selected for <code>spe</code> and <code>env</code> should be optimised separately to 
+best model the spatial structure of both <code>spe</code> and <code>env</code> (see example).
+</p>
+<p>To verify that <code>env</code> displays a significant spatial pattern, prior to performing the
+test of the SSEF, a residuals permutation test is performed on the global set of MEM 
+variables (generated internally from <code>listw.env</code>) associated to the type of 
+spatial structure of interest (see argument <code>MEM.autocor</code>). This test is performed 
+with <code>mem.select</code>. The choice of <code>MEM.autocor</code> should be made according to 
+the <code>MEM.autocor</code> argument used to build <code>MEM.spe</code>. 
+</p>
+<p><code>env</code> is a dataset of environmental variables chosen by the user. We recommend dealing
+with collinearity issues prior to performing the variation partitioning and the test of
+the SSEF (see Dormann et al. 2013 for a review of methods to cope with collinearity).
+</p>
+<p><code>regular</code> is a logical argument indicating whether a TT test should 
+be performed instead of the MSR to test the SSEF. Since the TT can only
+be performed on regular sampling designs, <code>regular</code> should only be set to 
+<code>TRUE</code> if the sampling design is either a transect, or a grid displaying the 
+same number of sites for all lines and columns (although the number of sites per column 
+can differ from the number of sites per line).
+</p>
+<p><code>listw.env</code> is the SWM used by the MSR to generate spatially-constrained null
+environmental variables. It should ideally be a SWM optimised on the basis of <code>env</code>  
+using the function <code>listw.select</code>, with the argument <code>method = "global"</code> (see
+<code>Details</code> of function <code>mem.select</code> for an explanation). 
+This will allow detecting the spatial structures of <code>env</code> as accurately as possible, 
+hence allowing MSR to generate null environmental variables as spatially faithful to the 
+original ones. 
+It is also on the basis of <code>listw.env</code> that MEM variables will be generated to test
+whether <code>env</code> is spatially structured (i.e. global test) prior to perform the test of
+the SSEF.
+</p>
+<p>It is worth mentioning that, although a significant SSEF may provide evidence of an 
+induced spatial dependence (Bauman et al. 2018c), a non-significant SSEF only indicates 
+that no induced spatial dependence could be detected in relation with the chosen 
+environmental variables. This does not exclude that this effect may exist with respect 
+to some unmeasured variables.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If the condition of <code>env</code> being spatially structured is fulfilled, the test 
+is performed and the function returns an object of class <code>randtest</code> containing the results of the test.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Bauman and Jason Vleminckx, <a href="mailto:davbauman@gmail.com">davbauman@gmail.com</a>, 
+<a href="mailto:jasvlx86@gmail.com">jasvlx86@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Anderson M. and Legendre P. (1999) An empirical comparison of permutation 
+methods for tests of partial regression coefficients in a linear model. Journal of
+Statistical Computation and Simulation, 62(3), 271–303
+</p>
+<p>Bauman D., Drouet T., Dray S. and Vleminckx J. (2018a) Disentangling good 
+from bad practices in the selection of spatial or phylogenetic eigenvectors. Ecography, 
+41, 1–12
+</p>
+<p>Bauman D., Fortin M-J, Drouet T. and Dray S. (2018b) Optimizing the choice 
+of a spatial weighting matrix in eigenvector-based methods. Ecology
+</p>
+<p>Bauman D., Vleminckx J., Hardy O., Drouet T. (2018c) Testing and interpreting the 
+shared space-environment fraction in variation partitioning analyses of ecological data.
+Oikos
+</p>
+<p>Blanchet G., Legendre P. and Borcard D. (2008) Forward selection of explanatory variables.
+Ecology, 89(9), 2623–2632
+</p>
+<p>Legendre P., Gallagher E.D. (2001) Ecologically meaningful transformations for 
+ordination of species data. Oecologia, 129(2), 271–280
+</p>
+<p>Legendre P. and Legendre L. (2012) Numerical Ecology, Elsevier, Amsterdam
+</p>
+<p>Peres-Neto P., Legendre P., Dray S., Borcard D. (2006) Variation partitioning of 
+species data matrices: estimation and comparison of fractions. Ecology, 87(10), 
+2614–2625
+</p>
+<p>Peres-Neto P. and Legendre P. (2010) Estimating and controlling for spatial structure 
+in the study of ecological communities. Global Ecology and Biogeography, 19, 174–184
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>varpart</code>, <code>listw.select</code>, <code>listw.candidates</code>, <code>mem.select</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require(vegan)) { 
+# Illustration of the test of the SSEF on the oribatid mite data
+# (Borcard et al. 1992, 1994 for details on the dataset):
+# Community data (response matrix):
+data(mite)
+# Hellinger-transformation of the community data (Legendre and Gallagher 2001):
+Y &lt;- decostand(mite, method = "hellinger")
+# Environmental explanatory dataset:
+data(mite.env)
+# We only use two numerical explanatory variables:
+env &lt;- mite.env[, 1:2]
+dim(Y)
+dim(env)
+# Coordinates of the 70 sites:
+data(mite.xy)
+coord &lt;- mite.xy
+
+### Building a list of candidate spatial weighting matrices (SWMs) for the 
+### optimisation of the SWM selection, separately for 'Y' and 'env':
+# We create five candidate SWMs: a connectivity matrix based on a Gabriel graphs, on
+# a minimum spanning tree (i.e., two contrasted graph-based SWMs), either
+# not weighted, or weighted by a linear function decreasing with the distance),
+# and a distance-based SWM corresponding to the connectivity and weighting
+# criteria of the original PCNM method:
+candidates &lt;- listw.candidates(coord, nb = c("gab", "mst", "pcnm"), weights = c("binary",
+                                                                                "flin"))
+### Optimisation of the selection of a SWM:
+# SWM for 'Y' (based on the best forward-selected subset of MEM variables):
+modsel.Y &lt;- listw.select(Y, candidates, method = "FWD", MEM.autocor = "positive",
+                         p.adjust = TRUE)
+                         
+names(candidates)[modsel.Y$best.id]                 # Best SWM selected
+modsel.Y$candidates$Pvalue[modsel.Y$best.id]        # Adjusted p-value of the global model
+modsel.Y$candidates$N.var[modsel.Y$best.id]         # Nb of forward-selected MEM variables
+modsel.Y$candidates$R2Adj.select[modsel.Y$best.id]  # Adjusted R2 of the selected MEM var.
+
+# SWM for 'env' (method = "global" for the optimisation, as all MEM variables are required
+# to use MSR):
+modsel.env &lt;- listw.select(env, candidates, method = "global", MEM.autocor = "positive",
+                           p.adjust = TRUE)
+
+names(candidates)[modsel.env$best.id]                  # Best SWM selected
+modsel.env$candidates$Pvalue[modsel.env$best.id]       # Adjusted p-value of the global model
+modsel.env$candidates$N.var[modsel.env$best.id]        # Nb of forward-selected MEM variables
+modsel.env$candidates$R2Adj.select[modsel.env$best.id] # Adjusted R2 of the selected MEM var.
+
+### We perform the variation partitioning:
+# Subset of selected MEM variables within the best SWM:
+MEM.spe &lt;- modsel.Y$best$MEM.select
+
+VP &lt;- varpart(Y, env, MEM.spe)
+plot(VP)
+
+# Test of the shared space-environment fraction (fraction [b]):
+SSEF.test &lt;- envspace.test(Y, env, coord, MEM.spe, 
+                           listw.env = candidates[[modsel.env$best.id]], 
+                           regular = FALSE, nperm = 999)
+SSEF.test
+
+# The SSEF is highly significant, indicating a potential induced spatial dependence.
+}
+
+</code></pre>
+
+
+</div>

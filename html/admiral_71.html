@@ -1,0 +1,278 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_exist_flag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add an Existence Flag Parameter</h2>
+
+<h3>Description</h3>
+
+<p>Add a new parameter indicating that a certain event exists in a dataset.
+<code>AVALC</code> and <code>AVAL</code> indicate if an event occurred or not. For example, the
+function can derive a parameter indicating if there is measurable disease at
+baseline.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_exist_flag(
+  dataset = NULL,
+  dataset_ref,
+  dataset_add,
+  condition,
+  true_value = "Y",
+  false_value = NA_character_,
+  missing_value = NA_character_,
+  filter_add = NULL,
+  by_vars = get_admiral_option("subject_keys"),
+  set_values_to
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.
+<code>PARAMCD</code> is expected as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_ref</code></td>
+<td>
+<p>Reference dataset, e.g., ADSL
+</p>
+<p>The variables specified in <code>by_vars</code> are expected. For each group
+(as defined by <code>by_vars</code>) from the specified dataset (<code>dataset_ref</code>),
+the existence flag is calculated and added as a new observation to the
+input datasets (<code>dataset</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> parameter are expected.
+</p>
+<p>This dataset is used to check if an event occurred or not. Any observation
+in the dataset fulfilling the event condition (<code>condition</code>) is considered
+as an event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>Event condition
+</p>
+<p>The condition is evaluated at the additional dataset (<code>dataset_add</code>).
+</p>
+<p>For all groups where it evaluates as <code>TRUE</code> at least once <code>AVALC</code> is set
+to the true value (<code>true_value</code>) for the new observations.
+</p>
+<p>For all groups where it evaluates as <code>FALSE</code> or <code>NA</code> for all observations
+<code>AVALC</code> is set to the false value (<code>false_value</code>).
+</p>
+<p>For all groups not present in the additional dataset <code>AVALC</code> is set to
+the missing value (<code>missing_value</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_value</code></td>
+<td>
+<p>True value
+</p>
+<p>For all groups with at least one observations in the additional dataset
+(<code>dataset_add</code>) fulfilling the event condition (<code>condition</code>), <code>AVALC</code> is
+set to the specified value (<code>true_value</code>).
+</p>
+<p><em>Default</em>: <code>"Y"</code>
+</p>
+<p><em>Permitted Value</em>: A character scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>false_value</code></td>
+<td>
+<p>False value
+</p>
+<p>For all groups with at least one observations in the additional dataset
+(<code>dataset_add</code>) but none of them is fulfilling the event condition
+(<code>condition</code>), <code>AVALC</code> is set to the specified value (<code>false_value</code>).
+</p>
+<p><em>Default</em>: <code>NA_character_</code>
+</p>
+<p><em>Permitted Value</em>: A character scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_value</code></td>
+<td>
+<p>Values used for missing information
+</p>
+<p>For all groups without an observation in the additional dataset
+(<code>dataset_add</code>), <code>AVALC</code> is set to the specified value (<code>missing_value</code>).
+</p>
+<p><em>Default</em>: <code>NA_character_</code>
+</p>
+<p><em>Permitted Value</em>: A character scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional data
+</p>
+<p>Only observations fulfilling the specified condition are taken into account
+for flagging. If the parameter is not specified, all observations are
+considered.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the variables to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "MDIS", PARAM = "Measurable Disease at Baseline")</code> is expected. The values must be symbols, character strings,
+numeric values, <code>NA</code>, or expressions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The additional dataset (<code>dataset_add</code>) is restricted to the observations
+matching the <code>filter_add</code> condition.
+</p>
+</li>
+<li>
+<p> For each group in <code>dataset_ref</code> a new observation is created.
+</p>
+
+<ul>
+<li>
+<p> The <code>AVALC</code> variable is added and set to the true value (<code>true_value</code>)
+if for the group at least one observation exists in the (restricted)
+additional dataset where the condition evaluates to <code>TRUE</code>.
+</p>
+</li>
+<li>
+<p> It is set to the false value (<code>false_value</code>) if for the group at least
+one observation exists and for all observations the condition evaluates
+to <code>FALSE</code> or <code>NA</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, it is set to the missing value (<code>missing_value</code>), i.e., for
+those groups not in <code>dataset_add</code>.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> parameter are added to
+the new observations.
+</p>
+</li>
+<li>
+<p> The new observations are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with a new parameter indicating if an event
+occurred (<code>AVALC</code> and the variables specified by <code>by_vars</code>
+and <code>set_value_to</code> are populated for the new parameter).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate)
+
+# Derive a new parameter for measurable disease at baseline
+adsl &lt;- tribble(
+  ~USUBJID,
+  "1",
+  "2",
+  "3"
+) %&gt;%
+  mutate(STUDYID = "XX1234")
+
+tu &lt;- tribble(
+  ~USUBJID, ~VISIT,      ~TUSTRESC,
+  "1",      "SCREENING", "TARGET",
+  "1",      "WEEK 1",    "TARGET",
+  "1",      "WEEK 5",    "TARGET",
+  "1",      "WEEK 9",    "NON-TARGET",
+  "2",      "SCREENING", "NON-TARGET",
+  "2",      "SCREENING", "NON-TARGET"
+) %&gt;%
+  mutate(
+    STUDYID = "XX1234",
+    TUTESTCD = "TUMIDENT"
+  )
+
+derive_param_exist_flag(
+  dataset_ref = adsl,
+  dataset_add = tu,
+  filter_add = TUTESTCD == "TUMIDENT" &amp; VISIT == "SCREENING",
+  condition = TUSTRESC == "TARGET",
+  false_value = "N",
+  missing_value = "N",
+  set_values_to = exprs(
+    AVAL = yn_to_numeric(AVALC),
+    PARAMCD = "MDIS",
+    PARAM = "Measurable Disease at Baseline"
+  )
+)
+</code></pre>
+
+
+</div>

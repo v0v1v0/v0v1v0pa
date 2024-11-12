@@ -1,0 +1,290 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>trx_stats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarize transactions and utilization rates</h2>
+
+<h3>Description</h3>
+
+<p>Create a summary data frame of transaction counts, amounts,
+and utilization rates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">trx_stats(
+  .data,
+  trx_types,
+  percent_of = NULL,
+  combine_trx = FALSE,
+  col_exposure = "exposure",
+  full_exposures_only = TRUE,
+  conf_int = FALSE,
+  conf_level = 0.95
+)
+
+## S3 method for class 'trx_df'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A data frame with exposure-level records of type
+<code>exposed_df</code> with transaction data attached. If necessary, use
+<code>as_exposed_df()</code> to convert a data frame to an <code>exposed_df</code> object, and use
+<code>add_transactions()</code> to attach transactions to an <code>exposed_df</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trx_types</code></td>
+<td>
+<p>A character vector of transaction types to include in the
+output. If none is provided, all available transaction types in <code>.data</code>
+will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>percent_of</code></td>
+<td>
+<p>A optional character vector containing column names in
+<code>.data</code> to use as denominators in the calculation of utilization rates or
+actual-to-expected ratios.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine_trx</code></td>
+<td>
+<p>If <code>FALSE</code> (default), the results will contain output rows
+for each transaction type. If <code>TRUE</code>, the results will contains aggregated
+experience across all transaction types.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_exposure</code></td>
+<td>
+<p>Name of the column in <code>.data</code> containing exposures</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_exposures_only</code></td>
+<td>
+<p>If <code>TRUE</code> (default), partially exposed records will
+be excluded from <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_int</code></td>
+<td>
+<p>If <code>TRUE</code>, the output will include confidence intervals
+around the observed utilization rate and any <code>percent_of</code> output columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_level</code></td>
+<td>
+<p>Confidence level for confidence intervals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A <code>trx_df</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Groups to retain after <code>summary()</code> is called</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Unlike <code>exp_stats()</code>, this function requires <code>data</code> to be an
+<code>exposed_df</code> object.
+</p>
+<p>If <code>.data</code> is grouped, the resulting data frame will contain
+one row per transaction type per group.
+</p>
+<p>Any number of transaction types can be passed to the <code>trx_types</code> argument,
+however each transaction type <strong>must</strong> appear in the <code>trx_types</code> attribute of
+<code>.data</code>. In addition, <code>trx_stats()</code> expects to see columns named <code style="white-space: pre;">⁠trx_n_{*}⁠</code>
+(for transaction counts) and <code style="white-space: pre;">⁠trx_amt_{*}⁠</code> for (transaction amounts) for each
+transaction type. To ensure <code>.data</code> is in the appropriate format, use the
+functions <code>as_exposed_df()</code> to convert an existing data frame with
+transactions or <code>add_transactions()</code> to attach transactions to an existing
+<code>exposed_df</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A tibble with class <code>trx_df</code>, <code>tbl_df</code>, <code>tbl</code>,
+and <code>data.frame</code>. The results include columns for any grouping
+variables and transaction types, plus the following:
+</p>
+
+<ul>
+<li> <p><code>trx_n</code>: the number of unique transactions.
+</p>
+</li>
+<li> <p><code>trx_amt</code>: total transaction amount
+</p>
+</li>
+<li> <p><code>trx_flag</code>: the number of observation periods with non-zero transaction amounts.
+</p>
+</li>
+<li> <p><code>exposure</code>: total exposures
+</p>
+</li>
+<li> <p><code>avg_trx</code>: mean transaction amount (<code>trx_amt / trx_flag</code>)
+</p>
+</li>
+<li> <p><code>avg_all</code>: mean transaction amount over all records (<code>trx_amt / exposure</code>)
+</p>
+</li>
+<li> <p><code>trx_freq</code>: transaction frequency when a transaction occurs (<code>trx_n / trx_flag</code>)
+</p>
+</li>
+<li> <p><code>trx_utilization</code>: transaction utilization per observation period (<code>trx_flag / exposure</code>)
+</p>
+</li>
+</ul>
+<p>If <code>percent_of</code> is provided, the results will also include:
+</p>
+
+<ul>
+<li>
+<p> The sum of any columns passed to <code>percent_of</code> with non-zero transactions.
+These columns include the suffix <code style="white-space: pre;">⁠_w_trx⁠</code>.
+</p>
+</li>
+<li>
+<p> The sum of any columns passed to <code>percent_of</code>
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠pct_of_{*}_w_trx⁠</code>: total transactions as a percentage of column
+<code style="white-space: pre;">⁠{*}_w_trx⁠</code>. In other words, total transactions divided by the sum of a
+column including only records utilizing transactions.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠pct_of_{*}_all⁠</code>: total transactions as a percentage of column <code style="white-space: pre;">⁠{*}⁠</code>. In
+other words, total transactions divided by the sum of a column regardless
+of whether or not transactions were utilized.
+</p>
+</li>
+</ul>
+<p>If <code>conf_int</code> is set to <code>TRUE</code>, additional columns are added for lower and
+upper confidence interval limits around the observed utilization rate and any
+<code>percent_of</code> output columns. Confidence interval columns include the name
+of the original output column suffixed by either <code style="white-space: pre;">⁠_lower⁠</code> or <code style="white-space: pre;">⁠_upper⁠</code>.
+</p>
+
+<ul><li>
+<p> If values are passed to <code>percent_of</code>, an additional column is created
+containing the the sum of squared transaction amounts (<code>trx_amt_sq</code>).
+</p>
+</li></ul>
+<h3>"Percentage of" calculations</h3>
+
+<p>The <code>percent_of</code> argument is optional. If provided, this argument must
+be a character vector with values corresponding to columns in <code>.data</code>
+containing values to use as denominators in the calculation of utilization
+rates or actual-to-expected ratios. Example usage:
+</p>
+
+<ul>
+<li>
+<p> In a study of partial withdrawal transactions, if <code>percent_of</code> refers to
+account values, observed withdrawal rates can be determined.
+</p>
+</li>
+<li>
+<p> In a study of recurring claims, if <code>percent_of</code> refers to a column
+containing a maximum benefit amount, utilization rates can be determined.
+</p>
+</li>
+</ul>
+<h3>Confidence intervals</h3>
+
+<p>If <code>conf_int</code> is set to <code>TRUE</code>, the output will contain lower and upper
+confidence interval limits for the observed utilization rate and any
+<code>percent_of</code> output columns. The confidence level is dictated
+by <code>conf_level</code>.
+</p>
+
+<ul>
+<li>
+<p> Intervals for the utilization rate (<code>trx_util</code>) assume a binomial
+distribution.
+</p>
+</li>
+<li>
+<p> Intervals for transactions as a percentage of another column with
+non-zero transactions (<code style="white-space: pre;">⁠pct_of_{*}_w_trx⁠</code>) are constructed using a normal
+distribution
+</p>
+</li>
+<li>
+<p> Intervals for transactions as a percentage of another column
+regardless of transaction utilization (<code style="white-space: pre;">⁠pct_of_{*}_all⁠</code>) are calculated
+assuming that the aggregate distribution is normal with a mean equal to
+observed transactions and a variance equal to:
+</p>
+<p><code>Var(S) = E(N) * Var(X) + E(X)^2 * Var(N)</code>,
+</p>
+<p>Where <code>S</code> is the aggregate transactions random variable, <code>X</code> is an individual
+transaction amount assumed to follow a normal distribution, and <code>N</code> is a
+binomial random variable for transaction utilization.
+</p>
+</li>
+</ul>
+<h3>Default removal of partial exposures</h3>
+
+<p>As a default, partial exposures are removed from <code>.data</code> before summarizing
+results. This is done to avoid complexity associated with a lopsided skew
+in the timing of transactions. For example, if transactions can occur on a
+monthly basis or annually at the beginning of each policy year, partial
+exposures may not be appropriate. If a policy had an exposure of 0.5 years
+and was taking withdrawals annually at the beginning of the year, an
+argument could be made that the exposure should instead be 1 complete year.
+If the same policy was expected to take withdrawals 9 months into the year,
+it's not clear if the exposure should be 0.5 years or 0.5 / 0.75 years.
+To override this treatment, set <code>full_exposures_only</code> to <code>FALSE</code>.
+</p>
+
+
+<h3>
+<code>summary()</code> Method</h3>
+
+<p>Applying <code>summary()</code> to a <code>trx_df</code> object will re-summarize the
+data while retaining any grouping variables passed to the "dots"
+(<code>...</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">expo &lt;- expose_py(census_dat, "2019-12-31", target_status = "Surrender") |&gt;
+  add_transactions(withdrawals)
+
+res &lt;- expo |&gt; group_by(inc_guar) |&gt; trx_stats(percent_of = "premium")
+res
+
+summary(res)
+
+expo |&gt; group_by(inc_guar) |&gt;
+  trx_stats(percent_of = "premium", combine_trx = TRUE, conf_int = TRUE)
+
+</code></pre>
+
+
+</div>

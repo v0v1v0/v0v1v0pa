@@ -1,0 +1,309 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>variofaces.asreml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plots empirical variogram faces, including envelopes, as described by 
+Stefanova, Smith &amp; Cullis (2009).</h2>
+
+<h3>Description</h3>
+
+<p>A function that produces a plot for each face of an empirical 2D 
+<code>variogram</code> based on residuals produced after the fitting of a model 
+using the function <code>asreml</code>. 
+It also adds envelopes to the plot by simulating data sets in parallel 
+from a multivariate normal distribution with expectation equal to the 
+fitted values obtained from the fixed and spline terms and variance 
+matrix equal to the fitted variance matrix 
+(Stefanova, Smith &amp; Cullis, 2009). The plot is controlled by the 
+<code>residual</code> model, which must consist of two factors corresponding to 
+the two physical dimensions underlying the data. It can also have a third 
+term involving the <code>at</code> or <code>dsum</code> function that defines sections 
+of the data, such as experiments in different environments. 
+In this case, the two variogram faces are produced for each section.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+variofaces(asreml.obj, means=NULL, V=NULL, 
+           sections = NULL, row.factor = NULL, col.factor = NULL,
+           nsim=100, seed = NULL, 
+           extra.matrix = NULL, ignore.terms = NULL, fixed.spline.terms = NULL, 
+           bound.exclusions = c("F","B","S","C"), tolerance=1E-10, 
+           units = "ignore", update = TRUE, trace = FALSE, 
+           graphics.device=NULL, ncores = 2, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asreml.obj</code></td>
+<td>
+<p>An <code>asreml</code> object from a call to <code>asreml</code> in which the 
+<code>data</code> argument has been set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>The <code>vector</code> of means to be used in generating simulated data sets. If
+it is <code>NULL</code>, the fitted values based on <code>object</code> are used. 
+It must be the same length as the response variable for <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>The fitted variance <code>matrix</code>, i.e. having the appropriate pattern and values 
+given the model fitted to the observed data and the estimates of the 
+parameters obtained. If <code>V</code> is <code>NULL</code> then <code>estimateV.asreml</code> 
+is called to obtain it from <code>asreml.obj</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sections</code></td>
+<td>
+<p>A single <code>character</code> string that specifies the name of the column 
+in the <code>data.frame</code> that contains the <code>factor</code> 
+that identifies different sections of the data to which separate spatial 
+models have been fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.factor</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>factor</code> 
+that indexes the rows of a grid that are one dimension of a 
+spatial correlation model. The <code>factor</code> must a column in 
+the <code>data.frame</code> stored in the <code>asreml.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.factor</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>factor</code> 
+that indexes the columns of a grid that are one dimension of a 
+spatial correlation model. The <code>factor</code> must a column in 
+the <code>data.frame</code> stored in the <code>asreml.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of data sets to be simulated in obtaining the envelopes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A single value, interpreted as an integer, that specifies the 
+starting value of the random number generator. The "L'Ecuyer-CMRG" random 
+generator is used and <code>nextRNGStream</code> is used to seed each core from the
+original <code>seed</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extra.matrix</code></td>
+<td>
+<p>A <code>matrix</code> of order equal to the number of observations that is to 
+be added to the variance <code>matrix</code>, the latter based 
+on the information in <code>asreml.obj</code>. It is assumed that the sigma-parameterized 
+values of the variance parameter estimates, such as is given in the <code>varcomp</code> 
+component of <code>summary.asreml</code>, have been used in calculating 
+<code>extra.matrix</code>; the values in the <code>vparameters</code> component of 
+<code>G.param</code> and <code>R.param</code> may be either gamma- or sigma-parameterized. 
+The argument <code>extra.matrix</code> can be used in conjunction with 
+<code>ignore.terms</code> as a workaround to include components of the variance matrix 
+for variance functions that have not been implemented in <code>estimateV</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.terms</code></td>
+<td>
+<p>A <code>character</code> giving terms from either the <code>random</code> or 
+<code>residual</code> models that are to be ignored in that their contributions to 
+the variance is not to be included in the estimated matrix. The term names are those 
+given in the <code>vparameters</code> component of the <code>asreml</code> object or the 
+<code>varcomp</code> component produced by <code>summary.asreml</code>, but only up to the 
+first exclamation mark (<code>!</code>). This can be used 
+in conjunction with <code>estimateV.asreml</code> as a workaround to include components 
+of the variance matrix for variance functions that have not been implemented                
+in <code>estimateV</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed.spline.terms</code></td>
+<td>
+<p>A <code>character</code> vector giving one or more spline terms in the 
+<code>random</code> model that are regarded as fixed  and so are to be ignored because 
+they are not regarded as contributing to the variance. The term names are those
+given in the <code>vparameters</code> component of the <code>asreml</code> object or the 
+<code>varcomp</code> component produced by <code>summary.asreml</code>, but only up to the
+first exclamation mark (<code>!</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.exclusions</code></td>
+<td>
+<p>A <code>character</code> specifying one or more bound codes that 
+will result in a variance parameter in the <code>random</code> model being excluded 
+from contributing to the variance. If set to <code>NULL</code> then none will
+be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>The value such that eigenvalues less than it are considered to be zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+<p>A <code>character</code> indicating whether the BLUPs for <code>units</code> are 
+added to the residuals when this reserved factor is included in the 
+<code>random</code> model. Possible values are <code>addtoresiduals</code> and 
+<code>ignore</code>. If standardized conditional residuals are plotted and 
+the BLUPs for <code>units</code> are to be added then it is the standardized 
+BLUPs that are added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE</code>, and <code>set.terms</code> is <code>NULL</code>, then 
+<code>newfit.asreml</code> is called to fit the model to be tested, 
+using the values of the variance parameters stored in 
+the <code>asreml.object</code>, that is stored in <code>asrtests.obj</code>, as starting values. 
+If <code>FALSE</code> or <code>set.terms</code> is not <code>NULL</code>, then 
+<code>newfit.asreml</code> will not use the stored variance parameter 
+values as starting values when fitting the new model, the only 
+modifications being ((i) the model is fitted to simulated data and 
+(ii) those specified via <code>...</code>, except that changes 
+cannot be made to any of the models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If TRUE then partial iteration details are displayed when ASReml-R 
+functions are invoked; if FALSE then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graphics.device</code></td>
+<td>
+<p>A <code>character</code> specifying a graphics device for plotting. 
+The default is <br><code>graphics.device = NULL</code>, which will result 
+in plots being produced on the current graphics device. Setting it to 
+<code>"windows"</code>, for example,  will result in a windows graphics 
+device being  opened.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>A <code>numeric</code> specifying the number of cores to use in doing the 
+simulations. In choosing a value for <code>ncores</code>, it is necessary to 
+take into account other processes that are using parallel processing at 
+the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that are passed down to the function <code>asreml</code>. Changes 
+to the models are not allowed. Other changes are dangerous and generally 
+should be avoided.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>residual</code> model is scanned to ensure that it involves only two factors 
+not included in the <code>at</code> function, and to see if it has a third factor in
+an <code>at</code> function. If so, the faces of the 2D variogram, each based on one 
+of the two non-<code>at</code> factors, are derived from the residuals in the 
+supplied <code>asreml</code> object using <code>asreml.variogram</code>, this yielding the observed 
+<code>variogram</code> faces. If <code>aom</code> was set to <code>TRUE</code> for the <code>asreml</code> 
+object, the standardized conditional residuals are used. 
+Then <code>nsim</code> data sets are generated by 
+adding the <code>fitted.values</code>, extracted from the <code>asreml</code> object,
+to a vector of values randomly generated from a normal distribution with 
+expectation zero and variance matrix <code>V</code>. Each data set is analyzed 
+using the model in <code>object</code> and several sets are generated and analyzed 
+in parallel. The variogram values for the faces are 
+obtained using <code>asreml.variogram</code> stored. Note, if the analysis for a 
+data set does not converge in <code>maxiter</code> iterations, it is discarded and 
+a replacement data set generated. The value of <code>maxiter</code> can be specified 
+in the call to <code>variofaces.asreml</code>. Plots are produced for each face and 
+include the observed values and the 2.5%, 50% &amp; 97.5% quantiles.</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following components:
+</p>
+
+<ol>
+<li>
+<p><b>face1:</b> a <code>data.frame</code> containing the variogram values on 
+which the plot for the first dimension is based. 
+</p>
+</li>
+<li>
+<p><b>face2:</b> a <code>data.frame</code> containing the variogram values on 
+which the plot for the second dimension is based.</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>References</h3>
+
+<p>Stefanova, K. T., Smith, A. B. &amp; Cullis, B. R. (2009) Enhanced diagnostics for the 
+spatial analysis of field trials. <em>Journal of Agricultural, Biological, 
+and Environmental Statistics</em>, <b>14</b>, 392–410.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asremlPlus-package</code>, <code>asreml</code>, <code>newfit.asreml</code>, 
+<code>plotVariofaces.data.frame</code>, <code>simulate.asreml</code>, <code>set.seed</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(Wheat.dat)
+current.asr &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                      random = ~ Row + Column + units,
+                      residual = ~ ar1(Row):ar1(Column), 
+                      data=Wheat.dat)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+current.asrt &lt;- rmboundary.asrtests(current.asrt)
+# Form variance matrix based on estimated variance parameters
+s2 &lt;- current.asr$sigma2
+gamma.Row &lt;- current.asr$gammas[1]
+gamma.unit &lt;- current.asr$gammas[2]
+rho.r &lt;- current.asr$gammas[4]
+rho.c &lt;- current.asr$gammas[5]
+row.ar1 &lt;- mat.ar1(order=10, rho=rho.r)
+col.ar1 &lt;- mat.ar1(order=15, rho=rho.c)
+V &lt;- gamma.Row * fac.sumop(Wheat.dat$Row) + 
+     gamma.unit * diag(1, nrow=150, ncol=150) + 
+     mat.dirprod(col.ar1, row.ar1)
+V &lt;- s2*V
+
+#Produce variogram faces plot (Stefanaova et al, 2009)
+variofaces(current.asr, V=V, ncores = parallel::detectCores())
+
+## End(Not run)</code></pre>
+
+
+</div>

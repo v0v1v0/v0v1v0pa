@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>enrich</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform Adverse Event Enrichment Tests</h2>
+
+<h3>Description</h3>
+
+<p>The enrich function is used to perform Adverse event (AE) enrichment analysis.
+Unlike the continuous gene expression data, AE data are counts. Therefore,
+AE data has many zeros and ties. We propose two enrichment tests. AEFisher is
+a modified Fisher's exact test based on pre-selected significant AEs, while
+AEKS is based on a modified Kolmogorov-Smirnov statistic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">enrich(
+  data,
+  dd.group,
+  drug.case,
+  drug.control = NULL,
+  method = "aeks",
+  n_perms = 1000,
+  covar = NULL,
+  p = 0,
+  q.cut = 0.1,
+  or.cut = 1.5,
+  zero = FALSE,
+  min_size = 5,
+  min_AE = 10,
+  cores = detectCores()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame. Two data types are allowed. Type I data consisting
+data on the report level, having ID, Drug type and AE name as the first 3
+columns with covariates(optional) followed. Type II data have drug type and
+AE name as the first two columns, with the 3rd and 4th Columns giving the
+numbers of successes(have AE) and failures(Do not have AE) respectively, then
+followed by covariates. See example data for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dd.group</code></td>
+<td>
+<p>a data.frame with AE name and Group name. This data.frame have
+the group information for each individual AE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drug.case</code></td>
+<td>
+<p>a character string for the target drug of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drug.control</code></td>
+<td>
+<p>a character string for the reference drug. If NULL(default),
+all other drugs combined are the reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string specifying the method for the enrichment test.
+It must take "aeks" (default) or "aefisher"; "aeks" is the rank-based
+enrichment test, and "aefisher" is the Fisher enrichment test. See details
+described in the paper (see reference section of this document).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_perms</code></td>
+<td>
+<p>an integer value specifying the number of permutations in
+permutation test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covar</code></td>
+<td>
+<p>a character vector specifying the columns of covariates, default
+NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a numerical value to control the weight of the step, can take any
+value between 0 and 1. If 0(default), reduces to the standard Kolmogorov-Smirnov
+statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q.cut</code></td>
+<td>
+<p>a numerical value specifying the significance cut for q value
+of AEs in aefisher.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>or.cut</code></td>
+<td>
+<p>a numerical value specifying the significance cut for odds ratio
+of AEs in aefisher.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zero</code></td>
+<td>
+<p>logical, default FALSE.If TRUE, add zero indicator to enrichment score.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_size</code></td>
+<td>
+<p>the minimum size of group required for enrichment analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_AE</code></td>
+<td>
+<p>the minimum number of cases required to start counting
+for a specific AE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>the number of cores to use for parallel execution.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing 2 data.frames named <strong>Final_result</strong> and <strong>AE_info</strong>.
+</p>
+<p>The <strong>Final_result</strong> data.frame contains the following columns:
+</p>
+
+<ul>
+<li>
+<p>GROUP_NAME: AE group names
+</p>
+</li>
+<li>
+<p>ES: enrichment score
+</p>
+</li>
+<li>
+<p>p_value: p value of the enrichment test
+</p>
+</li>
+<li>
+<p>GROUP_SIZE: number of AEs per group
+</p>
+</li>
+</ul>
+<p>The <strong>AE_info</strong> contains the following columns:
+</p>
+
+<ul>
+<li>
+<p>AE_NAME: AE names
+</p>
+</li>
+<li>
+<p>OR: odds ratio for each individual AE
+</p>
+</li>
+<li>
+<p>p_value: p value for AE-drug association
+</p>
+</li>
+<li>
+<p>95Lower: lower bound of 95 percent confidence interval of odds ratio
+</p>
+</li>
+<li>
+<p>95Lower: upper bound of 95 percent confidence interval of odds ratio
+</p>
+</li>
+<li>
+<p>se(logOR): standard error of log odds ratio
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Li, S. and Zhao, L. (2020). Adverse event enrichment tests using
+VAERS. <a href="https://arxiv.org/abs/2007.02266">arXiv:2007.02266</a>.
+</p>
+<p>Subramanian, A.e.a. (2005). Gene set enrichment analysis: a knowledge-based
+approach for interpreting genome-wide expression profiles. Proc Natl Acad
+Sci U S A. Proceedings of the National Academy of Sciences. 102. 15545-15550.
+</p>
+<p>Tian, Lu &amp; Greenberg, Steven &amp; Kong, Sek Won &amp; Altschuler, Josiah &amp; Kohane, Isaac &amp; Park,
+Peter. (2005). Discovering statistically significant pathways in expression profiling studies.
+Proceedings of the National Academy of Sciences of the United States of America.
+102. 13544-9. 10.1073/pnas.0506577102.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# AEKS
+
+### Type I data: data on report level
+# enrich(data = covid1, covar = c("SEX", "AGE"), p = 0, method = "aeks",
+#        n_perms = 1000, drug.case = "COVID19", dd.group = group, cores = 2,
+#        drug.control = "OTHER", min_size = 5, min_AE = 10, zero = FALSE)
+      
+## Type II data: aggregated data
+# enrich(data = covid2, covar = c("SEX", "AGE"), p = 0, method = "aeks",
+#        n_perms = 1000, drug.case = "DrugYes", dd.group = group, cores = 2,
+#        drug.control = "DrugNo", min_size = 5, min_AE = 10)
+      
+# AEFISHER
+## Type I data: data on report level
+# enrich(data = covid1, covar = c("SEX", "AGE"), p = 0, method = "aefisher",
+#        n_perms = 1000, drug.case = "COVID19", dd.group = group,
+#        drug.control = "OTHER", min_size = 5, min_AE = 10, q.cut = 0.05, 
+#        or.cut = 1.5, cores = 2)
+      
+## Type II data: aggregated data
+# enrich(data = covid2, covar = c("SEX", "AGE"), p = 0, method = "aefisher",
+#        n_perms = 1000, drug.case = "DrugYes", dd.group = group,
+#        drug.control = "DrugNo", min_size = 5, min_AE = 10, cores = 2)
+      
+</code></pre>
+
+
+</div>

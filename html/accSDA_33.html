@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SZVD_kFold_cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation of sparse zero variance discriminant analysis</h2>
+
+<h3>Description</h3>
+
+<p>Applies alternating direction methods of multipliers to solve sparse
+zero variance discriminant analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SZVD_kFold_cv(X, ...)
+
+## Default S3 method:
+SZVD_kFold_cv(
+  X,
+  Y,
+  folds,
+  gams,
+  beta,
+  D,
+  q,
+  maxits,
+  tol,
+  ztol,
+  feat,
+  penalty,
+  quiet,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>n by p data matrix, variables should be scaled to by sd</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters passed to SZVD.default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>n by K indicator matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>number of folds to use in K-fold cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gams</code></td>
+<td>
+<p>Number of regularly spaced regularization parameters to try in [0,1]*max_gamma.
+See details for how max_gamma is computed in the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Augmented Lagrangian parameter. Must be greater than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Penalty dictionary basis matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>Desired number of discriminant vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxits</code></td>
+<td>
+<p>Number of iterations to run ADMM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Stopping tolerances for ADMM, must have tol$rel and tol$abs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ztol</code></td>
+<td>
+<p>Rounding tolerance for truncating entries to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feat</code></td>
+<td>
+<p>Maximum fraction of nonzero features desired in validation scheme.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>Controls whether to apply reweighting of l1-penalty (using sigma = within-class std devs)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>toggles between displaying intermediate statistics.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Add how max_gamma is calculated from the ZVD solution.
+This function might require a wrapper similar to ASDA.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>SZVDcv</code> returns an object of <code>class</code> "<code>SZVDcv</code>"
+including a list with the named components <code>DVs</code> and <code>gambest</code>.
+Where <code>DVs</code> are the discriminant vectors for the best l1 regularization
+parameter and <code>gambest</code> is the best regularization parameter found
+in the cross-validation.
+</p>
+<p><code>NULL</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Used by: <code>SZVDcv</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  P &lt;- 150 # Number of variables
+  N &lt;- 20 # Number of samples per class
+
+  # Mean for classes, they are zero everywhere except the first 3 coordinates
+  m1 &lt;- rep(0,P)
+  m1[1] &lt;- 3
+
+  m2 &lt;- rep(0,P)
+  m2[2] &lt;- 3
+
+  m3 &lt;- rep(0,P)
+  m3[3] &lt;- 3
+
+  # Sample dummy data
+  Xtrain &lt;- rbind(MASS::mvrnorm(n=N,mu = m1, Sigma = diag(P)),
+                 MASS::mvrnorm(n=N,mu = m2, Sigma = diag(P)),
+                MASS::mvrnorm(n=N,mu = m3, Sigma = diag(P)))
+
+
+  # Generate the labels
+  Ytrain &lt;- cbind(c(rep(1,N),rep(0,2*N)),
+                  c(rep(0,N),rep(1,N),rep(0,N)),
+                  c(rep(0,2*N),rep(1,N)))
+
+  # Normalize the data
+  Xt &lt;- accSDA::normalize(Xtrain)
+  Xtrain &lt;- Xt$Xc
+
+  # Train the classifier and increase the sparsity parameter from the default
+  # so we penalize more for non-sparse solutions.
+  res &lt;- accSDA::SZVD_kFold_cv(Xtrain,Ytrain,folds=2,gams=2,beta=2.5,q=1, D=diag(P),
+                              maxits=50,tol=list(abs=1e-2,rel=1e-2),
+                              ztol=1e-3,feat=0.3,quiet=FALSE,penalty=TRUE)
+</code></pre>
+
+
+</div>

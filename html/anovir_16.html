@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nll_frailty</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Negative log-likelihood function: frailty</h2>
+
+<h3>Description</h3>
+
+<p>Function calculating negative log-likelihood (nll) for the observed patterns
+of mortality in infected and uninfected treatments when it assumed there is
+unobserved variation in virulence.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nll_frailty(
+  a1 = a1,
+  b1 = b1,
+  a2 = a2,
+  b2 = b2,
+  theta = theta,
+  data = data,
+  time = time,
+  censor = censor,
+  infected_treatment = infected_treatment,
+  d1 = "Weibull",
+  d2 = "Weibull",
+  d3 = ""
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>a1, b1</code></td>
+<td>
+<p>location and scale parameters describing background mortality</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a2, b2</code></td>
+<td>
+<p>location and scale parameters describing mortality due to
+infection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>parameter describing variance of unobserved variation in
+virulence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>name of data frame containing survival data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>name of data frame column identifying time of event; time &gt; 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor</code></td>
+<td>
+<p>name of data frame column idenifying if event was death (0) or
+right-censoring (1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>infected_treatment</code></td>
+<td>
+<p>name of data frame column identifying if data are
+from an infected (1) or uninfected (0) treatment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d1, d2</code></td>
+<td>
+<p>names of probability distributions chosen to describe background
+mortality and mortality due to infection, respectively; both default to the
+Weibull distribution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d3</code></td>
+<td>
+<p>name of probability distribution chosen to describe unobserved
+frailty; choice of 'gamma' or 'inverse Gaussian'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function assumes the unobserved variation in the rate of mortality due to
+infection is continuously distributed and follows either the gamma
+distribution or the inverse Gaussian distribution, with mean = 1 and variance
+= theta.
+</p>
+<p>The nll is based on five parameter functions for the location and
+scale parameters for background mortality and mortality due to infection,
+respectively, plus a parameter estimating the variance of the unobserved
+variation in virulence.
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Example 1: unobserved variation in virulence described by gamma distribution
+
+# step #1: parameterise nll function to be passed to 'mle2'
+    m01_prep_function &lt;- function(a1 = a1, b1 = b1, a2 = a2, b2 = b2, theta = theta){
+      nll_frailty(
+        a1 = a1, b1 = b1, a2 = a2, b2 = b2, theta = theta,
+        data = data_lorenz,
+        time = t,
+        censor = censored,
+        infected_treatment = g,
+        d1 = "Gumbel",
+        d2 = "Weibull",
+        d3 = "Gamma"
+        )}
+
+# step #2: send 'prep_function' to 'mle2' for maximum likelihood estimation
+    m01 &lt;- mle2(
+      m01_prep_function,
+      start = list(a1 = 20, b1 = 5, a2 = 3, b2 = 0.1, theta = 2)
+      )
+
+    summary(m01)
+
+### Example 2: unobserved variation in virulence described by inverse Gaussian distribution
+
+    m02_prep_function &lt;- function(a1 = a1, b1 = b1, a2 = a2, b2 = b2, theta = theta){
+      nll_frailty(
+        a1 = a1, b1 = b1, a2 = a2, b2 = b2, theta = theta,
+        data = data_lorenz,
+        time = t,
+        censor = censored,
+        infected_treatment = g,
+        d1 = "Gumbel",
+        d2 = "Weibull",
+        d3 = "Inverse Gaussian"
+        )}
+
+    m02 &lt;- mle2(
+      m02_prep_function,
+        start = list(a1 = 20, b1 = 5, a2 = 3, b2 = 0.1, theta = 2)
+        )
+
+    summary(m02)
+
+# compare model estimates by AICc
+    AICc(m01, m02, nobs = 256)
+
+</code></pre>
+
+
+</div>

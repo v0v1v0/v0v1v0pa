@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_aci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Azure Container Instance (ACI)</h2>
+
+<h3>Description</h3>
+
+<p>Method for the AzureRMR::az_resource_group class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>create_aci(name, location = self$location,
+           container = name, image,
+           registry_creds = list(),
+           cores = 1, memory = 8,
+           os = c("Linux", "Windows"),
+           command = list(), env_vars = list(),
+           ports = aci_ports(), dns_name = name, public_ip = TRUE,
+           restart = c("Always", "OnFailure", "Never"), managed_identity = TRUE,
+           ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: The name of the ACI service.
+</p>
+</li>
+<li> <p><code>location</code>: The location/region in which to create the ACI service. Defaults to this resource group's location.
+</p>
+</li>
+<li> <p><code>container</code>: The name of the running container.
+</p>
+</li>
+<li> <p><code>image</code>: The name of the image to run.
+</p>
+</li>
+<li> <p><code>registry_creds</code>: Docker registry authentication credentials, if the image is stored in a private registry. See 'Details'.
+</p>
+</li>
+<li> <p><code>cores</code>: The number of CPU cores for the instance.
+</p>
+</li>
+<li> <p><code>memory</code>: The memory size in GB for the instance.
+</p>
+</li>
+<li> <p><code>os</code>: The operating system to run in the instance.
+</p>
+</li>
+<li> <p><code>command</code>: A list of commands to run in the instance. This is similar to the <code>--entrypoint</code> commandline argument to <code style="white-space: pre;">⁠docker run⁠</code>; see <a href="https://docs.microsoft.com/en-us/azure/container-instances/container-instances-start-command">here</a> for some examples.
+</p>
+</li>
+<li> <p><code>env_vars</code>: A list of name-value pairs to set as environment variables in the instance.
+</p>
+</li>
+<li> <p><code>secure_env_vars</code>: A list of name-value pairs to set as <em>secure</em> environment variables in the instance. The values of these variables are not visible in the container's properties, eg when viewed in the Azure portal or via the CLI.
+</p>
+</li>
+<li> <p><code>ports</code>: The network ports to open. By default, opens ports 80 and 443. See 'Details'.
+</p>
+</li>
+<li> <p><code>dns_name</code>: The domain name prefix for the instance. Only takes effect if <code>public_ip=TRUE</code>.
+</p>
+</li>
+<li> <p><code>public_ip</code>: Whether the instance should be publicly accessible.
+</p>
+</li>
+<li> <p><code>restart</code>: Whether to restart the instance should an event occur.
+</p>
+</li>
+<li> <p><code>managed_identity</code>: Whether to assign the container instance a managed identity.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments to pass to the az_resource initialization function.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>An ACI resource is a running container hosted in Azure. See the <a href="https://docs.microsoft.com/en-us/azure/container-instances/">documentation for the resource</a> for more information. Currently ACI only supports a single image in an instance.
+</p>
+<p>To supply the registry authentication credentials, the <code>registry_creds</code> argument should contain either an ACR object, a docker_registry object, or the result of a call to the aci_creds function.
+</p>
+<p>The ports to open should be obtained by calling the aci_ports function. This takes a vector of port numbers as well as the protocol (TCP or UDP) for each port.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>az_container_instance</code> representing the instance.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>get_aci, delete_aci, list_acis
+</p>
+<p>az_container_instance
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/container-instances/">ACI documentation</a> and
+<a href="https://docs.microsoft.com/en-us/rest/api/container-instances/">API reference</a>
+</p>
+<p><a href="https://docs.docker.com/engine/reference/commandline/cli/">Docker commandline reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+rg &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+# get the ACR resource that contains the image
+myacr &lt;- rg$get_acr("myregistry", as_admin=TRUE)
+
+rg$create_aci("mycontainer",
+    image="myregistry.azurecr.io/myimage:latest",
+    registry_creds=myacr)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

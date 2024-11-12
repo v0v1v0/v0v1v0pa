@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PE_Oudin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of series of potential evapotranspiration at the daily or hourly time steps with Oudin's formula</h2>
+
+<h3>Description</h3>
+
+<p>Function which computes PE using the formula from Oudin et al. (2005). PE can be computed at the daily time step from hourly or daily temperature and at the hourly time step with hourly or daily temperature through a disaggregation of daily PE . See details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PE_Oudin(JD, Temp, Lat, LatUnit =  c("rad", "deg"),
+         TimeStepIn = "daily", TimeStepOut = "daily",
+         RunFortran = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>JD</code></td>
+<td>
+<p>[numeric] time series of Julian day of the year [-]; see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Temp</code></td>
+<td>
+<p>[numeric] time series of daily (or hourly) mean air temperature [°C]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lat</code></td>
+<td>
+<p>[numeric] latitude of measurement for the temperature series [radians or degrees]. Atomic vector, except if <code>RunFortran = TRUE</code>, it can be a vector of the same length as <code>Temp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LatUnit</code></td>
+<td>
+<p>[character] latitude unit (default = <code>"rad"</code> or <code>"deg"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeStepIn</code></td>
+<td>
+<p>[character] time step of inputs (e.g. <code>"daily"</code> or <code>"hourly"</code>, default = <code>"daily"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeStepOut</code></td>
+<td>
+<p>[character] time step of outputs (e.g. <code>"daily"</code> or <code>"hourly"</code>, default = <code>"daily"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RunFortran</code></td>
+<td>
+<p>[boolean] to run the code in the Fortran mode or in the R mode (default)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To calculate basin-wide Oudin potential evapotranspiration, it is advised, when possible, to use either station temperature or gridded temperature data to calculate PE and then average these PE values at the basin scale.
+</p>
+<p>In the <code>JD</code> argument, the Julian day of the year of the 1st of January is equal to 1 and the 31st of December to 365 (366 in leap years). If the Julian day of the year is computed on an object of the <code>POSIXlt</code> class, the user has to add 1 to the returned value (e.g. <code>as.POSIXlt("2016-12-31")$yday + 1</code>).
+</p>
+<p>When hourly temperature is provided, all the values of the same day have to be set to the same Julian day of the year (e.g. <code>as.POSIXlt("2016-12-31 00:00:00")$yday + 1</code> and <code>as.POSIXlt("2016-12-31 00:01:00")$yday + 1</code>). Each single day must be provided 24 identical Julian day values (one for each hour).
+</p>
+<p>Four cases are possible:
+</p>
+
+<ul>
+<li> <p><code>TimeStepIn = "daily"</code> and <code>TimeStepOut = "daily"</code>: this is the classical application of the Oudin et al. (2005) formula
+</p>
+</li>
+<li> <p><code>TimeStepIn = "daily"</code> and <code>TimeStepOut = "hourly"</code>: the daily temperature is used inside the <code>PE_Oudin</code> function to calculate daily PE, which is then disaggregated at the hourly time step with use of a sinusoidal function (see Lobligeois, 2014, p. 78)
+</p>
+</li>
+<li> <p><code>TimeStepIn = "hourly"</code> and <code>TimeStepOut = "daily"</code>: the hourly temperature is aggregated at the daily time step and the daily PE is calculated normally within <code>PE_Oudin</code>
+</p>
+</li>
+<li> <p><code>TimeStepIn = "hourly"</code> and <code>TimeStepOut = "hourly"</code>: the hourly temperature is aggregated at the daily time step, the daily PE is then calculated normally within <code>PE_Oudin</code>, which is finally disaggregated at the hourly time step with use of a sinusoidal function (see Lobligeois, 2014, p. 78)
+</p>
+</li>
+</ul>
+<p>The use of the <code>PEdaily_Oudin</code> corresponds to the first case of the use of <code>PE_Oudin</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[numeric] time series of daily potential evapotranspiration [mm/time step]
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Ludovic Oudin, Olivier Delaigue, Guillaume Thirel, François Bourgin
+</p>
+
+
+<h3>References</h3>
+
+<p>Oudin, L., Hervieu, F., Michel, C., Perrin, C., Andréassian, V., Anctil, F. and Loumagne, C. (2005).
+Which potential evapotranspiration input for a lumped rainfall-runoff model?
+Part 2 - Towards a simple and efficient potential evapotranspiration model for rainfall-runoff modelling.
+Journal of Hydrology, 303(1-4), 290-306, <a href="https://doi.org/10.1016/j.jhydrol.2004.08.026">doi:10.1016/j.jhydrol.2004.08.026</a>.
+<br><br>
+Lobligeois, F. (2014).
+Mieux connaitre la distribution spatiale des pluies améliore-t-il la modélisation des crues ? Diagnostic sur 181 bassins versants français.
+PhD thesis (in French), AgroParisTech - Irstea Antony, Paris, France.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+data(L0123001)
+PotEvap &lt;- PE_Oudin(JD = as.POSIXlt(BasinObs$DatesR)$yday + 1,
+                    Temp = BasinObs$T,
+                    Lat = 0.8, LatUnit = "rad")
+</code></pre>
+
+
+</div>

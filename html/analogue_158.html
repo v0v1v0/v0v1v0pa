@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcarlo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Monte Carlo simulation of dissimilarities</h2>
+
+<h3>Description</h3>
+
+<p>Permutations and Monte Carlo simulations to define critical values for
+dissimilarity coefficients for use in MAT reconstructions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mcarlo(object, ...)
+
+## Default S3 method:
+mcarlo(object, nsamp = 10000,
+       type = c("paired", "complete", "bootstrap", "permuted"),
+       replace = FALSE, 
+       method = c("euclidean", "SQeuclidean", "chord", "SQchord",
+                  "bray", "chi.square", "SQchi.square",
+                  "information", "chi.distance", "manhattan",
+                  "kendall", "gower", "alt.gower", "mixed"),
+       is.dcmat = FALSE, diag = FALSE, ...)
+
+## S3 method for class 'mat'
+mcarlo(object, nsamp = 10000,
+       type = c("paired", "complete", "bootstrap", "permuted"),
+       replace = FALSE, diag = FALSE, ...)
+
+## S3 method for class 'analog'
+mcarlo(object, nsamp = 10000,
+       type = c("paired", "complete", "bootstrap", "permuted"),
+       replace = FALSE, diag = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an R object. Currently only object's of class
+<code>"mat"</code>, <code>"analog"</code> or matrix-like object of species data
+allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsamp</code></td>
+<td>
+<p>numeric; number of permutations or simulations to draw.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character; the type of permutation or simulation to
+perform. See Details, below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace</code></td>
+<td>
+<p>logical; should sampling be done with replacement?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; for raw species matrices, the dissimilarity
+coefficient to use. This is predefined when fitting a MAT model with
+<code>mat</code> or analogue matching via <code>analogue</code>
+and is ignored in the <code>"mcarlo"</code> methods for classes
+<code>"mat"</code> and <code>"analog"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is.dcmat</code></td>
+<td>
+<p>logical; is <code>"object"</code> a dissimilarity
+matrix. Not meant for general use; used internally by <code>"mat"</code>
+and <code>"analogue"</code> methods to instruct the <code>"default"</code>
+method that <code>"object"</code> is already a dissimilarity matrix, so
+there is no need to recalculate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diag</code></td>
+<td>
+<p>logical; should the dissimilarities include the diagonal
+(zero) values of the dissimilarity matrix. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Only <code>"type"</code> <code>"paired"</code> and <code>"bootstrap"</code> are
+currently implemented.
+</p>
+<p><code>distance</code> produces square, symmetric
+dissimilarity matrices for training sets. The upper triangle of these
+matrices is a duplicate of the lower triangle, and as such is
+redundant. <code>mcarlo</code> works on the lower triangle of these
+dissimilarity matrices, representing all pairwise dissimilarity values
+for training set samples. The default is <strong>not</strong> to include the
+diagonal (zero) values of the dissimilarity matrix. If you feel that
+these diagonal (zero) values are part of the population of
+dissimilarities then use <code>"diag = TRUE"</code> to include them in the
+permutations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of simulated dissimilarities of length <code>"nsamp"</code>. The
+<code>"method"</code> used is stored in attribute <code>"method"</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The performance of these permutation and simulation techniques still
+needs to be studied. This function is provided for pedagogic
+reasons. Although recommended by Sawada et al (2004), sampling with
+replacement (<code>"replace = TRUE"</code>) and including diagonal (zero)
+values (<code>"diag = TRUE"</code>) simulates too many zero distances. This
+is because the same training set sample can, on occasion be drawn
+twice leading to a zero distance. It is impossible to find in nature
+two samples that will be perfectly similar, and as such sampling
+<strong>with</strong> replacement <strong>and</strong> <code>"diag = TRUE"</code> seems
+undesirable at best.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Sawada, M., Viau, A.E., Vettoretti, G., Peltier, W.R. and Gajewski,
+K. (2004) Comparison of North-American pollen-based temperature and
+global lake-status with CCCma AGCM2 output at 6 ka. <em>Quaternary
+Science Reviews</em> <strong>23</strong>, 87–108.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mat</code> for fitting MAT models and
+<code>analog</code> for analogue matching.
+<code>roc</code> as an alternative method for determining critical
+values for dissimilarity measures when one has grouped data.
+</p>
+<p><code>plot.mcarlo</code> provides a plotting method to visualise the
+distribution of simulated dissimilarities.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Imbrie and Kipp example
+## load the example data
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training and test set on columns
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+V12.122 &lt;- dat[[2]] / 100
+
+## perform the modified method of Sawada (2004) - paired sampling,
+## with replacement
+ik.mcarlo &lt;- mcarlo(ImbrieKipp, method = "chord", nsamp = 1000,
+                    type = "paired", replace = FALSE)
+ik.mcarlo
+
+## plot the simulated distribution
+layout(matrix(1:2, ncol = 1))
+plot(ik.mcarlo)
+layout(1)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>setup_cluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Setup default cluster for use in parallelised adaptr functions</h2>
+
+<h3>Description</h3>
+
+<p>This function setups (or removes) a default cluster for use in all
+parallelised functions in <code>adaptr</code> using the <code>parallel</code> package. The function
+also exports objects that should be available on the cluster and sets the
+random number generator appropriately. See <strong>Details</strong> for further info on
+how <code>adaptr</code> handles sequential/parallel computation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">setup_cluster(cores, export = NULL, export_envir = parent.frame())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>can be either unspecified, <code>NULL</code>, or a single integer <code style="white-space: pre;">⁠&gt; 0⁠</code>. If
+<code>NULL</code> or <code>1</code>, an existing default cluster is removed (if any), and the
+default will subsequently be to run functions sequentially in the main
+process if <code>cores = 1</code>, and according to <code>getOption("mc.cores")</code> if <code>NULL</code>
+(unless otherwise specified in individual functions calls). The
+<code>parallel::detectCores()</code> function may be used to see the number of
+available cores, although this comes with some caveats (as described in the
+function documentation), including that the number of cores may not always
+be returned and may not match the number of cores that are available for
+use. In general, using less cores than available may be preferable if other
+processes are run on the machine at the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export</code></td>
+<td>
+<p>character vector of names of objects to export to each
+parallel core when running in parallel; passed as the <code>varlist</code> argument to
+<code>parallel::clusterExport()</code>. Defaults to <code>NULL</code> (no objects exported),
+ignored if <code>cores == 1</code>. See <strong>Details</strong> below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_envir</code></td>
+<td>
+<p><code>environment</code> where to look for the objects defined
+in <code>export</code> when running in parallel and <code>export</code> is not <code>NULL</code>. Defaults
+to the environment from where the function is called.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Using sequential or parallel computing in adaptr</strong>
+</p>
+<p>All parallelised <code>adaptr</code> functions have a <code>cores</code> argument that defaults to
+<code>NULL</code>. If a non-<code>NULL</code> integer <code style="white-space: pre;">⁠&gt; 0⁠</code> is provided to the <code>cores</code> argument in
+any of those (except <code>setup_cluster()</code>), the package will run calculations
+sequentially in the main process if <code>cores = 1</code>, and otherwise initiate a new
+cluster of size <code>cores</code> that will be removed once the function completes,
+regardless of whether or not a default cluster or the global <code>"mc.cores"</code>
+option have been specified.
+</p>
+<p>If <code>cores</code> is <code>NULL</code> in any <code>adaptr</code> function (except <code>setup_cluster()</code>), the
+package will use a default cluster if one exists or run computations
+sequentially if <code>setup_cluster()</code> has last been called with <code>cores = 1</code>.
+If <code>setup_cluster()</code> has not been called or last called with <code>cores = NULL</code>,
+then the package will check if the global <code>"mc.cores"</code> option has been
+specified (using <code style="white-space: pre;">⁠options(mc.cores = &lt;number of cores&gt;)⁠</code>). If this option has
+been set with a value <code style="white-space: pre;">⁠&gt; 1⁠</code>, then a new, temporary cluster of that size is
+setup, used, and removed once the function completes. If this option has not
+been set or has been set to <code>1</code>, then computations will be run sequentially
+in the main process.
+</p>
+<p>Generally, we recommend using the <code>setup_cluster()</code> function as this avoids
+the overhead of re-initiating new clusters with every call to one of the
+parallelised <code>adaptr</code> functions. This is especially important when exporting
+many or large objects to a <code>parallel</code> cluster, as this can then be done only
+once (with the option to export further objects to the same cluster when
+calling <code>run_trials()</code>).
+</p>
+<p><strong>Type of clusters used and random number generation</strong>
+</p>
+<p>The <code>adaptr</code> package solely uses parallel socket clusters (using
+<code>parallel::makePSOCKcluster()</code>) and thus does not use forking (as this is not
+available on all operating systems and may cause crashes in some situations).
+As such, user-defined objects that should be used by the <code>adaptr</code> functions
+when run in parallel need to be exported using either <code>setup_cluster()</code> or
+<code>run_trials()</code>, if not included in the generated <code>trial_spec</code> object.
+</p>
+<p>The <code>adaptr</code> package uses the <code>"L'Ecuyer-CMRG"</code> kind (see <code>RNGkind()</code>) for
+safe random number generation for all parallelised functions. This is also
+the case when running <code>adaptr</code> functions sequentially with a seed provided,
+to ensure that the same results are obtained regardless of whether sequential
+or parallel computation is used. All functions restore both the random number
+generator kind and the global random seed after use if called with a seed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Invisibly returns the default <code>parallel</code> cluster or <code>NULL</code>, as
+appropriate. This may be used with other functions from the <code>parallel</code>
+package by advanced users, for example to load certain libraries on the
+cluster prior to calling <code>run_trials()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Setup a cluster using 2 cores
+setup_cluster(cores = 2)
+
+# Get existing default cluster (printed here as invisibly returned)
+print(setup_cluster())
+
+# Remove existing default cluster
+setup_cluster(cores = NULL)
+
+# Specify preference for running computations sequentially
+setup_cluster(cores = 1)
+
+# Remove default cluster preference
+setup_cluster(cores = NULL)
+
+# Set global option to default to using 2 new clusters each time
+# (only used if no default cluster preference is specified)
+options(mc.cores = 2)
+
+</code></pre>
+
+
+</div>

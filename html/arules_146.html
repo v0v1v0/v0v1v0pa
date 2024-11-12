@@ -1,0 +1,297 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>itemCoding</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Item Coding — Conversion between Item Labels and Column IDs</h2>
+
+<h3>Description</h3>
+
+<p>The order in which items are stored in an itemMatrix is called the
+<em>item coding</em>. The following generic functions and methods are used
+to translate between the representation in the itemMatrix format
+(used in transactions, rules and itemsets), item labels and numeric item IDs
+(i.e., the column numbers in the itemMatrix representation).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">decode(x, ...)
+
+## S4 method for signature 'numeric'
+decode(x, itemLabels)
+
+## S4 method for signature 'list'
+decode(x, itemLabels)
+
+encode(x, ...)
+
+## S4 method for signature 'character'
+encode(x, itemLabels, itemMatrix = TRUE)
+
+## S4 method for signature 'numeric'
+encode(x, itemLabels, itemMatrix = TRUE)
+
+## S4 method for signature 'list'
+encode(x, itemLabels, itemMatrix = TRUE)
+
+recode(x, ...)
+
+## S4 method for signature 'itemMatrix'
+recode(x, itemLabels = NULL, match = NULL)
+
+## S4 method for signature 'itemsets'
+recode(x, itemLabels = NULL, match = NULL)
+
+## S4 method for signature 'rules'
+recode(x, itemLabels = NULL, match = NULL)
+
+compatible(x, y)
+
+## S4 method for signature 'itemMatrix'
+compatible(x, y)
+
+## S4 method for signature 'associations'
+compatible(x, y)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a vector or a list of vectors of character strings (for
+<code>encode()</code> or of numeric (for <code>decode()</code>), or an object of class
+itemMatrix (for <code>recode()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itemLabels</code></td>
+<td>
+<p>a vector of character strings used for coding where the
+position of an item label in the vector gives the item's column ID.
+Alternatively, a itemMatrix, transactions or
+associations object can be specified and the item labels or these
+objects are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itemMatrix</code></td>
+<td>
+<p>return an object of class itemMatrix otherwise an
+object of the same class as <code>x</code> is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match</code></td>
+<td>
+<p>deprecated: used <code>itemLabels</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>an object of class itemMatrix, transactions or
+associations to compare item coding to <code>x</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Item coding compatibility:</strong> When working with several datasets or different
+subsets of the same dataset, combining or compare the found
+itemsets or rules requires a compatible item coding.
+That is, the sparse matrices representing the
+items (the itemMatrix objects) have columns for the same items in exactly the
+same order. The coercion to transactions with <code>transactions()</code> or
+<code>as(x, "transactions")</code> will create the
+item coding by adding items in the order they are encountered in the dataset. This
+can lead to different item codings (different order, missing items) for even
+only slightly different datasets or versions of a dataset.
+Method <code>compatible()</code> can be used to check if two sets have the same item coding.
+</p>
+<p><strong>Defining a common item coding:</strong>
+When working with many sets, then first a common item
+coding should be defined by creating a vector with all possible item labels and then
+specify them as <code>itemLabels</code> to create transactions with <code>transactions()</code>.
+Compatible itemMatrix objects can be created using <code>encode()</code>.
+</p>
+<p><strong>Recoding and Decoding:</strong>
+Two incompatible objects can be made compatible using <code>recode()</code>. Recode
+one object by specifying the other object in <code>itemLabels</code>.
+</p>
+<p><code>decode()</code> converts from the column IDs used in the itemMatrix
+representation to item labels. <code>decode()</code> is used by <code>LIST()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>recode()</code> always returns an object of the same class as <code>x</code>.
+</p>
+<p>For <code>encode()</code> with <code>itemMatrix = TRUE</code> an object of class
+itemMatrix is returned.  Otherwise the result is of the same type as
+<code>x</code>, e.g., a list or a vector.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LIST()</code>, associations, itemMatrix
+</p>
+<p>Other preprocessing: 
+<code>discretize()</code>,
+<code>hierarchy</code>,
+<code>merge()</code>,
+<code>sample()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("Adult")
+
+## Example 1: Manual decoding
+## Extract the item coding as a vector of item labels.
+iLabels &lt;- itemLabels(Adult)
+head(iLabels)
+
+## get undecoded list (itemIDs)
+list &lt;- LIST(Adult[1:5], decode = FALSE)
+list
+
+## decode itemIDs by replacing them with the appropriate item label
+decode(list, itemLabels = iLabels)
+
+
+## Example 2: Manually create an itemMatrix using iLabels as the common item coding
+data &lt;- list(
+    c("income=small", "age=Young"),
+    c("income=large", "age=Middle-aged")
+    )
+
+# Option a: encode to match the item coding in Adult
+iM &lt;- encode(data, itemLabels = Adult)
+iM
+inspect(iM)
+compatible(iM, Adult)
+
+# Option b: coercion plus recode to make it compatible to Adult
+#           (note: the coding has 115 item columns after recode)
+iM &lt;- as(data, "itemMatrix")
+iM
+compatible(iM, Adult)
+
+iM &lt;- recode(iM, itemLabels = Adult)
+iM
+compatible(iM, Adult)
+
+
+## Example 3: use recode to make itemMatrices compatible
+## select first 100 transactions and all education-related items
+sub &lt;- Adult[1:100, itemInfo(Adult)$variables ==  "education"]
+itemLabels(sub)
+image(sub)
+
+## After choosing only a subset of items (columns), the item coding is now
+## no longer compatible with the Adult dataset
+compatible(sub, Adult)
+
+## recode to match Adult again
+sub.recoded &lt;- recode(sub, itemLabels = Adult)
+image(sub.recoded)
+
+
+## Example 4: manually create 2 new transaction for the Adult data set
+##            Note: check itemLabels(Adult) to see the available labels for items
+twoTransactions &lt;- as(
+    encode(list(
+        c("age=Young", "relationship=Unmarried"),
+        c("age=Senior")
+      ), itemLabels = Adult),
+    "transactions")
+
+twoTransactions
+inspect(twoTransactions)
+
+## the same using the transactions constructor function instead
+twoTransactions &lt;- transactions(
+    list(
+        c("age=Young", "relationship=Unmarried"),
+        c("age=Senior")
+    ), itemLabels = Adult)
+
+twoTransactions
+inspect(twoTransactions)
+
+## Example 5: Use a common item coding
+
+# Creation of transactions separately will produce different item codings
+trans1 &lt;- transactions(
+    list(
+        c("age=Young", "relationship=Unmarried"),
+        c("age=Senior")
+    ))
+trans1
+
+trans2 &lt;- transactions(
+    list(
+        c("age=Middle-aged", "relationship=Married"),
+        c("relationship=Unmarried", "age=Young")
+    ))
+trans2
+
+compatible(trans1, trans2)
+
+# produce common item coding (all item labels in the two sets)
+commonItemLabels &lt;- union(itemLabels(trans1), itemLabels(trans2))
+commonItemLabels
+
+trans1 &lt;- recode(trans1, itemLabels = commonItemLabels)
+trans1
+trans2 &lt;- recode(trans2, itemLabels = commonItemLabels)
+trans2
+
+compatible(trans1, trans2)
+
+
+## Example 6: manually create a rule using the item coding in Adult
+## and calculate interest measures
+aRule &lt;- new("rules",
+  lhs = encode(list(c("age=Young", "relationship=Unmarried")),
+    itemLabels = Adult),
+  rhs = encode(list(c("income=small")),
+    itemLabels = Adult)
+)
+
+## shorter version using the rules constructor
+aRule &lt;- rules(
+  lhs = list(c("age=Young", "relationship=Unmarried")),
+  rhs = list(c("income=small")),
+  itemLabels = Adult
+)
+
+quality(aRule) &lt;- interestMeasure(aRule,
+  measure = c("support", "confidence", "lift"), transactions = Adult)
+
+inspect(aRule)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vsolve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Solve for expected value of assets.
+</h2>
+
+<h3>Description</h3>
+
+<p>Solves a system of coupled differential equations for the expected
+value of a number <code>q</code> of (“perishable”) assets, with
+<code>q</code> running from <code>1</code> to <code>qmax</code>, <em>given</em> a pricing
+policy.  Treats the system in a vectorized form and uses the method
+of Runge-Kutta.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    vsolve(S, lambda, gprob, tmax=NULL, x, nout=300,
+           alpha=NULL, salval=0, method="lsoda",verbInt=0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+
+<p>An expression, or list of expressions, or a function or list
+of functions, specifying the price sensitivity functions
+<code>S_j(x,t)</code>.  See <b>Details</b>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>A function (of residual time <code>t</code> — see <code>tmax</code>) or
+a positive constant specifying the intensity of the (generally
+inhomogeneous) Poisson process of arrival times of groups of
+potential customers.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gprob</code></td>
+<td>
+
+<p>A function (to calculate probabilities) or a numeric vector of 
+probabilities determining the distribution of the size of
+an arriving group of customers.  Must be compatible with
+certain characteristics of <code>s</code> (see below).  See
+<b>details</b>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmax</code></td>
+<td>
+
+<p>The maximum residual time; think of this as being the initial
+time at which the assets go on sale (with time <em>decreasing</em>
+to zero, at which point the value of each asset drops to the
+“salvage value” (<code>salval</code>), usually <code>0</code>).
+The system of differential equations is solved over the time
+interval [0,<code>tmax</code>].  See <b>Details</b>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>An object of class <code>flap</code> (see <code>xsolve()</code>)
+specifying the (given) pricing policy.  It has the form of
+a list of functions <code>x_i(t)</code>, with <code>i</code> running
+from 1 to <code>qmax</code> if <code>x</code> is “singly indexed”,
+i.e. <em>not</em> of class <code>di.flap</code> or <code>x_ij(t)</code>, with
+<code>i</code> running from 1 to <code>qmax</code> and <code>j</code> running from 1
+to the maximum group size if <code>x</code> is “doubly indexed”,
+i.e.  <em>is</em> of class <code>di.flap</code>.  Note that <code>x</code>
+has (must have) an <em>attribute</em> <code>qmax</code> specifying the
+maximum number of assets available for sale, i.e. the number of
+assets available at the starting (residual) time <code>tmax</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nout</code></td>
+<td>
+
+<p>The number of points at which values of the solution are to be
+provided.  These are taken to be equispaced on
+[0,<code>tmax</code>].
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>A numeric scalar between 0 and 1 specifying the probability that an
+arriving group of size <code>j &gt; q</code> (where <code>q</code> is the number
+of assets remaining for sale) will <em>consider</em> purchasing
+(all of) these remaining assets.  It is irrelevant (and defaults
+to 1 as a “place holder”) if customers always arrive singly.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>salval</code></td>
+<td>
+
+<p>A (non-negative) numeric scalar specifying the “salvage
+value” of an asset — i.e. the quantity to which the value of an
+asset drops at residual time <code>t=0</code>.  Usually <code>salval</code>
+is equal to 0.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Character string specified the solution method to be used
+by the differential equation solver <code>ode</code>.  There is
+a fairly large number of possible methods.  See
+<code>ode()</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbInt</code></td>
+<td>
+
+<p>A scalar value which controls “verbosity”.
+If <code>verbInt &gt; 0</code> then a “progress report”
+is printed every <code>verbInt</code> <em>seconds</em> (roughly).
+See <code>xsolve()</code> for a bit more detail.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The components of the argument <code>S</code> may be provided either
+as expressions or functions.  If the former, these expressions
+should be amenble to differentiation with respect to <code>x</code>
+and <code>t</code> via the function <code>deriv3()</code>.  This is
+essentially a matter of convenience; the derivatives are not
+actually used by <code>vsolve</code>.  The expressions are turned into
+functions by <code>deriv3()</code> in the same manner as is used by
+<code>xsolve()</code>.  See the help for <code>xsolve()</code>
+for further information about the required nature of <code>S</code>.
+</p>
+<p>The argument <code>tmax</code> (if specified) must be less than or equal
+to the <code>tmax</code> attribute of argument <code>S</code> if <code>S</code> is a
+piecewise linear price sensitivity function, and must also be less
+than or equal to the <code>tlim</code> attribute of argument <code>x</code>.
+</p>
+<p>If <code>tmax</code> is not specified it will be set equal to the
+<code>tmax</code> attribute of argument <code>S</code> if <code>S</code> is a
+piecewise linear price sensitivity function, in which case
+this attribute must be less than or equal to the <code>tlim</code>
+attribute of argument <code>x</code>.  (If this is not so then <code>S</code>
+and <code>x</code> are incompatible.)  Otherwise <code>tmax</code> will be
+set equal to the <code>tlim</code> attribute of argument <code>x</code>.
+</p>
+<p>The argument <code>gprob</code> determines the range of possible values
+of the size of an arriving group of customers.  The maximum value
+of this group size is in effect that value of <code>j</code> for which
+the corresponding probability value is numerically distinguishable
+from zero.  If the argument <code>x</code> is a “doubly indexed”
+list of functions (was created with <code>type="dip"</code>) then
+the maximum value of group size as determined by <code>gprob</code>
+must be compatible with the indexing scheme of <code>x</code>.
+That is to say, it must be less than or equal to the <code>jmax</code>
+attribute of <code>x</code>, otherwise an error is given.  Note that
+if single indexing is in effect (i.e. <code>x</code> was created with
+<code>type="sip"</code>) then this attribute is equal to 1, but for
+single indexing <code>x</code> does not depend on group size and so no
+restriction is imposed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The argument <code>x</code> which was passed to <code>vsolve</code>,
+possibly with its <code>tlim</code> attribute modified.  It is
+an object of class <code>flap</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>An object of class <code>flap</code> whose entries are
+(spline) functions <code>v_q(t)</code> specifying the expected value of
+<code>q</code> assets at time <code>t</code> as determined by numerically
+solving the coupled system of differential equations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vdot</code></td>
+<td>
+<p>An object of class <code>flap</code> whose entries are
+the derivatives (with respect to <code>t</code>) of the functions <code>v_q(t)</code>
+described above.  The values of these derivatives are determined as
+the left hand side of the differential equations being solved.
+</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>A substantial change was made to this package as of the change
+of version number from 0.0-11 to 0.1-0.  Previously the differential
+equations which arise were solved via a “locally produced”
+roll-your-own Runge-Kutta procedure.  Now they are solved (in a
+more sophisticated manner) using the package <code>deSolve</code>.  This
+increases the solution speed by a factor of about 7.  There will
+be (minor, it is to be hoped) numerical differences in solutions
+produced from the same input.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rolf Turner
+<a href="mailto:r.turner@auckland.ac.nz">r.turner@auckland.ac.nz</a>
+<a href="http://www.stat.auckland.ac.nz/~rolf">http://www.stat.auckland.ac.nz/~rolf</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>P. K. Banerjee and T. R. Turner (2012).
+A flexible model for the pricing of perishable assets.
+<em>Omega</em> <b>40</b>:5, 533–540.
+DOI https://doi.org/10.1016/j.omega.2011.10.001
+</p>
+<p>Rolf Turner, Pradeep Banerjee and Rayomand Shahlori (2014).  Optimal
+Asset Pricing.  <em>Journal of Statistical Software</em> <b>58</b>:11, 1–25.
+DOI https://doi.org/10.18637/jss.v058.i11
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>xsolve()</code>, <code>plot.AssetPricing()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# In these examples "qmax" has been set equal to 5 which is
+# an unrealistically low value for the total number of assets.
+# This is done so as to reduce the time for package checking on CRAN.
+#
+S &lt;- expression(exp(-kappa*x/(1+gamma*exp(-beta*t))))
+attr(S,"parvec") &lt;- c(kappa=10/1.5,gamma=9,beta=1)
+lambda1 &lt;- function(tt){
+	84*(1-tt)
+}
+
+# Optimal pricing policy assuming customers arrive singly:
+X &lt;- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5)
+lambda2 &lt;- function(tt){
+	36*(1-tt)
+}
+# Expected values if the customers actually arrive in groups, using the
+# (sub-optimal) pricing policy based on the (erroneous) assumption that
+# they arrive singly.  Note that the two scenarios are ``comparable'' in
+# that the expected total number of customers is 42 in each case.
+V &lt;- vsolve(S=S,lambda=lambda2,gprob=(5:1)/15,x=X$x,alpha=0.5)
+</code></pre>
+
+
+</div>

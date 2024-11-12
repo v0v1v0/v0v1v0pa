@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_deltaMethod</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Delta method for Apollo models</h2>
+
+<h3>Description</h3>
+
+<p>Applies the Delta method to calculate the standard errors of transformations of parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_deltaMethod(model, deltaMethod_settings)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model object. Estimated model object as returned by function apollo_estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaMethod_settings</code></td>
+<td>
+<p>List. Contains settings for this function. User input is required for all settings except those with a default or marked as optional. 
+</p>
+
+<ul>
+<li> <p><strong><code>expression</code></strong>: Character vector. A character vector with a single or multiple arbitrary functions of the estimated parameters, as text. 
+For example: <code>c(VTT="b1/b2*60")</code>. Each expression can only contain model parameters (estimated or fixed), 
+numeric values, and operands. At least one of the parameters used needs to not have been fixed in estimation. Variables in the database
+cannot be included. If the user does not provide a name for an expression, then the expression itself is used in the output. If this setting is provided, then <code>operation</code>, 
+<code>parName1</code>, <code>parName2</code>, <code>multPar1</code> and <code>multPar2</code> are
+ignored.
+</p>
+</li>
+<li> <p><strong><code>allPairs</code></strong>: Logical. If set to TRUE, Delta method calculations are carried out for the ratio and difference for all pairs of parameters and returned as two separate matrices with values and t-ratios. FALSE by default.
+</p>
+</li>
+<li> <p><strong><code>varcov</code></strong>: Character. Type of variance-covariance matrix to use in calculations. 
+It can take values <code>"classical"</code>, <code>"robust"</code> and 
+<code>"bootstrap"</code>. Default is <code>"robust"</code>.
+</p>
+</li>
+<li> <p><strong><code>printPVal</code></strong>: Logical or Scalar. TRUE or 1 for printing p-values for one-sided test, 2 for printing p-values for two-sided test, FALSE for not printing p-values. FALSE by default.
+</p>
+</li>
+<li> <p><strong><code>operation</code></strong>: Character. Function to calculate the delta method for. See details. Not used if <code>expression</code> is provided.
+</p>
+</li>
+<li> <p><strong><code>parName1</code></strong>: Character. Name of the first parameter if <code>operation</code> is used. See details. Not used if <code>expression</code> is provided.
+</p>
+</li>
+<li> <p><strong><code>parName2</code></strong>: Character. Name of the second parameter if <code>operation</code> is used. See details. Not used if <code>expression</code> is provided.. Optional depending on <code>operation</code>.
+</p>
+</li>
+<li> <p><strong><code>multPar1</code></strong>: Numeric scalar. An optional value to scale <code>parName1</code>. Not used if <code>expression</code> is provided.
+</p>
+</li>
+<li> <p><strong><code>multPar2</code></strong>: Numeric scalar. An optional value to scale <code>parName2</code>. Not used if <code>expression</code> is provided.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>apollo_deltaMethod</code> can be used in two ways. The first and recommended way is to provide an 
+element called <code>expression</code> inside its argument <code>deltaMethod_settings</code>. <code>expression</code> 
+should contain the expression or expressions for which the standard error is/are to be calculated, as text. For 
+example, to calculate the ratio between parameters b1 and b2, <code>expression=c(vtt="b1/b2")</code> should be used.
+</p>
+<p>The second method is to provide the name of a specific operation inside <code>deltaMethod_settings</code>.
+The following five operations are supported.
+</p>
+
+<ul>
+<li> <p><strong><code>sum</code></strong>: Calculates the s.e. of <code>parName1</code> + <code>parName2</code>
+</p>
+</li>
+<li> <p><strong><code>diff</code></strong>: Calculates the s.e. of <code>parName1</code> - <code>parName2</code> and <code>parName2</code> - <code>parName1</code>
+</p>
+</li>
+<li> <p><strong><code>prod</code></strong>: Calculates the s.e. of <code>parName1</code>*<code>parName2</code>
+</p>
+</li>
+<li> <p><strong><code>ratio</code></strong>: Calculates the s.e. of <code>parName1</code>/<code>parName2</code> and <code>parName2</code>/<code>parName1</code>
+</p>
+</li>
+<li> <p><strong><code>exp</code></strong>: Calculates the s.e. of <code>exp(parName1)</code>
+</p>
+</li>
+<li> <p><strong><code>logistic</code></strong>: If only <code>parName1</code> is provided, it calculates the s.e. of
+<code>exp(parName1)/(1+exp(parName1))</code> and <code>1/(1+exp(parName1))</code>.
+If <code>parName1</code> and <code>parName2</code> are provided, it calculates
+<code>exp(par_i)/(1+exp(parName1)+exp(parName2))</code> for i=1, 2, and 3 (par_3 = 1).
+</p>
+</li>
+<li> <p><strong><code>lognormal</code></strong>: Calculates the mean and s.d. of a lognormal distribution based on the mean 
+(<code>parName1</code>) and s.d. (<code>parName2</code>) of the underlying normal.
+</p>
+</li>
+</ul>
+<p>By default, <code>apollo_deltaMethod</code> uses the robust covariance matrix. However, the user can change this through the <code>varcov</code> setting.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Matrix containing value, s.e. and t-ratio resulting from the requested expression or operation. This is also printed to screen.
+</p>
+
+
+</div>

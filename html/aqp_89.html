@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fixOverlap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fix Overlap within a Sequence</h2>
+
+<h3>Description</h3>
+
+<p>Fix Overlap within a Sequence
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fixOverlap(x, thresh = 0.6, method = c("S", "E"), trace = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of initial positions, pre-sorted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>numeric, overlap threshold defined on the same scale as <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character vector, 'S' for simulated annealing via <code>SANN_1D()</code> or 'E' for electrostatic simulation via <code>electroStatics_1D()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>logical, return full output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>SANN_1D()</code> or <code>electroStatics_1D()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>When <code>trace = FALSE</code>, a vector of the same length as <code>x</code>, preserving rank-ordering and boundary conditions. When <code>trace = TRUE</code> a list containing the new sequence along with information about objective functions and decisions made during adjustment of <code>x</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>electroStatics_1D()</code>, <code>SANN_1D()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+s &lt;- c(1, 2, 2.3, 4, 5, 5, 7)
+
+# simulated annealing, solution is non-deterministic
+fixOverlap(s, thresh = 0.6, method = 'S')
+
+# electrostatics-inspired simulation of particles
+# solution is deterministic
+fixOverlap(s, thresh = 0.6, method = 'E')
+
+
+# create a very busy profile with lots of possible overlapping
+# depth annotation
+x &lt;- quickSPC(
+  "SPC:AAA|BBB|CCC|D|EEEEE|FF|GG|HH|I|I|JJ|KK|LL|M|N|O|P|QQQQ|RR|S|TTTTTT|U", 
+  interval = 1
+)
+
+# convert horizon ID to numeric
+x$z &lt;- as.numeric(x$hzID)
+
+# plotSPC arguments
+.a &lt;- list(
+  width = 0.2, 
+  hz.depths = TRUE, 
+  name.style = 'center-center', 
+  cex.names = 1.5, 
+  depth.axis = FALSE, 
+  name = NA,
+  color = 'z',
+  show.legend = FALSE,
+  print.id = FALSE,
+  col.palette = hcl.colors(n = 25, palette = 'Spectral', rev = TRUE)
+)
+
+# set plotSPC default arguments
+options(.aqp.plotSPC.args = .a)
+
+# wrapper function to test label collision solutions
+testIt &lt;- function(x, ...) {
+  
+  plotSPC(x, ...)
+  
+  # a normalized index of label adjustment
+  .txt &lt;- sprintf(
+    "LAI: %0.3f", 
+    get('last_spc_plot', envir = aqp.env)$hz.depth.LAI
+  )
+  mtext(.txt, side = 1, at = 1, line = -2, cex = 0.8)
+  
+}
+
+
+# compare and contrast
+op &lt;- par(mar = c(0, 0, 0, 0), mfcol = c(1, 6))
+
+testIt(x)
+title('ES (defaults)', line = -3)
+
+testIt(x, fixOverlapArgs = list(method = 'S'))
+title('SANN (defaults)', line = -3)
+
+testIt(x, fixOverlapArgs = list(method = 'E', q = 1.5))
+title('ES (q = 1.5)', line = -3)
+
+testIt(x, fixOverlapArgs = list(method = 'E', q = 1))
+title('ES (q = 1)', line = -3)
+
+testIt(x, fixOverlapArgs = list(method = 'E', q = 0.5))
+title('ES (q = 0.5)', line = -3)
+
+testIt(x, fixOverlapArgs = list(method = 'E', q = 0.1))
+title('ES (q = 0.1)', line = -3)
+
+par(op)
+
+</code></pre>
+
+
+</div>

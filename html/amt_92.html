@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flag_duplicates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flag Low Quality Duplicates</h2>
+
+<h3>Description</h3>
+
+<p>Flags locations with duplicate timestamps by DOP and distance
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flag_duplicates(x, gamma, time_unit = "mins", DOP = "dop", ...)
+
+## S3 method for class 'track_xyt'
+flag_duplicates(x, gamma, time_unit = "mins", DOP = "dop", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[track_xyt]⁠</code> A <code>track_xyt</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric or Period]⁠</code> The temporal tolerance defining duplicates.
+See details below. If <code>numeric</code>, its units are defined by <code>time_unit</code>. If
+<code>Period</code>, <code>time_unit</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_unit</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> Character string giving time unit for <code>gamma</code>.
+Should be <code>"secs"</code>, <code>"mins"</code>, or <code>"hours"</code>. Ignored if <code style="white-space: pre;">⁠class(gamma) == "Period".⁠</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DOP</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> A character string giving the name of the column
+containing the dilution of precision (DOP) data. See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Addtional arguments. None currently implemented.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Locations are considered duplicates if their timestamps are within
+<code>gamma</code> of each other. However, the function runs sequentially through the
+track object, so that only timestamps after the focal point are flagged as
+duplicates (and thus removed from further consideration). E.g., if
+<code>gamma = minutes(5)</code>, then all locations with timestamp within 5 minutes
+after the focal location will be considered duplicates.
+</p>
+<p>When duplicates are found, (1) the location with the lowest dilution of precision
+(given by <code>DOP</code> column) is kept. If there are multiple duplicates with equally
+low DOP, then (2) the one closest in space to previous location is kept. In
+the event of exact ties in DOP and distance, (3) the first location is kept.
+This is unlikely unless there are exact coordinate duplicates.
+</p>
+<p>In the case that the first location in a trajectory has a duplicate, there
+is no previous location with which to calculate a distance. In that case,
+the algorithm skips to (3) and keeps the first location.
+</p>
+<p>In the event your <code>data.frame</code> does not have a DOP column, you can insert a dummy
+with constant values such that all duplicates will tie, and distance will be
+the only criterion (e.g., <code>x$dop &lt;- 1</code>). In the event you do have an alternate
+measure of precision where larger numbers are more precise (e.g., number of
+satellites), simply multiply that metric by <code>-1</code> and pass it as if it were DOP.
+</p>
+<p>Internally, the function drops duplicates as it works sequentially through the
+<code>data.frame</code>. E.g., if location 5 was considered a duplicate of location 4 –
+and location 4 was higher quality – then location 5 would be dropped. The
+function would then move on to location 6 (since 5 was already dropped).
+However, the object returned to the user has all the original rows of <code>x</code> –
+i.e., locations are flagged rather than removed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns <code>x</code> (a <code>track_xyt</code>) with a flagging column added (<code>x$duplicate_</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Brian J. Smith, based on code by Johannes Signer and Tal Avgar
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flag_fast_steps()</code>,
+<code>flag_roundtrips()</code>,
+<code>flag_defunct_clusters()</code>
+</p>
+
+
+</div>

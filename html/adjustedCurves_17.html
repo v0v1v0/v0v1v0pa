@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cif_iptw_pseudo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Inverse Probability of Treatment Weighted CIFs using Pseudo-Values
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating inverse probability of treatment weighted cumulative incidence functions using Pseudo-Values in a competing risks setting (<code>method="iptw_pseudo"</code> in the <code>adjustedcif</code> function). All regular arguments of the <code>adjustedcif</code> function can be used. Additionally, the <code>treatment_model</code> argument has to be specified in the <code>adjustedcif</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>treatment_model</code></td>
+<td>
+
+<p>[<strong>required</strong>] Must be either a model object with <code>variable</code> as response variable, a vector of weights or a formula which can be passed to <code>WeightIt</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight_method</code></td>
+<td>
+
+<p>Method used in <code>WeightIt</code> function call. Ignored if <code>treatment_model</code> is not a formula object. Defaults to <code>"ps"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stabilize</code></td>
+<td>
+
+<p>Whether to stabilize the weights or not. Is set to <code>FALSE</code> by default. Stabilizing weights ensures that the sum of all weights is equal to the original sample size. It has no effect on point estimates, only on the asymptotic variance calculations and confidence intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+
+<p>Can be either <code>FALSE</code> (default) or a numeric value at which to trim the weights. If <code>FALSE</code>, weights are used as calculated or supplied. If a numeric value is supplied, all weights that are bigger than <code>trim</code> are set to <code>trim</code> before the analysis is carried out. Useful when some weights are extremely large.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim_quantiles</code></td>
+<td>
+
+<p>Alternative argument to trim weights based on quantiles. Can be either <code>FALSE</code> (default) to use no trimming, or a numeric vector containing exactly two values between 0 and 1. These values specify the quantiles that the weights should be trimmed at. For example, if <code>c(0.01, 0.99)</code> is supplied to this argument, all weights that are lower than the 0.01 quantile of the weight distribution will be set to that quantile and all weights that are higher than the 0.99 quantile of the weight distributions will be set to the 0.99 quantile.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se_method</code></td>
+<td>
+
+<p>One of <code>"miller"</code>, <code>"galloway"</code>, <code>"cochrane"</code> and <code>"Hmisc"</code>. Specifies which kind of standard error to calculate. Defaults to <code>"cochrane"</code>. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to <code>weightit</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> Requires a model describing the treatment assignment mechanism. This must be either a <code>glm</code> or <code>multinom</code> object. Alternatively, weights can be supplied directly or estimated using <code>WeightIt</code>
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Any number of levels in <code>variable</code> are allowed. Must be a factor variable.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are available.
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are not guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are not guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method relies on the <span class="pkg">prodlim</span> package. The <span class="pkg">WeightIt</span> package is also required if <code>treatment_model</code> is a formula object.
+</p>
+</li>
+</ul>
+<p>This method works by modeling the treatment assignment mechanism. Adjusted CIFs are calculated by first estimating appropriate case-weights for each observation in <code>data</code>. This can be done using inverse probability of treatment weights using the propensity score (usually estimated using a logistic regression model) or by some other method (see <code>weightit</code>). Pseudo-Values of the cause-specific CIF are then calculated for every observation in <code>data</code> at some points in time <code class="reqn">T</code>. Since Pseudo-Values bypass the problem of censoring, a simple weighted average of the Pseudo-Values can be taken for every <code class="reqn">T</code>. See Andersen et al. (2017) for more details on this method and Andersen and Perme (2010) for more information on Pseudo-Values in general.
+</p>
+<p>The standard error of this estimator can be approximated by calculation a weighted version of the standard error estimator. Interestingly, no exact method exists in the weighted case. Four approximations are implemented which can be chosen using the <code>se_method</code> argument. The equations for <code>"miller"</code>, <code>"galloway"</code> and <code>"cochrane"</code> are described and compared in Gatz and Smith (1995). <code>"Hmisc"</code> is the standard equation with a weight term added, as specified in the <span class="pkg">Hmisc</span> package, and should only be used with stabilized weights (<code>stabilize=TRUE</code>). It is generally recommended to use bootstrap estimates instead.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds the following additional objects to the output of the <code>adjustedcif</code> function:
+</p>
+
+<ul>
+<li> <p><code>pseudo_values</code>: The matrix of estimated pseudo-values.
+</p>
+</li>
+<li> <p><code>weights</code>: The final weights used in the analysis.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>Per Kragh Andersen, Elisavet Syriopoulou, and Erik T. Parner (2017). "Causal Inference in Survival Analysis using Pseudo-Observations". In: Statistics in Medicine 36, pp. 2669-2681
+</p>
+<p>Per Kragh Andersen and Maja Pohar Perme (2010). "Pseudo-Observations in Survival Analysis". In: Statistical Methods in Medical Research 19, pp. 71-99
+</p>
+<p>Donald F. Gatz and Luther Smith (1995). "The Standard Error of a Weighted Mean Concentration - I: Bootstrapping Vs Other Methods". In: Atmospheric Environment 29.11, pp. 1185-1193
+</p>
+<p>William G. Cochran (1977). Sampling Techniques. Vol. 3. New York: Wiley
+</p>
+<p>J. N. Galloway, G. E. Likens, and M. E. Hawley (1984). "Acid Precipitation: Natural Versus Anthropogenic Components". In: Science 226, pp. 829-831
+</p>
+<p>J. M. Miller (1977). A Statistical Evaluation of the U.S. Precipitation Chemistry Network. Precipitation Scavenging (edited by Semonin R. G. and Beadle R. W.) pp. 639-659. Available as CONF 74100 from National Technical Information Service, U.S. Dept. of Commerce, Springfiel, VA.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>weightit</code>, <code>prodlim</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+
+if (requireNamespace("prodlim") &amp; requireNamespace("riskRegression")) {
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_crisk(n=50, max_t=5)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# estimate a treatment assignment model
+glm_mod &lt;- glm(group ~ x1 + x3 + x5 + x6, data=sim_dat, family="binomial")
+
+# use it to calculate adjusted CIFs
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="iptw_pseudo",
+                      treatment_model=glm_mod)
+plot(adjcif, force_bounds=TRUE, iso_reg=TRUE)
+
+# Alternatively, use custom weights
+# In this example we use weights calculated using the propensity score,
+# which is equal to using the glm model directly in the function
+ps_score &lt;- glm_mod$fitted.values
+weights &lt;- ifelse(sim_dat$group==1, 1/ps_score, 1/(1-ps_score))
+
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="iptw_pseudo",
+                      treatment_model=weights)
+plot(adjcif, force_bounds=TRUE, iso_reg=TRUE)
+
+if (requireNamespace("WeightIt")) {
+
+# And a third alternative: use the WeightIt package
+# here an example with equal results to the ones above:
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="iptw_pseudo",
+                      treatment_model=group ~ x1 + x3 + x5 + x6,
+                      weight_method="ps")
+plot(adjcif, force_bounds=TRUE, iso_reg=TRUE)
+
+# here an example using Entropy Balancing Weighting:
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="iptw_pseudo",
+                      treatment_model=group ~ x1 + x3 + x5 + x6,
+                      weight_method="ebal")
+plot(adjcif, force_bounds=TRUE, iso_reg=TRUE)
+}
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compar.ou</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ornstein–Uhlenbeck Model for Continuous Characters</h2>
+
+<h3>Description</h3>
+
+<p>This function fits an Ornstein–Uhlenbeck model giving a phylogenetic
+tree, and a continuous character. The user specifies the node(s) where
+the optimum changes. The parameters are estimated by maximum
+likelihood; their standard-errors are computed assuming normality of
+these estimates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compar.ou(x, phy, node = NULL, alpha = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector giving the values of a continuous
+character.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phy</code></td>
+<td>
+<p>an object of class <code>"phylo"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>a vector giving the number(s) of the node(s) where the
+parameter ‘theta’ (the trait optimum) is assumed to change. The
+node(s) can be specified with their labels if <code>phy</code> has node
+labels. By default there is no change (same optimum thoughout lineages).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the value of <code class="reqn">\alpha</code> to be used when fitting
+the model. By default, this parameter is estimated (see details).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Ornstein–Uhlenbeck (OU) process can be seen as a generalization
+of the Brownian motion process. In the latter, characters are assumed
+to evolve randomly under a random walk, that is change is equally
+likely in any direction. In the OU model, change is more likely
+towards the direction of an optimum (denoted <code class="reqn">\theta</code>) with
+a strength controlled by a parameter denoted <code class="reqn">\alpha</code>.
+</p>
+<p>The present function fits a model where the optimum parameter
+<code class="reqn">\theta</code>, is allowed to vary throughout the tree. This is
+specified with the argument <code>node</code>: <code class="reqn">\theta</code> changes
+after each node whose number is given there. Note that the optimum
+changes <em>only</em> for the lineages which are descendants of this
+node.
+</p>
+<p>Hansen (1997) recommends to not estimate <code class="reqn">\alpha</code> together
+with the other parameters. The present function allows this by giving
+a numeric value to the argument <code>alpha</code>. By default, this
+parameter is estimated, but this seems to yield very large
+standard-errors, thus validating Hansen's recommendation. In practice,
+a “poor man estimation” of <code class="reqn">\alpha</code> can be done by
+repeating the function call with different values of <code>alpha</code>, and
+selecting the one that minimizes the deviance (see Hansen 1997 for an
+example).
+</p>
+<p>If <code>x</code> has names, its values are matched to the tip labels of
+<code>phy</code>, otherwise its values are taken to be in the same order
+than the tip labels of <code>phy</code>.
+</p>
+<p>The user must be careful here since the function requires that both
+series of names perfectly match, so this operation may fail if there
+is a typing or syntax error. If both series of names do not match, the
+values in the <code>x</code> are taken to be in the same order than the tip
+labels of <code>phy</code>, and a warning message is issued.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>"compar.ou"</code> which is list with the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>deviance</code></td>
+<td>
+<p>the deviance (= -2 * loglik).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>a data frame with the maximum likelihood estimates and
+their standard-errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the function call.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The inversion of the variance-covariance matrix in the likelihood
+function appeared as somehow problematic. The present implementation
+uses a Cholevski decomposition with the function
+<code>chol2inv</code> instead of the usual function
+<code>solve</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Emmanuel Paradis</p>
+
+
+<h3>References</h3>
+
+<p>Hansen, T. F. (1997) Stabilizing selection and the comparative
+analysis of adaptation. <em>Evolution</em>, <b>51</b>, 1341–1351.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ace</code>, <code>compar.lynch</code>,
+<code>corBrownian</code>, <code>corMartins</code>, <code>pic</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(bird.orders)
+### This is likely to give you estimates close to 0, 1, and 0
+### for alpha, sigma^2, and theta, respectively:
+compar.ou(x &lt;- rnorm(23), bird.orders)
+### Much better with a fixed alpha:
+compar.ou(x, bird.orders, alpha = 0.1)
+### Let us 'mimick' the effect of different optima
+### for the two clades of birds...
+x &lt;- c(rnorm(5, 0), rnorm(18, 5))
+### ... the model with two optima:
+compar.ou(x, bird.orders, node = 25, alpha = .1)
+### ... and the model with a single optimum:
+compar.ou(x, bird.orders, node = NULL, alpha = .1)
+### =&gt; Compare both models with the difference in deviances
+##     which follows a chi^2 with df = 1.
+</code></pre>
+
+
+</div>

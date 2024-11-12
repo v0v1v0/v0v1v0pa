@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>insert_table_entity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Operations on table entities (rows)</h2>
+
+<h3>Description</h3>
+
+<p>Operations on table entities (rows)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">insert_table_entity(table, entity)
+
+update_table_entity(
+  table,
+  entity,
+  row_key = NULL,
+  partition_key = NULL,
+  etag = NULL
+)
+
+delete_table_entity(table, row_key, partition_key, etag = NULL)
+
+list_table_entities(table, filter = NULL, select = NULL, as_data_frame = TRUE)
+
+get_table_entity(table, row_key, partition_key, select = NULL)
+
+import_table_entities(
+  table,
+  data,
+  row_key = NULL,
+  partition_key = NULL,
+  batch_status_handler = c("warn", "stop", "message", "pass"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>table</code></td>
+<td>
+<p>A table object, of class <code>storage_table</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entity</code></td>
+<td>
+<p>For <code>insert_table_entity</code> and <code>update_table_entity</code>, a named list giving the properties (columns) of the entity. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row_key, partition_key</code></td>
+<td>
+<p>For <code>get_table_entity</code>, <code>update_table_entity</code> and <code>delete_table_entity</code>, the row and partition key values that identify the entity to get, update or delete. For <code>import_table_entities</code>, the columns in the imported data to treat as the row and partition keys. The default is to use columns named 'RowKey' and 'PartitionKey' respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etag</code></td>
+<td>
+<p>For <code>update_table_entity</code> and <code>delete_table_entity</code>, an optional Etag value. If this is supplied, the update or delete operation will proceed only if the target entity's Etag matches this value. This ensures that an entity is only updated/deleted if it has not been modified since it was last retrieved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter, select</code></td>
+<td>
+<p>For <code>list_table_entities</code>, optional row filter and column select expressions to subset the result with. If omitted, <code>list_table_entities</code> will return all entities in the table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as_data_frame</code></td>
+<td>
+<p>For <code>list_table_entities</code>, whether to return the results as a data frame, rather than a list of table rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>For <code>import_table_entities</code>, a data frame. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_status_handler</code></td>
+<td>
+<p>For <code>import_table_entities</code>, what to do if one or more of the batch operations fails. The default is to signal a warning and return a list of response objects, from which the details of the failure(s) can be determined. Set this to "pass" to ignore the failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For <code>import_table_entities</code>, further named arguments passed to <code>do_batch_transaction</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions operate on rows of a table, also known as <em>entities</em>. <code>insert</code>, <code>get</code>, <code>update</code> and <code>delete_table_entity</code> operate on an individual row. <code>import_table_entities</code> bulk-inserts multiple rows of data into the table, using batch transactions. <code>list_table_entities</code> queries the table and returns multiple rows, subsetted on the <code>filter</code> and <code>select</code> arguments.
+</p>
+<p>Table storage imposes the following requirements for properties (columns) of an entity:
+</p>
+
+<ul>
+<li>
+<p> There must be properties named <code>RowKey</code> and <code>PartitionKey</code>, which together form the entity's unique identifier. These properties must be of type character.
+</p>
+</li>
+<li>
+<p> The property <code>Timestamp</code> cannot be used (strictly speaking, it is reserved by the system).
+</p>
+</li>
+<li>
+<p> There can be at most 255 properties per entity, although different entities can have different properties.
+</p>
+</li>
+<li>
+<p> Table properties must be atomic. In particular, they cannot be nested lists.
+</p>
+</li>
+</ul>
+<p>Note that table storage does <em>not</em> require that all entities in a table must have the same properties.
+</p>
+<p>For <code>insert_table_entity</code>, <code>update_table_entity</code> and <code>import_table_entities</code>, you can also specify JSON text representing the data to insert/update/import, instead of a list or data frame.
+</p>
+<p><code>list_table_entities(as_data_frame=TRUE)</code> for a large table may be slow. If this is a problem, and you know that all entities in the table have the same schema, try setting <code>as_data_frame=FALSE</code> and converting to a data frame manually.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>insert_table_entity</code> and <code>update_table_entity</code> return the Etag of the inserted/updated entity, invisibly.
+</p>
+<p><code>get_table_entity</code> returns a named list of properties for the given entity.
+</p>
+<p><code>list_table_entities</code> returns a data frame if <code>as_data_frame=TRUE</code>, and a list of entities (rows) otherwise.
+</p>
+<p><code>import_table_entities</code> invisibly returns a named list, with one component for each value of the <code>PartitionKey</code> column. Each component contains the results of the individual operations to insert each row into the table.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>storage_table, do_batch_transaction
+</p>
+<p><a href="https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-the-table-service-data-model">Understanding the table service data model</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- table_endpoint("https://mycosmosdb.table.cosmos.azure.com:443", key="mykey")
+tab &lt;- create_storage_table(endp, "mytable")
+
+insert_table_entity(tab, list(
+    RowKey="row1",
+    PartitionKey="partition1",
+    firstname="Bill",
+    lastname="Gates"
+))
+
+get_table_entity(tab, "row1", "partition1")
+
+# specifying the entity as JSON text instead of a list
+update_table_entity(tab,
+'{
+    "RowKey": "row1",
+    "PartitionKey": "partition1",
+    "firstname": "Bill",
+    "lastname": "Gates"
+}')
+
+# we can import to the same table as above: table storage doesn't enforce a schema
+import_table_entities(tab, mtcars,
+    row_key=row.names(mtcars),
+    partition_key=as.character(mtcars$cyl))
+
+list_table_entities(tab)
+list_table_entities(tab, filter="firstname eq 'Satya'")
+list_table_entities(tab, filter="RowKey eq 'Toyota Corolla'")
+
+delete_table_entity(tab, "row1", "partition1")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

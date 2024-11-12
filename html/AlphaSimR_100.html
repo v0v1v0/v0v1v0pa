@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>selectInd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Select individuals</h2>
+
+<h3>Description</h3>
+
+<p>Selects a subset of nInd individuals from a
+population.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">selectInd(
+  pop,
+  nInd,
+  trait = 1,
+  use = "pheno",
+  sex = "B",
+  selectTop = TRUE,
+  returnPop = TRUE,
+  candidates = NULL,
+  simParam = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>and object of <code>Pop-class</code>,
+<code>HybridPop-class</code> or <code>MultiPop-class</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nInd</code></td>
+<td>
+<p>the number of individuals to select</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trait</code></td>
+<td>
+<p>the trait for selection. Either a number indicating
+a single trait or a function returning a vector of length nInd.
+The function must work on a vector or matrix of <code>use</code> values as
+<code>trait(pop@use, ...)</code> - depending on what <code>use</code> is.
+See the examples and <code>selIndex</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+<p>the selection criterion. Either a character
+(genetic values "gv", estimated breeding values "ebv", breeding values "bv",
+phenotypes "pheno", or randomly "rand") or
+a function returning a vector of length nInd.
+The function must work on <code>pop</code> as <code>use(pop, trait, ...)</code> or
+as <code>trait(pop@use, ...)</code> depending on what <code>trait</code> is.
+See the examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>which sex to select. Use "B" for both, "F" for
+females and "M" for males. If the simulation is not using sexes,
+the argument is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selectTop</code></td>
+<td>
+<p>selects highest values if true.
+Selects lowest values if false.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnPop</code></td>
+<td>
+<p>should results be returned as a
+<code>Pop-class</code>. If FALSE, only the index of selected
+individuals is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>candidates</code></td>
+<td>
+<p>an optional vector of eligible selection candidates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simParam</code></td>
+<td>
+<p>an object of <code>SimParam</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments if using a function for
+<code>trait</code> or <code>use</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of <code>Pop-class</code>,
+<code>HybridPop-class</code> or <code>MultiPop-class</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Create founder haplotypes
+founderPop = quickHaplo(nInd=10, nChr=1, segSites=10)
+
+#Set simulation parameters
+SP = SimParam$new(founderPop)
+
+SP$addTraitA(10)
+SP$setVarE(h2=0.5)
+
+#Create population
+pop = newPop(founderPop, simParam=SP)
+
+#Select top 5 (directional selection)
+pop2 = selectInd(pop, 5, simParam=SP)
+hist(pop@pheno); abline(v=pop@pheno, lwd=2)
+abline(v=pop2@pheno, col="red", lwd=2)
+
+#Select 5 most deviating from an optima (disruptive selection)
+squaredDeviation = function(x, optima=0) (x - optima)^2
+pop3 = selectInd(pop, 5, trait=squaredDeviation, selectTop=TRUE, simParam=SP)
+hist(pop@pheno); abline(v=pop@pheno, lwd=2)
+abline(v=pop3@pheno, col="red", lwd=2)
+
+#Select 5 least deviating from an optima (stabilising selection)
+pop4 = selectInd(pop, 5, trait=squaredDeviation, selectTop=FALSE, simParam=SP)
+hist(pop@pheno); abline(v=pop@pheno, lwd=2)
+abline(v=pop4@pheno, col="red", lwd=2)
+
+#Select 5 individuals based on miscelaneous information with use function
+pop@misc = list(smth=rnorm(10), smth2=rnorm(10))
+useFunc = function(pop, trait=NULL) pop@misc$smth + pop@misc$smth2
+pop5 = selectInd(pop, 5, use=useFunc, simParam=SP)
+pop5@id
+
+#... equivalent result with the use &amp; trait function
+useFunc2 = function(pop, trait=NULL) cbind(pop@misc$smth, pop@misc$smth2)
+trtFunc = function(x) rowSums(x)
+pop6 = selectInd(pop, 5, trait=trtFunc, use=useFunc2, simParam=SP)
+pop6@id
+
+</code></pre>
+
+
+</div>

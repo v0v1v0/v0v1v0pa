@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crestedTit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Count data from the Swiss Breeding Bird Survey MHB for crested tits from 1999 to 2015
+</h2>
+
+<h3>Description</h3>
+
+<p>The Swiss breeding bird survey ("Monitoring Häufige Brutvögel" MHB) has monitored the populations of approximately 150 common species since 1999. The MHB sample consists of 267 1-km squares that are laid out as a grid across Switzerland. Fieldwork is conducted by about 200 skilled birdwatchers annually, most of them volunteers. Avian populations are monitored using a simplified territory mapping protocol (also called spot-mapping West of the Atlantic), where each square is surveyed up to three times during the breeding season (only twice above the tree line around 2000 m elevation). Surveys are conducted along a transect that does not change over the years and is 4-6 kms in length on average.
+</p>
+<p>The data frame <code>crestedTit</code> has the data for Crested Tits <em>Parus cristatus</em> from 1999 to 2015. There are some missing values: see Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("crestedTit")</code></pre>
+
+
+<h3>Format</h3>
+
+<p><code>crestedTit</code> is a data frame with 267 rows and 131 columns:
+</p>
+
+<dl>
+<dt>coordx, coordy </dt>
+<dd>
+<p>the x and y coordinates of the center of the quadrat; the coordinate reference system intentionally not specified.</p>
+</dd>
+<dt>elev </dt>
+<dd>
+<p>the mean elevation of the quadrat, in meters.</p>
+</dd>
+<dt>forest </dt>
+<dd>
+<p>percentage forest cover</p>
+</dd>
+<dt>nsurveys </dt>
+<dd>
+<p>the number of replicate surveys <em>planned</em> in the quadrat; above the tree-line 2, otherwise 3.</p>
+</dd>
+<dt>1999 to 2016 </dt>
+<dd>
+<p>total number of territories observed for the year.</p>
+</dd>
+<dt>date991 to date163 </dt>
+<dd>
+<p>Julian date of the survey, 1 = 1st January; the first 2 digits in the column name indicate the year and the 3rd digit the survey.</p>
+</dd>
+<dt>dur991 to dur163 </dt>
+<dd>
+<p>duration of the survey, in minutes; the first 2 digits in the column name indicate the year and the 3rd digit the survey.</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>Missing values in the <code>date</code> array indicate that the corresponding survey was not carried out.
+</p>
+<p>On 26 occasions when surveys were carried out, the duration was not recorded, resulting in additional NAs in the <code>dur</code> array.
+</p>
+<p>A new method for recording breeding territories was introduced in 2004, but the old protocol was in use at some sites until 2013. Surveys with the old protocol have the counts shown as NA in the <code>count</code> array.
+</p>
+<p>See also Chapter 6 in Kéry &amp; Royle (2016) for further description of the survey and the data it produces.
+</p>
+
+
+<h3>Source</h3>
+
+<p>Swiss Ornithological Institute
+</p>
+
+
+<h3>References</h3>
+
+<p>Kéry &amp; Royle (2016) <em>Applied Hierarchical Modeling in Ecology</em> AHM1 - 6.
+</p>
+<p>Kéry &amp; Royle (2021) <em>Applied Hierarchical Modeling in Ecology</em> AHM2 - 1.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(crestedTit)
+str(crestedTit)
+
+# Prepare objects needed for section AHM2 - 1.3 and following
+C &lt;- as.matrix(crestedTit[, 6:23]) # matrix of counts
+year &lt;- 1999:2016
+datetmp &lt;- as.matrix(crestedTit[, 24:77])  # matrix of Julian dates
+datefull &lt;- array(datetmp, c(nrow(datetmp), 3, ncol(datetmp)/3))
+    # site x rep x year array
+durtmp &lt;- as.matrix(crestedTit[, 78:131])  # matrix of survey durations
+durfull &lt;- array(durtmp, c(nrow(durtmp), 3, ncol(durtmp)/3))
+    # site x rep x year array
+
+# Get mean date and duration of survey for each site and year
+mdate &lt;- apply(datefull, c(1,3), mean, na.rm=TRUE)
+mdate[is.nan(mdate)] &lt;- NA  # Replace NaN with NA
+mdur &lt;- apply(durfull, c(1,3), mean, na.rm=TRUE)
+mdur[is.nan(mdur)] &lt;- NA
+
+# For Sec 1.5, we need standardised covariates with missing values imputed
+elev.sc &lt;- as.numeric(scale(crestedTit$elev))     # site elevation
+forest.sc &lt;- as.numeric(scale(crestedTit$forest)) # site forest cover
+
+mean.date &lt;- mean(mdate, na.rm=TRUE)         # mean survey date per site
+sd.date &lt;- sd(mdate, na.rm=TRUE)
+mdate.sc &lt;- (mdate - mean.date) / sd.date
+mdate.sc[is.na(mdate.sc)] &lt;- 0               # mean imputation
+
+mean.dur &lt;- mean(mdur, na.rm=TRUE)           # mean survey duration per site
+sd.dur &lt;- sd(mdur, na.rm=TRUE)
+mdur.sc &lt;- (mdur - mean.dur) / sd.dur
+mdur.sc[is.na(mdur.sc)] &lt;- 0                 # mean imputation
+
+# For sections 1.6 and 1.7, we remove sites with no crested tits recorded,
+#   or recorded in only one year:
+nzero &lt;- apply(C == 0, 1, sum, na.rm=TRUE) # number of zero years per site
+sel &lt;- nzero &lt;= 1  # TRUE if site has 2 or more years of non-zero data
+
+</code></pre>
+
+
+</div>

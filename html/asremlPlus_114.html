@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictions.frame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Description of a predictions object</h2>
+
+<h3>Description</h3>
+
+<p>A <code>data.frame</code> of S3-class <code>predictions.frame</code> that stores the 
+predictions for a fitted model.
+</p>
+<p><code>as.predictions.frame</code> is function that converts a 
+<code>data.frame</code> to an object of this class.
+</p>
+<p><code>is.predictions.frame</code> is the membership function for this class; it tests 
+that an object has class <code>predictions.frame</code>.
+</p>
+<p><code>validPredictionsFrame</code> can be used to test the validity of a 
+<code>predictions.frame</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> that begins with the variables classifying the predictions, 
+in the same order as in the <code>classify</code>, followed by a column of 
+predictions that is named either <code>predicted.value</code> or
+<code>backtransformed.predictions</code>; it also contains columns named  
+<code>standard.error</code> and <code>est.status</code>. 
+The number of rows should equal the number of unique combinations 
+of the classifying variables. While such a <code>data.frame</code> 
+can be constructed from the beginning, the <code>pvals</code> component 
+of the value produced by <code>predict.asreml</code> is a suitable value to 
+supply for this argument. Note that the names <code>standard.error</code> and 
+<code>est.status</code> have been changed to <code>std.error</code> and <code>status</code> 
+in the <code>pvals</code> component produced by <code>asreml-R4</code>; if the new names 
+are in the <code>data.frame</code> supplied to <code>predictions</code>, they will be 
+returned to the previous names. 
+</p>
+<p>The <code>data.frame</code> may also include columns for the lower and upper 
+values of error intervals, either standard error, confidence or half-LSD 
+intervals.  The names of these columns will consist of three parts 
+separated by full stops: 
+1) the first part will be <code>lower</code> or <code>upper</code>; 
+2) the second part will be one of <code>Confidence</code>, 
+<code>StandardError</code> or <code>halfLeastSignificant</code>; 
+3) the third component will be <code>limits</code>.
+</p>
+<p>IF <code>accuracy.threshold</code> is set to a numeric value at the time the 
+<code>prediction.frame</code> is formed, it will also include a column <code>logical</code> values 
+named <code>LSDwarning</code>.
+</p>
+<p>When <code>halfLeastSignificant</code> limits have been included in a <code>predictions.frame</code>, 
+its attributes will include those that are not <code>NULL</code> of <code>LSDtype</code>, 
+<code>LSDby</code>, <code>LSDstatistic</code>, <code>LSDaccuracy</code> and <code>LSDvalues</code>. <code>LSDvalues</code> are 
+the LSD values used to calculate the <code>halfLeastSignificant</code> <code>error.intervals</code> 
+and are an expanded version of the values stored in the <code>assignedLSD</code> column of the 
+<code>LSD.frame</code>.
+</p>
+<p>See <code>predictPlus.asreml</code> for more information.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predictPlus.asreml</code>, <code>is.predictions.frame</code>, 
+<code>as.predictions.frame</code>, <code>validPredictionsFrame</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Oats.dat)
+  
+  ## Use asreml to get predictions and associated statistics
+
+  ## Not run: 
+  m1.asr &lt;- asreml(Yield ~ Nitrogen*Variety, 
+                   random=~Blocks/Wplots,
+                   data=Oats.dat)
+  current.asrt &lt;- as.asrtests(m1.asr)
+  Var.pred &lt;- asreml::predict.asreml(m1.asr, classify="Nitrogen:Variety", 
+                                      sed=TRUE)
+  if (getASRemlVersionLoaded(nchar = 1) == "3")
+    Var.pred &lt;- Var.pred$predictions
+  Var.preds &lt;- as.predictions.frame(Var.pred$pvals, se = "std.error", 
+                                    est.status = "status")
+  
+## End(Not run)
+  
+  ## Use lmerTest and emmmeans to get predictions and associated statistics
+  if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+      requireNamespace("emmeans", quietly = TRUE))
+  {
+    m1.lmer &lt;- lmerTest::lmer(Yield ~ Nitrogen*Variety + (1|Blocks/Wplots),
+                              data=Oats.dat)
+    Var.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Nitrogen:Variety)
+    Var.preds &lt;- summary(Var.emm)
+    Var.preds &lt;- as.predictions.frame(Var.preds, predictions = "emmean", 
+                                      se = "SE", interval.type = "CI", 
+                                      interval.names = c("lower.CL", "upper.CL"))
+  }
+
+  if (exists("Var.preds"))
+  {
+    ## Check the class and validity of the alldiffs object
+    is.predictions.frame(Var.preds)
+    validPredictionsFrame(Var.preds)
+  }
+</code></pre>
+
+
+</div>

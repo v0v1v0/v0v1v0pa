@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getters</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract A Single Model or Data Object, Get Or Set Info, Description, Or Metadata.</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>getAMData</code> will extract an <code>amData</code> object from an <code>amModelLib</code>; the function <code>getAMModel</code> will extract an <code>amModel</code> object from an <code>amModelLib</code>. The function <code>ammlDesc</code> can be used to retrieve or set a description of an <code>amModelLib</code> object. The function <code>ammlInfo</code> can be used to retrieve or set information about an <code>amModelLib</code> object. <code>modelMeta</code> and <code>dataMeta</code> retrieve and set metadata within <code>amModelLib</code> objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getAMModel(amml, x, as.list = FALSE, ...)
+
+getAMData(amml, x, as.list = FALSE, ...)
+
+ammlDesc(amml)
+
+ammlDesc(amml) &lt;- value
+
+ammlInfo(amml, x = NULL)
+
+ammlInfo(amml) &lt;- value
+
+modelMeta(amml, x = NULL)
+
+modelMeta(amml, x) &lt;- value
+
+dataMeta(amml, x = NULL)
+
+dataMeta(amml, x) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>amml</code></td>
+<td>
+<p>An <code>amModelLib</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A name or length 1 integer index to extract from or set within the <code>amModelLib</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.list</code></td>
+<td>
+<p>Logical; <code>FALSE</code> to return just the object, <code>TRUE</code> to return a list with both object and metadata.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments (not used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>A named list of metadata to set within <code>x</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The objects created by <code>getAMData</code> and <code>getAMModel</code> are returned as their original class unless the argument <code>as.list</code> is set to <code>TRUE</code>. If <code>as.list</code>, a list is returned with the original object in the first element and metadata in the second.<br> The setters for <code>ammlInfo</code>, <code>modelMeta</code>, and <code>dataMeta</code> replace individual elements in their respective lists with each call. To remove elements set their value to <code>NULL</code> in the named replacement list.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The model or data object in its original form, or if <code>as.list</code> a list with </p>
+<table><tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>The original model</p>
+</td>
+</tr></table>
+<p> (or </p>
+<table><tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The original data</p>
+</td>
+</tr></table>
+<p> ) and </p>
+<table><tr style="vertical-align: top;">
+<td><code>metadata</code></td>
+<td>
+<p>metadata</p>
+</td>
+</tr></table>
+<p>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other amModelLib: <code>AMModels</code>,
+<code>amData</code>, <code>amModelLib</code>,
+<code>amModel</code>, <code>grepAMModelLib</code>,
+<code>insertAMModelLib</code>, <code>lsModels</code>,
+<code>rmModel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create dataset from lm helpfile
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+# notice the models lm.D9 and lm.D90 are of class 'lm'
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+lm.D9 &lt;- lm(weight ~ group)
+lm.D90 &lt;- lm(weight ~ group - 1) # omitting intercept
+
+
+# create two amModel objects with metadata and a soft link to the data
+full.model &lt;- amModel(
+    model = lm.D9, 
+    comment = 'full model', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+no.int.model &lt;- amModel(
+    model = lm.D90, 
+    comment = 'model without intercept', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+# create an amData object that includes metadata
+# the plant.data is of class data.frame
+plant.data &lt;- data.frame(group = group, weight = weight)
+plant.data &lt;- amData(
+    data = plant.data, 
+    comment = 'Dataset from lm helpfile.'
+)
+
+# create a second amData object that includes metadata
+log.plant.data &lt;- data.frame(group, log.weight=log(weight))
+log.plant.data &lt;- amData(
+    data = log.plant.data, 
+    comment = 'data to fit log model', 
+    source = 'lm helpfile (R).'
+)
+
+# create an amModelLib that contains the two amModel objects and two amData objects
+# the models and data must be supplied as named lists
+mymodels &lt;- amModelLib(
+    models = list(
+        full.model = full.model, 
+        no.int.model = no.int.model
+    ), 
+    data = list(
+        plant.data = plant.data, 
+        log.plant.data = log.plant.data
+    )
+)
+
+# extract the dataset
+getAMData(amml = mymodels, 'plant.data', as.list = FALSE)
+
+# you can also extract by index
+getAMData(amml = mymodels, 1, as.list = FALSE)
+
+# extract the model
+getAMModel(amml = mymodels, 'full.model', as.list = FALSE)
+
+# you can also extract by index
+getAMModel(amml = mymodels, 1, as.list = FALSE)
+ 
+# extraction with '[' and '[[', which are identical here, focus on models
+mymodels[c(1,2)]
+mymodels[[1]]
+
+# Add a description to the amModelLib
+ammlDesc(mymodels) &lt;- "This library demonstrates how to store models 
+and data in a format that allows for descriptive metadata and easy 
+retrieval for future reference."
+
+# Extract the description
+ammlDesc(mymodels)
+
+# Add some metadata 'info' to the amModelLib
+ammlInfo(mymodels) &lt;- list(owner = 'me', organization = 'My Organization')
+
+# Extract all info for an amModelLib
+ammlInfo(mymodels) 
+
+# Extract targeted info
+ammlInfo(amml = mymodels, 'owner')
+
+# Delete metadata by setting to NULL
+ammlInfo(mymodels) &lt;- list(organization = NULL)
+
+# Extract all model metadata
+modelMeta(mymodels)
+
+# Extract metadata from specific model
+modelMeta(amml = mymodels, 'full.model')
+
+# Add metadata to 'full.model'
+modelMeta(amml = mymodels, 'full.model') &lt;- list(
+    url = "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html"
+)
+
+# remove metadata by setting value to NULL
+modelMeta(amml = mymodels, 'full.model') &lt;- list(url = NULL)
+
+# Extract all data metadata
+dataMeta(mymodels)
+
+# Extract metadata from specific data
+dataMeta(amml = mymodels, 'plant.data')
+
+# Add metadata to 'plant.data'
+dataMeta(mymodels, 'plant.data') &lt;- list(
+    url = "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html"
+)
+
+# remove metadata by setting value to NULL
+dataMeta(mymodels, 'plant.data') &lt;- list(url = NULL)
+
+</code></pre>
+
+
+</div>

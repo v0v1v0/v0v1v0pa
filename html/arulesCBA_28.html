@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CBA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classification Based on Association Rules Algorithm (CBA)</h2>
+
+<h3>Description</h3>
+
+<p>Build a classifier based on association rules using the ranking, pruning and
+classification strategy of the CBA algorithm by Liu, et al. (1998).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CBA(
+  formula,
+  data,
+  pruning = "M1",
+  parameter = NULL,
+  control = NULL,
+  balanceSupport = FALSE,
+  disc.method = "mdlp",
+  verbose = FALSE,
+  ...
+)
+
+pruneCBA_M1(formula, rules, transactions, verbose = FALSE)
+
+pruneCBA_M2(formula, rules, transactions, verbose = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A symbolic description of the model to be fitted. Has to be
+of form <code>class ~ .</code> or <code>class ~ predictor1 + predictor2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>arules::transactions containing the training data or a data.frame which.
+is automatically discretized and converted to transactions with <code>prepareTransactions()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pruning</code></td>
+<td>
+<p>Pruning strategy used: "M1" or "M2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter, control</code></td>
+<td>
+<p>Optional parameter and control lists for apriori.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>balanceSupport</code></td>
+<td>
+<p>balanceSupport parameter passed to <code>mineCARs()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disc.method</code></td>
+<td>
+<p>Discretization method used to discretize continuous
+variables if data is a data.frame (default: <code>"mdlp"</code>). See
+<code>discretizeDF.supervised()</code> for more supervised discretization
+methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Show progress?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For convenience, additional parameters are used to create the
+<code>parameter</code> control list for apriori (e.g., to specify the support and
+confidence thresholds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules, transactions</code></td>
+<td>
+<p>prune a set of rules using a transaction set.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implementation the CBA algorithm with the M1 or M2 pruning strategy
+introduced by Liu, et al. (1998).
+</p>
+<p>Candidate classification association rules (CARs) are mined with the
+APRIORI algorithm but minimum support is only checked for the LHS (rule coverage)
+and not the whole rule. Rules are ranked by confidence, support and
+size. Then either the M1 or M2 algorithm are used to perform database
+coverage pruning and default rule pruning.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class CBA representing the trained classifier.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ian Johnson and Michael Hahsler
+</p>
+
+
+<h3>References</h3>
+
+<p>Liu, B. Hsu, W. and Ma, Y (1998). Integrating Classification and
+Association Rule Mining. <strong>KDD'98 Proceedings of the Fourth
+International Conference on Knowledge Discovery and Data Mining,</strong> New York,
+27-31 August. AAAI. pp. 80-86.
+<a href="https://dl.acm.org/doi/10.5555/3000292.3000305">https://dl.acm.org/doi/10.5555/3000292.3000305</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other classifiers: 
+<code>CBA_helpers</code>,
+<code>CBA_ruleset()</code>,
+<code>FOIL()</code>,
+<code>LUCS_KDD_CBA</code>,
+<code>RCAR()</code>,
+<code>RWeka_CBA</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("iris")
+
+# 1. Learn a classifier using automatic default discretization
+classifier &lt;- CBA(Species ~ ., data = iris, supp = 0.05, conf = 0.9)
+classifier
+
+# inspect the rule base
+inspect(classifier$rules)
+
+# make predictions
+predict(classifier, head(iris))
+table(pred = predict(classifier, iris), true = iris$Species)
+
+
+# 2. Learn classifier from transactions (and use verbose)
+iris_trans &lt;- prepareTransactions(Species ~ ., iris, disc.method = "mdlp")
+iris_trans
+classifier &lt;- CBA(Species ~ ., data = iris_trans, supp = 0.05, conf = 0.9, verbose = TRUE)
+classifier
+
+# make predictions. Note: response extracts class information from transactions.
+predict(classifier, head(iris_trans))
+table(pred = predict(classifier, iris_trans), true = response(Species ~ ., iris_trans))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auk_rollup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Roll up eBird taxonomy to species</h2>
+
+<h3>Description</h3>
+
+<p>The eBird Basic Dataset (EBD) includes both true species and every other
+field-identifiable taxon that could be relevant for birders to report. This
+includes taxa not identifiable to a species (e.g. hybrids) and taxa reported
+below the species level (e.g. subspecies). This function produces a list of
+observations of true species, by removing the former and rolling the latter
+up to the species level. In the resulting EBD data.frame,
+<code>category</code> will be <code>"species"</code> for all records and the subspecies fields will
+be dropped. By default, <code>read_ebd()</code> calls <code>ebd_rollup()</code> when importing an
+eBird data file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auk_rollup(x, taxonomy_version, drop_higher = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>data.frame; data frame of eBird data, typically as imported by
+<code>read_ebd()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomy_version</code></td>
+<td>
+<p>integer; the version (i.e. year) of the taxonomy. In
+most cases, this should be left empty to use the version of the taxonomy
+included in the package. See <code>get_ebird_taxonomy()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_higher</code></td>
+<td>
+<p>logical; whether to remove taxa above species during the
+rollup process, e.g. "spuhs" like "duck sp.".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When rolling observations up to species level the observed counts
+are summed across any taxa that resolve to the same species. However, if
+any of these taxa have a count of "X" (i.e. the observer did not enter a
+count), then the rolled up record will get an "X" as well. For example, if
+an observer saw 3 Myrtle and 2 Audubon's Warblers, this will roll up to 5
+Yellow-rumped Warblers. However, if an "X" was entered for Myrtle, this
+would roll up to "X" for Yellow-rumped Warbler.
+</p>
+<p>The eBird taxonomy groups taxa into eight different categories. These
+categories, and the way they are treated by <code>auk_rollup()</code> are as follows:
+</p>
+
+<ul>
+<li> <p><strong>Species:</strong> e.g., Mallard. Combined with lower level taxa if present on
+the same checklist.
+</p>
+</li>
+<li> <p><strong>ISSF or Identifiable Sub-specific Group:</strong> Identifiable subspecies or
+group of subspecies, e.g., Mallard (Mexican). Rolled-up to species level.
+</p>
+</li>
+<li> <p><strong>Intergrade:</strong> Hybrid between two ISSF (subspecies or subspecies
+groups), e.g., Mallard (Mexican intergrade. Rolled-up to species level.
+</p>
+</li>
+<li> <p><strong>Form:</strong> Miscellaneous other taxa, including recently-described species
+yet to be accepted or distinctive forms that are not universally accepted
+(Red-tailed Hawk (Northern), Upland Goose (Bar-breasted)). If the checklist
+contains multiple taxa corresponding to the same species, the lower level
+taxa are rolled up, otherwise these records are left as is.
+</p>
+</li>
+<li> <p><strong>Spuh:</strong>  Genus or identification at broad level – e.g., duck sp.,
+dabbling duck sp.. Dropped by <code>auk_rollup()</code>.
+</p>
+</li>
+<li> <p><strong>Slash:</strong> Identification to Species-pair e.g., American Black
+Duck/Mallard). Dropped by <code>auk_rollup()</code>.
+</p>
+</li>
+<li> <p><strong>Hybrid:</strong> Hybrid between two species, e.g., American Black Duck x
+Mallard (hybrid). Dropped by <code>auk_rollup()</code>.
+</p>
+</li>
+<li> <p><strong>Domestic:</strong> Distinctly-plumaged domesticated varieties that may be
+free-flying (these do not count on personal lists) e.g., Mallard (Domestic
+type). Dropped by <code>auk_rollup()</code>.
+</p>
+</li>
+</ul>
+<p>The rollup process is based on the eBird taxonomy, which is updated once a
+year in August. The <code>auk</code> package includes a copy of the eBird taxonomy,
+current at the time of release; however, if the EBD and <code>auk</code> versions are
+not aligned, you may need to explicitly specify which version of the
+taxonomy to use, in which case the eBird API will be queried to get the
+correct version of the taxonomy.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame of the eBird data with taxonomic rollup applied.
+</p>
+
+
+<h3>References</h3>
+
+<p>Consult the <a href="https://ebird.org/science/use-ebird-data/the-ebird-taxonomy">eBird taxonomy</a>
+page for further details.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other pre: 
+<code>auk_unique()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># get the path to the example data included in the package
+# in practice, provide path to ebd, e.g. f &lt;- "data/ebd_relFeb-2018.txt
+f &lt;- system.file("extdata/ebd-rollup-ex.txt", package = "auk")
+# read in data without rolling up
+ebd &lt;- read_ebd(f, rollup = FALSE)
+# rollup
+ebd_ru &lt;- auk_rollup(ebd)
+# keep higher taxa
+ebd_higher &lt;- auk_rollup(ebd, drop_higher = FALSE)
+
+# all taxa not identifiable to species are dropped
+unique(ebd$category)
+unique(ebd_ru$category)
+unique(ebd_higher$category)
+
+# yellow-rump warbler subspecies rollup
+library(dplyr)
+# without rollup, there are three observations
+ebd %&gt;%
+  filter(common_name == "Yellow-rumped Warbler") %&gt;% 
+  select(checklist_id, category, common_name, subspecies_common_name, 
+         observation_count)
+# with rollup, they have been combined
+ebd_ru %&gt;%
+  filter(common_name == "Yellow-rumped Warbler") %&gt;% 
+  select(checklist_id, category, common_name, observation_count)
+</code></pre>
+
+
+</div>

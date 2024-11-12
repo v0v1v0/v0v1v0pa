@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compare_apsim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare two or more apsim output objects</h2>
+
+<h3>Description</h3>
+
+<p>Function which allows for a simple comparison between APSIM output objects
+</p>
+<p>print method for ‘out_mrg’
+</p>
+<p>plotting function for compare_apsim, it requires ggplot2
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compare_apsim(
+  ...,
+  variable,
+  index = "Date",
+  by,
+  labels,
+  cRSS = FALSE,
+  weights,
+  verbose = FALSE
+)
+
+## S3 method for class 'out_mrg'
+print(x, ..., digits = 2)
+
+## S3 method for class 'out_mrg'
+plot(
+  x,
+  ...,
+  plot.type = c("vs", "diff", "resid", "ts", "density"),
+  pairs = c(1, 2),
+  cumulative = FALSE,
+  variable,
+  id,
+  id.label,
+  by,
+  facet = FALSE,
+  span = 0.75,
+  dodge.width = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>data frames with APSIM output or observed data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>variable to plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>index for merging objects. Default is ‘Date’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>variable in ‘index’ used for plotting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>labels for plotting and identification of objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cRSS</code></td>
+<td>
+<p>compute (weighted) combined residual sum of squares using some or all variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>optional weights for computing the (weighted) combined sum of squares</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to print indexes to console (default is FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object of class ‘out_mrg’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>digits to print (default is 2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.type</code></td>
+<td>
+<p>either ‘vs’, ‘diff’, ‘ts’ - for time series or ‘density’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pairs</code></td>
+<td>
+<p>pair of objects to compare, defaults to 1 and 2 but others are possible</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumulative</code></td>
+<td>
+<p>whether to plot cumulative values (default FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>identification. Useful for finding extreme values. If this values is equal to 
+1 and no id.label is provided all observations are labeled by the row number. If it is 
+less than one points are labeled if their probability is equal or less than the id value.
+For example, a value of 0.05 will label values that have a probability of 0.05 (or less)
+under a normal distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id.label</code></td>
+<td>
+<p>optional label for the id</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facet</code></td>
+<td>
+<p>whether to facet or use color for the by variable (default is FALSE, meaning ‘color’)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>span</code></td>
+<td>
+<p>argument passed to ‘geom_smooth’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dodge.width</code></td>
+<td>
+<p>optional argument to control the ‘dodge’ for the ‘id.label’</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Plotting function for observed and simulated data
+</p>
+
+
+<h3>Value</h3>
+
+<p>object of class ‘out_mrg’, which can be used for further plotting
+</p>
+<p>it prints the index.table data.frame
+</p>
+<p>it produces a plot
+</p>
+
+
+<h3>Note</h3>
+
+<p>‘Con Corr’ is the concordance correlation coefficient (https://en.wikipedia.org/wiki/Concordance_correlation_coefficient);
+‘ME’ is the model efficiency (https://en.wikipedia.org/wiki/Nash
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Directory with files
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+## Comparing observed and simulated for Wheat
+data(obsWheat)
+sim.opt &lt;- read.csv(file.path(extd.dir, "wheat-sim-opt.csv"))
+sim.opt$Date &lt;- as.Date(sim.opt$Date)
+
+cap &lt;- compare_apsim(obsWheat, sim.opt, labels = c("obs", "sim"))
+
+plot(cap)
+plot(cap, plot.type = "diff")
+plot(cap, plot.type = "resid")
+plot(cap, plot.type = "ts")
+
+plot(cap, variable = "AboveGround")
+plot(cap, variable = "AboveGround", plot.type = "diff")
+plot(cap, variable = "AboveGround", plot.type = "ts")
+
+## Selecting a variable
+cap &lt;- compare_apsim(obsWheat, sim.opt, variable = "AboveGround", 
+                     labels = c("obs", "sim"))
+                     
+## Using id
+plot(cap, variable = "AboveGround", id = 0.05)
+                     
+
+
+
+
+</code></pre>
+
+
+</div>

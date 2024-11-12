@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asymptotic_variance_est</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimating the asymptotic variance in the trawl function CLT</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the asymptotic variance which appears in the
+CLT for the trawl function estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asymptotic_variance_est(t, c4, varlevyseed = 1, Delta, avector, N = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>The time point at which to compute the asymptotic variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c4</code></td>
+<td>
+<p>The fourth cumulant of the Levy seed of the trawl process</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varlevyseed</code></td>
+<td>
+<p>The variance of the Levy seed of the trawl process,
+the default is 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Delta</code></td>
+<td>
+<p>The width Delta of the observation grid</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avector</code></td>
+<td>
+<p>The vector <code class="reqn">(\hat a(0), \hat a(\Delta_n),
+..., \hat a((n-1)\Delta_n))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The optional parameter to specify the upper bound <code class="reqn">N_n</code> in the
+computations of the estimators</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As derived in
+Sauri and Veraart (2022), the estimated asymptotic variance is given by
+</p>
+<p style="text-align: center;"><code class="reqn">\hat \sigma^2_a(t)=\hat v_1(t)+\hat v_2(t)+\hat v_3(t)+\hat v_4(t),</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{v}_{1}(t):=\widehat{c_{4}(L')}\hat{a}(t)=RQ_n\hat{a}(t)/
+\hat{a}(0),</code>
+</p>
+
+<p>for
+</p>
+<p style="text-align: center;"><code class="reqn">RQ_n:=\frac{1}{\sqrt{2 n\Delta_{n}}}
+\sum_{k=0}^{n-2}(X_{(k+1)\Delta_n}-X_{k\Delta_n})^4,</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">	\hat{v}_{2}(t):=2\sum_{l=0}^{N_{n}}\hat{a}^{2}(l\Delta_{n})
+\Delta_{n},</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">	\hat{v}_{3}(t):=2\sum_{l=0}^{\min\{i,n-1-i\}}\hat{a}((i-l)\Delta_{n})
+\hat{a}((i+l)\Delta_{n})\Delta_{n},</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">	\hat{v}_{4}(t):=-2\sum_{l=i}^{N_{n}-i}\hat{a}((l-i)\Delta_{n})
+\hat{a}((i+l)\Delta_{n})\Delta_{n}.</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>The estimated asymptotic variance <code class="reqn">\hat v=\hat \sigma_a^2(t)</code>
+and its components <code class="reqn">\hat v_1, \hat v_2, \hat v_3, \hat v_4</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##Simulate a trawl process
+##Determine the sampling grid
+my_n &lt;- 1000
+my_delta &lt;- 0.1
+my_t &lt;- my_n*my_delta
+
+###Choose the model parameter
+#Exponential trawl function:
+my_lambda &lt;- 2
+#Poisson marginal distribution trawl
+my_v &lt;- 1
+
+#Set the seed
+set.seed(123)
+#Simulate the trawl process
+Poi_data &lt;- sim_weighted_trawl(my_n, my_delta,
+                               "Exp", my_lambda, "Poi", my_v)$path
+
+#Estimate the trawl function
+my_lag &lt;- 100+1
+trawl &lt;- nonpar_trawlest(Poi_data, my_delta, lag=my_lag)$a_hat
+
+#Estimate the fourth cumulant of the trawl process
+c4_est &lt;- c4est(Poi_data, my_delta)
+
+asymptotic_variance_est(t=1, c4=c4_est, varlevyseed=1,
+                        Delta=my_delta, avector=trawl)$v
+
+
+
+</code></pre>
+
+
+</div>

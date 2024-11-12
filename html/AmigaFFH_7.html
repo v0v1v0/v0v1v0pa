@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AmigaBitmapFont</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The S3 AmigaBitmapFont and AmigaBitmapFontSet classes</h2>
+
+<h3>Description</h3>
+
+<p>A comprehensive representation of monochromous Amiga bitmap fonts.
+</p>
+
+
+<h3>Details</h3>
+
+<p>Nowadays fonts are represented by vector graphics an computer systems.
+On the original Commodore Amiga, the screen resolution, system memory
+and cpu speed were limited. On those systems, it was more efficient
+to use bitmap images to represent the glyphs in fonts. The
+<code>AmigaBitmapFontSet</code> and <code>AmigaBitmapFont</code> classes can be used
+to represent Amiga bitmap fonts.
+</p>
+<p>The Commodore Amiga had a directory named 'FONTS' located in the
+root, where (bitmap) fonts were stored. Font sets were stored
+under the font name with a *.font extension. Files with the *.font
+extension did not contain the bitmap images of the font. Rather
+the *.font file contained information on which font heights (in
+pixels) are available, in addition to some other meta-information.
+</p>
+<p>The bitmap images were stored in separate files for each individual
+height. The <code>AmigaBitmapFontSet</code> is an S3 class that forms
+a comprehensive format (named <code>list</code>) to represent the *.font
+files. The <code>AmigaBitmapFont</code> is an S3 class is a comprehensive
+format (named <code>list</code>) that represent each font bitmap and glyph
+information. The <code>AmigaBitmapFontSet</code> objects will hold one or more
+<code>AmigaBitmapFont</code> objects.
+</p>
+<p>The <code>AmigaBitmapFont</code> and <code>AmigaBitmapFontSet</code> objects are
+essentially named <code>list</code>s. Their structure and most important
+elements are described below. Although it is possible to replace
+elements manually, it is only advisable when you know what you
+are doing as it may break the validity of the font.
+</p>
+
+
+<h3>AmigaBitmapFontSet</h3>
+
+
+<ul>
+<li> <p><code>fch_FileID</code>: A <code>factor</code> with levels 'FontContents', 'TFontContents' and
+'ScalableOutline'. It specifies the type of font.
+Currently only the first level is supported.
+</p>
+</li>
+<li> <p><code>fch_NumEntries</code>: number of font heights available for this font. It should
+match with the length of <code>FontContents</code>. Do not change
+this value manually.
+</p>
+</li>
+<li> <p><code>FontContents</code>: This is a <code>list</code> with bitmap entries for each specific font
+height (in pixels). The name of each element in this list is
+'pt' followed by the height. Each element in this list holds
+the elements:
+</p>
+
+<ul><li>
+<p> Miscellaneous: Miscellaneous information from the \*.font file
+</p>
+
+<ul>
+<li> <p><code>fc_FileName</code>: This element represents the filename of the
+nested font bitmap images. Note that it should be a valid
+Commodore Amiga filename. It is best to modify this name
+using <code>fontName()</code>. Note that this field could cause
+problems as Commodore Amiga filenames can contain characters
+that most modern platforms would not allow (such as the
+question mark).
+</p>
+</li>
+<li> <p><code>BitmapFont</code>: This element is of type <code>AmigaBitmapFont</code> and is structured
+as described in the following section. The information in this
+element is no longer part of the *.font file.
+</p>
+</li>
+</ul>
+</li></ul>
+</li>
+</ul>
+<h3>AmigaBitmapFont</h3>
+
+<p>Information represented by a <code>AmigaBitmapFont</code> is not stored
+in *.font files. Rather it is stored in sub-directories of the font
+in separate files. It has the following structure:
+</p>
+
+<ul>
+<li>
+<p> Miscellaneous: Elements with information on the font
+properties and style, and also relative file pointers.
+</p>
+</li>
+<li> <p><code>glyph.info</code>: A <code>data.frame</code> containing glyph info with information
+for specific glyphs on each row. Each row matches with a specific
+ASCII code, ranging from <code>tf_LoChar</code> up to <code>tf_HiChar</code>. There is an additional
+row that contains information for the default glyph that is
+out of the range of the <code>tf_LoChar</code> and <code>tf_HiChar</code>. The <code>data.frame</code>
+thus has <code>2 + tf_HiChar - tf_LoChar</code> rows. This
+table is used to extract and plot a glyph from the
+<code>bitmap</code> image correctly.
+</p>
+</li>
+<li> <p><code>bitmap</code>: Is a monochromous bitmap image of all the font's glyphs in a
+single line. It is a simple <code>raster</code> object
+(see <code>grDevices::as.raster()</code>) with an additional
+attribute 'palette', which lists the two colours in the image. In
+this palette, the first colour is the background colour and the
+second colour is interpreted as the foregroundcolour.
+</p>
+</li>
+</ul>
+<h3>Useful functions</h3>
+
+<p>For importing and exporting the following functions are useful:
+<code>read.AmigaBitmapFont()</code>, <code>read.AmigaBitmapFontSet()</code>,
+<code>write.AmigaBitmapFont()</code> and <code>write.AmigaBitmapFontSet()</code>.
+</p>
+<p>The following generic functions are implemented for these objects:
+<code>plot()</code>, <code>print</code>,
+<code>as.raster()</code> and <code>as.raw()</code>.
+</p>
+<p>Use <code>c()</code> to combine one or more
+<code>AmigaBitmapFont</code> objects into a <code>AmigaBitmapFontSet</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pepijn de Vries
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node03E0.html">http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node03E0.html</a>
+<a href="http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node03DE.html">http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node03DE.html</a>
+<a href="http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node05BA.html">http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node05BA.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other AmigaBitmapFont.operations: 
+<code>availableFontSizes()</code>,
+<code>c()</code>,
+<code>fontName()</code>,
+<code>font_example</code>,
+<code>getAmigaBitmapFont()</code>,
+<code>rasterToAmigaBitmapFont()</code>,
+<code>rawToAmigaBitmapFontSet()</code>,
+<code>rawToAmigaBitmapFont()</code>,
+<code>read.AmigaBitmapFontSet()</code>,
+<code>read.AmigaBitmapFont()</code>,
+<code>write.AmigaBitmapFont()</code>
+</p>
+<p>Other raster.operations: 
+<code>as.raster.AmigaBasicShape()</code>,
+<code>bitmapToRaster()</code>,
+<code>dither()</code>,
+<code>index.colours()</code>,
+<code>rasterToAmigaBasicShape()</code>,
+<code>rasterToAmigaBitmapFont()</code>,
+<code>rasterToBitmap()</code>,
+<code>rasterToHWSprite()</code>,
+<code>rasterToIFF()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## 'font_example' is an example of the AmigaBitmapFontSet object:
+data(font_example)
+
+## An AmigaBitmapFont object can also be extracted from this object:
+font_example_9 &lt;- getAmigaBitmapFont(font_example, 9)
+
+## the objects can be printed, plotted, converted to raw data or a raster:
+print(font_example)
+plot(font_example)
+font_example_raw    &lt;- as.raw(font_example)
+font_example_raster &lt;- as.raster(font_example)
+
+## You can also format text using the font:
+formated_raster     &lt;- as.raster(font_example, text = "Foo bar", style = "bold")
+plot(font_example, text = "Foo bar", style = "underlined", interpolate = F)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

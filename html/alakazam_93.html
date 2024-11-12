@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rarefyDiversity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a clonal diversity index curve</h2>
+
+<h3>Description</h3>
+
+<p><code>rarefyDiversity</code> divides a set of clones by a group annotation,
+resamples the sequences from each group, and calculates diversity
+scores (<code class="reqn">D</code>) over an interval of diversity orders (<code class="reqn">q</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rarefyDiversity(
+  data,
+  group,
+  clone = "CLONE",
+  copy = NULL,
+  min_q = 0,
+  max_q = 4,
+  step_q = 0.05,
+  min_n = 30,
+  max_n = NULL,
+  ci = 0.95,
+  nboot = 2000,
+  uniform = TRUE,
+  progress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame with Change-O style columns containing clonal assignments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>name of the <code>data</code> column containing group identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone</code></td>
+<td>
+<p>name of the <code>data</code> column containing clone identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copy</code></td>
+<td>
+<p>name of the <code>data</code> column containing copy numbers for each 
+sequence. If <code>copy=NULL</code> (the default), then clone abundance
+is determined by the number of sequences. If a <code>copy</code> column
+is specified, then clone abundances is determined by the sum of 
+copy numbers within each clonal group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_q</code></td>
+<td>
+<p>minimum value of <code class="reqn">q</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_q</code></td>
+<td>
+<p>maximum value of <code class="reqn">q</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_q</code></td>
+<td>
+<p>value by which to increment <code class="reqn">q</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_n</code></td>
+<td>
+<p>minimum number of observations to sample.
+A group with less observations than the minimum is excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_n</code></td>
+<td>
+<p>maximum number of observations to sample. If <code>NULL</code> then no 
+maximum is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>confidence interval to calculate; the value must be between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>number of bootstrap realizations to generate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniform</code></td>
+<td>
+<p>if <code>TRUE</code> then uniformly resample each group to the same 
+number of observations. If <code>FALSE</code> then allow each group to
+be resampled to its original size or, if specified, <code>max_size</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>if <code>TRUE</code> show a progress bar.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Clonal diversity is calculated using the generalized diversity index (Hill numbers) 
+proposed by Hill (Hill, 1973). See calcDiversity for further details.
+</p>
+<p>Diversity is calculated on the estimated complete clonal abundance distribution.
+This distribution is inferred by using the Chao1 estimator to estimate the number
+of seen clones, and applying the relative abundance correction and unseen clone
+frequency described in Chao et al, 2015.
+</p>
+<p>To generate a smooth curve, <code class="reqn">D</code> is calculated for each value of <code class="reqn">q</code> from
+<code>min_q</code> to <code>max_q</code> incremented by <code>step_q</code>.  When <code>uniform=TRUE</code>
+variability in total sequence counts across unique values in the <code>group</code> column 
+is corrected by repeated resampling from the estimated complete clonal distribution to a 
+common number of sequences.
+</p>
+<p>The diversity index (<code class="reqn">D</code>) for each group is the mean value of over all resampling 
+realizations. Confidence intervals are derived using the standard deviation of the 
+resampling realizations, as described in Chao et al, 2015.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A DiversityCurve object summarizing the diversity scores.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p>  Hill M. Diversity and evenness: a unifying notation and its consequences. 
+Ecology. 1973 54(2):427-32.
+</p>
+</li>
+<li>
+<p>  Chao A. Nonparametric Estimation of the Number of Classes in a Population. 
+Scand J Stat. 1984 11, 265270.
+</p>
+</li>
+<li>
+<p>  Chao A, et al. Rarefaction and extrapolation with Hill numbers: 
+A framework for sampling and estimation in species diversity studies. 
+Ecol Monogr. 2014 84:45-67.
+</p>
+</li>
+<li>
+<p>  Chao A, et al. Unveiling the species-rank abundance distribution by 
+generalizing the Good-Turing sample coverage theory. 
+Ecology. 2015 96, 11891201.
+</p>
+</li>
+</ol>
+<h3>See Also</h3>
+
+<p>alphaDiversity
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Group by sample identifier
+div &lt;- rarefyDiversity(ExampleDb, "sample_id", step_q=1, max_q=10, nboot=100)
+plotDiversityCurve(div, legend_title="Sample")
+                   
+# Grouping by isotype rather than sample identifier
+div &lt;- rarefyDiversity(ExampleDb, "c_call", min_n=40, step_q=1, max_q=10, 
+                       nboot=100)
+plotDiversityCurve(div, legend_title="Isotype")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

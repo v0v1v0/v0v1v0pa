@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>weartime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wear Time Classification</h2>
+
+<h3>Description</h3>
+
+<p>Classifies wear time vs. non-wear time based on a vector of accelerometer 
+count values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">weartime(counts, window = 60L, tol = 0L, tol_upper = 99L, nci = FALSE,
+  days_distinct = FALSE, units_day = 1440L)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Integer vector with accelerometer count values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+<p>Integer value specifying minimum length of a non-wear 
+period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Integer value specifying tolerance for non-wear algorithm, i.e. 
+number of seconds/minutes with non-zero counts allowed during a non-wear 
+interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_upper</code></td>
+<td>
+<p>Integer value specifying maximum count value for a 
+second/minute with non-zero counts during a non-wear interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nci</code></td>
+<td>
+<p>Logical value for whether to use algorithm from NCI's SAS 
+programs. See <b>Details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days_distinct</code></td>
+<td>
+<p>Logical value for whether to treat each day of data as 
+distinct, as opposed to analyzing the entire monitoring period as one 
+continuous segment. For minute-to-minute counts, strongly recommend setting 
+to <code>FALSE</code> to correctly classify time near midnight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units_day</code></td>
+<td>
+<p>Integer value specifying how many data point are in a day. 
+Typically either 1440 or 86400 depending on whether count values are 
+minute-to-minute or second-to-second.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>nci = FALSE</code>, the algorithm uses a moving window to go through 
+every possible interval of length <code>window</code> in <code>counts</code>. Any 
+interval in which no more than <code>tol</code> counts are non-zero, and those 
+are still &lt; <code>tol.upper</code>, is classified as non-wear time.
+</p>
+<p>If <code>nci = TRUE</code>, non-wear time is classified according to the algorithm 
+used in the NCI's SAS programs. Briefly, this algorithm defines a non-wear 
+period as an interval of length <code>window</code> that starts with a count value 
+of 0, does not contain any periods with <code>(tol + 1)</code> consecutive 
+non-zero count values, and does not contain any counts &gt; <code>tol.upper</code>. 
+If these criteria are met, the non-wear period continues until there are 
+<code>(tol + 1)</code> consecutive non-zero count values or a single count value &gt; 
+<code>tol.upper</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Integer vector with 1's for valid wear time and 0's for non-wear 
+time.
+</p>
+
+
+<h3>References</h3>
+
+<p>National Cancer Institute. Risk factor monitoring and methods: SAS programs 
+for analyzing NHANES 2003-2004 accelerometer data. Available at: 
+<a href="http://riskfactor.cancer.gov/tools/nhanes_pam">http://riskfactor.cancer.gov/tools/nhanes_pam</a>. Accessed Aug. 19, 2018.
+</p>
+<p>Acknowledgment: This material is based upon work supported by the National 
+Science Foundation Graduate Research Fellowship under Grant No. DGE-0940903.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load accelerometer data for first 5 participants in NHANES 2003-2004
+data(unidata)
+
+# Get data from ID number 21005
+counts.part1 &lt;- unidata[unidata[, "seqn"] == 21005, "paxinten"]
+
+# Identify periods of valid wear time
+weartime.flag &lt;- weartime(counts = counts.part1)
+
+
+</code></pre>
+
+
+</div>

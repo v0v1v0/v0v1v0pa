@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_merged_summary</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge Summary Variables</h2>
+
+<h3>Description</h3>
+
+<p>Merge a summary variable from a dataset to the input dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_merged_summary(
+  dataset,
+  dataset_add,
+  by_vars,
+  new_vars = NULL,
+  new_var,
+  filter_add = NULL,
+  missing_values = NULL,
+  analysis_var,
+  summary_fun
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and the variables used on the left
+hand sides of the <code>new_vars</code> arguments are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The expressions on the left hand sides of <code>new_vars</code> are evaluated by the
+specified <em>variables</em>. Then the resulting values are merged to the input
+dataset (<code>dataset</code>) by the specified <em>variables</em>.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>New variables to add
+</p>
+<p>The specified variables are added to the input dataset.
+</p>
+<p>A named list of expressions is expected:
+</p>
+
+<ul>
+<li>
+<p> LHS refer to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value, an expression or NA. If summary functions are
+used, the values are summarized by the variables specified for <code>by_vars</code>.
+</p>
+</li>
+</ul>
+<p>For example:
+</p>
+<div class="sourceCode"><pre>  new_vars = exprs(
+    DOSESUM = sum(AVAL),
+    DOSEMEAN = mean(AVAL)
+  )
+</pre></div>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>Variable to add
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>new_vars</code> instead.
+</p>
+<p>The specified variable is added to the input dataset (<code>dataset</code>) and set to
+the summarized values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional dataset (<code>dataset_add</code>)
+</p>
+<p>Only observations fulfilling the specified condition are taken into account
+for summarizing. If the argument is not specified, all observations are
+considered.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_values</code></td>
+<td>
+<p>Values for non-matching observations
+</p>
+<p>For observations of the input dataset (<code>dataset</code>) which do not have a
+matching observation in the additional dataset (<code>dataset_add</code>) the values
+of the specified variables are set to the specified value. Only variables
+specified for <code>new_vars</code> can be specified for <code>missing_values</code>.
+</p>
+<p><em>Permitted Values</em>: named list of expressions, e.g.,
+<code>exprs(BASEC = "MISSING", BASE = -1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Analysis variable
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>new_vars</code> instead.
+</p>
+<p>The values of the specified variable are summarized by the function
+specified for <code>summary_fun</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary_fun</code></td>
+<td>
+<p>Summary function
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>new_vars</code> instead.
+</p>
+<p>The specified function that takes as input <code>analysis_var</code> and performs the
+calculation. This can include built-in functions as well as user defined
+functions, for example <code>mean</code> or <code>function(x) mean(x, na.rm = TRUE)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The records from the additional dataset (<code>dataset_add</code>) are restricted
+to those matching the <code>filter_add</code> condition.
+</p>
+</li>
+<li>
+<p> The new variables (<code>new_vars</code>) are created for each by group (<code>by_vars</code>)
+in the additional dataset (<code>dataset_add</code>) by calling <code>summarize()</code>. I.e.,
+all observations of a by group are summarized to a single observation.
+</p>
+</li>
+<li>
+<p> The new variables are merged to the input dataset. For observations
+without a matching observation in the additional dataset the new variables
+are set to <code>NA</code>. Observations in the additional dataset which have no
+matching observation in the input dataset are ignored.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The output dataset contains all observations and variables of the
+input dataset and additionally the variables specified for <code>new_vars</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>derive_summary_records()</code>, <code>get_summary_records()</code>
+</p>
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_var_relative_flag()</code>,
+<code>derive_vars_computed()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged()</code>,
+<code>derive_vars_merged_lookup()</code>,
+<code>derive_vars_transposed()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+# Add a variable for the mean of AVAL within each visit
+adbds &lt;- tribble(
+  ~USUBJID,  ~AVISIT,  ~ASEQ, ~AVAL,
+  "1",      "WEEK 1",      1,    10,
+  "1",      "WEEK 1",      2,    NA,
+  "1",      "WEEK 2",      3,    NA,
+  "1",      "WEEK 3",      4,    42,
+  "1",      "WEEK 4",      5,    12,
+  "1",      "WEEK 4",      6,    12,
+  "1",      "WEEK 4",      7,    15,
+  "2",      "WEEK 1",      1,    21,
+  "2",      "WEEK 4",      2,    22
+)
+
+derive_var_merged_summary(
+  adbds,
+  dataset_add = adbds,
+  by_vars = exprs(USUBJID, AVISIT),
+  new_vars = exprs(
+    MEANVIS = mean(AVAL, na.rm = TRUE),
+    MAXVIS = max(AVAL, na.rm = TRUE)
+  )
+)
+
+# Add a variable listing the lesion ids at baseline
+adsl &lt;- tribble(
+  ~USUBJID,
+  "1",
+  "2",
+  "3"
+)
+
+adtr &lt;- tribble(
+  ~USUBJID,     ~AVISIT, ~LESIONID,
+  "1",       "BASELINE",  "INV-T1",
+  "1",       "BASELINE",  "INV-T2",
+  "1",       "BASELINE",  "INV-T3",
+  "1",       "BASELINE",  "INV-T4",
+  "1",         "WEEK 1",  "INV-T1",
+  "1",         "WEEK 1",  "INV-T2",
+  "1",         "WEEK 1",  "INV-T4",
+  "2",       "BASELINE",  "INV-T1",
+  "2",       "BASELINE",  "INV-T2",
+  "2",       "BASELINE",  "INV-T3",
+  "2",         "WEEK 1",  "INV-T1",
+  "2",         "WEEK 1",  "INV-N1"
+)
+
+derive_var_merged_summary(
+  adsl,
+  dataset_add = adtr,
+  by_vars = exprs(USUBJID),
+  filter_add = AVISIT == "BASELINE",
+  new_vars = exprs(LESIONSBL = paste(LESIONID, collapse = ", "))
+)
+
+</code></pre>
+
+
+</div>

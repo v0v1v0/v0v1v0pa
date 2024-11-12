@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prediction_score</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate prediction score (quality of prediction)</h2>
+
+<h3>Description</h3>
+
+<p>Calculate prediction score (quality of prediction)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prediction_score(x, expected, alpha0 = NULL, alpha1 = NULL, W = NULL, ...)
+
+## Default S3 method:
+prediction_score(x, expected, alpha0 = NULL, alpha1 = NULL, W = NULL, ...)
+
+## S3 method for class 'aphylo_estimates'
+prediction_score(
+  x,
+  expected = NULL,
+  alpha0 = NULL,
+  alpha1 = NULL,
+  W = NULL,
+  loo = TRUE,
+  ...
+)
+
+## S3 method for class 'aphylo_prediction_score'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class aphylo_estimates or a numeric matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected</code></td>
+<td>
+<p>Integer vector of length <code class="reqn">n</code>. Expected values (either 0 or 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha0, alpha1</code></td>
+<td>
+<p>Probability of observing a zero an a one, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>A square matrix. Must have as many rows as genes in <code>expected</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to predict.aphylo_estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loo</code></td>
+<td>
+<p>Logical scalar. When <code>loo = TRUE</code>, predictions are preformed
+similar to what a leave-one-out cross-validation scheme would be done
+(see predict.aphylo_estimates).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the case of <code>prediction_score</code>, <code>...</code> are passed to
+<code>predict.aphylo_estimates</code>.
+</p>
+<p>In the case of the method for aphylo estimates, the function takes as
+a reference using alpha equal to the proportion of observed tip annotations that
+are equal to 1, this is:
+</p>
+<div class="sourceCode"><pre>mean(x$dat$tip.annotation[x$dat$tip.annotation != 9L], na.rm = TRUE)
+</pre></div>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>aphylo_prediction_score</code>:
+</p>
+
+<ul>
+<li>
+<p> obs       : Observed 1 - MAE.
+</p>
+</li>
+<li>
+<p> obs_raw   : Unnormalized (raw) scores.
+</p>
+</li>
+<li>
+<p> random_raw: Unnormalized (raw) scores.
+</p>
+</li>
+<li>
+<p> worse_raw : Unnormalized (raw) scores.
+</p>
+</li>
+<li>
+<p> pval      : Computed p-value.
+</p>
+</li>
+<li>
+<p> worse     : Reference of worse case.
+</p>
+</li>
+<li>
+<p> predicted : Numeric matrix with observed predictions.
+</p>
+</li>
+<li>
+<p> expected  : Integer matrix with expected annotations.
+</p>
+</li>
+<li>
+<p> random    : Random score (null).
+</p>
+</li>
+<li>
+<p> alpha0    : The passed alpha parameters.
+</p>
+</li>
+<li>
+<p> alpha1    : The passed alpha parameters.
+</p>
+</li>
+<li>
+<p> auc       : An object of class <code>aphylo_auc</code>.
+</p>
+</li>
+<li>
+<p> obs.ids   : Indices of the ids.
+</p>
+</li>
+<li>
+<p> leaf.ids  : IDs of the leafs (if present).
+</p>
+</li>
+<li>
+<p> tree      : Of class <code>phylo</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example with prediction_score ---------------------------------------------
+set.seed(11552)
+ap  &lt;- raphylo(
+  50, P = 1,
+  Pi   = 0,
+  mu_d = c(.8,.2),
+  mu_s = c(0.1,0.1),
+  psi  = c(0,0)
+  )
+ans &lt;- aphylo_mcmc(
+  ap ~ mu_d + mu_s + Pi,
+  control = list(nsteps=2e3, thin=20, burnin = 500),
+  priors = bprior(c(9, 1, 1, 1, 5), c(1, 9, 9, 9, 5))
+  )
+                   
+(pr &lt;- prediction_score(ans, loo = TRUE))
+plot(pr)
+</code></pre>
+
+
+</div>

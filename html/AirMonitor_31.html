@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monitor_dailyThreshold</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Daily counts of values at or above a threshold</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the number of hours per day each time series in <code>monitor</code> was
+at or above a given threshold.
+</p>
+<p>Because the returned <em>mts_monitor</em> object is defined on a daily axis in a
+specific time zone, it is important that the incoming <code>monitor</code> contain
+only timeseries within a single time zone.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monitor_dailyThreshold(
+  monitor = NULL,
+  threshold = NULL,
+  na.rm = TRUE,
+  minHours = 18,
+  dayBoundary = c("clock", "LST"),
+  NAAQS = c("PM2.5_2024", "PM2.5")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>monitor</code></td>
+<td>
+<p><em>mts_monitor</em> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>AQI level name (e.g. <code>"unhealthy"</code>) or numerical
+threshold at and above which a measurement is counted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical value indicating whether NA values should be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minHours</code></td>
+<td>
+<p>Minimum number of valid hourly records per day required to
+calculate statistics. Days with fewer valid records will be assigned <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dayBoundary</code></td>
+<td>
+<p>Treatment of daylight savings time:  "clock" uses daylight
+savings time as defined in the local timezone, "LST" uses "local standard time"
+all year round.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAAQS</code></td>
+<td>
+<p>Version of NAAQS levels to use. See Note.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <em>mts_monitor</em> object containing daily counts of hours at or above
+a threshold value. (A list with
+<code>meta</code> and <code>data</code> dataframes.)
+</p>
+
+
+<h3>Note</h3>
+
+<p>When <code>dayBoundary = "clock"</code>, the returned <code>monitor$data$datetime</code>
+time axis will be defined in the local timezone (not "UTC") with days defined
+by midnight as it appears on a clock in that timezone. The transition from
+DST to standard time will result in a 23 hour day and standard to DST in a
+25 hour day.
+</p>
+<p>When <code>dayBoundary = "LST"</code>, the returned <code>monitor$data$datetime</code>
+time axis will be defined in "UTC" with times as they <em>appear</em> in standard
+time in the local timezone. These days will be one hour off from clock
+time during DST but every day will consist of 24 hours.
+</p>
+<p>On February 7, 2024, EPA strengthened the National Ambient Air Quality
+Standards for Particulate Matter (PM NAAQS) to protect millions of Americans
+from harmful and costly health impacts, such as heart attacks and premature
+death. Particle or soot pollution is one of the most dangerous forms of air
+pollution, and an extensive body of science links it to a range of serious
+and sometimes deadly illnesses. EPA is setting the level of the primary
+(health-based) annual PM2.5 standard at 9.0 micrograms per cubic meter to
+provide increased public health protection, consistent with the available
+health science.
+See <a href="https://www.epa.gov/pm-pollution/final-reconsideration-national-ambient-air-quality-standards-particulate-matter-pm">PM NAAQS update</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AirMonitor)
+
+# Hours at MODERATE or above
+Carmel_Valley %&gt;%
+  monitor_dailyThreshold("Moderate") %&gt;%
+  monitor_getData()
+
+# Hours at MODERATE or above with the 2024 updated NAAQS
+Carmel_Valley %&gt;%
+  monitor_dailyThreshold("Moderate", NAAQS = "PM2.5_2024") %&gt;%
+  monitor_getData()
+
+# Hours at UNHEALTHY or above
+Carmel_Valley %&gt;%
+  monitor_dailyThreshold("Unhealthy") %&gt;%
+  monitor_getData()
+
+</code></pre>
+
+
+</div>

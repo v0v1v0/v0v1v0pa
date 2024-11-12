@@ -1,0 +1,327 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aws.irreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> local constant AWS for irregular (1D/2D) design </h2>
+
+<h3>Description</h3>
+
+<p>The function implements the propagation separation approach to
+nonparametric smoothing (formerly introduced as Adaptive weights smoothing)
+for varying coefficient Gaussian models on a 1D or 2D irregulat design.
+The function allows for a paramertic (polynomial) mean-variance dependence.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant",
+          lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, nbins = 100,
+          hpre = NULL, henv = NULL, ladjust =1, varprop = 0.1, graph = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> The observed response vector (length n) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> Design matrix, dimension n x d, <code>d %in% 1:2</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+ <p><code>hmax</code> specifies the maximal bandwidth. Unit is binwidth in the first dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws</code></td>
+<td>
+<p> logical: if TRUE structural adaptation (AWS) is used. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory</code></td>
+<td>
+<p> logical: if TRUE stagewise aggregation is used as an additional
+adaptation scheme. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel</code></td>
+<td>
+<p> determines the model that relates variance to mean. Either
+"Constant", "Linear" or "Quadratic". </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern</code></td>
+<td>
+<p> character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggkern</code></td>
+<td>
+<p> character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p><code>sigma2</code> allows to specify the variance in case of <code>varmodel="Constant"</code>, estimated if not given.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbins</code></td>
+<td>
+<p> numer of bins, can be NULL, a positive integer or a vector of positive integers (length d) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpre</code></td>
+<td>
+<p> smoothing bandwidth for initial variance estimate </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>henv</code></td>
+<td>
+<p> radius of balls around each observed design point where
+estimates will be calculated </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+<p> factor to increase the default value of lambda </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varprop</code></td>
+<td>
+<p> exclude the largest 100*varprop% squared residuals when estimating the error variance </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p>If  <code>graph=TRUE</code> intermediate results are illustrated after each iteration step. Defaults to <code>graph=FALSE</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data are first binned (1D/2D), then aws is performed on all datapoints within
+distance &lt;= henv of nonempty bins.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns anobject of class <code>aws</code> with slots
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>y = "numeric"</code></td>
+<td>
+<p>y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dy = "numeric"</code></td>
+<td>
+<p>dim(y)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x = "numeric"</code></td>
+<td>
+<p>x</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni = "integer"</code></td>
+<td>
+<p>number of observations per bin</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask = "logical"</code></td>
+<td>
+<p>bins where parameters have been estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta = "numeric"</code></td>
+<td>
+<p>Estimates of regression function, <code>length: length(y)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mae = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var = "numeric"</code></td>
+<td>
+<p>approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin = "numeric"</code></td>
+<td>
+<p>vector of minimal x-values (bins)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax = "numeric"</code></td>
+<td>
+<p>vector of maximal x-values (bins)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts = "numeric"</code></td>
+<td>
+<p>relative binwidths</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree = "integer"</code></td>
+<td>
+<p>0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax  = "numeric"</code></td>
+<td>
+<p>effective hmax</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2  = "numeric"</code></td>
+<td>
+<p>provided or estimated error variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr = "numeric"</code></td>
+<td>
+<p>0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family = "character"</code></td>
+<td>
+<p>"Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern  = "integer"</code></td>
+<td>
+<p>integer code for lkern,
+1="Plateau", 2="Triangle", 3="Quadratic", 4="Cubic", 5="Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda = "numeric"</code></td>
+<td>
+<p>effective value of lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust = "numeric"</code></td>
+<td>
+<p>effective value of ladjust</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws = "logical"</code></td>
+<td>
+<p>aws</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory = "logical"</code></td>
+<td>
+<p>memory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen = "logical"</code></td>
+<td>
+<p>FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop = "logical"</code></td>
+<td>
+<p>FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel = "character"</code></td>
+<td>
+<p>varmodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcoef = "numeric"</code></td>
+<td>
+<p>estimated coefficients in variance model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call = "function"</code></td>
+<td>
+<p>the arguments of the call to <code>aws</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Joerg Polzehl, <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a> </p>
+
+
+<h3>References</h3>
+
+<p> J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
+Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.
+Springer-Verlag, 2008, 471-492. DOI:10.1007/978-3-540-33037-0_19.
+</p>
+
+
+<h3>See Also</h3>
+
+<p> See also  <code>lpaws</code>, <code>link{awsdata}</code>, <code>lpaws</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(aws)
+# 1D local constant smoothing
+## Not run: demo(irreg_ex1)
+# 2D local constant smoothing
+## Not run: demo(irreg_ex2)
+</code></pre>
+
+
+</div>

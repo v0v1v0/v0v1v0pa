@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hr_akde</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Home ranges</h2>
+
+<h3>Description</h3>
+
+<p>Functions to calculate animal home ranges from a <code style="white-space: pre;">⁠track_xy*⁠</code>. <code>hr_mcp</code>, <code>hr_kde</code>, and <code>hr_locoh</code> calculate the minimum convex
+polygon, kernel density, and local convex hull home range respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hr_akde(x, ...)
+
+## S3 method for class 'track_xyt'
+hr_akde(
+  x,
+  model = fit_ctmm(x, "iid"),
+  keep.data = TRUE,
+  trast = make_trast(x),
+  levels = 0.95,
+  wrap = FALSE,
+  ...
+)
+
+hr_kde(x, ...)
+
+## S3 method for class 'track_xy'
+hr_kde(
+  x,
+  h = hr_kde_ref(x),
+  trast = make_trast(x),
+  levels = 0.95,
+  keep.data = TRUE,
+  wrap = FALSE,
+  ...
+)
+
+hr_locoh(x, ...)
+
+## S3 method for class 'track_xy'
+hr_locoh(
+  x,
+  n = 10,
+  type = "k",
+  levels = 0.95,
+  keep.data = TRUE,
+  rand_buffer = 1e-05,
+  ...
+)
+
+hr_mcp(x, ...)
+
+hr_od(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>[track_xy, track_xyt]</code> <br> A track created with <code>make_track</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments, none implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A continuous time movement model. This can be fitted either with <code>ctmm::ctmm.fit</code> or <code>fit_ctmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.data</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logic(1)]⁠</code> <br> Should the original tracking data be included in the estimate?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trast</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[SpatRast]⁠</code> <br> A template raster for kernel density home-ranges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>levels</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> <br> The isopleth levels used for calculating home
+ranges. Should be <code style="white-space: pre;">⁠0 &lt; level &lt; 1⁠</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wrap</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical(1)]⁠</code> <br> If <code>TRUE</code> the UD is wrapped (see <code>terra::wrap()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric(2)]⁠</code> <br> The bandwidth for kernel density estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[integer(1)]⁠</code> <br> The number of neighbors used when calculating
+local convex hulls.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p><code>k</code>, <code>r</code> or <code>a</code>. Type of LoCoH.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rand_buffer</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric(1)]⁠</code> <br> Random buffer to avoid polygons with
+area 0 (if coordinates are numerically identical).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>hr</code>-estimate.
+</p>
+
+
+<h3>References</h3>
+
+<p>Worton, B. J. (1989). Kernel methods for estimating the utilization distribution in home-range studies. <em>Ecology, 70(1)</em>, 164-168.
+C. H. Fleming, W. F. Fagan, T. Mueller, K. A. Olson, P. Leimgruber, J. M. Calabrese, “Rigorous home-range estimation with movement data: A new autocorrelated kernel-density estimator”, Ecology, 96:5, 1182-1188 (2015).
+</p>
+<p>Fleming, C. H., Fagan, W. F., Mueller, T., Olson, K. A., Leimgruber, P., &amp; Calabrese, J. M. (2016). Estimating where and how animals travel: an optimal framework for path reconstruction from autocorrelated tracking data. Ecology, 97(3), 576-582.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(deer)
+mini_deer &lt;- deer[1:100, ]
+
+# MCP ---------------------------------------------------------------------
+mcp1 &lt;- hr_mcp(mini_deer)
+hr_area(mcp1)
+
+# calculated MCP at different levels
+mcp1 &lt;- hr_mcp(mini_deer, levels = seq(0.3, 1, 0.1))
+hr_area(mcp1)
+
+# CRS are inherited
+get_crs(mini_deer)
+mcps &lt;- hr_mcp(mini_deer, levels = c(0.5, 0.95, 1))
+has_crs(mcps)
+
+# Kernel density estimaiton (KDE) -----------------------------------------
+kde1 &lt;- hr_kde(mini_deer)
+hr_area(kde1)
+get_crs(kde1)
+
+# akde
+data(deer)
+mini_deer &lt;- deer[1:20, ]
+ud1 &lt;- hr_akde(mini_deer) # uses an iid ctmm
+ud2 &lt;- hr_akde(mini_deer, model = fit_ctmm(deer, "ou")) # uses an OU ctmm
+
+# od
+
+data(deer)
+ud1 &lt;- hr_od(deer) # uses an iid ctmm
+ud2 &lt;- hr_akde(deer, model = fit_ctmm(deer, "ou")) # uses an OU ctmm
+
+</code></pre>
+
+
+</div>

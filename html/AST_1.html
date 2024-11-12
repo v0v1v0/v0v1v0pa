@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AST</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Age-Spatio-Temporal Model
+</h2>
+
+<h3>Description</h3>
+
+<p>The age-spatial-temporal models utilizes additional prediction analysis to take into account how the dependent variable further varies across time, space, and age. This type of age-spatial-temporal model has been used in many applications. We do this by calculating the residual (predicted - observed dependent variable) for each data point and then run local regression in three dimensions on the residual. The process assumes that residuals contain valuable information that cannot be directly observed but nonetheless vary systematically across geographic region, time, and age group. This allows us to predict how much the observed dependent variable differs from the regression model's prediction and to account for these differences. This extra variation in prediction model defines by three matrices of age, time and spaces.
+Once these weights have been calculated, weighting every observation in the data set relative to the one being predicted, it a simple matter of calculating a weighted average of the residuals from regression. This "predicted residual" is then added back onto the prediction, creating an estimate that more closely takes into account aspects of the data that cannot be captured by a simple covariate model.
+This package also considers the data sources' weight in calculating. But this is optional to include.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AST(data.residual, spaceMatrix, par.time=0.5, par.age=1,
+    weight.coverage=0.9, agecat, minyear, maxyear)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data.residual</code></td>
+<td>
+
+<p>Data frame of residuals from any regression model. It should be included age, year,location and residual variables. The corresponding numeric variable names in data set are residuals of any prediction model, year, location, and age. coverage variable is also optional for data sources and data points which are more reliable and representative.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spaceMatrix</code></td>
+<td>
+
+<p>A square matrix of location which the number of rows and columns are equal to the number of spaces. Colnames and rownames must be the ordered number of locations and match with the name of location variable in data.residual.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.time</code></td>
+<td>
+
+<p>A positive parameter which can be tuned to increase or decrease how much smoothing occurs across time. Usual range is 0.5-2.0, higher value results in less strength drawn across time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.age</code></td>
+<td>
+
+<p>A positive parameter which can be tuned to increase or decrease how much smoothing occurs across age groups. Usual range is 0.5-2.0, higher value results in less strength drawn across age.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.coverage</code></td>
+<td>
+
+<p>A parameter which can be specified to give greater weights to data sources that are more reliable. If data frame does not include coverage variable, this parameter will not be considered in AST function. This parameter assigns to data points that their corresponding coverage variable is 1. [1-weight.coverage] computes for 0 ones.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agecat</code></td>
+<td>
+
+<p>The number of age groups which were predicted. It sets to 1 when we do not have age variable in data frame.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minyear</code></td>
+<td>
+
+<p>The first year of data frame which is predicted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxyear</code></td>
+<td>
+
+<p>The last year of data frame which is predicted.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This package adjusts residuals of any prediction model like regression by time, age, and spaces. The weighted residuals then added back to predictions.
+</p>
+<p>Space matrix specifies the amount of weights in location. It should be a square matrix or data frame with equal number of rows and columns with location variable in data.residual. This data set is define by users with desirable amount of weights with adjacent locations or even how smooth they can be in far from areas. If users do not have this information, calcSpaceMat is a function in this package which builds a matrix of adjacent locations from a shapefile and give them equal weights.
+</p>
+<p>Space matrix can be handled by downloading a shapefile.  The shapefile format is a popular geospatial vector data format for geographic information system (GIS) software.The term "shapefile" is quite common, but is misleading since the format consists of a collection of files with a common filename prefix, stored in the same directory. The three mandatory files have filename extensions .shp, .shx, and .dbf. In example part, we used a package to read this file format and determine a matrix of adjacent locations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list including three parts as given by:
+</p>
+<p>1. adj.rate    a data frame that includes 5 variables: ID, time, year, locations, and adjusted
+residuals.
+</p>
+<p>2. Age_weight    matrix
+</p>
+<p>3. time_weight   matrix
+</p>
+
+
+<h3>Note</h3>
+
+<p>The age, time, and space variables should be ordered.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Parinaz Mehdipour, Ali Ghanbari
+</p>
+
+
+<h3>References</h3>
+
+<p>Foreman et al.: Modeling causes of death: an integrated approach using CODEm. Population Health Metrics 2012 10:1.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library("AST")
+
+data(data.residual.AST,package="AST")
+data.residual &lt;- data.residual.AST[data.residual.AST$sex == 0 ,]
+
+data(data.adjacent.mat,package="AST")
+spaceMat &lt;- calcSpaceMat(data.adjacent.mat,par.space=0.9)
+
+AST(data.residual=data.residual,spaceMatrix=spaceMat,par.time = 0.5,
+     par.age=1, weight.coverage=0.9, agecat=3, minyear=2000, maxyear=2005)
+
+</code></pre>
+
+
+</div>

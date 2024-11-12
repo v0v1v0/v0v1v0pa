@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alma_step</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Step relative to an rschedule</h2>
+
+<h3>Description</h3>
+
+<p><code>alma_step()</code> is useful for shifting dates by "n business days".
+</p>
+<p><code>alma_step()</code> steps over a sequence of dates 1 day at a time, for <code>n</code> days.
+After each step, an adjustment is applied to shift to the next non-event
+date.
+</p>
+
+<ul>
+<li>
+<p> If <code>n</code> is positive, <code>adj_following()</code> is called.
+</p>
+</li>
+<li>
+<p> If <code>n</code> is negative, <code>adj_preceding()</code> is called.
+</p>
+</li>
+<li>
+<p> If <code>n</code> is zero, it was arbitrarily decided to call <code>adj_following()</code> to
+roll to the next available non-event date.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">alma_step(x, n, rschedule)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[Date]⁠</code>
+</p>
+<p>A vector of dates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[integer]⁠</code>
+</p>
+<p>The number of days to step. Can be negative to step backwards.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rschedule</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[rschedule]⁠</code>
+</p>
+<p>An rschedule, such as an rrule, runion, rintersect, or rsetdiff.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Imagine you are on a Friday and want to shift forward 2 days using an
+rrule that marks weekends as events. <code>alma_step()</code> works like this:
+</p>
+
+<ul>
+<li>
+<p> Step forward 1 day to Saturday.
+</p>
+</li>
+<li>
+<p> Apply an adjustment of <code>adj_following()</code>, which rolls forward to Monday.
+</p>
+</li>
+<li>
+<p> Step forward 1 day to Tuesday.
+</p>
+</li>
+<li>
+<p> Apply an adjustment of <code>adj_following()</code>, but no adjustment is required.
+</p>
+</li>
+</ul>
+<p>This lends itself naturally to business logic. Two business days from Friday
+is Tuesday.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A Date vector the same size as <code>x</code> shifted by <code>n</code> steps.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Make a rrule for weekends
+on_weekends &lt;- weekly() %&gt;%
+  recur_on_weekends()
+
+# "Step forward by 2 business days"
+# 2019-09-13 is a Friday.
+# Here we:
+# - Step 1 day to Saturday
+# - Adjust to Monday
+# - Step 1 day to Tuesday
+alma_step("2019-09-13", 2, on_weekends)
+
+# If Monday, 2019-09-16, was a recurring holiday, we could create
+# a custom runion and step over that too.
+on_09_16 &lt;- yearly() %&gt;%
+  recur_on_month_of_year(9) %&gt;%
+  recur_on_day_of_month(16)
+
+rb &lt;- runion(on_09_16, on_weekends)
+
+alma_step("2019-09-13", 2, rb)
+</code></pre>
+
+
+</div>

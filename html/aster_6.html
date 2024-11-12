@@ -1,0 +1,518 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Fits Aster Models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aster(x, ...)
+
+## Default S3 method:
+aster(x, root, pred, fam, modmat, parm,
+    type = c("unconditional", "conditional"), famlist = fam.default(),
+    origin, origin.type = c("model.type", "unconditional", "conditional"),
+    method = c("trust", "nlm", "CG", "L-BFGS-B"), fscale, maxiter = 1000,
+    nowarn = TRUE, newton = TRUE, optout = FALSE, coef.names, ...)
+
+## S3 method for class 'formula'
+aster(formula, pred, fam, varvar, idvar, root,
+    data, parm, type = c("unconditional", "conditional"),
+    famlist = fam.default(),
+    origin, origin.type = c("model.type", "unconditional", "conditional"),
+    method = c("trust", "nlm", "CG", "L-BFGS-B"), fscale, maxiter = 1000,
+    nowarn = TRUE, newton = TRUE, optout = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an <code>nind</code> by <code>nnode</code> matrix, the data for an
+aster model.  The rows are independent and identically modeled
+random vectors.  See details below for further requirements.
+</p>
+<p><code>aster.formula</code> constructs such an <code>x</code> from the response
+in its formula.  Hence data for <code>aster.formula</code> must be a
+vector of length <code>nind * nnode</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>an object of the same shape as <code>x</code>, the root data.
+For <code>aster.default</code> an <code>nind</code> by <code>nnode</code> matrix,
+For <code>aster.formula</code> an <code>nind * nnode</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>an integer vector of length <code>nnode</code> determining
+the dependence
+graph of the aster model.  <code>pred[j]</code> is
+the index of the predecessor of
+the node with index <code>j</code> unless the predecessor is a root
+node, in which case <code>pred[j] == 0</code>.  See details below for
+further requirements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam</code></td>
+<td>
+<p>an integer vector of length <code>nnode</code> determining
+the exponential family structure of the aster model.  Each element
+is an index into the vector of family specifications given by
+the argument <code>famlist</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modmat</code></td>
+<td>
+<p>an <code>nind</code> by <code>nnode</code> by <code>ncoef</code>
+three-dimensional array, the model matrix.
+</p>
+<p><code>aster.formula</code> constructs such a <code>modmat</code> from 
+its formula, the data frame <code>data</code>, and the variables
+in the environment of the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>usually missing.  Otherwise a vector of length <code>ncoef</code>
+giving a starting point for the optimization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of model.
+The value of this argument can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>famlist</code></td>
+<td>
+<p>a list of family specifications (see <code>families</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>Distinguished point in parameter space.  May be missing,
+in which case an unspecified default is provided.  See details below
+for further explanation.  This is what <code>lm</code>,
+<code>glm</code> and other functions that do regression call
+“offset” but we don't change our name for reasons of backward
+compatibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin.type</code></td>
+<td>
+<p>Parameter space in which specified distinguished point
+is located.  If <code>"conditional"</code> then argument <code>"origin"</code> is
+a conditional canonical parameter value.
+If <code>"unconditional"</code> then argument <code>"origin"</code> is
+an unconditional canonical parameter value.
+If <code>"model.type"</code> then the type is taken from argument <code>"type"</code>.
+The value of this argument can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>optimization method.  If <code>"trust"</code> then the
+<code>trust</code> function is used.  If <code>"nlm"</code> then the
+<code>nlm</code> function is used.  Otherwise the
+<code>optim</code> function is used with the specified <code>method</code>
+supplied to it.
+The value of this argument can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fscale</code></td>
+<td>
+<p>an estimate of the size of the log likelihood at the maximum.
+Defaults to <code>nind</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations.  Defaults to '1000'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nowarn</code></td>
+<td>
+<p>if <code>TRUE</code> (the default), suppress warnings from
+the optimization routine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newton</code></td>
+<td>
+<p>if <code>TRUE</code> (the default), do one Newton iteration
+on the result produced by the optimization routine, except when
+<code>method == "trust"</code> when no such Newton iteration is done,
+regardless of the value of <code>newton</code>, because <code>trust</code>
+always terminates with a Newton iteration when it converges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optout</code></td>
+<td>
+<p>if <code>TRUE</code>, save the entire result of the optimization
+routine (<code>trust</code>, <code>nlm</code>, or <code>optim</code>,
+as the case may be).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.names</code></td>
+<td>
+<p>names of the regression coefficients.  If missing,
+<code>dimnames(modmat)[[3]]</code> is used.  In <code>aster.formula</code> these
+are produced automatically by the R formula machinery.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to the optimization method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fit.  See
+<code>lm</code>, <code>glm</code>, and 
+<code>formula</code> for discussions of the R formula mini-language.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varvar</code></td>
+<td>
+<p>a variable of the same length as the response in
+the formula that is a factor whose levels are character strings
+treated as variable names.  The number of variable names is <code>nnode</code>.
+Must be of the form <code>rep(vars, each = nind)</code> where <code>vars</code> is
+a vector of variable names.  Usually found in the data frame <code>data</code>
+when this is produced by the <code>reshape</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idvar</code></td>
+<td>
+<p>a variable of the same length as the response in
+the formula that indexes individuals.  The number
+of individuals is <code>nind</code>.
+Must be of the form <code>rep(inds, times = nnode)</code> where <code>inds</code> is
+a vector of labels for individuals.  Usually found in the data frame
+<code>data</code> when this is produced by the <code>reshape</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame containing the variables
+in the model.  If not found in <code>data</code>, the variables are taken
+from <code>environment(formula)</code>, typically the environment from
+which <code>aster</code> is called.  Usually produced by
+the <code>reshape</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The vector <code>pred</code> must satisfy <code>all(pred &lt; seq(along = pred))</code>,
+that is, each predecessor must precede in the order given in <code>pred</code>.
+The vector <code>pred</code> defines a function <code class="reqn">p</code>.
+</p>
+<p>The joint distribution of the data matrix <code>x</code> is a product of conditionals
+</p>
+<p style="text-align: center;"><code class="reqn">\prod_{i \in I} \prod_{j \in J} \Pr \{ X_{i j} | X_{i p(j)} \}</code>
+</p>
+
+<p>When <code class="reqn">p(j) = 0</code>, the notation <code class="reqn">X_{i p(j)}</code>
+means <code>root[i, j]</code>.  Other elements of the matrix <code>root</code> are
+not used.
+</p>
+<p>The conditional distribution
+<code class="reqn">\Pr \{ X_{i j} | X_{i p(j)} \}</code>
+is the <code class="reqn">X_{i p(j)}</code>-fold convolution of the <code class="reqn">j</code>-th family
+in the vector <code>fam</code>, a one-parameter exponential family
+(i.e., the sum of <code class="reqn">X_{i p(j)}</code> i.i.d. terms having
+this one-parameter exponential family distribution).
+</p>
+<p>For <code>type == "conditional"</code> the canonical parameter vector
+<code class="reqn">\theta_{i j}</code> is modeled in GLM fashion as
+<code class="reqn">\theta = a + M \beta</code> where <code class="reqn">M</code> is the model
+matrix <code>modmat</code> and <code class="reqn">a</code> is the distinguished point <code>origin</code>.
+Since the “vector” <code class="reqn">\theta</code> is
+actually a matrix, the “matrix” <code class="reqn">M</code> must correspondingly
+be a three-dimensional array.  So <code class="reqn">\theta = a + M \beta</code>
+written out in full is
+</p>
+<p style="text-align: center;"><code class="reqn">\theta_{i j} = a_{i j} + \sum_{k \in K} m_{i j k} \beta_k</code>
+</p>
+
+<p>This specifies the log likelihood.
+</p>
+<p>For <code>type == "unconditional"</code> the canonical parameter vector
+for an unconditional model is modeled in GLM fashion as
+<code class="reqn">\varphi = a + M \beta</code> (where the notation is as above).
+The unconditional canonical parameters are then specified in terms of
+the conditional ones by
+</p>
+<p style="text-align: center;"><code class="reqn">\varphi_{i j} = \theta_{i j} - \sum_{k \in S(j)} \psi_k(\theta_{i k})</code>
+</p>
+
+<p>where <code class="reqn">S(j)</code> denotes the set of successors of <code class="reqn">j</code>,
+the <code class="reqn">k</code> such that <code class="reqn">p(k) = j</code>, and <code class="reqn">\psi_k</code> is the
+cumulant function for the <code class="reqn">k</code>-th exponential family.
+This rather crazy looking formulation is an invertible change of parameter
+and makes <code class="reqn">\varphi</code>
+the canonical parameter and <code class="reqn">x</code> the canonical statistic of a full
+flat unconditional exponential family.
+Again, this specifies the log likelihood.
+</p>
+<p>In versions of aster prior to version 0.6 there was no <code class="reqn">a</code> in the model
+specification, which is the same as specifying <code class="reqn">a = 0</code> in the current
+specification.  If <code class="reqn">a</code> is in the column space of the model matrix, that
+is, if there exists an <code class="reqn">\alpha</code>
+such that <code class="reqn">a = M \alpha</code>, then there is no difference
+in the model specified with <code class="reqn">a</code> and the one with <code class="reqn">a = 0</code>.
+The maximum likelihood regression coefficients <code class="reqn">\hat{\beta}</code>
+will be different, but the maximum likelihood estimates of all other
+parameters (conditional and unconditional, canonical and mean value)
+will be the same.  This is the usual case and explains why “linear”
+models (with <code class="reqn">a = 0</code>) as opposed to “affine” models
+(with general <code class="reqn">a</code>)
+are popular.  In the unusual case where <code class="reqn">a</code> is not in the column space
+of the design matrix, then affine models are a generalization of linear
+models: the two are not equivalent, their maximum likelihood estimates are
+not the same in any parameterization.
+</p>
+<p>In order to use the R model formula mini-language we must flatten
+the dimensionality, making the model matrix <code>modmat</code> two-dimensional
+(a true matrix).  This must be done as if by
+<code>matrix(modmat, ncol = ncoef)</code>,
+which imposes the requirements on <code>varvar</code> and <code>idvar</code>
+given in the arguments section: they must look like <code>row(x)</code> and
+<code>col(x)</code> modulo relabeling.
+Then <code>x</code> and <code>root</code>
+become one-dimensional, done as if by <code>as.numeric(x)</code>
+and <code>as.numeric(root)</code>.
+</p>
+<p>The standard way to do this in R is to use the <code>reshape</code>
+function on a data frame in which the columns of the <code>x</code> matrix
+are variables in the data frame.  <code>reshape</code> automatically puts
+things in the right order and creates <code>varvar</code> and <code>idvar</code>.
+This is shown in the examples section below and in the package vignette
+titled "Aster Package Tutorial".
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>aster</code> returns an object of class inheriting from <code>"aster"</code>.
+<code>aster.formula</code>, returns an object of class <code>"aster"</code> and
+subclass <code>"aster.formula"</code>.
+</p>
+<p>The function <code>summary</code> (i.e., <code>summary.aster</code>) can
+be used to obtain or print a summary of the results, the function
+<code>anova</code> (i.e., <code>anova.aster</code>)
+to produce an analysis of deviance table, and the function
+<code>predict</code> (i.e., <code>predict.aster</code>)
+to produce predicted values and standard errors.
+</p>
+<p>An object of class <code>"aster"</code> is a list containing at least the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>a named vector of coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>the numeric rank of the fitted generalized linear model
+part of the aster model (i.e., the rank of <code>modmat</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deviance</code></td>
+<td>
+<p>up to a constant, minus twice the maximized
+log-likelihood.  (Note the minus.  This is somewhat counterintuitive,
+but cannot be changed for reasons of backward compatibility.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>the number of iterations used by the optimization method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>logical. Was the optimization algorithm judged to have
+converged?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>integer.  The convergence code returned by the optimization
+method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>The gradient vector of minus the log likelihood at the
+fitted <code>coefficients</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>The Hessian matrix of minus the log likelihood
+(i.e., the observed Fisher information) at the
+fitted <code>coefficients</code> vector.
+This is also the expected Fisher information when
+<code>type == "unconditional"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fisher</code></td>
+<td>
+<p>Expected Fisher information at the fitted <code>coefficients</code>
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optout</code></td>
+<td>
+<p>The object returned by the optimization routine
+(<code>trust</code>, <code>nlm</code>, or <code>optim</code>).
+Only returned when the argument <code>optout</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<p>Calls to <code>aster.formula</code> return a list also containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>the formula supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>the <code>terms</code> object used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the <code>data argument</code>.</p>
+</td>
+</tr>
+</table>
+<h3>NA Values</h3>
+
+<p>It was almost always wrong for aster model data to have <code>NA</code> values.
+Although theoretically possible for the R formula mini-language to do the
+right thing for an aster model with <code>NA</code> values in the data, usually
+it does some wrong thing.  Thus, since version 0.8-20, this function and
+the <code>reaster</code> function give errors when used with data having
+<code>NA</code> values.  Users must remove all <code>NA</code> values (or replace them
+with what they should be, perhaps zero values) “by hand”.
+</p>
+
+
+<h3>Directions of Recession</h3>
+
+<p>Even if the result of this function
+has component <code>converges</code> equal to <code>TRUE</code>, the result will be
+nonsense if there are one or more directions of recession.  These are
+not detected by this function, but rather by the <code>summary</code> function
+applied to the result of this function,
+for which see <code>summary.aster</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Geyer, C. J., Wagenius, S., and Shaw, R. G. (2007)
+Aster Models for Life History Analysis.
+<em>Biometrika</em>, <b>94</b>, 415–426.
+<a href="https://doi.org/10.1093/biomet/asm030">doi:10.1093/biomet/asm030</a>.
+</p>
+<p>Shaw, R. G., Geyer, C. J., Wagenius, S., Hangelbroek, H. H., and
+Etterson, J. R. (2008)
+Unifying Life History Analysis for Inference of Fitness
+and population growth.
+<em>American Naturalist</em>, <b>172</b>, E35–E47.
+<a href="https://doi.org/10.1086/588063">doi:10.1086/588063</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>anova.aster</code>,
+<code>summary.aster</code>,
+and
+<code>predict.aster</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### see package vignette for explanation ###
+library(aster)
+data(echinacea)
+vars &lt;- c("ld02", "ld03", "ld04", "fl02", "fl03", "fl04",
+    "hdct02", "hdct03", "hdct04")
+redata &lt;- reshape(echinacea, varying = list(vars), direction = "long",
+    timevar = "varb", times = as.factor(vars), v.names = "resp")
+redata &lt;- data.frame(redata, root = 1)
+pred &lt;- c(0, 1, 2, 1, 2, 3, 4, 5, 6)
+fam &lt;- c(1, 1, 1, 1, 1, 1, 3, 3, 3)
+hdct &lt;- grepl("hdct", as.character(redata$varb))
+redata &lt;- data.frame(redata, hdct = as.integer(hdct))
+level &lt;- gsub("[0-9]", "", as.character(redata$varb))
+redata &lt;- data.frame(redata, level = as.factor(level))
+aout &lt;- aster(resp ~ varb + level : (nsloc + ewloc) + hdct : pop,
+    pred, fam, varb, id, root, data = redata)
+summary(aout, show.graph = TRUE)
+</code></pre>
+
+
+</div>

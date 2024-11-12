@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>edit_apsim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Edit an APSIM (Classic) Simulation</h2>
+
+<h3>Description</h3>
+
+<p>This function allows editing of an APSIM (Classic) simulation file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">edit_apsim(
+  file,
+  src.dir = ".",
+  wrt.dir = NULL,
+  node = c("Clock", "Weather", "Soil", "SurfaceOrganicMatter", "MicroClimate", "Crop",
+    "Manager", "Outputfile", "Other"),
+  soil.child = c("Metadata", "Water", "Physical", "OrganicMatter", "Chemical",
+    "Analysis", "InitialWater", "Sample", "SWIM"),
+  manager.child = NULL,
+  parm = NULL,
+  value = NULL,
+  overwrite = FALSE,
+  edit.tag = "-edited",
+  parm.path = NULL,
+  root,
+  verbose = TRUE,
+  check.length = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file ending in .apsim to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src.dir</code></td>
+<td>
+<p>directory containing the .apsim file to be edited; defaults to the current working directory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wrt.dir</code></td>
+<td>
+<p>should be used if the destination directory is different from the src.dir</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>either ‘Clock’, ‘Weather’, ‘Soil’, 
+‘SurfaceOrganicMatter’, ‘MicroClimate’, ‘Crop’, ‘Manager’, ‘Outputfile’ or ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.child</code></td>
+<td>
+<p>specific soil component to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>manager.child</code></td>
+<td>
+<p>specific manager component to be edited (not implemented yet)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>parameter to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>new values for the parameter to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the old file is overwritten, a new file is written otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edit.tag</code></td>
+<td>
+<p>if the file is edited a different tag from the default ‘-edited’ can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm.path</code></td>
+<td>
+<p>path to the attribute to edit when node is ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>supply the node postion in the case of multiple simulations such as factorials.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to print information about successful edit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.length</code></td>
+<td>
+<p>check whether vectors are of the correct length</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The variables specified by <code>parm</code> within the .apsim file specified by <code>file</code> 
+in the source directory <code>src.dir</code> are edited. The old values are replaced with <code>value</code>, which
+is a list that has the same number of elements as the length of the vector <code>parm</code>.  The current
+.apsim file will be overwritten if <code>overwrite</code> is set to <code>TRUE</code>; otherwise the file
+‘file’ <em>-edited.apsim</em> will be created.  If (verbose = TRUE) then the name
+of the written file is returned. 
+</p>
+<p>When node equals Outputfile, the editing allows to add variables, but not to remove them at the moment.
+</p>
+
+
+<h3>Value</h3>
+
+<p>(when verbose=TRUE) complete file path to edited .apsimx file is returned as a character string.
+As a side effect this function creates a new (XML) .apsimx file.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The components that can be edited are restricted becuase this is better in preventing
+errors of editing unintended parts of the file. The disadvantage is that there is less flexibility
+compared to the similar function in the 'apsimr' package.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## This example will read one of the examples distributed with APSIM
+## but write to a temporary directory
+
+tmp.dir &lt;- tempdir()
+
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+edit_apsim("Millet", src.dir = extd.dir, wrt.dir = tmp.dir, 
+           node = "Clock",
+           parm = "start_date", value = "01/02/1940")
+
+## Editing all of the KL values for Millet
+pp.KL &lt;- inspect_apsim_xml("Millet.apsim", src.dir = extd.dir, 
+                  parm = "SoilCrop[8]/KL")
+                 
+kls &lt;- seq(0.08, 0.2, length.out = 11)
+
+edit_apsim("Millet.apsim", 
+           src.dir = extd.dir,
+           wrt.dir = tmp.dir,
+           node = "Other", 
+           parm.path = pp.KL,
+           value = kls)
+           
+## Check that it was properly edited
+
+inspect_apsim("Millet-edited.apsim", 
+              src.dir = tmp.dir,
+              node = "Soil",
+              soil.child = "Water",
+              parm = "KL")
+
+              
+
+
+</code></pre>
+
+
+</div>

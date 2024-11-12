@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_rcov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract Residual Variance-Covariance from ASReml-R</h2>
+
+<h3>Description</h3>
+
+<p>This function is specially useful when running repeated measurements models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_rcov(model = NULL, time = "Time", plot = "Plot", vc_error = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>An asreml object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>A character string indicating the "Time"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A character string indicating the "PlotID"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vc_error</code></td>
+<td>
+<p>An optional character string indicating the variance covariance.
+Can be "corv", "us", "expv", "exph", "ar1v", "ar1h" or "ante". By using NULL
+the function tries to guess which was the variance-covariance used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object with a list of:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>corr_mat</code></td>
+<td>
+<p>A matrix with the residual correlation between time points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov_mat</code></td>
+<td>
+<p>A matrix of the estimated residual variance-covariance between time points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vc</code></td>
+<td>
+<p>A character string indicating the variance-covariance fitted.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(ggpubr)
+library(agriutilities)
+library(tidyverse)
+library(asreml)
+
+head(grassUV)
+str(grassUV)
+
+# Exploration -------------------------------------------------------------
+
+grassUV %&gt;%
+  ggplot(
+    aes(x = Time, y = y, group = Plant, color = Plant)
+  ) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~Tmt) +
+  theme_minimal(base_size = 15)
+
+tmp &lt;- grassUV %&gt;%
+  group_by(Time, Plant) %&gt;%
+  summarise(mean = mean(y, na.rm = TRUE)) %&gt;%
+  spread(Time, mean) %&gt;%
+  column_to_rownames("Plant")
+
+gg_cor(tmp, label_size = 5)
+
+tmp %&gt;%
+  cor(use = "pairwise.complete.obs") %&gt;%
+  as.data.frame() %&gt;%
+  rownames_to_column(var = "Time") %&gt;%
+  gather("DAP2", "corr", -1) %&gt;%
+  type.convert(as.is = FALSE) %&gt;%
+  mutate(corr = ifelse(Time &lt; DAP2, NA, corr)) %&gt;%
+  mutate(DAP2 = as.factor(DAP2)) %&gt;%
+  ggplot(
+    aes(x = Time, y = corr, group = DAP2, color = DAP2)
+  ) +
+  geom_point() +
+  geom_line() +
+  theme_minimal(base_size = 15) +
+  color_palette(palette = "jco") +
+  labs(color = "Time", y = "Pearson Correlation")
+
+# Modeling ----------------------------------------------------------------
+
+# Identity variance model.
+model_0 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):idv(Time),
+  data = grassUV
+)
+
+# Simple correlation model; homogeneous variance form.
+model_1 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):corv(Time),
+  data = grassUV
+)
+
+# Exponential (or power) model; homogeneous variance form.
+model_2 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):expv(Time),
+  data = grassUV
+)
+
+# Exponential (or power) model; heterogeneous variance form.
+model_3 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):exph(Time),
+  data = grassUV
+)
+
+# Antedependence variance model of order 1
+model_4 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):ante(Time),
+  data = grassUV
+)
+
+# Autoregressive model of order 1; homogeneous variance form.
+model_5 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):ar1v(Time),
+  data = grassUV
+)
+
+# Autoregressive model of order 1; heterogeneous variance form.
+model_6 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):ar1h(Time),
+  data = grassUV
+)
+
+# Unstructured variance model.
+model_7 &lt;- asreml(
+  fixed = y ~ Time + Tmt + Tmt:Time,
+  residual = ~ id(Plant):us(Time),
+  data = grassUV
+)
+
+# Model Comparison --------------------------------------------------------
+
+models &lt;- list(
+  "id" = model_0,
+  "cor" = model_1,
+  "exp" = model_2,
+  "exph" = model_3,
+  "ante" = model_4,
+  "ar1" = model_5,
+  "ar1h" = model_6,
+  "us" = model_7
+)
+
+summary_models &lt;- data.frame(
+  model = names(models),
+  aic = unlist(lapply(models, function(x) summary(x)$aic)),
+  bic = unlist(lapply(models, function(x) summary(x)$bic)),
+  loglik = unlist(lapply(models, function(x) summary(x)$loglik)),
+  nedf = unlist(lapply(models, function(x) summary(x)$nedf)),
+  param = unlist(lapply(models, function(x) attr(summary(x)$aic, "param"))),
+  row.names = NULL
+)
+
+summary_models %&gt;%
+  ggplot(
+    aes(x = reorder(model, -bic), y = bic, group = 1)
+  ) +
+  geom_point(size = 2) +
+  geom_text(aes(x = model, y = bic + 5, label = param)) +
+  geom_line() +
+  theme_minimal(base_size = 15) +
+  labs(x = NULL)
+
+# Extracting Variance Covariance Matrix -----------------------------------
+
+covcor_heat(
+  matrix = extract_rcov(model_1, time = "Time", plot = "Plant")$corr,
+  legend = "none",
+  size = 5
+) + ggtitle(label = "Uniform Correlation (corv)")
+covcor_heat(
+  matrix = extract_rcov(model_2, time = "Time", plot = "Plant")$corr,
+  legend = "none",
+  size = 5
+) + ggtitle(label = "Exponetial (expv)")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

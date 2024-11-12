@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>celToApd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generates an APD file from an Affymetrix CEL file</h2>
+
+<h3>Description</h3>
+
+<p>Generates an APD file from an Affymetrix CEL file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+celToApd(filename, apdFile=NULL, mapType="asChipType", writeMap=NULL, ..., verbose=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>The pathname of the CEL file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apdFile</code></td>
+<td>
+<p>An optional pathname of the APD file, otherwise
+it will be the same as the CEL file with extension replaced
+with 'apd'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapType</code></td>
+<td>
+<p>The type of read map for the generated APD file.
+If <code>NULL</code>, no remapping of the cell indices is done.
+If <code>"asChipType"</code>, the map type is the same as the chip type
+of the CEL file.
+If any other <code>character</code> string, it sets the map type to that string.
+Note that there must be a APD map file with this type that can
+be found by <code>findApdMap</code>().
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>writeMap</code></td>
+<td>
+<p>An optional <em>write</em> map <code>integer</code> <code>vector</code> used
+to remap the cell indices for optimal reading speed.  If <code>NULL</code>,
+the write map may be obtained from the read map file specified by
+the <code>mapType</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>writeApd</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A <code>Verbose</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns (invisibly) the pathname of the written APD file.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Henrik Bengtsson</p>
+
+
+<h3>See Also</h3>
+
+<p>To create an APD map file from a CDF file, see <code>cdfToApdMap</code>().
+To read an APD file, see <code>readApd</code>().
+To read an APD map file, see <code>readApdMap</code>().
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library("R.utils")  ## Arguments
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 1. Scan for existing CEL files
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# a) Scan for CEL files
+files &lt;- list.files(pattern="[.](cel|CEL)$")
+files &lt;- files[!file.info(files)$isdir]
+if (length(files) &gt; 0 &amp;&amp; require("affxparser")) {
+  cat("Create an optimal read map for CEL file:", files[1], "\n")
+  cdffile &lt;- findCdf(readCelHeader(files[1])$chiptype)
+  res &lt;- cdfToApdMap(cdffile)
+ 
+  cat("Converting CEL file to APD file:", files[1], "\n")
+  apdfile &lt;- celToApd(files[1])
+  cat("Created APD file:", apdfile, "\n")
+  file.remove(apdfile)
+ 
+  cat("Converting CEL file to APD file with an optimized read map:", files[1], "\n")
+  apdfile &lt;- celToApd(files[1], mapType=res$mapType)
+  cat("Created APD file:", apdfile, "\n")
+ 
+  writeMap &lt;- invertMap(res$readMap)
+  for (file in files[-1]) {
+    cat("Converting CEL file to APD file with an optimized read map:", file, "\n")
+    apdfile &lt;- celToApd(file, mapType=res$mapType, writeMap=writeMap)
+    cat("Created APD file:", apdfile, "\n")
+  }
+} # if (length(files) &gt; 0)
+</code></pre>
+
+
+</div>

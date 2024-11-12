@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>argo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Construct ARGO object</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper for ARGO. The real work horse is glmnet package and/or linear model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">argo(
+  data,
+  exogen = xts::xts(NULL),
+  N_lag = 1:52,
+  N_training = 104,
+  alpha = 1,
+  use_all_previous = FALSE,
+  mc.cores = 1,
+  schedule = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>response variable as xts, last element can be NA. If the response
+is later revised, it should be an xts that resembles upper triangular square
+matrix, with each column being the data available as of date of column name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exogen</code></td>
+<td>
+<p>exogenous predictors, default is NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N_lag</code></td>
+<td>
+<p>vector of the AR model lags used,
+if NULL then no AR lags will be used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N_training</code></td>
+<td>
+<p>number of training points, if <code>use_all_previous</code> is true,
+this is the least number of training points required</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>penalty between lasso and ridge, alpha=1 represents lasso,
+alpha=0 represents ridge, alpha=NA represents no penalty</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_all_previous</code></td>
+<td>
+<p>boolean variable indicating whether to use "all available data"
+(when <code>TRUE</code>) or "a sliding window" (when <code>FALSE</code>) for training</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>number of cores to compute argo in parallel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>schedule</code></td>
+<td>
+<p>list to specify prediction schedule. Default to have <code>y_gap</code> as 1, and <code>forecast</code> as 0, 
+i.e., nowcasting with past week ILI available from CDC.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function takes the time series and exogenous variables (optional) as
+input, and produces out-of-sample prediction for each time point.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of following named objects
+</p>
+
+<ul>
+<li> <p><code>pred</code> An xts object with the same index as input,
+which contains historical nowcast estimation
+</p>
+</li>
+<li> <p><code>coef</code> A matrix contains historical coefficient values of the predictors.
+</p>
+</li>
+<li> <p><code>parm</code> Parameter values passed to argo function.
+</p>
+</li>
+<li> <p><code>penalfac</code> the value of lambda ratio selected by cross-validation,
+NULL if <code>lamid</code> is NULL or has only one level.
+</p>
+</li>
+<li> <p><code>penalregion</code> the lambda ratios that has a cross validation error
+within one standard error of minimum cross validation error
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Yang, S., Santillana, M., &amp; Kou, S. C. (2015). Accurate estimation of influenza epidemics using Google search data via ARGO. Proceedings of the National Academy of Sciences. &lt;doi:10.1073/pnas.1515373112&gt;.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">GFT_xts &lt;- xts::xts(exp(matrix(rnorm(180), ncol=1)), order.by = Sys.Date() - (180:1))
+randomx &lt;- xts::xts(exp(matrix(rnorm(180*100), ncol=100)), order.by = Sys.Date() - (180:1))
+
+argo_result1 &lt;- argo(GFT_xts)
+argo_result2 &lt;- argo(GFT_xts, exogen = randomx)
+
+</code></pre>
+
+
+</div>

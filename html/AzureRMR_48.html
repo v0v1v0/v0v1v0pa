@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rbac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Role-based access control (RBAC)</h2>
+
+<h3>Description</h3>
+
+<p>Basic methods for RBAC: manage role assignments and retrieve role definitions. These are methods for the <code>az_subscription</code>, <code>az_resource_group</code> and <code>az_resource</code> classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<div class="sourceCode"><pre>add_role_assignment(principal, role, scope = NULL)
+
+get_role_assignment(id)
+
+remove_role_assignment(id, confirm = TRUE)
+
+list_role_assignments(filter = "atScope()", as_data_frame = TRUE)
+
+get_role_definition(id)
+
+list_role_definitions(filter=NULL, as_data_frame = TRUE)
+</pre></div>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>principal</code>: For <code>add_role_assignment</code>, the principal for which to assign a role. This can be a GUID, or an object of class <code>az_user</code>, <code>az_app</code> or <code>az_storage_principal</code> (from the AzureGraph package).
+</p>
+</li>
+<li> <p><code>role</code>: For <code>add_role_assignment</code>, the role to assign the principal. This can be a GUID, a string giving the role name (eg "Contributor"), or an object of class <code style="white-space: pre;">⁠[az_role_definition]⁠</code>.
+</p>
+</li>
+<li> <p><code>scope</code>: For <code>add_role_assignment</code>, an optional scope for the assignment.
+</p>
+</li>
+<li> <p><code>id</code>: A role ID. For <code>get_role_assignment</code> and <code>remove_role_assignment</code>, this is a role assignment GUID. For <code>get_role_definition</code>, this can be a role definition GUID or a role name.
+</p>
+</li>
+<li> <p><code>confirm</code>: For <code>remove_role_assignment</code>, whether to ask for confirmation before removing the role assignment.
+</p>
+</li>
+<li> <p><code>filter</code>: For <code>list_role_assignments</code> and <code>list_role_definitions</code>, an optional filter condition to limit the returned roles.
+</p>
+</li>
+<li> <p><code>as_data_frame</code>: For <code>list_role_assignments</code> and <code>list_role_definitions</code>, whether to return a data frame or a list of objects. See 'Value' below.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>AzureRMR implements a subset of the full RBAC functionality within Azure Active Directory. You can retrieve role definitions and add and remove role assignments, at the subscription, resource group and resource levels.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>add_role_assignment</code> and <code>get_role_assignment</code> methods return an object of class <code>az_role_assignment</code>. This is a simple R6 class, with one method: <code>remove</code> to remove the assignment.
+</p>
+<p>The <code>list_role_assignments</code> method returns a list of <code>az_role_assignment</code> objects if the <code>as_data_frame</code> argument is FALSE. If this is TRUE, it instead returns a data frame containing the most broadly useful fields for each assigned role: the role assignment ID, the principal, and the role name.
+</p>
+<p>The <code>get_role_definition</code> method returns an object of class <code>az_role_definition</code>. This is a plain-old-data R6 class (no methods), which can be used as input for creating role assignments (see the examples below).
+</p>
+<p>The <code>list_role_definitions</code> method returns a list of <code>az_role_definition</code> if the <code>as_data_frame</code> argument is FALSE. If this is TRUE, it instead returns a data frame containing the most broadly useful fields for each role definition: the definition ID and role name.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>az_rm, az_role_definition, az_role_assignment
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview">Overview of role-based access control</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+az &lt;- get_azure_login("myaadtenant")
+sub &lt;- az$get_subscription("subscription_id")
+rg &lt;- sub$get_resource_group("rgname")
+res &lt;- rg$get_resource(type="provider_type", name="resname")
+
+sub$list_role_definitions()
+sub$list_role_assignments()
+sub$get_role_definition("Contributor")
+
+# get an app using the AzureGraph package
+app &lt;- get_graph_login("myaadtenant")$get_app("app_id")
+
+# subscription level
+asn1 &lt;- sub$add_role_assignment(app, "Reader")
+
+# resource group level
+asn2 &lt;- rg$add_role_assignment(app, "Contributor")
+
+# resource level
+asn3 &lt;- res$add_role_assignment(app, "Owner")
+
+res$remove_role_assignment(asn3$id)
+rg$remove_role_assignment(asn2$id)
+sub$remove_role_assignment(asn1$id)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Search for the Best Model and Hyperparameters</h2>
+
+<h3>Description</h3>
+
+<p>It will search for the best model and hyperparameters based on the
+performances on validation data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'AutokerasModel'
+fit(
+  object,
+  x = NULL,
+  y = NULL,
+  epochs = 1000,
+  callbacks = NULL,
+  validation_split = 0.2,
+  validation_data = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>: An AutokerasModel instance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>: Training data x. Check corresponding AutokerasModel help to note
+how it should be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>: Training data y. Check corresponding AutokerasModel help to note
+how it should be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochs</code></td>
+<td>
+<p>: numeric. The number of epochs to train each model during the
+search. If unspecified, by default we train for a maximum of '1000' epochs,
+but we stop training if the validation loss stops improving for 10 epochs
+(unless you specified an EarlyStopping callback as part of the 'callbacks'
+argument, in which case the EarlyStopping callback you specified will
+determine early stopping).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>callbacks</code></td>
+<td>
+<p>: list of Keras callbacks to apply during training and
+validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validation_split</code></td>
+<td>
+<p>: numeric between 0 and 1. Defaults to '0.2'.
+Fraction of the training data to be used as validation data. The model will
+set apart this fraction of the training data, will not train on it, and
+will evaluate the loss and any model metrics on this data at the end of
+each epoch. The validation data is selected from the last samples in the
+'x' and 'y' data provided, before shuffling. This argument is not supported
+when 'x' is a dataset. The best model found would be fit on the entire
+dataset including the validation data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validation_data</code></td>
+<td>
+<p>: Data on which to evaluate the loss and any model
+metrics at the end of each epoch. The model will not be trained on this
+data. 'validation_data' will override 'validation_split'. The type of the
+validation data should be the same as the training data. The best model
+found would be fit on the training dataset without the validation data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>: Unused.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A trained AutokerasModel.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library("keras")
+
+# use the MNIST dataset as an example
+mnist &lt;- dataset_mnist()
+c(x_train, y_train) %&lt;-% mnist$train
+c(x_test, y_test) %&lt;-% mnist$test
+
+library("autokeras")
+
+# Initialize the image classifier
+clf &lt;- model_image_classifier(max_trials = 10) %&gt;% # It tries 10 different models
+  fit(x_train, y_train) # Feed the image classifier with training data
+
+# If you want to use own valitadion data do:
+clf &lt;- model_image_classifier(max_trials = 10) %&gt;%
+  fit(
+    x_train,
+    y_train,
+    validation_data = list(x_test, y_test)
+  )
+
+# Predict with the best model
+(predicted_y &lt;- clf %&gt;% predict(x_test))
+
+# Evaluate the best model with testing data
+clf %&gt;% evaluate(x_test, y_test)
+
+# Get the best trained Keras model, to work with the keras R library
+export_model(clf)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

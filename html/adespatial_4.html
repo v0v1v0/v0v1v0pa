@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aem.weight.edges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weight edges when constructing AEM variables</h2>
+
+<h3>Description</h3>
+
+<p>These functions construct a vector of weights that can be
+associated to the edges of the connexion diagram used as a basis to build
+AEM eigenfunctions. <code>aem.weight.edges</code> is general and can be used for 1 or
+2 dimensional problems. <code>aem.weight.time</code> is meant to be used only for time
+series. It is a wrapper for <code>aem.weight.edges</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aem.weight.edges(
+  nb.object,
+  coords,
+  distmat = NULL,
+  alpha = 2,
+  beta = NULL,
+  max.d = NULL,
+  unit.angle = "degrees",
+  rot.angle = 0,
+  rm.same.y = TRUE,
+  plot.connexions = TRUE
+)
+
+aem.weight.time(
+  dates,
+  distmat = NULL,
+  alpha = 2,
+  beta = NULL,
+  max.d = NULL,
+  unit.angle = "degrees",
+  rot.angle = 0,
+  rm.same.y = TRUE,
+  plot.connexions = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nb.object</code></td>
+<td>
+<p>Object with class 'nb', computed by the spdep package,
+containing a list of neighbours for each sampling unit (site or time).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coords</code></td>
+<td>
+<p>A three-column matrix or data frame. Column 1: identifiers of
+the points (must be numeric). Columns 2 and 3: the X and Y coordinates of
+the points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distmat</code></td>
+<td>
+<p>Class 'matrix' or 'dist' object containing a dissimilarity or
+distance matrix. (See details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Numeric. Exponent of the first weighting function. (See details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Numeric. Exponent of the second weighting function. (See details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.d</code></td>
+<td>
+<p>Numeric. Maximum distance for weighting. Default value if
+max.d=NULL: the maximum distance among a set of sites divided by 2 or the
+full span of a time series divided by 2 (not recommended in most problems,
+see details). A warning is given if <code>max.d = NULL</code> and the default
+value is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit.angle</code></td>
+<td>
+<p>Character. The measurement units in which the angle is
+defined: either "degrees" (default) or "radians".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rot.angle</code></td>
+<td>
+<p>Numeric. Angle of the vector describing the process
+influencing the sites. This argument generates a rotation of the site
+coordinates. The set of coordinates is rotated counterclockwise. Negative
+values will produce a clockwise rotation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm.same.y</code></td>
+<td>
+<p>Logical (<code>TRUE</code>, <code>FALSE</code>). Determines if the links
+perpendicular to the gradient should be removed. Default value: <code>TRUE</code>.
+If these links have already been removed, this argument put to <code>TRUE</code>
+will make the function crash. See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.connexions</code></td>
+<td>
+<p>Logical (<code>TRUE</code>, <code>FALSE</code>). Determines if the
+sites and the associated connexion diagram should be plotted after rotation
+of the coordinates by <code>gradient.angle</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>A vector of dates, class 'numeric' or 'Date'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions should be used in close relationship with
+<code>aem.build.binary</code>, consequently many of the arguments in this
+function and in <code>aem.build.binary</code> are the same.
+</p>
+<p>The argument <code>distmat</code> may contain general forms of dissimilarity, for
+example the difficulty of transfer of individuals, matter or energy among the
+sampling units through space or time.
+</p>
+<p>In <code>aem.weight.edges</code>, two weighting functions, described in Legendre and
+Legendre (2012, eqs. 114.3 and 14.4) have been implemented, where <code class="reqn">d_{ij}</code>
+is the distance between sites <code class="reqn">i</code> and <code class="reqn">j</code>:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;"> <code>Weighting function 1:</code> </td>
+<td style="text-align: left;"> <code class="reqn">1 -
+(d_{ij}/max(d))^\alpha</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;"> <code>Weighting
+function 2:</code> </td>
+<td style="text-align: left;"> <code class="reqn">1/d_{ij}^\beta</code> </td>
+</tr>
+</table>
+<p>Also note that if a value is provided for <code>beta</code> (that is, if it is not
+<code>NULL</code>), weighting function 2 is used regardless of whether <code>alpha</code>
+is defined or not.
+</p>
+<p>In most applications, the default value of <code>max.d</code> is not optimal. A more
+meaningful solution in many applications is to compute a Moran's I correlogram
+(for univariate data) or a Mantel correlogram (for multivariate data), and
+provide the distance where the correlation becomes 0 as the value for max.d.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of weights associating a value to each edge of the graph.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>aem.weight.time()</code>: 
+</p>
+</li></ul>
+<h3>Author(s)</h3>
+
+<p>Olivier Gauthier, Pierre Legendre and F. Guillaume Blanchet
+</p>
+
+
+<h3>References</h3>
+
+<p>Legendre, P. and L. Legendre (2012) <em>Numerical Ecology</em>, 3rd English
+edition. Elsevier Science BV, Amsterdam.
+</p>
+<p>Legendre, P. and O. Gauthier (2014) Statistical methods for temporal and
+space-time analysis of community composition data. <em>Proceedings of the
+Royal Society B - Biological Sciences</em>, 281, 20132728.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aem.build.binary</code>, <code>sp.correlogram</code>,
+<code>mantel.correlog</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### Time serie example
+### Example - 12 dates (days from January 1st of year 1) 
+### in a 6-year study starting September 5, 2000
+if(require("spdep", quietly = TRUE)){
+dates &lt;- as.Date(c(129,269,500,631,864,976,1228,1352,1606,1730,1957,2087),origin="2000/1/1")
+autocor.limit &lt;- 522  # Limit of autcorrelation in the correlogram
+
+### Using aem.weight.time()
+(wtime &lt;- aem.weight.time(dates, alpha=2, max.d=autocor.limit))
+### Using aem.weight.edges()
+n &lt;- length(dates)
+nb &lt;- cell2nb(1, n)
+xy.dates &lt;- cbind(1:n, rep(1, n), dates)
+(wtime &lt;- aem.weight.edges(nb, xy.dates, alpha=2, max.d=autocor.limit))
+
+n &lt;- length(dates)
+nb &lt;- cell2nb(1, n)
+xy.dates &lt;- cbind(1:n, dates, rep(1, n)) ## Note the inversion of 'dates' and 'rep(1,n)'
+wtime &lt;- aem.weight.edges(nb, xy.dates, alpha=2, 
+max.d=autocor.limit,rot.angle=90) # Note that 'rot.angle=90' was used
+
+### Spatial example using default d.max (notice the warning)
+###########################################################################
+nb&lt;-cell2nb(5,5,"queen")
+xy &lt;- cbind(1:25,expand.grid(1:5,1:5))
+(wspace &lt;- aem.weight.edges(nb,xy))
+}
+
+</code></pre>
+
+
+</div>

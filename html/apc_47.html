@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>data.aids</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>UK aids data</h2>
+
+<h3>Description</h3>
+
+<p>Function that organises UK aids data in <code>apc.data.list</code> format.
+</p>
+<p>The data set is taken from table 1 of De Angelis and Gilks (1994). The data
+are also analysed by Davison and Hinkley (1998, Example 7.4).
+The data are reporting delays for AIDS counting	the number of cases by the
+date of diagnosis and length of reporting delay, measured by quarter. 
+</p>
+<p>The data set is in "trapezoid"-format.
+The original data set is unbalanced in various ways:
+first column covers a reporting delay of less than one month (or should it be less than one quarter?);
+last column covers a reporting delay of at least 14 quarters;
+last diagonal include incomplete counts.
+The default data set excludes the incomplete counts in the last diagonal, but
+includes the unbalanced first and last columns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data.aids(all.age.groups = FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>all.age.groups</code></td>
+<td>
+<p>logical.  If FALSE (default), the last calendar year with incomplete counts is ignored.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>The value is a list in <code>apc.data.list</code> format.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>matrix of cases</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.format</code></td>
+<td>
+<p>logical equal to "trapezoid".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age1</code></td>
+<td>
+<p>numeric equal to 0.  This is the label for the reporting delay.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>per1</code></td>
+<td>
+<p>NULL.  Not needed when data.format="trapezoid"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coh1</code></td>
+<td>
+<p>numeric equal to 1983.5.  This is the label for the diagnosis quarter (1983, third quarter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>numeric equal to 1/4.  This is the width of the age and period groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>per.zero</code></td>
+<td>
+<p>numeric equal to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>per.max</code></td>
+<td>
+<p>numeric equal to 38.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.adjust</code></td>
+<td>
+<p>numric equal to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>character.  Default data has "UK AIDS - clean".</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bent Nielsen &lt;bent.nielsen@nuffield.ox.ac.uk&gt; 7 Feb 2016</p>
+
+
+<h3>Source</h3>
+
+<p>Table 1 of De Angelis and Gilks (1994).  Also analysed by Davison and Hinkley (1998, Example 7.4).</p>
+
+
+<h3>References</h3>
+
+<p>De Angelis, D. and Gilks, W.R. (1994) Estimating acquired immune deficiency syndrome incidence accounting for reporting delay. <em>Journal of the Royal Statistical Sociey</em> A 157, 31-40.
+</p>
+<p>Davison, A.C. and Hinkley, D.V. (1998) <em>Bootstrap methods and their application</em>. Cambridge: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General description of <code>apc.data.list</code> format.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#########################
+##	It is convient to construct a data variable
+data	&lt;- data.Belgian.lung.cancer()
+##	To see the content of the data
+data
+
+#########################
+#	Forecast AIDS incidences by diagonsis year (cohort).
+#	uses as poisson response model with an AC structure
+#	although there is evidence of overdispersion and the
+#	period effect appears significant.
+#	The omission of the period effect follows
+#	Davison and Hinkley and a parsimoneous model may be
+#	advantageous when forecasting.
+#
+apc.fit.table(data.aids(),"poisson.response")
+fit &lt;- apc.fit.model(data.aids(),"poisson.response","AC")
+forecast &lt;- apc.forecast.ac(fit)
+data.sums.coh &lt;- apc.data.sums(data.aids())$sums.coh
+forecast.total &lt;- forecast$response.forecast.coh
+forecast.total[,1]	&lt;- forecast.total[,1]+data.sums.coh[25:38]
+x	&lt;- seq(1983.5,1992.75,by=1/4)
+y	&lt;- data.sums.coh
+xlab&lt;- "diagnosis year (cohort)"
+ylab&lt;- "diagnoses"
+main&lt;- "Davison and Hinkley, Fig 7.6, parametric version"
+plot(x,y,xlim=c(1988,1993),ylim=c(200,600),xlab=xlab,ylab=ylab,main=main)
+apc.polygon(forecast.total,x.origin=1989.25,unit=1/4)
+</code></pre>
+
+
+</div>

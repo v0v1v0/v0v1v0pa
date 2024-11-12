@@ -1,0 +1,339 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arima</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ARIMA Modeling of Time Series</h2>
+
+<h3>Description</h3>
+
+<p>Fit an ARIMA model to a univariate time series. This function builds on
+the ARIMA model fitting approach used in <code>stats::arima()</code> by fitting
+model parameters via a random restart algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arima(
+  x,
+  order = c(0L, 0L, 0L),
+  seasonal = list(order = c(0L, 0L, 0L), period = NA),
+  xreg = NULL,
+  include.mean = TRUE,
+  transform.pars = TRUE,
+  fixed = NULL,
+  init = NULL,
+  method = c("CSS-ML", "ML", "CSS"),
+  n.cond,
+  SSinit = c("Rossignol2011", "Gardner1980"),
+  optim.method = "BFGS",
+  optim.control = list(),
+  kappa = 1e+06,
+  diffuseControl = TRUE,
+  max_iters = 100,
+  max_repeats = 10,
+  max_inv_root = 1,
+  min_inv_root_dist = 0,
+  eps_tol = 1e-04
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a univariate time series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>A specification of the non-seasonal part of the ARIMA
+model: the three integer components <code class="reqn">(p, d, q)</code> are the AR order, the
+degree of differencing, and the MA order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal</code></td>
+<td>
+<p>A specification of the seasonal part of the ARIMA
+model, plus the period (which defaults to <code>frequency(x)</code>).
+This may be a list with components <code>order</code> and
+<code>period</code>, or just a numeric vector of length 3 which
+specifies the seasonal <code>order</code>.  In the latter case the
+default period is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>Optionally, a vector or matrix of external regressors,
+which must have the same number of rows as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.mean</code></td>
+<td>
+<p>Should the ARMA model include a mean/intercept term?  The
+default is <code>TRUE</code> for undifferenced series, and it is ignored
+for ARIMA models with differencing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.pars</code></td>
+<td>
+<p>logical; if true, the AR parameters are
+transformed to ensure that they remain in the region of
+stationarity.  Not used for <code>method = "CSS"</code>.  For
+<code>method = "ML"</code>, it has been advantageous to set
+<code>transform.pars = FALSE</code> in some cases, see also <code>fixed</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>optional numeric vector of the same length as the total
+number of coefficients to be estimated.  It should be of the form
+</p>
+<p style="text-align: center;"><code class="reqn">(\phi_1, \ldots, \phi_p, \theta_1, \ldots, \theta_q,
+      \Phi_1, \ldots, \Phi_P, \Theta_1, \ldots, \Theta_Q, \mu),
+    </code>
+</p>
+
+<p>where <code class="reqn">\phi_i</code> are the AR coefficients,
+<code class="reqn">\theta_i</code> are the MA coefficients,
+<code class="reqn">\Phi_i</code> are the seasonal AR coefficients,
+<code class="reqn">\Theta_i</code> are the seasonal MA coefficients and
+<code class="reqn">\mu</code> is the intercept term.  Note that the <code class="reqn">\mu</code>
+entry is required if and only if <code>include.mean</code> is <code>TRUE</code>.
+In particular it should not be present if the model is an ARIMA
+model with differencing.
+</p>
+<p>The entries of the <code>fixed</code> vector should consist of the
+values at which the user wishes to “fix” the corresponding
+coefficient, or <code>NA</code> if that coefficient should <em>not</em> be
+fixed, but estimated.
+</p>
+<p>The argument <code>transform.pars</code> will be set to <code>FALSE</code> if any
+AR parameters are fixed.  A warning will be given if <code>transform.pars</code>
+is set to (or left at its default) <code>TRUE</code>.  It may be wise to set
+<code>transform.pars = FALSE</code> even when fixing MA parameters,
+especially at values that cause the model to be nearly non-invertible.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>optional numeric vector of initial parameter
+values.  Missing values will be filled in, by zeroes except for
+regression coefficients.  Values already specified in <code>fixed</code>
+will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>fitting method: maximum likelihood or minimize
+conditional sum-of-squares.  The default (unless there are missing
+values) is to use conditional-sum-of-squares to find starting
+values, then maximum likelihood.  Can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cond</code></td>
+<td>
+<p>only used if fitting by conditional-sum-of-squares: the
+number of initial observations to ignore.  It will be ignored if
+less than the maximum lag of an AR term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SSinit</code></td>
+<td>
+<p>a string specifying the algorithm to compute the
+state-space initialization of the likelihood; see
+<code>KalmanLike</code> for details.   Can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.method</code></td>
+<td>
+<p>The value passed as the <code>method</code> argument to
+<code>optim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.control</code></td>
+<td>
+<p>List of control parameters for <code>optim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>the prior variance (as a multiple of the innovations
+variance) for the past observations in a differenced model.  Do not
+reduce this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diffuseControl</code></td>
+<td>
+<p>Boolean indicator of whether or initial observations
+will have likelihood values ignored if controlled by the diffuse prior,
+i.e., have a Kalman gain of at least 1e4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iters</code></td>
+<td>
+<p>Maximum number of random restarts for methods "CSS-ML" and
+"ML". If set to 1, the results of this algorithm is the same as
+<code>stats::arima()</code> if argument <code>diffuseControl</code> is also set as TRUE.
+<code>max_iters</code> is often not reached because the condition
+<code>max_repeats</code> is typically achieved first.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_repeats</code></td>
+<td>
+<p>Integer. If the last <code>max_repeats</code> random starts did
+not result in improved likelihoods, then stop the search. Each result of
+the optim function is only considered to improve the likelihood if it does
+so by more than <code>eps_tol</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_inv_root</code></td>
+<td>
+<p>positive numeric value less than or equal to 1. This
+number represents the maximum size of the inverted
+MA or AR polynomial roots for a new parameter estimate to be considered an
+improvement to previous estimates. Concerns of numeric stability arise
+when the size of polynomial roots are near unity circle. The default value
+1 means that the the parameter values corresponding with the best
+log-likelihood will be returned, even if they are near unity.
+Suitable values of this parameter are near the value 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_inv_root_dist</code></td>
+<td>
+<p>positive numeric value less than 1. This number
+represents the minimum distance between AR and MA polynomial roots for a
+new parameter estimate to be considered an improvement on previous
+estimates. This is intended to avoid the possibility of returning
+parameter estimates with nearly canceling roots. Appropriate choices are
+values near 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps_tol</code></td>
+<td>
+<p>Tolerance for accepting a new solution to be better than a
+previous solution in terms of log-likelihood. The default corresponds to a
+one ten-thousandth unit increase in log-likelihood.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of class <code>c("Arima2", "Arima")</code>. This list contains all of the
+same elements as the output of stats::arima, along with some additional
+elements.  All elements of the output list are:
+</p>
+
+<dl>
+<dt><code>coef</code></dt>
+<dd>
+<p>A vector of AR, MA, and regression coefficients. These can
+be extracted by the stats::coef method.</p>
+</dd>
+<dt><code>sigma2</code></dt>
+<dd>
+<p>The MLE of the variance of the innovations.</p>
+</dd>
+<dt><code>var.coef</code></dt>
+<dd>
+<p>The estimated variance matrix of the coefficients
+<code>coef</code>, which can be extracted by the stats::vcov method.</p>
+</dd>
+<dt><code>mask</code></dt>
+<dd>
+<p>A vector containing boolean values, indicating which
+parameters of the model were estimated.</p>
+</dd>
+<dt><code>loglik</code></dt>
+<dd>
+<p>The maximized log-likelihood (of the differenced data).</p>
+</dd>
+<dt><code>aic</code></dt>
+<dd>
+<p>The AIC value corresponding to the log-likelihood.</p>
+</dd>
+<dt><code>arma</code></dt>
+<dd>
+<p>A compact form of the model specification, as a vector
+giving the number of AR, MA, seasonal AR and seasonal MA coefficients,
+plus the period and the number of non-seasonal and seasonal differences.</p>
+</dd>
+<dt><code>residuals</code></dt>
+<dd>
+<p>The fitted innovations.</p>
+</dd>
+<dt><code>call</code></dt>
+<dd>
+<p>The matched call.</p>
+</dd>
+<dt><code>series</code></dt>
+<dd>
+<p>The name of the series x.</p>
+</dd>
+<dt><code>code</code></dt>
+<dd>
+<p>The convergence value returned by stats::optim.</p>
+</dd>
+<dt><code>n.cond</code></dt>
+<dd>
+<p>The number of initial observations not used in the
+fitting.</p>
+</dd>
+<dt><code>nobs</code></dt>
+<dd>
+<p>The number of observations used for the fitting.</p>
+</dd>
+<dt><code>model</code></dt>
+<dd>
+<p>A list representing the Kalman Filter used in the fitting.</p>
+</dd>
+<dt><code>x</code></dt>
+<dd>
+<p>The input time series.</p>
+</dd>
+<dt><code>num_starts</code></dt>
+<dd>
+<p>Number of restarts before convergence criteria was
+satisfied.</p>
+</dd>
+<dt><code>all_values</code></dt>
+<dd>
+<p>Numeric vector of length <code>num_starts</code> containing the
+loglikelihood of every parameter initialization.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># example code
+set.seed(12345)
+arima(miHuron_level$Average, order = c(2, 0, 1), max_iters = 100)
+
+</code></pre>
+
+
+</div>

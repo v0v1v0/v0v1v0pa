@@ -1,0 +1,338 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lpaws</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local polynomial smoothing by AWS</h2>
+
+<h3>Description</h3>
+
+<p>The function allows for structural adaptive smoothing using a local
+polynomial (degree &lt;=2) structural assumption. Response variables are assumed to be observed on a 1 or 2 dimensional regular grid.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle",
+      homogen = TRUE, earlystop = TRUE, aggkern = "Uniform", sigma2 = NULL,
+      hw = NULL, ladjust = 1, u = NULL, graph = FALSE, demo = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response, either a vector (1D) or matrix (2D). The corresponding design is assumed to be a regular grid in 1D or 2D, respectively. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>Polynomial degree of the local model </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+<p> maximal bandwidth </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws</code></td>
+<td>
+<p> logical: if TRUE structural adaptation (AWS) is used. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory</code></td>
+<td>
+<p> logical: if TRUE stagewise aggregation is used as an additional
+adaptation scheme. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern</code></td>
+<td>
+<p> character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+This is included for comparisons only and should be avoided due to its large computational costs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen</code></td>
+<td>
+<p> logical: if TRUE the function tries to determine regions
+where weights can be fixed to 1. This may increase speed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop</code></td>
+<td>
+<p> logical: if TRUE the function tries to determine points
+where the homogeneous region is unlikely to change in further steps. This may increase speed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggkern</code></td>
+<td>
+<p> character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p> Error variance, the value is estimated if not provided. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hw</code></td>
+<td>
+<p> Regularisation bandwidth, used to prevent from unidentifiability of
+local estimates for small bandwidths. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+<p> factor to increase the default value of lambda </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p> a "true" value of the regression function, may be provided to
+report risks at each iteration. This can be used to test the propagation condition with <code>u=0</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p> logical: If TRUE intermediate results are illustrated graphically. May significantly slow down the computations in 2D. Please
+avoid using the default <code>X11()</code> on systems build with <code>cairo</code>, use
+<code>X11(type="Xlib")</code> instead (faster by a factor of 30). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>demo</code></td>
+<td>
+<p> logical: if TRUE wait after each iteration </p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p> returns anobject of class <code>aws</code> with slots
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>y = "numeric"</code></td>
+<td>
+<p>y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dy = "numeric"</code></td>
+<td>
+<p>dim(y)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni = "integer"</code></td>
+<td>
+<p>integer(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask = "logical"</code></td>
+<td>
+<p>logical(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta = "numeric"</code></td>
+<td>
+<p>Estimates of regression function and derivatives, <code>length: length(y)*(degree+1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mae = "numeric"</code></td>
+<td>
+<p>Mean absolute error for each iteration step if u was specified,  numeric(0) else</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var = "numeric"</code></td>
+<td>
+<p>approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts = "numeric"</code></td>
+<td>
+<p>numeric(0), ratio of distances <code>wghts[-1]/wghts[1]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree = "integer"</code></td>
+<td>
+<p>degree</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax  = "numeric"</code></td>
+<td>
+<p>effective hmax</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2  = "numeric"</code></td>
+<td>
+<p>provided or estimated error variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr = "numeric"</code></td>
+<td>
+<p>0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family = "character"</code></td>
+<td>
+<p>"Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern  = "integer"</code></td>
+<td>
+<p>integer code for lkern,
+1="Plateau", 2="Triangle", 3="Quadratic", 4="Cubic", 5="Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda = "numeric"</code></td>
+<td>
+<p>effective value of lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust = "numeric"</code></td>
+<td>
+<p>effective value of ladjust</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws = "logical"</code></td>
+<td>
+<p>aws</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory = "logical"</code></td>
+<td>
+<p>memory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen = "logical"</code></td>
+<td>
+<p>homogen</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop = "logical"</code></td>
+<td>
+<p>eralustop</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel = "character"</code></td>
+<td>
+<p>"Constant"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcoef = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call = "function"</code></td>
+<td>
+<p>the arguments of the call to <code>lpaws</code></p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If you specify <code>graph=TRUE</code> for 2D problems
+avoid using the default <code>X11()</code> on systems build with <code>cairo</code>, use
+<code>X11(type="Xlib")</code> instead (faster by a factor of 30).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a> </p>
+
+
+<h3>References</h3>
+
+<p>J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 .
+</p>
+<p>J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
+Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.
+Springer-Verlag, 2008, 471-492. DOI:10.1007/978-3-540-33037-0_19.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>link{awsdata}</code>,<code>aws</code>, <code>aws.irreg</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(aws)
+# 1D local polynomial smoothing
+## Not run: demo(lpaws_ex1)
+# 2D local polynomial smoothing
+## Not run: demo(lpaws_ex2)
+
+
+</code></pre>
+
+
+</div>

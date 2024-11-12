@@ -1,0 +1,424 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>distance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flexibly calculate dissimilarity or distance measures</h2>
+
+<h3>Description</h3>
+
+<p>Flexibly calculates distance or dissimilarity measures between a
+training set <code>x</code> and a fossil or test set <code>y</code>. If
+<code>y</code> is not supplied then the pairwise dissimilarities between
+samples in the training set, <code>x</code>, are calculated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+distance(x, ...)
+
+## Default S3 method:
+distance(x, y, method = "euclidean", weights = NULL,
+         R = NULL, dist = FALSE, double.zero = FALSE, ...)
+
+## S3 method for class 'join'
+distance(x, ...)
+
+oldDistance(x, ...)
+## Default S3 method:
+oldDistance(x, y, method = c("euclidean", "SQeuclidean",
+            "chord", "SQchord", "bray", "chi.square",
+            "SQchi.square", "information", "chi.distance",
+            "manhattan", "kendall", "gower", "alt.gower",
+            "mixed"),
+            fast = TRUE,
+            weights = NULL, R = NULL, ...)
+## S3 method for class 'join'
+oldDistance(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>data frame or matrix containing the training set samples, or
+and object of class <code>join</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>data frame or matrix containing the fossil or test set
+samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; which choice of dissimilarity coefficient to
+use. One of the listed options. See Details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>numeric; vector of weights for each descriptor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>numeric; vector of ranges for each descriptor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>logical; should the dissimilarity matrix be returned as
+an object of class <code>"dist"</code>? Ignored if <code>y</code> is supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>double.zero</code></td>
+<td>
+<p>logical; if <code>FALSE</code>, the default, double
+zeroes are not counted in the distance calculation. If <code>TRUE</code>,
+absences of a variable in both samples counts as a similarity
+between the two samples. Currently this only affects methods
+<code>"mixed"</code> and <code>"metric.mixed"</code> forms of Gower's general
+coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fast</code></td>
+<td>
+<p>logical; should fast versions of the dissimilarities be
+calculated? See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to other methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A range of dissimilarity coefficients can be used to calculate
+dissimilarity between samples. The following are currently available:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <code>euclidean</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sqrt{\sum_i (x_{ij}-x_{ik})^2}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>SQeuclidean</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i (x_{ij}-x_{ik})^2</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>chord</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sqrt{\sum_i
+	(\sqrt{x_{ij}}-\sqrt{x_{ik}})^2}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>SQchord</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i (\sqrt{x_{ij}}-\sqrt{x_{ik}})^2</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>bray</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \frac{\sum_i |x_{ij} - x_{ik}|}{\sum_i (x_{ij} +
+	x_{ik})}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>chi.square</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sqrt{\sum_i \frac{(x_{ij} - x_{ik})^2}{x_{ij} +
+	x_{ik}}}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>SQchi.square</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i \frac{(x_{ij} - x_{ik})^2}{x_{ij} +
+	x_{ik}}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>information</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i (p_{ij}log(\frac{2p_{ij}}{p_{ij} + p_{ik}})
+      + p_{ik}log(\frac{2p_{ik}}{p_{ij} + p_{ik}}))</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>chi.distance</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sqrt{\sum_i (x_{ij}-x_{ik})^2 / (x_{i+} /
+	x_{++})}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>manhattan</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i (|x_{ij}-x_{ik}|)</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>kendall</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i MAX_i - minimum(x_{ij}, x_{ik})</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>gower</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sum_i\frac{|p_{ij} -
+	  p_{ik}|}{R_i}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>alt.gower</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \sqrt{2\sum_i\frac{|p_{ij} -
+	  p_{ik}|}{R_i}}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;"> where <code class="reqn">R_i</code> is the range of proportions for
+    descriptor (variable) <code class="reqn">i</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>mixed</code>
+    </td>
+<td style="text-align: left;"> <code class="reqn">d_{jk} = \frac{\sum_{i=1}^p w_{i}s_{jki}}{\sum_{i=1}^p
+	w_{i}}</code>
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;"> where <code class="reqn">w_i</code> is the weight for descriptor <code class="reqn">i</code> and
+    <code class="reqn">s_{jki}</code> is the similarity </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;"> between samples <code class="reqn">j</code> and <code class="reqn">k</code> for descriptor (variable)
+    <code class="reqn">i</code>.
+    </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <code>metric.mixed</code>
+    </td>
+<td style="text-align: left;"> as for <code>mixed</code> but with ordinal variables converted to
+    ranks and handled as quantitative variables in Gower's mixed
+    coefficient.
+  </td>
+</tr>
+</table>
+<p>Argument <code>fast</code> determines whether fast C versions of some of the
+dissimilarity coefficients are used. The fast versions make use of
+<code>dist</code> for <code>method</code>s <code>"euclidean"</code>,
+<code>"SQeuclidean"</code>, <code>"chord"</code>, <code>"SQchord"</code>, and
+<code>vegdist</code> for <code>method</code> == <code>"bray"</code>. These
+fast versions are used only when <code>x</code> is supplied, not when
+<code>y</code> is also supplied. Future versions of <code>distance</code> will
+include fast C versions of all the dissimilary coefficients and for
+cases where <code>y</code> is supplied.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix of dissimilarities where columns are the samples in
+<code>y</code> and the rows the samples in <code>x</code>. If <code>y</code> is
+not provided then a square, symmetric matrix of pairwise sample
+dissimilarities for the training set <code>x</code> is returned, unless
+argument <code>dist</code> is <code>TRUE</code>, in which case an object of class
+<code>"dist"</code> is returned. See <code>dist</code>.
+</p>
+<p>The dissimilarity coefficient used (<code>method</code>) is returned as
+attribute <code>"method"</code>. Attribute <code>"type"</code> indicates whether
+the object was computed on a single data matrix (<code>"symmetric"</code>)
+or across two matrices (i.e. the dissimilarties between the rows of
+two matrices; <code>"asymmetric"</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>For <code>method = "mixed"</code> it is essential that a factor in <code>x</code>
+and <code>y</code> have the same levels in the two data frames. Previous
+versions of analogue would work even if this was not the case, which
+will have generated incorrect dissimilarities for <code>method =
+  "mixed"</code> for cases where factors for a given species had different
+levels in <code>x</code> to <code>y</code>. 
+</p>
+<p><code>distance</code> now checks for matching levels for each species
+(column) recorded as a factor. If the factor for any individual
+species has different levels in <code>x</code> and <code>y</code>, an error will
+be issued.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The dissimilarities are calculated in native R code. As such, other
+implementations (see See Also below) will be quicker. This is done for
+one main reason - it is hoped to allow a user defined function to be
+supplied as argument <code>"method"</code> to allow for user-extension of
+the available coefficients.
+</p>
+<p>The other advantage of <code>distance</code> over other implementations, is
+the simplicity of calculating only the required pairwise sample
+dissimilarities between each fossil sample (<code>y</code>) and each
+training set sample (<code>x</code>). To do this in other implementations,
+you would need to merge the two sets of samples, calculate the full
+dissimilarity matrix and then subset it to achieve similar results.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson and Jari Oksanen (improvements leading to
+method <code>"metric.mixed"</code> and proper handling of ordinal data via
+Podani's (1999) modification of Gower's general coefficient in method
+<code>"mixed"</code>).</p>
+
+
+<h3>References</h3>
+
+<p>Faith, D.P., Minchin, P.R. and Belbin, L. (1987) Compositional
+dissimilarity as a robust measure of ecological
+distance. <em>Vegetatio</em> <strong>69</strong>, 57–68.
+</p>
+<p>Gavin, D.G., Oswald, W.W., Wahl, E.R. and Williams, J.W. (2003) A
+statistical approach to evaluating distance metrics and analog
+assignments for pollen records. <em>Quaternary Research</em>
+<strong>60</strong>, 356–367.
+</p>
+<p>Kendall, D.G. (1970) A mathematical approach to
+seriation. <em>Philosophical Transactions of the Royal Society of
+London - Series B</em> <strong>269</strong>, 125–135.
+</p>
+<p>Legendre, P. and Legendre, L. (1998) <em>Numerical Ecology</em>, 2nd
+English Edition. Elsevier Science BV, The Netherlands.
+</p>
+<p>Overpeck, J.T., Webb III, T. and Prentice I.C. (1985) Quantitative
+interpretation of fossil pollen spectra: dissimilarity coefficients and
+the method of modern analogues. <em>Quaternary Research</em> <strong>23</strong>,
+87–108.
+</p>
+<p>Podani, J. (1999) Extending Gower's General Coefficient of Similarity
+to Ordinal Characters. <em>Taxon</em> <strong>48</strong>, 331–340).
+</p>
+<p>Prentice, I.C. (1980) Multidimensional scaling as a research tool in
+Quaternary palynology: a review of theory and methods. <em>Review of
+Palaeobiology and Palynology</em> <strong>31</strong>, 71–104.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vegdist</code> in package <span class="pkg">vegan</span>,
+<code>daisy</code> in package <span class="pkg">cluster</span>, and
+<code>dist</code> provide comparable functionality for the
+case of missing <code>y</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## simple example using dummy data
+train &lt;- data.frame(matrix(abs(runif(200)), ncol = 10))
+rownames(train) &lt;- LETTERS[1:20]
+colnames(train) &lt;- as.character(1:10)
+fossil &lt;- data.frame(matrix(abs(runif(100)), ncol = 10))
+colnames(fossil) &lt;- as.character(1:10)
+rownames(fossil) &lt;- letters[1:10]
+
+## calculate distances/dissimilarities between train and fossil
+## samples
+test &lt;- distance(train, fossil)
+
+## using a different coefficient, chi-square distance
+test &lt;- distance(train, fossil, method = "chi.distance")
+
+## calculate pairwise distances/dissimilarities for training
+## set samples
+test2 &lt;- distance(train)
+
+## Using distance on an object of class join
+dists &lt;- distance(join(train, fossil))
+str(dists)
+
+## calculate Gower's general coefficient for mixed data
+## first, make a couple of variables factors
+
+## fossil[,4] &lt;- factor(sample(rep(1:4, length = 10), 10))
+## train[,4] &lt;- factor(sample(rep(1:4, length = 20), 20))
+## ## now fit the mixed coefficient
+## test3 &lt;- distance(train, fossil, "mixed")
+
+## ## Example from page 260 of Legendre &amp; Legendre (1998)
+x1 &lt;- t(c(2,2,NA,2,2,4,2,6))
+x2 &lt;- t(c(1,3,3,1,2,2,2,5))
+Rj &lt;- c(1,4,2,4,1,3,2,5) # supplied ranges
+
+## 1 - distance(x1, x2, method = "mixed", R = Rj)
+
+## note this gives ~0.66 as Legendre &amp; Legendre describe the
+## coefficient as a similarity coefficient. Hence here we do
+## 1 - Dij here to get the same answer.
+
+## Tortula example from Podani (1999)
+data(tortula)
+Dij &lt;- distance(tortula[, -1], method = "mixed") # col 1 includes Taxon ID
+
+## Only one ordered factor
+data(mite.env, package = "vegan")
+Dij &lt;- distance(mite.env, method = "mixed")
+
+## Some variables are constant
+data(BCI.env, package = "vegan")
+Dij &lt;- distance(BCI.env, method = "mixed")
+</code></pre>
+
+
+</div>

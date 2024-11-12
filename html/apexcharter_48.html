@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ax_proxy_series</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Proxy for updating series.</h2>
+
+<h3>Description</h3>
+
+<p>Allows you to update the series array overriding the existing one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ax_proxy_series(proxy, newSeries, animate = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>proxy</code></td>
+<td>
+<p>A <code>apexchartProxy</code> <code>htmlwidget</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newSeries</code></td>
+<td>
+<p>The series array to override the existing one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>animate</code></td>
+<td>
+<p>Should the chart animate on re-rendering.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (interactive()) {
+  library(shiny)
+
+  ui &lt;- fluidPage(
+    fluidRow(
+      column(
+        width = 8, offset = 2,
+        tags$h2("Real time chart"),
+        apexchartOutput(outputId = "chart")
+      )
+    )
+  )
+
+  server &lt;- function(input, output, session) {
+
+    rv &lt;- reactiveValues()
+    rv$df &lt;- data.frame(
+      date = Sys.Date() + 1:20,
+      values = sample(10:90, 20, TRUE)
+    )
+
+    observe({
+      invalidateLater(1000, session)
+      df &lt;- isolate(rv$df)
+      # Append new line of data
+      df &lt;- rbind(
+        df, data.frame(
+          date = df$date[length(df$date)] + 1,
+          values = sample(10:90, 1, TRUE)
+        )
+      )
+      rv$df &lt;- df
+    })
+
+    output$chart &lt;- renderApexchart({
+      # Generate chart once
+      apex(isolate(rv$df), aes(date, values), "spline") %&gt;%
+        ax_xaxis(
+          range = 10 * 24 * 60 * 60 * 1000
+          # Fixed range for x-axis : 10 days
+          # days*hours*minutes*seconds*milliseconds
+        )
+    })
+
+    observe({
+      # Update chart to add new data
+      apexchartProxy("chart") %&gt;%
+        ax_proxy_series(
+          parse_df(rv$df),
+          T
+        )
+    })
+
+  }
+
+  shinyApp(ui, server)
+}
+
+</code></pre>
+
+
+</div>

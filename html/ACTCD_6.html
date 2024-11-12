@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>npar.CDM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Main function for ACTCD package
+</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to classify examinees into labeled classes given responses and the Q-matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">npar.CDM(Y, Q, cluster.method = c("HACA", "Kmeans"), Kmeans.centers = NULL, 
+Kmeans.itermax = 10, Kmeans.nstart = 1, HACA.link = c("complete", "ward", "single",
+ "average", "mcquitty", "median", "centroid"), HACA.cut = NULL, label.method = 
+c("2b", "2a", "1", "3"),perm=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+
+<p>A required <code class="reqn">N \times J</code> response matrix with binary elements (1=correct, 0=incorrect), where <code class="reqn">N</code> is the number of examinees and <code class="reqn">J</code> is the number of items.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+
+<p>A required <code class="reqn">J \times K</code> binary item-by-attribute association matrix (Q-matrix), where <code class="reqn">K</code> is the number of attributes. The <code class="reqn">j^{th}</code> row of the matrix is an indicator vector, 1 indicating attributes are required and 0 indicating attributes are not required to master item <code class="reqn">j</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.method</code></td>
+<td>
+
+<p>The cluster algorithm used to classify data. Two options are available, including <code>"Kmeans"</code> and  <code>"HACA"</code>, where <code>"HACA"</code> is the default method. See <code>cd.cluster</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kmeans.centers</code></td>
+<td>
+
+<p>The number of clusters when <code>"Kmeans"</code> argument is selected. It must be not less than 2 and not greater than <code class="reqn">2^K</code> where <code class="reqn">K</code> is the number of attributes. The default is <code class="reqn">2^K</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kmeans.itermax</code></td>
+<td>
+
+<p>The maximum number of iterations allowed when <code>"Kmeans"</code> argument is selected.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kmeans.nstart</code></td>
+<td>
+
+<p>The number of random sets to be chosen when <code>"Kmeans"</code> argument is selected.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HACA.link</code></td>
+<td>
+
+<p>The link to be used with HACA.  It must be one of <code>"ward"</code>, <code>"single"</code>, <code>"complete"</code>, <code>"average"</code>, <code>"mcquitty"</code>, <code>"median"</code> or <code>"centroid"</code>. The default is <code>"complete"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HACA.cut</code></td>
+<td>
+
+<p>The number of clusters when <code>"HACA"</code> argument is selected. It must be not less than 2 and not greater than <code class="reqn">2^K</code>, where <code class="reqn">K</code> is the number of attributes. The default is <code class="reqn">2^K</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label.method</code></td>
+<td>
+
+<p>The algorithm used for labeling. It should be one of "1","2a", "2b" and "3" corresponding to different labeling methods in Chiu and Ma (2013). The default is "2b". See <code>labeling</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm</code></td>
+<td>
+
+<p>The data matrix of the partial orders of the attribute patterns. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>att.pattern</code></td>
+<td>
+<p>A <code class="reqn">N \times K</code> binary attribute patterns, where <code class="reqn">N</code> is the number of examinees and <code class="reqn">K</code> is the number of attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>att.dist</code></td>
+<td>
+<p>A <code class="reqn">2^K \times 2</code> data frame, where the first column is the attribute pattern, the second column is its frequency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.size</code></td>
+<td>
+<p>A set of integers, indicating the sizes of latent clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.class</code></td>
+<td>
+<p>A vector of estimated memberships for examinees.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>print.npar.CDM</code>, <code>cd.cluster</code>,<code>labeling</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Classification based on the simulated data and Q matrix
+data(sim.dat)
+data(sim.Q)
+# Information about the dataset
+N &lt;- nrow(sim.dat) #number of examinees
+J &lt;- nrow(sim.Q) #number of items
+K &lt;- ncol(sim.Q) #number of attributes
+
+# Compare the difference in results among different labeling methods
+# Note that the default cluster method is HACA
+labeled.obj.2a &lt;- npar.CDM(sim.dat, sim.Q, label.method="2a")
+labeled.obj.2b &lt;- npar.CDM(sim.dat, sim.Q, label.method="2b")
+labeled.obj.3 &lt;- npar.CDM(sim.dat, sim.Q, label.method="3")
+data(perm3)
+labeled.obj.1 &lt;- npar.CDM(sim.dat, sim.Q, label.method="1",perm=perm3)
+remove(perm3)
+
+#User-specified number of latent clusters
+M &lt;- 5
+labeled.obj.2b &lt;- npar.CDM(sim.dat, sim.Q, cluster.method="HACA", 
+HACA.cut=M, label.method="2b")
+labeled.obj.2a &lt;- npar.CDM(sim.dat, sim.Q, cluster.method="HACA", 
+HACA.cut=M, label.method="2a")
+#The attribute pattern for each examinee
+attpatt &lt;- labeled.obj.2b$att.pattern
+
+
+</code></pre>
+
+
+</div>

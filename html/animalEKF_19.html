@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spline_interp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Bezier spline interpolation of observations.
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a Bezier spline interpolation of irregular observations to regular-length time intervals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">spline_interp(di, area_map=NULL, t_reg=NULL, reg_dt=120,
+              max_dt_wo_obs=60*30, maxStep=NULL, 
+              centroids=matrix(c(0,0), ncol=2),
+              nstates=2, spline_deg=3, split_logv=-3)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>di</code></td>
+<td>
+
+<p>Object of class <code>data.frame</code> containing irregular-spaced observations.  Dataset must contain the following fields: 1) <code>"X"</code> and <code>"Y"</code>: X and Y location coordinates, 
+2) <code>"date_as_sec"</code>: time/date of observation as seconds since an epoch.  <code>"time_to_next"</code> should also be included, but will be calculated if not.  Also <code>"tag"</code> (animal
+identifier) should be included as well.  If not, all observations are assumed to be of the same animal.
+This can be generated from <code>sim_trajectory_joint</code> with <code>gen_irreg=TRUE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area_map</code></td>
+<td>
+
+<p>Shapefile that all interpolated points should be inside of.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t_reg</code></td>
+<td>
+
+<p>Desired time steps (must have a constant difference) to interpolate to.  If is given, the default value of
+<code>reg_dt</code> is overridden.  Will be truncated to the set of values within the range of observed values of
+<code>di$date_as_sec</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reg_dt</code></td>
+<td>
+
+<p>Length in seconds of each regular interval.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_dt_wo_obs</code></td>
+<td>
+
+<p>When interpolating, the maximum time length without observations for a given shark that we will interpolate.  If this is exceeded, algorithm will wait until next observation and start from there.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxStep</code></td>
+<td>
+
+<p>Maximum number of regular steps to interpolate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centroids</code></td>
+<td>
+
+<p>Matrix with two columns specifying the centroids of regions.  If <code>NULL</code>, only one region will be used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstates</code></td>
+<td>
+
+<p>Number of behavioral states.  For now restricted to a maximum of 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_deg</code></td>
+<td>
+
+<p>Degree of spline.  The default is 3, or a cubic.  Every <code>spline_deg</code>+1 observations will be used to construct one spline segment.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_logv</code></td>
+<td>
+
+<p>If <code>nstates</code>=2, state 1 from the interpolated values will be designated by the logvelocity being &lt; <code>split_logv</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Array of regular step locations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>di</code></td>
+<td>
+<p>Original irregular-step dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shark_names</code></td>
+<td>
+<p>Vector of the names of sharks in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d_ds</code></td>
+<td>
+<p>Output regular-step dataset <code>d</code> in form <code>data.frame</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Samuel Ackerman
+</p>
+
+
+<h3>References</h3>
+
+<p>Bezier R package.  Aaron Olsen.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#can also be 'di' output of sim_trajectory_joint (set gen_irreg=TRUE)
+
+di &lt;- data.frame(X=runif(n=9), Y=runif(n=9),
+                 time_to_next=c(2,4,15,8,5,18,3,5,NA))
+di$date_as_sec &lt;- c(0, cumsum(di$time_to_next[-9]))
+region_centroids &lt;- cbind(X=runif(2), Y=runif(2))
+
+#one log observation with dt =18 &gt; 16 will be omitted
+spl &lt;- spline_interp(di=di, area_map=NULL, reg_dt=3, max_dt_wo_obs=16, maxStep=NULL, 
+                     centroids=region_centroids, nstates=2, spline_deg=3, split_logv=-3)
+
+plot(di[,c("X","Y")], xlim=c(0,1), ylim=c(0,1), type="b", las=1,
+     "Observations interpolated by regular interval spline")
+lines(spl$d_ds[,c("X","Y")], type="l", col="red")
+legend("topleft", col=1:2, legend=c("observations","spline"), lty=1)
+
+
+</code></pre>
+
+
+</div>

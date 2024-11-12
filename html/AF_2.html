@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AF.ch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable fraction function for cohort sampling designs with time-to-event outcomes. NOTE! Deprecated function. Use <code>AFcoxph</code>.</h2>
+
+<h3>Description</h3>
+
+<p><code>AF.ch</code> estimates the model-based adjusted attributable fraction function for data from cohort sampling designs with time-to-event outcomes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AF.ch(formula, data, exposure, ties = "breslow", times, clusterid)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula object, with the response on the left of a ~ operator, and the terms on the right. The response must be a survival object as returned by the <code>Surv</code> function (<code>Surv</code>). The exposure and confounders should be specified as independent (right-hand side) variables. The time-to-event outcome should be specified by the survival object. The formula is used to fit a Cox proportional hazards model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment (<code>formula</code>), typically the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure</code></td>
+<td>
+<p>the name of the exposure variable as a string. The exposure must be binary (0/1) where unexposed is coded as 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>a character string specifying the method for tie handling. If there are no tied death times all the methods are equivalent. Uses the Breslow method by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>a scalar or vector of time points specified by the user for which the attributable fraction function is estimated. If not specified the observed death times will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterid</code></td>
+<td>
+<p>the name of the cluster identifier variable as a string, if data are clustered.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>Af.ch</code> estimates the attributable fraction for a time-to-event outcome
+under the hypothetical scenario where a binary exposure <code>X</code> is eliminated from the population. The estimate is adjusted for confounders <code>Z</code>
+by the Cox proportional hazards model (<code>coxph</code>). Let the AF function be defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AF=1-\frac{\{1-S_0(t)\}}{\{1-S(t)\}}</code>
+</p>
+
+<p>where <code class="reqn">S_0(t)</code> denotes the counterfactual survival function for the event if
+the exposure would have been eliminated from the population at baseline and <code class="reqn">S(t)</code> denotes the factual survival function.
+If <code>Z</code> is sufficient for confounding control, then <code class="reqn">S_0(t)</code> can be expressed as <code class="reqn">E_Z\{S(t\mid{X=0,Z })\}</code>.
+The function uses Cox proportional hazards regression to estimate <code class="reqn">S(t\mid{X=0,Z})</code>, and the marginal sample distribution of <code>Z</code>
+to approximate the outer expectation (Sjölander and Vansteelandt, 2014).  If <code>clusterid</code> is supplied, then a clustered sandwich formula is used in all variance calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AF.est</code></td>
+<td>
+<p>estimated attributable fraction function for every time point specified by <code>times</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AF.var</code></td>
+<td>
+<p>estimated variance of <code>AF.est</code>. The variance is obtained by combining the delta methods with the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.est</code></td>
+<td>
+<p>estimated factual survival function; <code class="reqn">S(t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var</code></td>
+<td>
+<p>estimated variance of <code>S.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S0.est</code></td>
+<td>
+<p>estimated counterfactual survival function if exposure would be eliminated; <code class="reqn">S_0(t)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S0.var</code></td>
+<td>
+<p>estimated variance of <code>S0.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>the fitted model. Fitted using Cox proportional hazard, <code>coxph</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Elisabeth Dahlqwist, Arvid Sjölander
+</p>
+
+
+<h3>References</h3>
+
+<p>Chen, L., Lin, D. Y., and Zeng, D. (2010). Attributable fraction functions for censored event times. <em>Biometrika</em> <b>97</b>, 713-726.
+</p>
+<p>Sjölander, A. and Vansteelandt, S. (2014). Doubly robust estimation of attributable fractions in survival analysis. <em>Statistical Methods in Medical Research</em>. doi: 10.1177/0962280214564003.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The new and more general version of the function: <code>AFcoxph</code>. <code>coxph</code> and <code>Surv</code> used for fitting the Cox proportional hazards model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate a sample from a cohort sampling design with time-to-event outcome
+expit &lt;- function(x) 1 / (1 + exp( - x))
+n &lt;- 500
+time &lt;- c(seq(from = 0.2, to = 1, by = 0.2))
+Z &lt;- rnorm(n = n)
+X &lt;- rbinom(n = n, size = 1, prob = expit(Z))
+Tim &lt;- rexp(n = n, rate = exp(X + Z))
+C &lt;- rexp(n = n, rate = exp(X + Z))
+Tobs &lt;- pmin(Tim, C)
+D &lt;- as.numeric(Tobs &lt; C)
+#Ties created by rounding
+Tobs &lt;- round(Tobs, digits = 2)
+
+# Example 1: non clustered data from a cohort sampling design with time-to-event outcomes
+data &lt;- data.frame(Tobs, D, X,  Z)
+
+# Estimation of the attributable fraction
+AF.ch_est &lt;- AF.ch(formula = Surv(Tobs, D) ~ X + Z + X * Z, data = data,
+                   exposure = "X", times = time)
+summary(AF.ch_est)
+
+# Example 2: clustered data from a cohort sampling design with time-to-event outcomes
+# Duplicate observations in order to create clustered data
+id &lt;- rep(1:n, 2)
+data &lt;- data.frame(Tobs = c(Tobs, Tobs), D = c(D, D), X = c(X, X), Z = c(Z, Z), id = id)
+
+# Estimation of the attributable fraction
+AF.ch_clust &lt;- AF.ch(formula = Surv(Tobs, D) ~ X + Z + X * Z, data = data,
+                         exposure = "X", times = time, clusterid = "id")
+summary(AF.ch_clust)
+plot(AF.ch_clust, CI = TRUE)
+</code></pre>
+
+
+</div>

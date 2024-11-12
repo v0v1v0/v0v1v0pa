@@ -1,0 +1,263 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apex-facets</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Facets for ApexCharts</h2>
+
+<h3>Description</h3>
+
+<p>Create matrix of charts by row and column faceting variable (<code>ax_facet_grid</code>),
+or by specified number of row and column for faceting variable(s) (<code>ax_facet_wrap</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ax_facet_wrap(
+  ax,
+  facets,
+  nrow = NULL,
+  ncol = NULL,
+  scales = c("fixed", "free", "free_y", "free_x"),
+  labeller = label_value,
+  chart_height = "300px",
+  grid_width = "100%"
+)
+
+ax_facet_grid(
+  ax,
+  rows = NULL,
+  cols = NULL,
+  scales = c("fixed", "free", "free_y", "free_x"),
+  labeller = label_value,
+  chart_height = "300px",
+  grid_width = "100%"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ax</code></td>
+<td>
+<p>An <code>apexchart()</code> <code>htmlwidget</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facets</code></td>
+<td>
+<p>Variable(s) to use for facetting, wrapped in <code>vars(...)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrow, ncol</code></td>
+<td>
+<p>Number of row and column in output matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scales</code></td>
+<td>
+<p>Should scales be fixed (<code>"fixed"</code>, the default),
+free (<code>"free"</code>), or free in one dimension (<code>"free_x"</code>, <code>"free_y"</code>)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labeller</code></td>
+<td>
+<p>A function with one argument containing for each facet the value of the faceting variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chart_height</code></td>
+<td>
+<p>Individual chart height, ignored if an height is defined in <code>apex()</code> or <code>apexcharter()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_width</code></td>
+<td>
+<p>Total width for the grid, regardless of the number of column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rows, cols</code></td>
+<td>
+<p>A set of variables or expressions quoted by <code>vars()</code>
+and defining faceting groups on the rows or columns dimension.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>apexchart()</code> <code>htmlwidget</code> object with an additionnal class <code>"apex_facet"</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>To properly render in Shiny applications, use <code>apexfacetOutput()</code> (in UI) and <code>renderApexfacet()</code> (in Server).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Wrap --------
+
+if (interactive()) {
+  library(apexcharter)
+  
+  # Scatter ----
+  
+  data("mpg", package = "ggplot2")
+  
+  # Create facets
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(vars(drv))
+  
+  # Change number of columns
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(vars(drv), ncol = 2)
+  
+  # Free axis
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(vars(drv), ncol = 2, scales = "free")
+  
+  # labels
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(
+      vars(drv), ncol = 2,
+      labeller = function(x) {
+        switch(
+          x,
+          "f" = "front-wheel drive", 
+          "r" = "rear wheel drive",
+          "4" = "4wd"
+        )
+      }
+    )
+  
+  # Title and subtitle are treated as global
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;%
+    ax_labs(
+      title = "Facet wrap example",
+      subtitle = "mpg data from ggplot2"
+    ) %&gt;% 
+    ax_facet_wrap(vars(drv), ncol = 2)
+  
+  
+  # Multiple variables
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(vars(year, drv))
+  
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_wrap(vars(year, drv), ncol = 2, nrow = 3)
+  
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_chart(toolbar = list(show = FALSE)) %&gt;% 
+    ax_facet_wrap(
+      vars(year, drv),
+      labeller = function(x) {
+        paste(x, collapse = " / ")
+      }
+    )
+  
+  
+  
+  # Lines ----
+  
+  data("unhcr_ts")
+  refugees &lt;- unhcr_ts %&gt;% 
+    subset(population_type == "Refugees (incl. refugee-like situations)") %&gt;% 
+    transform(date = as.Date(paste0(year, "-01-01")))
+  
+  
+  apex(refugees, aes(date, n), type = "line") %&gt;% 
+    ax_yaxis(tickAmount = 5) %&gt;% 
+    ax_facet_wrap(vars(continent_origin))
+  
+  
+  
+  # Free y-axis and synchronize
+  apex(refugees, aes(date, n), type = "line", synchronize = "my-id") %&gt;% 
+    ax_yaxis(tickAmount = 5) %&gt;% 
+    ax_xaxis(tooltip = list(enabled = FALSE)) %&gt;% 
+    ax_tooltip(x = list(format = "yyyy")) %&gt;% 
+    ax_facet_wrap(vars(continent_origin), scales = "free_y")
+  
+  
+  
+  # Bars ----
+  
+  data("unhcr_ts")
+  refugees &lt;- unhcr_ts %&gt;% 
+    subset(year == 2017)
+  
+  apex(refugees, aes(continent_origin, n), type = "column") %&gt;% 
+    ax_yaxis(
+      labels = list(
+        formatter = format_num("~s")
+      ),
+      tickAmount = 5
+    ) %&gt;% 
+    ax_facet_wrap(vars(population_type), ncol = 2)
+  
+}
+
+### Grid --------
+if (interactive()) {
+  library(apexcharter)
+  
+  # Scatter ----
+  
+  data("mpg", package = "ggplot2")
+  
+  # Only rows
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_grid(rows = vars(drv), chart_height = "200px")
+  
+  # Only cols
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_grid(cols = vars(year))
+  
+  # Rows and Cols
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_grid(rows = vars(drv), cols = vars(year))
+  
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_chart(toolbar = list(show = FALSE)) %&gt;% 
+    ax_facet_grid(vars(drv), vars(cyl))
+  
+  
+  # Labels
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_facet_grid(
+      vars(drv),
+      labeller = function(x) {
+        switch(
+          x,
+          "f" = "front-wheel drive", 
+          "r" = "rear wheel drive",
+          "4" = "4wd"
+        )
+      }
+    )
+  
+  
+  # Title and subtitle are treated as global
+  apex(mpg, aes(displ, cty), type = "scatter") %&gt;% 
+    ax_labs(
+      title = "Facet grid example",
+      subtitle = "mpg data from ggplot2"
+    ) %&gt;% 
+    ax_facet_grid(rows = vars(drv), cols = vars(year))
+  
+}
+</code></pre>
+
+
+</div>

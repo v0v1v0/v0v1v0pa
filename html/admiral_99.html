@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_anrind</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Reference Range Indicator</h2>
+
+<h3>Description</h3>
+
+<p>Derive Reference Range Indicator
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_anrind(
+  dataset,
+  signif_dig = get_admiral_option("signif_digits"),
+  use_a1hia1lo = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+<code>ANRLO</code>, <code>ANRHI</code>, and <code>AVAL</code> are expected and if <code>use_a1hia1lo</code> is set to <code>TRUE</code>,
+<code>A1LO</code> and <code>A1H1</code> are expected as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signif_dig</code></td>
+<td>
+<p>Number of significant digits to use when comparing values.
+</p>
+<p>Significant digits used to avoid floating point discrepancies when comparing numeric values.
+See blog: <a href="https://pharmaverse.github.io/blog/posts/2023-10-30_floating_point/floating_point.html">How admiral handles floating points</a></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_a1hia1lo</code></td>
+<td>
+<p>A logical value indicating whether to use <code>A1H1</code> and <code>A1LO</code> in
+the derivation of <code>ANRIND</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the case that <code>A1H1</code> and <code>A1LO</code> are to be used, <code>ANRIND</code> is set to:
+</p>
+
+<ul>
+<li> <p><code>"NORMAL"</code> if <code>AVAL</code> is greater or equal <code>ANRLO</code> and less than
+or equal <code>ANRHI</code>; or if <code>AVAL</code> is greater than or equal <code>ANRLO</code> and <code>ANRHI</code>
+is missing; or if <code>AVAL</code> is less than or equal <code>ANRHI</code> and <code>ANRLO</code> is
+missing
+</p>
+</li>
+<li> <p><code>"LOW"</code> if <code>AVAL</code> is less than <code>ANRLO</code> and either <code>A1LO</code> is missing or <code>AVAL</code>
+is greater than or equal <code>A1LO</code>
+</p>
+</li>
+<li> <p><code>"HIGH"</code> if <code>AVAL</code> is greater than <code>ANRHI</code> and either <code>A1HI</code> is missing or <code>AVAL</code>
+is less than or equal <code>A1HI</code>
+</p>
+</li>
+<li> <p><code>"LOW LOW"</code> if <code>AVAL</code> is less than <code>A1LO</code>
+</p>
+</li>
+<li> <p><code>"HIGH HIGH"</code> if <code>AVAL</code> is greater than <code>A1HI</code>
+</p>
+</li>
+</ul>
+<p>In the case that <code>A1H1</code> and <code>A1LO</code> are not to be used, <code>ANRIND</code> is set to:
+</p>
+
+<ul>
+<li> <p><code>"NORMAL"</code> if <code>AVAL</code> is greater or equal <code>ANRLO</code> and less than
+or equal <code>ANRHI</code>; or if <code>AVAL</code> is greater than or equal <code>ANRLO</code> and <code>ANRHI</code>
+is missing; or if <code>AVAL</code> is less than or equal <code>ANRHI</code> and <code>ANRLO</code> is
+missing
+</p>
+</li>
+<li> <p><code>"LOW"</code> if <code>AVAL</code> is less than <code>ANRLO</code>
+</p>
+</li>
+<li> <p><code>"HIGH"</code> if <code>AVAL</code> is greater than <code>ANRHI</code>
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The input dataset with additional column <code>ANRIND</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions that returns variable appended to dataset: 
+<code>derive_basetype_records()</code>,
+<code>derive_var_analysis_ratio()</code>,
+<code>derive_var_atoxgr()</code>,
+<code>derive_var_atoxgr_dir()</code>,
+<code>derive_var_base()</code>,
+<code>derive_var_chg()</code>,
+<code>derive_var_ontrtfl()</code>,
+<code>derive_var_pchg()</code>,
+<code>derive_var_shift()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+
+vs &lt;- tibble::tribble(
+  ~USUBJID, ~PARAMCD, ~AVAL, ~ANRLO, ~ANRHI, ~A1LO, ~A1HI,
+  "P01",       "PUL",    70,     60,    100,    40,   110,
+  "P01",       "PUL",    57,     60,    100,    40,   110,
+  "P01",       "PUL",    60,     60,    100,    40,   110,
+  "P01",     "DIABP",   102,     60,     80,    40,    90,
+  "P02",       "PUL",   109,     60,    100,    40,   110,
+  "P02",       "PUL",   100,     60,    100,    40,   110,
+  "P02",     "DIABP",    80,     60,     80,    40,    90,
+  "P03",       "PUL",    39,     60,    100,    40,   110,
+  "P03",       "PUL",    40,     60,    100,    40,   110
+)
+
+vs %&gt;% derive_var_anrind(use_a1hia1lo = TRUE)
+vs %&gt;% derive_var_anrind(use_a1hia1lo = FALSE)
+
+</code></pre>
+
+
+</div>

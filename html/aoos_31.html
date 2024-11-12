@@ -1,0 +1,79 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>defineRefClass</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Define a Reference Class</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper around <code>setRefClass</code>. All arguments are defined in an expression (instead of lists) which improves readability of the code. Besides that, no additional features are added.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">defineRefClass(expr)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>expr</code></td>
+<td>
+<p>an expression</p>
+</td>
+</tr></table>
+<h3>See Also</h3>
+
+<p>Private-class
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  vignette("Introduction", "aoos")
+
+## End(Not run)
+
+# Minimal example:
+Test &lt;- defineRefClass({
+  Class &lt;- "Test" # this is passed as argument to setRefClass
+  x &lt;- "character" # all objects which are not functions are fields
+  do &lt;- function() cat("Yes, Yes, I'm working...") # a method
+})
+
+test &lt;- Test()
+test$x &lt;- "a"
+test$do()
+
+# Inheritance and privacy:
+pTest &lt;- defineRefClass({
+  Class &lt;- "pTest"
+  # Privacy is solved by inheriting from a class 'Private' which redefines
+  # the methods for access.
+  contains &lt;- c("Test", "Private") # passed as argument to setRefClass
+
+  .y &lt;- "numeric" # this is going to be 'private'
+
+  doSomething &lt;- function() {
+    .self$.y &lt;- 42
+    cat(x, .y, "\n")
+    invisible(.self)
+  }
+})
+
+instance &lt;- pTest()
+instance$x &lt;- "Value of .y:"
+instance$doSomething()
+
+# A notion of privacy:
+stopifnot(inherits(try(instance$.y), "try-error"))
+stopifnot(inherits(try(instance$.y &lt;- 2), "try-error"))
+</code></pre>
+
+
+</div>

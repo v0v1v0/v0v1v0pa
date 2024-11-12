@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AHMLE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Overall Survival AH model.</h2>
+
+<h3>Description</h3>
+
+<p>The flexible parametric accelerated hazards (AH) model's maximum likelihood estimation, log-likelihood, and information criterion.
+Baseline hazards: NGLL, GLL,KW, EW, MLL, PGW, GG, MKW, Log-logistic, Weibull,  Log-normal, Burr-XII, and Gamma
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AHMLE(
+  init,
+  time,
+  delta,
+  n,
+  basehaz,
+  z,
+  method = "Nelder-Mead",
+  maxit = 1000,
+  log = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>: initial points for optimisation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>: survival times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>: vital indicator (0-alive,1 - dead,)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>: The number of the observations of the data set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basehaz</code></td>
+<td>
+<p>: baseline hazard structure including baseline
+(NGLLAH,GLLAH,EWAH,KWAH,MLLAH,PGWAH,GGAH,
+MKWAH,LLAH,WAH,GAH,LNAH,BXIIAH)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>: design matrix for covariates (p x n), p &gt;= 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>:"nlminb" or a method from "optim"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>:The maximum number of iterations. Defaults to 1000</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>:log scale (TRUE or FALSE)</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>By default the function calculates the following values:
+</p>
+
+<ul>
+<li>
+<p> AIC:  Akaike Information Criterion;
+</p>
+</li>
+<li>
+<p> CAIC: Consistent Akaikes Information Criterion;
+</p>
+</li>
+<li>
+<p> BIC:  Bayesian Information Criterion;
+</p>
+</li>
+<li>
+<p> BCAIC:  Bozdogan’s Consistent Akaike Information Criterion;
+</p>
+</li>
+<li>
+<p> HQIC:  Hannan-Quinn information criterion;
+</p>
+</li>
+<li>
+<p> par:  maximum likelihood estimates;
+</p>
+</li>
+<li>
+<p> Value:  value of the likelihood function;
+</p>
+</li>
+<li>
+<p> Convergence:  0 indicates successful completion and 1 indicates that the iteration limit maxit.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>The function AHMLE returns MLE estimates and information criterion.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing the output of the optimisation (OPT) and the information criterion including (AIC, BIC, CAIC, BCAIC, and HQIC).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Abdisalam Hassan Muse, Samuel Mwalili, Oscar Ngesa, Mutua Kilai, <a href="mailto:abdisalam.hassan@amoud.edu.so">abdisalam.hassan@amoud.edu.so</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example #1
+data(ipass)
+time&lt;-ipass$time
+delta&lt;-ipass$status
+z&lt;-ipass$arm
+AHMLE(init = c(1.0,1.0,1.0,0.5),time = time,delta = delta,n=nrow(z),
+basehaz = "GLLAH",z = z,method = "Nelder-Mead",
+maxit = 1000)
+
+#Example #2
+data(bmt)
+time&lt;-bmt$Time
+delta&lt;-bmt$Status
+z&lt;-bmt$TRT
+AHMLE(init = c(1.0,1.0,1.0,0.5),time = time,delta = delta,n=nrow(z),
+basehaz = "GLLAH",z = z,method = "Nelder-Mead",
+maxit = 1000)
+
+#Example #3
+data("e1684")
+time&lt;-e1684$FAILTIME
+delta&lt;-e1684$FAILCENS
+TRT&lt;-e1684$TRT
+AGE&lt;-e1684$TRT
+z&lt;-as.matrix(cbind(scale(TRT), scale(AGE) ))
+AHMLE(init = c(1.0,1.0,1.0,0.5,0.75),time = time,delta = delta,n=nrow(z),
+basehaz = "GLLAH",z = z,method = "Nelder-Mead",maxit = 1000)
+
+#Example #4
+data("LeukSurv")
+time&lt;-LeukSurv$time
+delta&lt;-LeukSurv$cens
+age&lt;-LeukSurv$age
+wbc&lt;-LeukSurv$wbc
+tpi&lt;-LeukSurv$tpi
+z&lt;-as.matrix(cbind(scale(age), scale(tpi),scale(wbc) ))
+AHMLE(init = c(1.0,1.0,1.0,1.0,0.5,0.65,0.85),time = time,delta = delta,n=nrow(z),
+basehaz = "NGLLAH",z = z,method = "Nelder-Mead",maxit = 1000)
+
+</code></pre>
+
+
+</div>

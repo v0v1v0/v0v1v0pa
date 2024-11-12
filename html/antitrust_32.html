@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Bertrand-Functions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bertrand Calibration and Merger Simulation With Logit, CES and AIDS Demand</h2>
+
+<h3>Description</h3>
+
+<p>Calibrates consumer demand using either a
+Logit, CES, or AIDS demand system and then simulates the
+prices effect of a merger between two firms
+under the assumption that all firms in the market
+are playing a Nash-Bertrand price setting game.
+</p>
+<p>Let k denote the number of products produced by all firms below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bertrand.alm(
+  demand = c("logit", "ces", "aids"),
+  prices,
+  quantities,
+  margins,
+  ownerPre,
+  ownerPost,
+  mktElast = NA_real_,
+  insideSize = ifelse(demand == "logit", sum(quantities, na.rm = TRUE), sum(prices *
+    quantities, na.rm = TRUE)),
+  diversions,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceOutside = ifelse(demand == "logit", 0, 1),
+  priceStart = prices,
+  isMax = FALSE,
+  parmStart,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>demand</code></td>
+<td>
+<p>A character vector indicating which demand system to use.
+Currently allows logit (default), ces, or aids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prices</code></td>
+<td>
+<p>A length k vector product prices. Default is missing, in
+which case demand intercepts are not calibrated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantities</code></td>
+<td>
+<p>A length k vector of product quantities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margins</code></td>
+<td>
+<p>A length k vector of product margins. All margins must
+be either be between 0 and 1, or NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPre</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product before the merger OR a
+k x k matrix of pre-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPost</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product after the merger OR
+a k x k matrix of post-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mktElast</code></td>
+<td>
+<p>A negative number equal to the industry pre-merger
+price elasticity. Default is NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>insideSize</code></td>
+<td>
+<p>Size of all units included in the market. For logit,
+this defaults to total quantity, while for aids and ces
+this defaults to total revenues.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diversions</code></td>
+<td>
+<p>A k x k matrix of diversion ratios with diagonal
+elements equal to -1. Default is missing, in which case diversion
+according to revenue share is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcDelta</code></td>
+<td>
+<p>A vector of length k where each element equals the
+proportional change in a product's marginal costs due to
+the merger. Default is 0, which assumes that the merger does not
+affect any products' marginal cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A vector of length k where each element equals TRUE if
+the product indexed by that element should be included in the
+post-merger simulation and FALSE if it should be excluded. Default is a
+length k vector of TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceOutside</code></td>
+<td>
+<p>A postive real number equal to the price of the outside good.
+Default either equals 1 for Logit demand or 0 for CES demand.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceStart</code></td>
+<td>
+<p>A vector of length k who elements equal to an
+initial guess of the proportional change in price caused by the
+merger.  For aids, the default is to draw k random elements from
+a [0,1] uniform distribution. For ces and logit, the default is prices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isMax</code></td>
+<td>
+<p>If TRUE, checks to see whether computed price equilibrium
+locally maximizes firm profits and returns a warning if not. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parmStart</code></td>
+<td>
+<p><code>aids</code> only. A vector of length 2 who elements equal to an
+initial guess for "known" element of the diagonal of the demand matrix and the market elasticity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.slopes</code></td>
+<td>
+<p>A list of  <code>optim</code>  control parameters passed
+to the calibration routine optimizer (typically the <code>calcSlopes</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.equ</code></td>
+<td>
+<p>A list of  <code>BBsolve</code> control parameters passed
+to the non-linear equation solver (typically the <code>calcPrices</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A k-length vector of labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional options to feed to the <code>BBsolve</code>
+optimizer used to solve for equilibrium prices.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The main purpose of this function is to provide a more convenient front-end
+for the <code>aids</code>, <code>logit.alm</code> and <code>ces</code> functions.
+</p>
+<p>Using price, and quantity, information for all products
+in each market, as well as margin information for at least
+one products in each market, <code>bertrand.alm</code> is able to
+recover the slopes and intercepts of either a Logit, CES, or AIDS demand
+system. These parameters are then used to simulate the price
+effects of a merger between
+two firms under the assumption that the firms are playing a
+simultaneous price setting game.
+</p>
+<p>‘ownerPre’ and ‘ownerPost’ values will typically be equal to either 0
+(element [i,j] is not commonly owned) or 1 (element [i,j] is commonly
+owned), though these matrices may take on any value between 0 and 1 to
+account for partial ownership.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>bertrand.alm</code> returns an instance of class <code>LogitALM</code>,
+<code>CESALM</code>, or <code>AIDS</code>,
+depending upon the value of the “demand” argument.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Charles Taragin <a href="mailto:ctaragin+antitrustr@gmail.com">ctaragin+antitrustr@gmail.com</a>
+</p>
+
+
+</div>

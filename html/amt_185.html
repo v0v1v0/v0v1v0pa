@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.log_rss</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot a <code>log_rss</code> object</h2>
+
+<h3>Description</h3>
+
+<p>Default plot method for an object of class <code>log_rss</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'log_rss'
+plot(x, x_var1 = "guess", x_var2 = "guess", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[log_rss]⁠</code> An object returned by the function <code>log_rss()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_var1</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> The variable to plot on the x-axis. A string of
+either <code>"guess"</code> (default – see Details) or the variable name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_var2</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> A second predictor variable to include in the plot.
+Either <code>"guess"</code> (default – see Details), <code>NA</code>, or the variable name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[any]⁠</code> Additional arguments to be passed to <code style="white-space: pre;">⁠\link{plot}()⁠</code>.
+<em>Not currently implemented</em>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function provides defaults for a basic plot, but we encourage
+the user to carefully consider how to represent the patterns found in their
+habitat selection model.
+</p>
+<p>The function <code>log_rss()</code> is meant to accept a user-defined
+input for <code>x1</code>. The structure of <code>x1</code> likely reflects how the user intended
+to visualize the results. Therefore, it is possible to "guess" which covariate
+the user would like to see on the x-axis by choosing the column from <code>x1</code> with
+the most unique values. Similarly, if there is a second column with multiple
+unique values, that could be represented by a color. Note that if the user needs
+to specify <code>x_var1</code>, then we probably cannot guess <code>x_var2</code>. Therefore, if the
+user specifies <code>x_var1 != "guess" &amp; x_var2 == "guess"</code>, the function will return
+an error.
+</p>
+<p>This function uses integers to represent colors, and therefore the user can
+change the default colors by specifying a custom <code>palette()</code> before
+calling the function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A plot.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load data
+data("amt_fisher")
+amt_fisher_covar &lt;- get_amt_fisher_covars()
+
+# Prepare data for RSF
+rsf_data &lt;- amt_fisher |&gt;
+  filter(name == "Leroy") |&gt;
+  make_track(x_, y_, t_) |&gt;
+  random_points() |&gt;
+  extract_covariates(amt_fisher_covar$landuse) |&gt;
+  mutate(lu = factor(landuse))
+
+# Fit RSF
+m1 &lt;- rsf_data |&gt;
+  fit_rsf(case_ ~ lu)
+
+# Calculate log-RSS
+# data.frame of x1s
+x1 &lt;- data.frame(lu = sort(unique(rsf_data$lu)))
+# data.frame of x2 (note factor levels should be same as model data)
+x2 &lt;- data.frame(lu = factor(140,
+levels = levels(rsf_data$lu)))
+# Calculate
+logRSS &lt;- log_rss(object = m1, x1 = x1, x2 = x2)
+
+# Plot
+plot(logRSS)
+
+
+</code></pre>
+
+
+</div>

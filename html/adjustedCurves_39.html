@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surv_iptw_km</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Inverse Probability of Treatment Weighted Kaplan-Meier estimates
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating inverse probability of treatment weighted survival curves using a weighted version of the Kaplan-Meier estimator for single event time-to-event data (<code>method="iptw_km"</code> in the <code>adjustedsurv</code> function). All regular arguments of the <code>adjustedsurv</code> function can be used. Additionally, the <code>treatment_model</code> argument has to be specified in the <code>adjustedsurv</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>treatment_model</code></td>
+<td>
+
+<p>[<strong>required</strong>] Must be either a model object with <code>variable</code> as response variable, a vector of weights or a formula which can be passed to <code>WeightIt</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight_method</code></td>
+<td>
+
+<p>Method used in <code>WeightIt</code> function call. Ignored if <code>treatment_model</code> is not a formula object. Defaults to <code>"ps"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stabilize</code></td>
+<td>
+
+<p>Whether to stabilize the weights or not. Is set to <code>FALSE</code> by default. Stabilizing weights ensures that the sum of all weights is equal to the original sample size. It has no effect on point estimates, only on the asymptotic variance calculations and confidence intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+
+<p>Can be either <code>FALSE</code> (default) or a numeric value at which to trim the weights. If <code>FALSE</code>, weights are used as calculated or supplied. If a numeric value is supplied, all weights that are bigger than <code>trim</code> are set to <code>trim</code> before the analysis is carried out. Useful when some weights are extremely large.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim_quantiles</code></td>
+<td>
+
+<p>Alternative argument to trim weights based on quantiles. Can be either <code>FALSE</code> (default) to use no trimming, or a numeric vector containing exactly two values between 0 and 1. These values specify the quantiles that the weights should be trimmed at. For example, if <code>c(0.01, 0.99)</code> is supplied to this argument, all weights that are lower than the 0.01 quantile of the weight distribution will be set to that quantile and all weights that are higher than the 0.99 quantile of the weight distributions will be set to the 0.99 quantile.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to <code>weightit</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> Requires a model describing the treatment assignment mechanism. This must be either a <code>glm</code> or <code>multinom</code> object.
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Any number of levels in <code>variable</code> are allowed. Must be a factor variable.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are available.
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method does not depend on other packages directly. However the <span class="pkg">WeightIt</span> package is required if <code>treatment_model</code> is a formula object.
+</p>
+</li>
+</ul>
+<p>This method works by modeling the treatment assignment mechanism. Adjusted survival curves are calculated by first estimating appropriate case-weights for each observation in <code>data</code>. This can be done using inverse probability of treatment weights using the propensity score (usually estimated using a logistic regression model) or by some other method (see <code>?weightit</code>). Those weights are used in a weighted version of the Kaplan-Meier estimator proposed by Xie and Liu (2005). If the weights are correctly estimated the resulting estimates will be unbiased. The only difference to the <code>iptw_cox</code> method is a slightly different weighting approach.
+</p>
+<p>Asymptotic variances are calculated using the equations given in Xie and Liu (2005). It is also recommended to use stabilized weights by using <code>stabilize=TRUE</code> (the default value). More information can be found in the cited literature.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds the following additional objects to the output of the <code>adjustedsurv</code> function:
+</p>
+
+<ul>
+<li> <p><code>weights</code>: The final weights used in the analysis.
+</p>
+</li>
+<li> <p><code>n_at_risk</code>: A <code>data.frame</code> containing the weighted number at risk and weighted number of events used in the calculations at each point in time for both groups.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>Jun Xie and Chaofeng Liu (2005). "Adjusted Kaplan-Meier Estimator and Log- Rank Test with Inverse Probability of Treatment Weighting for Survival Data". In: Statistics in Medicine 24, pp. 3089-3110
+</p>
+<p>Stanley Xu, Colleen Ross and Marsha A. Raebel, Susan Shetterly, Christopher Blanchette, and David Smith (2010). "Use of Stabilized Inverse Propensity Scores as Weights to Directly Estimate Relative Risk and Its Confidence Intervals". In: Value in Health 13.2, pp. 273-277
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>weightit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_surv(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# estimate a treatment assignment model
+glm_mod &lt;- glm(group ~ x1 + x3 + x5 + x6, data=sim_dat, family="binomial")
+
+# use it to calculate adjusted survival curves
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=glm_mod)
+
+# Alternatively, use custom weights
+# In this example we use weights calculated using the propensity score,
+# which is equal to using the glm model directly in the function
+ps_score &lt;- glm_mod$fitted.values
+weights &lt;- ifelse(sim_dat$group==1, 1/ps_score, 1/(1-ps_score))
+
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=weights)
+
+if (requireNamespace("WeightIt")) {
+
+# And a third alternative: use the WeightIt package
+# here an example with equal results to the ones above:
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=group ~ x1 + x3 + x5 + x6,
+                        weight_method="ps")
+
+# here an example using Entropy Balancing Weighting:
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=group ~ x1 + x3 + x5 + x6,
+                        weight_method="ebal")
+}
+</code></pre>
+
+
+</div>

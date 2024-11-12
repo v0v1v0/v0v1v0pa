@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>events_opts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Events options</h2>
+
+<h3>Description</h3>
+
+<p>Events options
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">events_opts(
+  click = NULL,
+  beforeMount = NULL,
+  mounted = NULL,
+  updated = NULL,
+  legendClick = NULL,
+  selection = NULL,
+  dataPointSelection = NULL,
+  dataPointMouseEnter = NULL,
+  dataPointMouseLeave = NULL,
+  beforeZoom = NULL,
+  zoomed = NULL,
+  scrolled = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>click</code></td>
+<td>
+<p>Fires when user clicks on any area of the chart.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beforeMount</code></td>
+<td>
+<p>Fires before the chart has been drawn on screen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mounted</code></td>
+<td>
+<p>Fires after the chart has been drawn on screen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>updated</code></td>
+<td>
+<p>Fires when the chart has been dynamically updated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legendClick</code></td>
+<td>
+<p>Fires when user clicks on legend.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>Fires when user selects rect using the selection tool.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataPointSelection</code></td>
+<td>
+<p>Fires when user clicks on a datapoint (bar/column/marker/bubble/donut-slice).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataPointMouseEnter</code></td>
+<td>
+<p>Fires when user's mouse enter on a datapoint (bar/column/marker/bubble/donut-slice).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataPointMouseLeave</code></td>
+<td>
+<p>MouseLeave event for a datapoint (bar/column/marker/bubble/donut-slice).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beforeZoom</code></td>
+<td>
+<p>This function, if defined, runs just before zooming in/out of the chart allowing you to set a custom range for zooming in/out.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zoomed</code></td>
+<td>
+<p>Fires when user zooms in/out the chart using either the selection zooming tool or zoom in/out buttons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scrolled</code></td>
+<td>
+<p>Fires when user scrolls using the pan tool.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>list</code> of options that can be used in <code>ax_chart</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>All arguments should be JavaScript function defined with <code>htmlwidgets::JS</code>.
+</p>
+<p>See <a href="https://apexcharts.com/docs/options/chart/events/">https://apexcharts.com/docs/options/chart/events/</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (interactive()) {
+  library(shiny)
+  
+  ui &lt;- fluidPage(
+    fluidRow(
+      column(
+        width = 8, offset = 2,
+        tags$h2("Apexchart in Shiny"),
+        apexchartOutput("chart"),
+        verbatimTextOutput(outputId = "res_click")
+      )
+    )
+  )
+  
+  server &lt;- function(input, output, session) {
+    
+    output$chart &lt;- renderApexchart({
+      apexchart() %&gt;%
+        ax_chart(
+          type = "bar",
+          events = events_opts(
+            dataPointSelection = JS(
+              "function(event, chartContext, config) {
+               Shiny.setInputValue('click', config.selectedDataPoints)
+              }"
+            ) 
+          )
+        ) %&gt;%
+        ax_series(
+          list(
+            name = "Example",
+            data = sample(1:100, 5)
+          )
+        ) %&gt;%
+        ax_xaxis(
+          categories = LETTERS[1:5]
+        )
+    })
+    
+    output$res_click &lt;- renderPrint({
+      input$click
+    })
+  }
+  
+  shinyApp(ui, server)
+}
+</code></pre>
+
+
+</div>

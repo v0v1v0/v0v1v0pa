@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_trend_and_forecast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Plot with trend and forecast
+</h2>
+
+<h3>Description</h3>
+
+<p>Plotting metrics of the dataset with trend and forecast, splitting them by groups of different ad blocks.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_trend_and_forecast(data, x_col, y_col, group_col)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Dataset downloaded from excel file, has to be assigned to 'data' and include columns 'Date', 'Block', and at least one with the data needed to plot ('Requests', 'Impressions', 'Revenue', 'Viewable', 'Clicks').
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_col</code></td>
+<td>
+
+<p>Column of the dataset 'data' with the data required for the x-axis of the plot. Preferrably 'Date'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_col</code></td>
+<td>
+
+<p>Column of the dataset 'data' with the data required for the y-axis of the plot. Preferrably the one with the data needed to plot ('Requests', 'Impressions', 'Revenue', 'Viewable', 'Clicks').
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_col</code></td>
+<td>
+
+<p>Column of the dataset 'data' with the data required for grouping the data. Preferrably 'Block'.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A plot of the chosen data with trend and forecast.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function also requires packages 'ggplot2', and 'forecast'.
+Dataset downloaded from excel file, has to be assigned to 'data' and include columns 'Date', 'Block', and at least one with the data needed to plot ('Requests', 'Impressions', 'Revenue', 'Viewable', 'Clicks').
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ivan Nemtsev
+</p>
+
+
+<h3>References</h3>
+
+<p>Hyndman, R. J., &amp; Athanasopoulos, G. (2018). "Forecasting: Principles and Practice" - <a href="https://otexts.com/fpp3/">https://otexts.com/fpp3/</a>
+Documentation for 'forecast' - <a href="https://pkg.robjhyndman.com/forecast/">https://pkg.robjhyndman.com/forecast/</a>
+Documentation for 'ggplot2' - <a href="https://ggplot2.tidyverse.org/">https://ggplot2.tidyverse.org/</a>
+Wickham, H. (2016). "ggplot2: Elegant Graphics for Data Analysis" - <a href="https://ggplot2-book.org/">https://ggplot2-book.org/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## The function is currently defined as
+plot_trend_and_forecast &lt;- function(data, x_col, y_col, group_col) {
+  data$Date &lt;- as.Date(data$Date)
+  data_groups &lt;- split(data, data[[group_col]])
+  for (group in names(data_groups)) {
+    group_data &lt;- data_groups[[group]]
+    time_series &lt;- ts(group_data[[y_col]], frequency = 1, start = min(group_data[[x_col]]))
+    arima_model &lt;- auto.arima(time_series)
+    forecast &lt;- forecast(arima_model, h = 6)
+    forecast_dates &lt;- seq(max(group_data[[x_col]]) + 1,
+    to = max(group_data[[x_col]]) + length(forecast$mean),
+    by = "day")
+    forecast_data &lt;- data.frame(Date = forecast_dates, Forecast = forecast$mean)
+    print(ggplot() +
+            geom_line(data = group_data, aes(x = !!rlang::sym(x_col), y = !!rlang::sym(y_col))) +
+            geom_line(data = forecast_data, aes(x = Date, y = Forecast), color = "blue") +
+            geom_ribbon(data = forecast_data, aes(x = Date, ymin = forecast$lower[, 2],
+            ymax = forecast$upper[, 2]), fill = "blue", alpha = 0.2) +
+            labs(x = x_col, y = y_col, title = group) +
+            theme_minimal())
+  }
+}
+
+## Example of use:
+data &lt;- data.frame(
+  Date = c("2022-07-01", "2022-07-02", "2022-07-03", "2022-07-29", "2022-07-30", "2022-07-31"),
+  Block = c("1_234", "1_234", "1_234", "1_235", "1_235", "1_235"),
+  Requests = c(372234, 268816, 291224, 1928854, 1928290, 786539),
+  Impressions = c(18537, 12432, 13764, 2839269, 2682648, 1114773),
+  Revenue = c(13.5, 9.13, 8.85, 1669.0, 1654.0, 739.0),
+  Clicks = c(1167, 720, 856, 214451, 196657, 93178),
+  Viewable = c(13320, 8214, 9768, 2446884, 2243865, 1063158)
+)
+plot_trend_and_forecast(data, "Date", "Impressions", "Block")
+#Any value instead of Impressions can be here
+  </code></pre>
+
+
+</div>

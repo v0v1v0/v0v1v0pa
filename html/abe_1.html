@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abe</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Augmented Backward Elimination</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>"abe"</code> performs Augmented backward elimination where variable selection is based on the change-in-estimate and significance or information criteria.
+It can also make a backward-selection based on significance or information criteria only by turning off the change-in-estimate criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abe(fit, data = NULL, include = NULL, active = NULL, tau = 0.05,
+  exp.beta = TRUE, exact = FALSE, criterion = "alpha", alpha = 0.2,
+  type.test = "Chisq", type.factor = NULL, verbose = T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>An object of a class <code>"lm"</code>, <code>"glm"</code> or <code>"coxph"</code> representing the fit.
+Note, the functions should be fitted with argument <code>x=TRUE</code> and <code>y=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame used when fitting the object <code>fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>a vector containing the names of variables that will be included in the final model. These variables are used as only passive variables during modeling. These variables might be exposure variables of interest or known confounders.
+They will never be dropped from the working model in the selection process,
+but they will be used passively in evaluating change-in-estimate criteria of other variables.
+Note, variables which are not specified as include or active in the model fit are assumed to be active and passive variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>a vector containing the names of active variables. These less important explanatory variables will only be used as active,
+but not as passive variables when evaluating the change-in-estimate criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Value that specifies the threshold of the relative change-in-estimate criterion. Default is set to 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exp.beta</code></td>
+<td>
+<p>Logical specifying if exponent is used in formula to standardize the criterion. Default is set to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>Logical, specifies if the method will use exact change-in-estimate or its approximation. Default is set to FALSE, which means that the method will use approximation proposed by Dunkler et al.
+Note, setting to TRUE can severely slow down the algorithm, but setting to FALSE can in some cases lead to a poor approximation of the change-in-estimate criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>String that specifies the strategy to select variables for the black list.
+Currently supported options are significance level <code>'alpha'</code>, Akaike information criterion <code>'AIC'</code> and Bayesian information criterion <code>'BIC'</code>.
+If you are using significance level, in that case you have to specify the value of 'alpha' (see parameter <code>alpha</code>) and type of the test statistic (see parameter <code>type.test</code>). Default is set to <code>"alpha"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value that specifies the level of significance as explained above. Default is set to 0.2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.test</code></td>
+<td>
+<p>String that specifies which test should be performed in case the <code>criterion = "alpha"</code>.
+Possible values are <code>"F"</code> and <code>"Chisq"</code> (default) for class <code>"lm"</code>, <code>"Rao"</code>, <code>"LRT"</code>, <code>"Chisq"</code> (default), <code>"F"</code> for class <code>"glm"</code> and <code>"Chisq"</code> for class <code>"coxph"</code>. See also <code>drop1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.factor</code></td>
+<td>
+<p>String that specifies how to treat factors, see details, possible values are <code>"factor"</code> and <code>"individual"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical that specifies if the variable selection process should be printed. Note: this can severely slow down the algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Using the default settings ABE will perform augmented backward elimination based on significance.
+The level of significance will be set to 0.2. All variables will be treated as "passive or active".
+Approximated change-in-estimate will be used. Threshold of the relative change-in-estimate criterion will be 0.05.
+Setting tau to a very large number (e.g. <code>Inf</code>) turns off the change-in-estimate criterion, and ABE will only perform backward elimination.
+Specifying <code>"alpha" = 0</code> will include variables only because of the change-in-estimate criterion,
+as then variables are not safe from exclusion because of their p-values.
+Specifying <code>"alpha" = 1</code> will always include all variables.
+</p>
+<p>When using <code>type.factor="individual"</code> each dummy variable of a factor is treated as an individual explanatory variable, hence only this dummy variable can be removed from the model (warning: use sensible coding for the reference group).
+Using <code>type.factor="factor"</code> will look at the significance of removing all dummy variables of the factor and can drop the entire variable from the model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"lm"</code>, <code>"glm"</code> or <code>"coxph"</code> representing the model chosen by abe method.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rok Blagus, <a href="mailto:rok.blagus@mf.uni-lj.si">rok.blagus@mf.uni-lj.si</a>
+</p>
+<p>Sladana Babic
+</p>
+
+
+<h3>References</h3>
+
+<p>Daniela Dunkler, Max Plischke, Karen Lefondre, and Georg Heinze. Augmented backward elimination: a pragmatic and purposeful way to develop statistical models. PloS one, 9(11):e113677, 2014.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>abe.boot</code>, <code>lm</code>, <code>glm</code> and <code>coxph</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simulate some data:
+
+set.seed(1)
+n=100
+x1&lt;-runif(n)
+x2&lt;-runif(n)
+x3&lt;-runif(n)
+y&lt;--5+5*x1+5*x2+ rnorm(n,sd=5)
+dd&lt;-data.frame(y,x1,x2,x3)
+
+# fit a simple model containing only numeric covariates
+fit&lt;-lm(y~x1+x2+x3,x=TRUE,y=TRUE,data=dd)
+
+# perform ABE with "x1" as only passive and "x2" as only active
+# using the exact change in the estimate of 5% and significance
+# using 0.2 as a threshold
+abe.fit&lt;-abe(fit,data=dd,include="x1",active="x2",
+tau=0.05,exp.beta=FALSE,exact=TRUE,criterion="alpha",alpha=0.2,
+type.test="Chisq",verbose=TRUE)
+
+summary(abe.fit)
+
+# similar example, but turn off the change-in-estimate and perform
+# only backward elimination
+
+abe.fit&lt;-abe(fit,data=dd,include="x1",active="x2",
+tau=Inf,exp.beta=FALSE,exact=TRUE,criterion="alpha",alpha=0.2,
+type.test="Chisq",verbose=TRUE)
+
+summary(abe.fit)
+
+# an example with the model containing categorical covariates:
+dd$x3&lt;-rbinom(n,size=3,prob=1/3)
+dd$y1&lt;--5+5*x1+5*x2+ rnorm(n,sd=5)
+fit&lt;-lm(y1~x1+x2+factor(x3),x=TRUE,y=TRUE,data=dd)
+
+# treat "x3" as a single covariate:
+
+abe.fit.fact&lt;-abe(fit,data=dd,include="x1",active="x2",
+tau=0.05,exp.beta=FALSE,exact=TRUE,criterion="alpha",alpha=0.2,
+type.test="Chisq",verbose=TRUE,type.factor="factor")
+
+summary(abe.fit.fact)
+
+# treat each dummy of "x3" as a separate covariate:
+
+abe.fit.ind&lt;-abe(fit,data=dd,include="x1",active="x2",
+tau=0.05,exp.beta=FALSE,exact=TRUE,criterion="alpha",alpha=0.2,
+type.test="Chisq",verbose=TRUE,type.factor="individual")
+
+summary(abe.fit.ind)
+</code></pre>
+
+
+</div>

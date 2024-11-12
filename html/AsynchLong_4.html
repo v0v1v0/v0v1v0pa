@@ -1,0 +1,212 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asynchHK</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Regression Analysis for Time-Invariant Coefficients Using Half-Kernel Estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimation of regression models for sparse asynchronous longitudinal
+observations using a half-kernel estimation approach with time-invariant coefficients.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asynchHK(data.x, data.y, kType = "epan", lType = "identity", bw = NULL, 
+         nCores = 1, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data.x</code></td>
+<td>
+
+<p>A data.frame of covariates. 
+The structure of the data.frame must be 
+{patient ID, time of measurement, measurement(s)}. 
+Patient IDs must be of class integer or be able to be coerced to 
+class integer without loss of information.
+Missing values must be indicated as NA.
+All times will automatically be rescaled to [0,1].
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.y</code></td>
+<td>
+
+<p>A data.frame of response measurements. 
+The structure of the data.frame must be 
+{patient ID, time of measurement, measurement}. 
+Patient IDs must be of class integer or be able to be coerced to 
+class integer without loss of information.
+Missing values must be indicated as NA.
+All times will automatically be rescaled to [0,1].
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kType </code></td>
+<td>
+
+<p>An object of class character indicating the type of 
+smoothing kernel to use in the estimating equation. 
+Must be one of {"epan", "uniform", "gauss"}, where
+"epan" is the Epanechnikov kernel and "gauss" is the
+Gaussian kernel.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lType </code></td>
+<td>
+
+<p>An object of class character indicating the type of link 
+function to use for the regression model. 
+Must be one of {"identity","log","logistic"}.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw    </code></td>
+<td>
+
+<p>If provided, bw is an object of class numeric or a 
+numeric vector containing the bandwidths for which parameter
+estimates are to be obtained. 
+If NULL, an optimal bandwidth will be determined
+using an adaptive selection procedure. 
+The range of the bandwidth search space is taken
+to be <code class="reqn">2*(Q3 - Q1)*n^{-0.7} to 2*(Q3 - Q1)*n^{-0.3}</code>,
+where Q3 is the 0.75 quantile and Q1 is the 0.25 quantile
+of the pooled sample of measurement times for the covariate
+and response, and n is the number of patients.
+See original reference for details of the 
+selection procedure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nCores</code></td>
+<td>
+
+<p>A numeric object. For auto-tune method, the number of cores
+to employ for calculation. If nCores &gt; 1, the bandwidth
+search space will be distributed across the cores
+using parallel's parLapply.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose </code></td>
+<td>
+<p> An object of class logical. TRUE results in screen prints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>... </code></td>
+<td>
+<p>Ignored. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For lType = "log" and lType = "logistic", parameter estimates are
+obtained by minimizing the estimating equation 
+using optim() with method="Nelder-Mead"; 
+all other arguments take their default values.
+</p>
+<p>For lType = "identity", parameter estimates are obtained using solve().
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned. If bandwidths are provided, each element 
+of the list is a matrix,
+where the ith row corresponds to the ith bandwidth of argument “bw" and the
+columns correspond to the model parameters. If the bandwidth is
+determined automatically, each element is a named vector calculated
+at the optimal bandwidth.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betaHat </code></td>
+<td>
+<p>The estimated model coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stdErr  </code></td>
+<td>
+<p>The standard error for each coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zValue  </code></td>
+<td>
+<p>The estimated z-value for each coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pValue  </code></td>
+<td>
+<p>The p-value for each coefficient.</p>
+</td>
+</tr>
+</table>
+<p>If the bandwidth is determined automatically, two additional list
+elements are returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>optBW   </code></td>
+<td>
+<p>The estimated optimal bandwidth for each coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minMSE  </code></td>
+<td>
+<p>The mean squared error at the optimal bandwidth for
+each coefficient.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Hongyuan Cao, Jialiang Li, Jason P. Fine, and Shannon T. Holloway
+</p>
+
+
+<h3>References</h3>
+
+<p>Cao, H., Li, Jialiang, and Fine, J. P. (2016).
+On last observation carried forward and asynchronous longitudinal regression analysis.
+Electronic Journal of Statistics, 10, 1155–1180.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(asynchDataTI)
+
+  res &lt;- asynchHK(data.x = TI.x, 
+                  data.y = TI.y,
+                  bw = c(0.05, 0.03),
+                  kType = "epan", 
+                  lType = "identity")
+
+</code></pre>
+
+
+</div>

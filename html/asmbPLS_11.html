@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asmbPLSDA.vote.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>asmbPLS-DA vote model fit</h2>
+
+<h3>Description</h3>
+
+<p>Function to fit multiple asmbPLS-DA models using cross validation results with 
+different decision rules obtained from <code>asmbPLSDA.cv</code>, 
+the weight for each model are calculated based on cross-validation accuracy, 
+which can be used for <code>asmbPLSDA.vote.predict</code> to obtain
+the final classification.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asmbPLSDA.vote.fit(
+  X.matrix,
+  Y.matrix,
+  X.dim,
+  cv.results.list,
+  nPLS,
+  outcome.type,
+  method = "weighted",
+  measure = NULL,
+  center = TRUE,
+  scale = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X.matrix</code></td>
+<td>
+<p>Predictors matrix. Samples in rows, variables in columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y.matrix</code></td>
+<td>
+<p>Outcome matrix. Samples in rows, this is a matrix with one 
+column (binary) or multiple columns (more than 2 levels, dummy variables).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.dim</code></td>
+<td>
+<p>A vector containing the number of predictors in each block 
+(ordered).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.results.list</code></td>
+<td>
+<p>A list containing <code>quantile_table_CV</code> from 
+<code>asmbPLSDA.cv</code> using different decision rules, the name
+of each element in the list should be the corresponding name of decision 
+rule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPLS</code></td>
+<td>
+<p>A vector containing the number of PLS components used for 
+different decision rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome.type</code></td>
+<td>
+<p>The type of the outcome Y. "<code>binary</code>" for binary 
+outcome, and "<code>multiclass</code>" for categorical outcome with more than 2 
+levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Vote options. "<code>unweighted</code>" gives each decision rule the 
+same weight; "<code>weighted</code>" assigns higher weight to method with higher 
+measure, i.e. weight = log(measure/(1-measure)); "<code>ranked</code>" ranks
+the given methods based on the average rank of methods using accuracy, 
+balanced accuracy, precision, recall and F1 score.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p>Measure to be selected when <code>method</code> is <code>weighted</code>. 
+The default is <code>B_accuracy</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>A logical value indicating whether weighted mean center should 
+be implemented for <code>X.matrix</code> and <code>Y.matrix</code>. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A logical value indicating whether scale should be 
+implemented for <code>X.matrix</code>. The default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>asmbPLSDA.vote.fit</code> returns a list of lists, which can be used as the 
+inputs for <code>asmbPLSDA.vote.predict</code>. Each list contains the 
+fit information for model with specific decision rule: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit.model</code></td>
+<td>
+<p>A list containing model fit information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPLS</code></td>
+<td>
+<p>The number of PLS components used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>The weight for this model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome.type</code></td>
+<td>
+<p>The type of the outcome Y.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Use the example dataset
+data(asmbPLSDA.example)
+X.matrix = asmbPLSDA.example$X.matrix
+X.matrix.new = asmbPLSDA.example$X.matrix.new
+Y.matrix.binary = asmbPLSDA.example$Y.matrix.binary
+X.dim = asmbPLSDA.example$X.dim
+PLS.comp = asmbPLSDA.example$PLS.comp
+quantile.comb.table.cv = asmbPLSDA.example$quantile.comb.table.cv
+
+## Cross validaiton based on fixed cutoff
+cv.results.cutoff &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                  Y.matrix = Y.matrix.binary,
+                                  PLS.comp = PLS.comp, 
+                                  X.dim = X.dim, 
+                                  quantile.comb.table = quantile.comb.table.cv, 
+                                  outcome.type = "binary", 
+                                  method = "fixed_cutoff",
+                                  k = 3,
+                                  ncv = 1)
+quantile.comb.cutoff &lt;- cv.results.cutoff$quantile_table_CV
+
+## Cross validation using Euclidean distance of X super score
+cv.results.EDX &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                               Y.matrix = Y.matrix.binary,
+                               PLS.comp = PLS.comp, 
+                               X.dim = X.dim, 
+                               quantile.comb.table = quantile.comb.table.cv, 
+                               outcome.type = "binary", 
+                               method = "Euclidean_distance_X",
+                               k = 3,
+                               ncv = 1)
+quantile.comb.EDX &lt;- cv.results.EDX$quantile_table_CV
+
+## Cross validation using Mahalanobis distance of X super score
+cv.results.MDX &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                  Y.matrix = Y.matrix.binary,
+                                  PLS.comp = PLS.comp, 
+                                  X.dim = X.dim, 
+                                  quantile.comb.table = quantile.comb.table.cv, 
+                                  outcome.type = "binary", 
+                                  method = "Mahalanobis_distance_X",
+                                  k = 3,
+                                  ncv = 1)
+quantile.comb.MDX &lt;- cv.results.MDX$quantile_table_CV
+
+#### vote list ####
+cv.results.list = list(fixed_cutoff = quantile.comb.cutoff,
+                       Euclidean_distance_X = quantile.comb.EDX,
+                       Mahalanobis_distance_X = quantile.comb.MDX)
+
+## vote models fit
+vote.fit &lt;- asmbPLSDA.vote.fit(X.matrix = X.matrix, 
+                               Y.matrix = Y.matrix.binary, 
+                               X.dim = X.dim, 
+                               nPLS = c(cv.results.cutoff$optimal_nPLS, 
+                               cv.results.EDX$optimal_nPLS, 
+                               cv.results.MDX$optimal_nPLS),
+                               cv.results.list = cv.results.list, 
+                               outcome.type = "binary",
+                               method = "weighted")
+
+</code></pre>
+
+
+</div>

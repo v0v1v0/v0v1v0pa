@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CalGR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calibration algorithm that optimises the error criterion selected as objective function</h2>
+
+<h3>Description</h3>
+
+<p>Calibration algorithm that optimises the error criterion selected as objective function using the INRAE-HYCAR procedure described by C. Michel</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CalGR(PrepGR, CalCrit = c("NSE", "KGE", "KGE2", "RMSE"),
+      WupPer = NULL, CalPer,
+      transfo = c("", "sqrt", "log", "inv", "sort"), verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>PrepGR</code></td>
+<td>
+<p>[object of class <code>PrepGR</code>] see <code>PrepGR</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CalCrit</code></td>
+<td>
+<p>[character] name of the objective function (must be one of <code>"NSE"</code>, <code>"KGE"</code>, <code>"KGE2"</code> or <code>"RMSE"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WupPer</code></td>
+<td>
+<p>(optional) [character] vector of 2 values to define the beginning and end of the warm-up period [<code>"YYYY-mm-dd"</code> or <code>"YYYY-mm-dd HH:MM:SS"</code>]; [0L] to disable the warm-up period. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CalPer</code></td>
+<td>
+<p>[character] vector of 2 values to define the beginning and end of the calibration period [<code>"YYYY-mm-dd"</code> or <code>"YYYY-mm-dd HH:MM:SS"</code>]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transfo</code></td>
+<td>
+<p>(optional) [character] name of the transformation transformation applied to discharge for calculating the objective function (must be one of <code>""</code>, <code>"sqrt"</code>, <code>"log"</code>, <code>"inv"</code> or <code>"sort"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] logical value indicating if the function is run in verbose mode or not</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>WupPer = NULL</code> indicates that, if available, a period of one year immediately present before the CalPer period is used. <code>WupPer = 0L</code> allows to disable the warm up of the model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[list] object of class <code>CalGR</code> containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>OptionsCalib</code></td>
+<td>
+<p>[list] object of class <code>RunOptions</code> (see: <code>CreateRunOptions</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qobs</code></td>
+<td>
+<p>[numeric]  series of observed discharges [mm/time step]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OutputsCalib</code></td>
+<td>
+<p>[list] object of class <code>OutputsCalib</code> (see: <code>Calibration</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OutputsModel</code></td>
+<td>
+<p>[list] object of class <code>OutputsModel</code> (see: <code>RunModel</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TypeModel</code></td>
+<td>
+<p>[character] name of the function of the hydrological model used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CalCrit</code></td>
+<td>
+<p>[character] name of the function that computes the error criterion during the calibration step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PeriodModel</code></td>
+<td>
+<p>[list] <code>$WarmUp</code>: vector of 2 <code>POSIXct</code> values defining the beginning and end of the warm-up period, <code>$Run</code>: vector of 2 <code>POSIXct</code> values defining the beginning and end of the calibration period</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Olivier Delaigue, Guillaume Thirel</p>
+
+
+<h3>See Also</h3>
+
+<p>airGRteaching
+<code>plot</code> and  <code>dyplot</code>
+functions to display static and dynamic plots
+<br><br>
+airGR
+<code>CreateRunOptions</code>, <code>CreateInputsCrit</code>, <code>CreateCalibOptions</code>, <code>ErrorCrit_RMSE</code>, <code>ErrorCrit_NSE</code>, <code>ErrorCrit_KGE</code>, <code>ErrorCrit_KGE2</code>, <code>Calibration_Michel</code>
+functions
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGRteaching)
+
+## data.frame of observed data
+data(L0123001, package = "airGR")
+BasinObs2 &lt;- BasinObs[, c("DatesR", "P", "E", "Qmm", "T")]
+
+## Preparation of observed data for modelling
+PREP &lt;- PrepGR(ObsDF = BasinObs2, HydroModel = "GR4J", CemaNeige = TRUE)
+
+## Calibration step
+CAL &lt;- CalGR(PrepGR = PREP, CalCrit = "KGE2",
+             WupPer = NULL, CalPer = c("1990-01-01", "1993-12-31"))
+
+
+## Structure of CalGR object
+str(CAL)
+
+## Parameter and criterion evolution during
+## the steepest descent step of the calibration algorithm
+plot(CAL, which = "iter")
+
+## Plot diagnostics
+plot(CAL)
+
+## Static plot of observed and simulated time series
+plot(CAL, which = "ts")
+plot(CAL, which = c("Precip", "Flows"))
+
+## Dynamic plot of observed and simulated time series
+dyplot(CAL)
+</code></pre>
+
+
+</div>

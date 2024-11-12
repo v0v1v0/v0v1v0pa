@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>krfun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiscale second-order neighbourhood analysis of a multivariate spatial point pattern using Rao quadratic entropy</h2>
+
+<h3>Description</h3>
+
+<p>Computes distance-dependent estimates of Rao's quadratic entropy from a multivariate spatial point pattern 
+in a simple (rectangular or circular) or complex sampling window. Computes optionally local confidence limits of the functions
+under the null hypothesis of either a random labelling or a species equivalence (see Details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">krfun(p, upto, by, nsim=0, dis = NULL, H0 = c("rl", "se"), alpha = 0.01)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p </code></td>
+<td>
+<p>a <code>"spp"</code> object defining a spatial point pattern in a given sampling window (see <code>spp</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upto </code></td>
+<td>
+<p>maximum radius of the sample circles (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by </code></td>
+<td>
+<p>interval length between successive sample circles radii (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim </code></td>
+<td>
+<p>number of Monte Carlo simulations to estimate local confidence limits of the null hypothesis of a random allocation of species labels (see Details).
+By default <code>nsim = 0</code>, so that no confidence limits are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dis </code></td>
+<td>
+<p>(optional) a <code>"dist"</code> object defining Euclidean distances between species. By default <code class="reqn">dis = NULL</code> so that species are considered equidistant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0</code></td>
+<td>
+<p>one of c("rl","se") to select either the null hypothesis of random labelling (H0 = "rl") or species equivalence (H0 = "se") (see Details). By default, the null hypothesis is random labelling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha </code></td>
+<td>
+<p>if <code>nsim&gt;0</code>, significant level of the confidence limits. By default <code class="reqn">\alpha = 0.01</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>krfun</code> computes distance-dependent functions of Rao (1982) quadratic entropy (see <code>divc</code> in package <code>ade4</code>).<br><br>
+For a multivariate point pattern consisting of <code class="reqn">S</code> species with intensity <code class="reqn">\lambda</code>p, such functions can be estimated from the bivariate <code class="reqn">Kpq</code>-functions between each pair of different species <code class="reqn">p</code> and <code class="reqn">q</code>.
+Function <code>krfun</code> is thus a simple wrapper function of <code>k12fun</code> and <code>kfun</code>, standardized by Rao diversity coefficient (Pelissier &amp; Goreaud 2014):
+</p>
+<p><code class="reqn">Kr(r) = sum(\lambda p * \lambda q * Kpq(r)*dpq) / (\lambda * \lambda * K(r) * HD)</code>.<br><code class="reqn">gr(r) = sum(\lambda p * \lambda q * gpq(r)*dpq) / (\lambda * \lambda * g(r) * HD)</code>.<br><br></p>
+<p>where <code class="reqn">dpq</code> is the distance between species <code class="reqn">p</code> and <code class="reqn">q</code> defined by matrix <code>dis</code>, typically a taxonomic, phylogenetic or functional distance, and <code class="reqn">HD=sum(Np*Nq*dpq/(N(N - 1)))</code> is the unbiased version of Rao diversity coefficient (see Shimatani 2001). When <code>dis = NULL</code>, species are considered each other equidistant and <code>krfun</code> returns the same results than <code>ksfun</code>. 
+</p>
+<p>The program introduces an edge effect correction term according to the method proposed by Ripley (1977)
+and extended to circular and complex sampling windows by Goreaud &amp; Pelissier (1999).<br><br></p>
+<p>Theoretical values under the null hypothesis of either random labelling or species equivalence as well as local Monte Carlo confidence limits and p-values of departure from the null hypothesis (Besag &amp; Diggle 1977) are estimated at each distance <code class="reqn">r</code>.
+</p>
+<p>The random labelling hypothesis (H0 = "rl") is tested by reallocating species labels at random among all points of the pattern, keeping the point locations unchanged, so that expectations of <code class="reqn">gr(r)</code> and <code class="reqn">Kr(r)</code> are 1 for all <code class="reqn">r</code>.
+The species equivalence hypothesis (H0 = "se") is tested by randomizing the between-species distances, keeping the point locations and distribution of species labels unchanged. The theoretical expectations of <code class="reqn">gr(r)</code> and <code class="reqn">Kr(r)</code> are thus <code class="reqn">gs(r)</code> and <code class="reqn">Ks(r)</code>, respectively (see <code>ksfun</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>"fads"</code> with essentially the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>r </code></td>
+<td>
+<p>a vector of regularly spaced out distances (<code>seq(by,upto,by)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gr </code></td>
+<td>
+<p>a data frame containing values of the function <code class="reqn">gr(r)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kr </code></td>
+<td>
+<p>a data frame containing values of the function <code class="reqn">Kr(r)</code>.<br></p>
+</td>
+</tr>
+</table>
+<p>Each component except <code>r</code> is a data frame with the following variables:<br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs </code></td>
+<td>
+<p>a vector of estimated values for the observed point pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theo </code></td>
+<td>
+<p>a vector of theoretical values expected under the selected null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sup </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the upper local confidence limits of a random distribution of the selected null hypothesis at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inf </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the lower local confidence limits of a random distribution of the selected null hypothesis at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of local p-values of departure from the selected null hypothesis.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>There are printing and plotting methods for <code>"fads"</code> objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p><a href="mailto:Raphael.Pelissier@ird.fr">Raphael.Pelissier@ird.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Rao, C.R. 1982. Diversity and dissimilarity coefficient: a unified approach. <em>Theoretical Population Biology</em>, 21:24-43.
+</p>
+<p>Shimatani, K. 2001. On the measurement of species diversity incorporating species differences. <em>Oikos</em>, 93, 135-147.
+</p>
+<p>Goreaud F. &amp; Pelissier R. 1999. On explicit formulas of edge effect correction for Ripley's K-function. <em>Journal of Vegetation Science</em>, 10:433-438.
+</p>
+<p>Ripley B.D. 1977. Modelling spatial patterns. <em>Journal of the Royal Statistical Society B</em>, 39:172-192.
+</p>
+<p>Pelissier, R. &amp; Goreaud, F. 2014. ads package for R: A fast unbiased implementation of the k-function family for studying spatial point patterns in irregular-shaped sampling windows. <em>Journal of Statistical Software</em>, in press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.fads</code>,
+<code>spp</code>,
+<code>ksfun</code>,
+<code>kdfun</code>,
+<code>divc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Paracou15)
+  P15&lt;-Paracou15
+  ## Not run: spatial point pattern in a rectangle sampling window of size 125 x 125
+  swmr &lt;- spp(P15$trees, win = c(175, 175, 250, 250), marks = P15$species)
+  ## Not run: testing the random labeling hypothesis
+  krwmr.rl &lt;- krfun(swmr, dis = P15$spdist, H0 = "rl", 25, 2, 50)
+  ## Not run: running more simulations is slow
+  krwmr.rl &lt;- krfun(swmr, dis = P15$spdist, H0 = "rl", 25, 2, 500)
+  plot(krwmr.rl)
+  ## Not run: testing the species equivalence hypothesis
+  krwmr.se &lt;- krfun(swmr, dis = P15$spdist, H0 = "se", 25, 2, 50)
+  ## Not run: running more simulations is slow
+  krwmr.se &lt;- krfun(swmr, dis = P15$spdist, H0 = "se", 25, 2, 500)
+  plot(krwmr.se)
+
+  ## Not run: spatial point pattern in a circle with radius 50 centred on (125,125)
+  swmc &lt;- spp(P15$trees, win = c(125,125,50), marks = P15$species)
+  krwmc &lt;- krfun(swmc, dis = P15$spdist, H0 = "rl", 25, 2, 100)
+  ## Not run: running more simulations is slow
+  krwmc &lt;- krfun(swmc, dis = P15$spdist, H0 = "rl", 25, 2, 500)
+  plot(krwmc)
+  
+  ## Not run: spatial point pattern in a complex sampling window
+  swrt &lt;- spp(P15$trees, win = c(125,125,250,250), tri = P15$tri, marks = P15$species)
+  krwrt &lt;- krfun(swrt, dis = P15$spdist, H0 = "rl", 25, 2)
+  ## Not run: running simulations is slow
+  krwrt &lt;- krfun(swrt, dis = P15$spdist, H0 = "rl", 25, 2, 500)
+  plot(krwrt)
+</code></pre>
+
+
+</div>

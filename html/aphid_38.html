@@ -1,0 +1,385 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>train</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterative model refinement.</h2>
+
+<h3>Description</h3>
+
+<p>Update model parameters using a list of training sequences, with either
+the Viterbi training or Baum-Welch algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">train(x, y, ...)
+
+## S3 method for class 'PHMM'
+train(
+  x,
+  y,
+  method = "Viterbi",
+  seqweights = "Henikoff",
+  wfactor = 1,
+  k = 5,
+  logspace = "autodetect",
+  maxiter = 100,
+  limit = 1,
+  deltaLL = 1e-07,
+  pseudocounts = "background",
+  gap = "-",
+  fixqa = FALSE,
+  fixqe = FALSE,
+  maxsize = NULL,
+  inserts = "map",
+  threshold = 0.5,
+  lambda = 0,
+  alignment = FALSE,
+  cores = 1,
+  quiet = FALSE,
+  ...
+)
+
+## S3 method for class 'HMM'
+train(
+  x,
+  y,
+  method = "Viterbi",
+  seqweights = NULL,
+  wfactor = 1,
+  maxiter = 100,
+  deltaLL = 1e-07,
+  logspace = "autodetect",
+  quiet = FALSE,
+  modelend = FALSE,
+  pseudocounts = "Laplace",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"HMM"</code> or <code>"PHMM"</code> specifying the
+initial parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a list of training sequences whose hidden states are unknown.
+Accepted modes are "character" and "raw" (for "DNAbin" and "AAbin"
+objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>aditional arguments to be passed to <code>"Viterbi"</code> (if
+<code>method = "Viterbi"</code>) or <code>"forward"</code> (if
+<code>method = "BaumWelch"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string specifying the iterative model training
+method to use. Accepted methods are <code>"Viterbi"</code> (the default)
+and <code>"BaumWelch"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seqweights</code></td>
+<td>
+<p>either NULL (all sequences are given weights
+of 1), a numeric vector the same length as <code>y</code> representing
+the sequence weights used to derive the model, or a character string giving
+the method to derive the weights from the sequences
+(see <code>weight</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wfactor</code></td>
+<td>
+<p>numeric. The factor to multiply the sequence weights by.
+Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>integer representing the k-mer size to be used in tree-based
+sequence weighting (if applicable). Defaults to 5. Note that higher
+values of k may be slow to compute and use excessive memory due to
+the large numbers of calculations required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logspace</code></td>
+<td>
+<p>logical indicating whether the emission and transition
+probabilities of x are logged. If <code>logspace = "autodetect"</code>
+(default setting), the function will automatically detect
+if the probabilities are logged, returning an error if
+inconsistencies are found. Note that choosing the latter option
+increases the computational overhead; therefore specifying
+<code>TRUE</code> or <code>FALSE</code> can reduce the running time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>the maximum number of EM iterations or Viterbi training
+iterations to carry out before the cycling process is terminated and
+the partially trained model is returned. Defaults to 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>the proportion of alignment rows that must be identical
+between subsequent iterations for the Viterbi training algorithm
+to terminate. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaLL</code></td>
+<td>
+<p>numeric, the maximum change in log likelihood between EM
+iterations before the cycling procedure is terminated (signifying model
+convergence). Defaults to 1E-07. Only applicable if
+<code>method = "BaumWelch"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudocounts</code></td>
+<td>
+<p>character string, either "background", Laplace"
+or "none". Used to account for the possible absence of certain
+transition and/or emission types in the input sequences.
+If <code>pseudocounts = "background"</code> (default), pseudocounts
+are calculated from the background transition and emission
+frequencies in the training dataset.
+If <code>pseudocounts = "Laplace"</code> one of each possible transition
+and emission type is added to the training dataset (default).
+If <code>pseudocounts = "none"</code> no pseudocounts are added (not
+usually recommended, since low frequency transition/emission types
+may be excluded from the model).
+Alternatively this argument can be a two-element list containing
+a matrix of transition pseudocounts
+as its first element and a matrix of emission pseudocounts as its
+second. If this option is selected, both matrices must have row and column
+names corresponding with the residues (column names of emission matrix)
+and states (row and column names of the transition matrix and
+row names of the emission matrix). For standard HMMs
+the first row and column of the transition matrix should be named
+"Begin".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap</code></td>
+<td>
+<p>the character used to represent gaps in the alignment matrix
+(if applicable). Ignored for <code>"DNAbin"</code> or <code>"AAbin"</code> objects.
+Defaults to "-" otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixqa</code></td>
+<td>
+<p>logical. Should the background transition probabilities
+be fixed (TRUE), or allowed to vary between iterations (FALSE)?
+Defaults to FALSE. Only applicable if <code>method = "Viterbi"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixqe</code></td>
+<td>
+<p>logical. Should the background emission probabilities
+be fixed (TRUE), or allowed to vary between iterations (FALSE)?
+Defaults to FALSE. Only applicable if <code>method = "Viterbi"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxsize</code></td>
+<td>
+<p>integer giving the upper bound on the number of modules
+in the PHMM. If NULL (default) no maximum size is enforced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inserts</code></td>
+<td>
+<p>character string giving the model construction method
+by which alignment columns
+are marked as either match or insert states. Accepted methods include
+<code>"threshold"</code> (only columns with fewer than a specified
+proportion of gaps form match states in the model), <code>"map"</code> (default;
+match and insert columns are found using the maximum <em>a posteriori</em>
+method outlined in Durbin et al (1998) chapter 5.7), <code>"inherited"</code>
+(match and insert columns are inherited from the input alignment),
+and <code>"none"</code> (all columns are assigned match states in the model).
+Alternatively, insert columns can be
+specified manually by providing a logical vector the same length
+as the number of columns in the alignment, with <code>TRUE</code> for insert
+columns and <code>FALSE</code> for match states.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>the maximum proportion of gaps for an alignment column
+to be considered for a match state in the PHMM (defaults to 0.5).
+Only applicable when <code>inserts = "threshold"</code>.
+Note that the maximum <em>a posteriori</em>
+method works poorly for alignments with few sequences,
+so the 'threshold' method is
+automatically used when the number of sequences is less than 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>penalty parameter used to favour models with fewer match
+states. Equivalent to the log of the prior probability of marking each
+column (Durbin et al 1998, chapter 5.7). Only applicable when
+<code>inserts = "map"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alignment</code></td>
+<td>
+<p>logical indicating whether the alignment used to
+derive the final model (if applicable) should be included as an element of
+the returned PHMM object. Defaults to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>integer giving the number of CPUs to parallelize the operation
+over. Defaults to 1, and reverts to 1 if x is not a list.
+This argument may alternatively be a 'cluster' object,
+in which case it is the user's responsibility to close the socket
+connection at the conclusion of the operation,
+for example by running <code>parallel::stopCluster(cores)</code>.
+The string "autodetect" is also accepted, in which case the maximum
+number of cores to use is one less than the total number of cores
+available. Note that in this case there
+may be a tradeoff in terms of speed depending on the number and size
+of sequences to be aligned, due to the extra time required to initialize
+the cluster.
+Only applicable if x is an object of class <code>"PHMM"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>logical indicating whether feedback should be printed
+to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelend</code></td>
+<td>
+<p>logical indicating whether transition probabilites
+to the end state of the standard hidden Markov model should be
+modeled (if applicable). Defaults to FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function optimizes the parameters of a hidden Markov model
+(object class: <code>"HMM"</code>) or profile hidden Markov model
+(object class: <code>"PHMM"</code>) using the methods described in
+Durbin et al (1998) chapters 3.3 and 6.5, respectively.
+For standard HMMs, the function assumes the state sequence is unknown
+(as opposed to the <code>deriveHMM</code> function, which is used
+when the state sequence is known).
+For profile HMMs, the input object is generally a list of non-aligned
+sequences rather than an alignment (for which the <code>derivePHMM</code>
+function may be more suitable).
+</p>
+<p>This function offers a choice of two model training methods,
+Viterbi training (also known as the segmental
+K-means algorithm (Juang &amp; Rabiner 1990)), and the Baum Welch algorithm,
+a special case of the expectation-maximization (EM) algorithm that
+iteratively finds the locally (but not necessarily globally) optimal
+parameters of a HMM or PHMM.
+</p>
+<p>The Viterbi training method is generally much faster, particularly for
+profile HMMs and when the multi-threading option is used
+(see the <code>"cores"</code> argument). The comparison in accuracy will depend
+on the nature of the problem, but personal experience suggests that
+the methods are comparable for training profile HMMs for DNA and
+amino acid sequences.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>"HMM"</code> or <code>"PHMM"</code>, depending
+on the input model <code>x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Shaun Wilkinson
+</p>
+
+
+<h3>References</h3>
+
+<p>Durbin R, Eddy SR, Krogh A, Mitchison G (1998) Biological
+sequence analysis: probabilistic models of proteins and nucleic acids.
+Cambridge University Press, Cambridge, United Kingdom.
+</p>
+<p>Juang B-H, Rabiner LR (1990) The segmental K-means
+algorithm for estimating parameters of hidden Markov models.
+<em>IEEE Transactions on Acoustics, Speech, and Signal Processing</em>,
+<strong>38</strong>, 1639-1641.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>deriveHMM</code> and <code>derivePHMM</code> for
+maximum-likelihood parameter estimation when the training sequence states
+are known.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Baum Welch training for standard HMMs:
+  ## The dishonest casino example from Durbin et al (1998) chapter 3.2
+  states &lt;- c("Begin", "Fair", "Loaded")
+  residues &lt;- paste(1:6)
+  ### Define the transition probability matrix
+  A &lt;- matrix(c(0, 0, 0, 0.99, 0.95, 0.1, 0.01, 0.05, 0.9), nrow = 3)
+  dimnames(A) &lt;- list(from = states, to = states)
+  ### Define the emission probability matrix
+  E &lt;- matrix(c(rep(1/6, 6), rep(1/10, 5), 1/2), nrow = 2, byrow = TRUE)
+  dimnames(E) &lt;- list(states = states[-1], residues = residues)
+  ### Build and plot the HMM object
+  x &lt;- structure(list(A = A, E = E), class = "HMM")
+  op &lt;- par(no.readonly = TRUE)
+  par(mfrow = c(2, 1))
+  plot(x, main = "Dishonest casino HMM before training")
+  data(casino)
+  x &lt;- train(x, list(casino), method = "BaumWelch", deltaLL = 0.001)
+  plot(x, main = "Dishonest casino HMM after training")
+  par(op)
+</code></pre>
+
+
+</div>

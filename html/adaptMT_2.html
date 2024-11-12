@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adapt_gam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive P-value Thresholding with Generalized Additive Models</h2>
+
+<h3>Description</h3>
+
+<p><code>adapt_gam</code> is a wrapper of <code>adapt</code> that fits pi(x) and mu(x) by <code>gam</code> from <code>mgcv</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adapt_gam(x, pvals, pi_formulas, mu_formulas, piargs = list(),
+  muargs = list(), dist = beta_family(), s0 = rep(0.45, length(pvals)),
+  alphas = seq(0.01, 1, 0.01), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>covariates (i.e. side-information). Should be compatible to <code>models</code>. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvals</code></td>
+<td>
+<p>a vector of values in [0, 1]. P-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_formulas</code></td>
+<td>
+<p>a vector/list of strings/formulas. Formulas for fitting pi(x) by gam. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_formulas</code></td>
+<td>
+<p>a vector/list of strings/formulas. Formulas for fitting mu(x) by gam. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piargs</code></td>
+<td>
+<p>a list. Other arguments passed to gam for fitting pi(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muargs</code></td>
+<td>
+<p>a list. Other arguments passed to gam for fitting mu(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>an object of class "<code>gen_exp_family</code>". <code>beta_family()</code> as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s0</code></td>
+<td>
+<p>a vector of values in [0, 0.5). Initial threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>a vector of values in (0, 1). Target FDR levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to <code>adapt</code> (except <code>models</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pi_formulas</code> and <code>mu_formulas</code> can either be a list or a vector with each element being a string or a formula. For instance, suppose <code>x</code> has a single column with name <code>x1</code>, the following five options are valid for the same inputs (<code>ns</code> forms a spline basis with <code>df</code> knots and <code>s</code> forms a spline basis with knots automatically selected by generalized cross-validation):
+</p>
+
+<ol>
+<li>
+<p>c("x1", "ns(x1, df = 8)", "s(x1)");
+</p>
+</li>
+<li>
+<p>c("~ x1", "~ ns(x1, df = 8)", "s(x1)");
+</p>
+</li>
+<li>
+<p>list("x1", "ns(x1, df = 8)", "s(x1)");
+</p>
+</li>
+<li>
+<p>list("~ x1", "~ ns(x1, df = 8)", "s(x1)");
+</p>
+</li>
+<li>
+<p>list(~ x1, ~ ns(x1, df = 8), s(x1))
+</p>
+</li>
+</ol>
+<p>There is no need to specify the name of the response variable, as this is handled in the function.
+</p>
+<p>When <code>x</code> has a few variables, it is common to use non-parametric GLM by replacing <code>x</code> by a spline basis of <code>x</code>. In this case, <code>ns</code> from <code>library(splines)</code> package or <code>s</code> from <code>mgcv</code> package are suggested. When <code>s</code> (from <code>mgcv</code> package) is used, it is treated as a single model because the knots will be selected automatically.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adapt</code>, <code>adapt_glm</code>, <code>adapt_glmnet</code>, <code>gam</code>, <code>ns</code>, <code>s</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate a 2-dim x
+n &lt;- 400
+x1 &lt;- x2 &lt;- seq(-100, 100, length.out = 20)
+x &lt;- expand.grid(x1, x2)
+colnames(x) &lt;- c("x1", "x2")
+
+# Generate p-values (one-sided z test)
+# Set all hypotheses in the central circle with radius 30 to be
+# non-nulls. For non-nulls, z~N(2,1) and for nulls, z~N(0,1).
+H0 &lt;- apply(x, 1, function(coord){sum(coord^2) &lt; 900})
+mu &lt;- ifelse(H0, 2, 0)
+set.seed(0)
+zvals &lt;- rnorm(n) + mu
+pvals &lt;- 1 - pnorm(zvals)
+
+# Run adapt_gam with a 2d spline basis
+library("mgcv")
+formula &lt;- "s(x1, x2)"
+dist &lt;- beta_family()
+res &lt;- adapt_gam(x = x, pvals = pvals, pi_formulas = formula,
+                 mu_formulas = formula, dist = dist, nfits = 5)
+
+
+
+</code></pre>
+
+
+</div>

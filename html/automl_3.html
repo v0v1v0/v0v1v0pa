@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>automl_train_manual</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>automl_train_manual</h2>
+
+<h3>Description</h3>
+
+<p>The base deep neural network train function (one deep neural network trained without automatic hyperparameters tuning)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">automl_train_manual(Xref, Yref, hpar = list(), mdlref = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xref</code></td>
+<td>
+<p> inputs matrix or data.frame (containing numerical values only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yref</code></td>
+<td>
+<p> target matrix or data.frame (containing numerical values only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpar</code></td>
+<td>
+<p> list of parameters and hyperparameters for Deep Neural Network, see hpar section<br>
+Not mandatory (the list is preset and all arguments are initialized with default value) but it is advisable to adjust some important arguments for performance reasons (including processing time)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mdlref</code></td>
+<td>
+<p> model trained with automl_train or automl_train_manual to start training from a saved model (shape,
+weights...) for fine tuning<br>
+nb: manually entered parameters above override loaded ones</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">##REGRESSION (predict Sepal.Length given other Iris parameters)
+data(iris)
+xmat &lt;- cbind(iris[,2:4], as.numeric(iris$Species))
+ymat &lt;- iris[,1]
+#with gradient descent
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(learningrate = 0.01,
+                                            numiterations = 30,
+                                            minibatchsize = 2^2))
+## Not run: 
+#with PSO
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(modexec = 'trainwpso',
+                                            numiterations = 30,
+                                            psopartpopsize = 50))
+#with PSO and custom cost function
+f &lt;- 'J=abs((y-yhat)/y)'
+f &lt;- c(f, 'J=sum(J[!is.infinite(J)],na.rm=TRUE)')
+f &lt;- c(f, 'J=(J/length(y))')
+f &lt;- paste(f, collapse = ';')
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(modexec = 'trainwpso',
+                                            numiterations = 30,
+                                            psopartpopsize = 50,
+                                            costcustformul = f))
+
+##CLASSIFICATION (predict Species given other Iris parameters)
+data(iris)
+xmat = iris[,1:4]
+lab2pred &lt;- levels(iris$Species)
+lghlab &lt;- length(lab2pred)
+iris$Species &lt;- as.numeric(iris$Species)
+ymat &lt;- matrix(seq(from = 1, to = lghlab, by = 1), nrow(xmat), lghlab, byrow = TRUE)
+ymat &lt;- (ymat == as.numeric(iris$Species)) + 0
+#with gradient descent and 2 hidden layers
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(layersshape = c(10, 10, 0),
+                                            layersacttype = c('tanh', 'relu', 'sigmoid'),
+                                            layersdropoprob = c(0, 0, 0)))
+#with gradient descent and no hidden layer (logistic regression)
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(layersshape = c(0),
+                                            layersacttype = c('sigmoid'),
+                                            layersdropoprob = c(0)))
+#with PSO and softmax
+amlmodel &lt;- automl_train_manual(Xref = xmat, Yref = ymat,
+                                hpar = list(modexec = 'trainwpso',
+                                            layersshape = c(10, 0),
+                                            layersacttype = c('relu', 'softmax'),
+                                            layersdropoprob = c(0, 0),
+                                            numiterations = 50,
+                                            psopartpopsize = 50))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

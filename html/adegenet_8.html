@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SNPbin-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Formal class "SNPbin"</h2>
+
+<h3>Description</h3>
+
+<p>The class <code>SNPbin</code> is a formal (S4) class for storing a genotype
+of binary SNPs in a compact way, using a bit-level coding scheme.
+This storage is most efficient with haploid data, where the memory
+taken to represent data can reduced more than 50 times. However,
+<code>SNPbin</code> can be used for any level of ploidy, and still remain an
+efficient storage mode.
+</p>
+<p>A <code>SNPbin</code> object can be constructed from
+a vector of integers giving the number of the second allele for each
+locus.
+</p>
+<p><code>SNPbin</code> stores a single genotype. To store multiple genotypes,
+use the genlight class.
+</p>
+
+
+<h3>Objects from the class SNPbin</h3>
+
+<p><code>SNPbin</code> objects can be created by calls to <code>new("SNPbin",
+    ...)</code>, where '...' can be the following arguments:
+</p>
+
+<dl>
+<dt><code>snp</code></dt>
+<dd>
+<p>a vector of integers or numeric giving numbers of
+copies of the second alleles for each locus. If only one unnamed
+argument is provided to 'new', it is considered as this one.</p>
+</dd>
+<dt><code>ploidy</code></dt>
+<dd>
+<p>an integer indicating the ploidy of the
+genotype; if not provided, will be guessed from the data (as the
+maximum from the 'snp' input vector).</p>
+</dd>
+<dt><code>label</code></dt>
+<dd>
+<p>an optional character string serving as a label
+for the genotype.</p>
+</dd>
+</dl>
+<h3>Slots</h3>
+
+<p>The following slots are the content of instances of the class
+<code>SNPbin</code>; note that in most cases, it is better to retrieve
+information via accessors (see below), rather than by accessing the
+slots manually.
+</p>
+
+<dl>
+<dt>
+<code>snp</code>:</dt>
+<dd>
+<p>a list of vectors with the class <code>raw</code>.</p>
+</dd>
+<dt>
+<code>n.loc</code>:</dt>
+<dd>
+<p>an integer indicating the number of SNPs of the
+genotype.</p>
+</dd>
+<dt>
+<code>NA.posi</code>:</dt>
+<dd>
+<p>a vector of integer giving the position of
+missing data.</p>
+</dd>
+<dt>
+<code>label</code>:</dt>
+<dd>
+<p>an optional character string serving as a label
+for the genotype..</p>
+</dd>
+<dt>
+<code>ploidy</code>:</dt>
+<dd>
+<p>an integer indicating the ploidy of the genotype.</p>
+</dd>
+</dl>
+<h3>Methods</h3>
+
+<p>Here is a list of methods available for <code>SNPbin</code> objects. Most of
+these methods are accessors, that is, functions which are used to
+retrieve the content of the object. Specific manpages can exist for
+accessors with more than one argument. These are indicated by a '*'
+symbol next to the method's name. This list also contains methods
+for conversion from <code>SNPbin</code> to other classes.
+</p>
+
+<dl>
+<dt>[</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: usual method to subset
+objects in R. The argument indicates how SNPs are to be
+subsetted. It can be a vector of signed integers or of logicals.</p>
+</dd>
+<dt>show</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: printing of the
+object.</p>
+</dd>
+<dt>$</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: similar to the @ operator;
+used to access the content of slots of the object.</p>
+</dd>
+<dt>$&lt;-</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: similar to the @ operator;
+used to replace the content of slots of the object.</p>
+</dd>
+<dt>nLoc</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: returns the number of
+SNPs in the object.</p>
+</dd>
+<dt>names</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: returns the names of
+the slots of the object.</p>
+</dd>
+<dt>ploidy</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: returns the ploidy of
+the genotype.</p>
+</dd>
+<dt>as.integer</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: converts a
+<code>SNPbin</code> object to a vector of integers. The S4 method 'as' can
+be used as well (e.g. as(x, "integer")).</p>
+</dd>
+<dt>cbind</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: merges genotyping of
+the same individual at different SNPs (all stored as
+SNPbin objects) into a single SNPbin.</p>
+</dd>
+<dt>c</dt>
+<dd>
+<p><code>signature(x = "SNPbin")</code>: same as cbind.SNPbin.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart (<a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a>)</p>
+
+
+<h3>See Also</h3>
+
+<p>Related class:<br>
+-  <code>genlight</code>, for storing multiple binary SNP
+genotypes. <br>
+-  <code>genind</code>, for storing other types of genetic markers. <br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#### HAPLOID EXAMPLE ####
+## create a genotype of 100,000 SNPs
+dat &lt;- sample(c(0,1,NA), 1e5, prob=c(.495, .495, .01), replace=TRUE)
+dat[1:10]
+x &lt;- new("SNPbin", dat)
+x
+x[1:10] # subsetting
+as.integer(x[1:10])
+
+## try a few accessors
+ploidy(x)
+nLoc(x)
+head(x$snp[[1]]) # internal bit-level coding
+
+## check that conversion is OK
+identical(as(x, "integer"),as.integer(dat)) # SHOULD BE TRUE
+
+## compare the size of the objects
+print(object.size(dat), unit="auto")
+print(object.size(x), unit="auto")
+object.size(dat)/object.size(x) # EFFICIENCY OF CONVERSION
+
+
+#### TETRAPLOID EXAMPLE ####
+## create a genotype of 100,000 SNPs
+dat &lt;- sample(c(0:4,NA), 1e5, prob=c(rep(.995/5,5), 0.005), replace=TRUE)
+x &lt;- new("SNPbin", dat)
+identical(as(x, "integer"),as.integer(dat)) # MUST BE TRUE
+
+## compare the size of the objects
+print(object.size(dat), unit="auto")
+print(object.size(x), unit="auto")
+object.size(dat)/object.size(x) # EFFICIENCY OF CONVERSION
+
+
+#### c, cbind ####
+a &lt;- new("SNPbin", c(1,1,1,1,1))
+b &lt;- new("SNPbin", c(0,0,0,0,0))
+a
+b
+ab &lt;- c(a,b)
+ab
+identical(c(a,b),cbind(a,b))
+as.integer(ab)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

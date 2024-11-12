@@ -1,0 +1,314 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addreg.smooth</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Smooth Additive Regression for Discrete Data
+</h2>
+
+<h3>Description</h3>
+
+<p><code>addreg.smooth</code> fits additive (identity-link) Poisson, negative binomial
+and binomial regression models using a stable EM algorithm. It provides additional
+flexibility over <code>addreg</code> by allowing for semi-parametric
+terms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addreg.smooth(formula, mono = NULL, family, data, standard, subset, 
+              na.action, offset, control = list(...), model = TRUE, 
+              model.addreg = FALSE, method = c("cem", "em"), 
+              accelerate = c("em", "squarem", "pem", "qn"),
+              control.method = list(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>an object of class <code>"formula"</code>
+(or one that can be coerced into that class): a symbolic
+description of the model to be fitted. The details of
+model specification are given under "Details".  The model 
+must contain an intercept and at least one semi-parametric
+term, included by using the <code>B</code> or <code>Iso</code>
+functions. Note that 2nd-order terms (such as interactions) or above 
+are not currently supported (see <code>addreg</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mono</code></td>
+<td>
+
+<p>a vector indicating which terms in
+<code>formula</code> should be restricted to have a
+monotonically non-decreasing relationship with the
+outcome. May be specified as names or indices of the
+terms.
+</p>
+<p><code>Iso()</code> terms are always monotonic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>a description of the error distribution to
+be used in the model. This can be a character string
+naming a family function, a family function or the result
+of a call to a family function (see
+<code>family</code> for details of family
+functions), but here it is restricted to be <code>poisson</code>,
+<code>negbin1</code> or <code>binomial</code> family with <code>identity</code> link.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional data frame, list or environment
+(or object coercible by <code>as.data.frame</code> to a
+data frame) containing the variables in the model. If not
+found in <code>data</code>, the variables are taken from
+<code>environment(formula)</code>, typically the environment
+from which <code>addreg.smooth</code> is called.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standard</code></td>
+<td>
+
+<p>a numeric vector of length equal to the
+number of cases, where each element is a positive
+constant that (multiplicatively) standardises the fitted
+value of the corresponding element of the response
+vector. Ignored for binomial family (the two-column
+specification of response should be used instead).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>an optional vector specifying a subset of
+observations to be used in the fitting process.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>a function which indicates what should happen when the data
+contain <code>NA</code>s. The default is set be the <code>na.action</code>
+setting of <code>options</code>, and is <code>na.fail</code>
+if that is unset. The ‘factory-fresh’ default is <code>na.omit</code>.
+Another possible value is <code>NULL</code>, no action. Value
+<code>na.exclude</code> can be useful.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+
+<p>this can be used to specify an <em>a
+priori</em> known component to be included in the linear
+predictor during fitting. This should be <code>NULL</code> or a
+<em>non-negative</em> numeric vector of length equal to the number of cases.
+One or more <code>offset</code> terms can be included in
+the formula instead or as well, and if more than one is
+specified their sum is used. See
+<code>model.offset</code>.
+</p>
+<p>Ignored for binomial family; not yet implemented for negative binomial models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>list of parameters for controlling the
+fitting process, passed to
+<code>addreg.control</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>a logical value indicating whether the <em>model frame</em> 
+(and, for binomial models, the equivalent Poisson model)
+should be included as a component of the returned value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.addreg</code></td>
+<td>
+
+<p>a logical value indicating whether the fitted <code>addreg</code>
+object should be included as a component of the returned value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string that determines which EM-type algorithm to use
+to find the MLE: <code>"cem"</code> for the combinatorial EM algorithm,
+which cycles through a sequence of constrained parameter spaces, or
+<code>"em"</code> for a single EM algorithm based on an overparameterised
+model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accelerate</code></td>
+<td>
+
+<p>a character string that determines the acceleration
+algorithm to be used, (partially) matching one of <code>"em"</code> (no acceleration — the default), 
+<code>"squarem"</code>, <code>"pem"</code> or <code>"qn"</code>. See <code>turboem</code>
+for further details. Note that <code>"decme"</code> is not permitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.method</code></td>
+<td>
+
+<p>a list of control parameters for the acceleration algorithm, which are passed to 
+the <code>control.method</code> argument of <code>turboem</code>.
+</p>
+<p>If any items are not specified, the defaults are used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>arguments to be used to form the default
+<code>control</code> argument if it is not supplied directly.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>addreg.smooth</code> performs the same fitting process as <code>addreg</code>,
+providing a stable maximum likelihood estimation procedure for identity-link
+Poisson, negative binomial or binomial models, with the added flexibility of allowing semi-parametric
+<code>B</code> and <code>Iso</code> terms (note that <code>addreg.smooth</code> will stop with an 
+error if no semi-parametric terms are specified in the right-hand side of the <code>formula</code>; 
+<code>addreg</code> should be used instead).
+</p>
+<p>The method partitions the parameter space associated with the semi-parametric part of the
+model into a sequence of constrained parameter spaces, and defines a fully parametric 
+<code>addreg</code> model for each. The model with the highest log-likelihood is the MLE for 
+the semi-parametric model (see Donoghoe and Marschner, 2015).
+</p>
+<p>Acceleration of the EM algorithm can be achieved through the
+methods of the <span class="pkg">turboEM</span> package, specified
+through the <code>accelerate</code> argument. However, note that these
+methods do not have the guaranteed convergence of the standard
+EM algorithm, particularly when the MLE is on the boundary of
+its (possibly constrained) parameter space.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"addreg.smooth"</code>, which contains the same objects as class
+<code>"addreg"</code> (the same as <code>"glm"</code> objects, without <code>contrasts</code>,
+<code>qr</code>, <code>R</code> or <code>effects</code> components), as well as:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model.addreg</code></td>
+<td>
+<p>if <code>model.addreg</code> is <code>TRUE</code>; the <code>addreg</code> object
+for the fully parametric model corresponding to the fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xminmax.smooth</code></td>
+<td>
+<p>the minimum and maximum observed values for
+each of the smooth terms in the model, to help define the 
+covariate space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.formula</code></td>
+<td>
+<p>the component from <code>interpret.addreg.smooth(formula)</code>
+that contains the <code>formula</code> term with any additional arguments to the <code>B</code>
+function removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>a named list containing the knot vectors for each of the smooth
+terms in the model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Mark W. Donoghoe <a href="mailto:markdonoghoe@gmail.com">markdonoghoe@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Donoghoe, M. W. and I. C. Marschner (2015). Flexible regression models for rate 
+differences, risk differences and relative risks. <em>International Journal of 
+Biostatistics</em> 11(1): 91–108.
+</p>
+<p>Marschner, I. C. (2014). Combinatorial EM algorithms.
+<em>Statistics and Computing</em> 24(6): 921–940.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>addreg</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simple example
+dat &lt;- data.frame(x1 = c(3.2,3.3,3.4,7.9,3.8,0.7,2.0,5.4,8.4,3.0,1.8,5.6,5.5,9.0,8.2),
+  x2 = c(1,0,0,1,0,1,0,0,0,0,1,0,1,1,0),
+  n = c(6,7,5,9,10,7,9,6,6,7,7,8,6,8,10),
+  y = c(2,1,2,6,3,1,2,2,4,4,1,2,5,7,7))
+m1 &lt;- addreg.smooth(cbind(y, n-y) ~ B(x1, knot.range = 1:3) + factor(x2), mono = 1,
+  data = dat, family = binomial, trace = 1)
+
+plot(m1, at = data.frame(x2 = 0:1))
+points(dat$x1, dat$y / dat$n, col = rainbow(2)[dat$x2 + 1], pch = 20)
+
+</code></pre>
+
+
+</div>

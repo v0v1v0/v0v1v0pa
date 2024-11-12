@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>k12fun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiscale second-order neighbourhood analysis of a bivariate spatial point pattern</h2>
+
+<h3>Description</h3>
+
+<p>Computes estimates of the intertype <em>K12</em>-function and associated neighbourhood functions from a bivariate spatial point pattern 
+in a simple (rectangular or circular) or complex sampling window. Computes optionally local confidence limits of the functions
+under the null hypotheses of population independence or random labelling (see Details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">k12fun(p, upto, by, nsim=0, H0=c("pitor","pimim","rl"), prec=0.01, nsimax=3000, conv=50,
+ rep=10, alpha=0.01,  marks)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>a <code>"spp"</code> object defining a multivariate spatial point pattern in a given sampling window (see <code>spp</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upto</code></td>
+<td>
+<p>maximum radius of the sample circles (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>interval length between successive sample circles radii (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>number of Monte Carlo simulations to estimate local confidence limits of the selected null hypothesis (see Details).
+By default <code>nsim=0</code>, so that no confidence limits are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0</code></td>
+<td>
+<p>one of <code>c("pitor","pimim","rl")</code> to select either the null hypothesis of population independence using toroidal shift (<code>H0="pitor"</code>) or mimetic point process (<code>H0="pimim"</code>), or of random labelling (<code>H0="rl"</code>) (see Details).
+By default, the null hypothesis is population independence using toroidal shift.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prec</code></td>
+<td>
+<p>if <code>nsim&gt;0</code> and <code>H0="pitor"</code> or <code>H0="pimim"</code>, precision of the random vector or point coordinates generated during simulations. By default <code>prec=0.01</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsimax</code></td>
+<td>
+<p>if <code>nsim&gt;0</code> and <code>H0="pimim"</code>, maximum number of simulations allowed (see <code>mimetic</code>. By default <code>nsimax=3000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>if <code>nsim&gt;0</code> and <code>H0="pimim"</code>, convergence criterion (see <code>mimetic</code>. By default <code>conv=50</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>if <code>nsim&gt;0</code> and <code>H0="pimim"</code>, controls for convergence failure of the mimetic point process (see details). By default <code>rep=10</code> so that the function aborts after 10 consecutive failures in mimetic point process convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>if <code>nsim&gt;0</code>, significant level of the confidence limits. By default <code class="reqn">\alpha=0.01</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marks</code></td>
+<td>
+<p>by default c(1,2), otherwise a vector of two numbers or character strings identifying the types (the <code>p$marks</code> levels)
+of points of type 1 and 2, respectively.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>k12fun</code> computes the intertype <code class="reqn">K12(r)</code> function of second-order neighbourhood analysis and the associated functions <code class="reqn">g12(r)</code>,
+<code class="reqn">n12(r)</code> and <code class="reqn">L12(r)</code>.<br><br>
+For a homogeneous isotropic bivariate point process of intensities <code class="reqn">\lambda1</code> and <code class="reqn">\lambda2</code>,
+the second-order property could be characterized by a function <code class="reqn">K12(r)</code> (Lotwick &amp; Silverman 1982), so that the expected
+number of neighbours of type 2 within a distance <code class="reqn">r</code> of an arbitrary point of type 1 is:
+<code class="reqn">N12(r) = \lambda2*K12(r)</code>.<br><br><code class="reqn">K12(r)</code> is an intensity standardization of <code class="reqn">N12(r)</code>: <code class="reqn">K12(r) = N12(r)/\lambda2</code>.<br><br><code class="reqn">n12(r)</code> is an area standardization of of <code class="reqn">N12(r)</code>: <code class="reqn">n12(r) = N12(r)/(\pi*r^2)</code>, where <code class="reqn">\pi*r^2</code> is the area of the disc of radius <code class="reqn">r</code>.<br><br><code class="reqn">L12(r)</code> is a linearized version of <code class="reqn">K12(r)</code>, which has an expectation of 0 under population independence: <code class="reqn">L12(r) = \sqrt(K12(r)/\pi)-r</code>. <code class="reqn">L12(r)</code> becomes positive when the two population show attraction and negative when they show repulsion.
+Under the null hypothesis of random labelling, the expectation of <code class="reqn">L12(r)</code> is <code class="reqn">L(r)</code>. It becomes greater than <code class="reqn">L(r)</code> when the types tend to be positively correlated and lower when they tend to be negatively correlated.<br><br><code class="reqn">g12(r)</code> is the derivative of <code class="reqn">K12(r)</code> or bivariate pair density function, so that the expected
+number of points of type 2 at a distance <code class="reqn">r</code> of an arbitrary point of type 1 (i.e. within an annuli between two successive circles with radii <code class="reqn">r</code> and <code class="reqn">r-by</code>) is:
+<code class="reqn">O12(r) = \lambda2*g12(r)</code> (Wiegand &amp; Moloney 2004).<br><br></p>
+<p>The program introduces an edge effect correction term according to the method proposed by Ripley (1977)
+and extended to circular and complex sampling windows by Goreaud &amp; Pelissier (1999).<br><br></p>
+<p>Theoretical values under the null hypothesis of either population independence or random labelling as well as
+local Monte Carlo confidence limits and p-values of departure from the null hypothesis (Besag &amp; Diggle 1977) are estimated at each distance <code class="reqn">r</code>.<br></p>
+<p>The population independence hypothesis assumes that the location of points of a given population is independent from the location 
+of points of the other. It is therefore tested conditionally to the intrinsic spatial pattern of each population. Two different procedures are available:
+<code>H0="pitor"</code> just shifts the pattern of type 1 points around a torus following Lotwick &amp; Silverman (1982); <code>H0="pimim"</code> uses a mimetic point process (Goreaud et al. 2004)
+to mimic the pattern of type 1 points (see <code>mimetic</code>.<br>
+The random labelling hypothesis <code>"rl"</code> assumes that the probability to bear a given mark is the same for all points of the pattern and
+doesn't depends on neighbours. It is therefore tested conditionally to the whole spatial pattern, by randomizing the marks over the points'
+locations kept unchanged (see Goreaud &amp; Pelissier 2003 for further details). 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>"fads"</code> with essentially the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>r </code></td>
+<td>
+<p>a vector of regularly spaced out distances (<code>seq(by,upto,by)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g12 </code></td>
+<td>
+<p>a data frame containing values of the bivariate pair density function <code class="reqn">g12(r)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n12 </code></td>
+<td>
+<p>a data frame containing values of the bivariate local neighbour density function <code class="reqn">n12(r)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k12 </code></td>
+<td>
+<p>a data frame containing values of the intertype function <code class="reqn">K12(r)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l12 </code></td>
+<td>
+<p>a data frame containing values of the modified intertype function <code class="reqn">L12(r)</code>.<br></p>
+</td>
+</tr>
+</table>
+<p>Each component except <code>r</code> is a data frame with the following variables:<br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs </code></td>
+<td>
+<p>a vector of estimated values for the observed point pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theo </code></td>
+<td>
+<p>a vector of theoretical values expected under the selected null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sup </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the upper local confidence limits of the selected null hypothesis at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inf </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the lower local confidence limits of the selected null hypothesis at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of local p-values of departure from the selected null hypothesis.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>There are printing and plotting methods for <code>"fads"</code> objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p><a href="mailto:Raphael.Pelissier@ird.fr">Raphael.Pelissier@ird.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Besag J.E. &amp; Diggle P.J. 1977. Simple Monte Carlo tests spatial patterns. <em>Applied Statistics</em>, 26:327-333.<br><br>
+Goreaud F. &amp; Pelissier R. 1999. On explicit formulas of edge effect correction for Ripley's K-function. <em>Journal of Vegetation Science</em>, 10:433-438.<br><br>
+Goreaud, F. &amp; Pelissier, R. 2003. Avoiding misinterpretation of biotic interactions with the intertype <em>K12</em>-function: population independence vs. random labelling hypotheses. <em>Journal of Vegetation Science</em>, 14: 681-692.<br><br>
+Lotwick, H.W. &amp; Silverman, B.W. 1982. Methods for analysing spatial processes of several types of points. <em>Journal of the Royal Statistical Society B</em>, 44:403-413.<br><br>
+Ripley B.D. 1977. Modelling spatial patterns. <em>Journal of the Royal Statistical Society B</em>, 39:172-192.<br><br>
+Wiegand, T. &amp; Moloney, K.A. 2004. Rings, circles, and null-models for point pattern analysis in ecology. <em>Oikos</em>, 104:209-229.
+Goreaud F., Loussier, B., Ngo Bieng, M.-A. &amp; Allain R. 2004. Simulating realistic spatial structure for forest stands: a mimetic point process. In <em>Proceedings of Interdisciplinary Spatial Statistics Workshop</em>, 2-3 December, 2004. Paris, France.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.fads</code>,
+<code>spp</code>,
+<code>k12val</code>,
+<code>kfun</code>,
+<code>kijfun</code>,
+<code>ki.fun</code>,
+<code>mimetic</code>,
+<code>kmfun</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(BPoirier)
+  BP &lt;- BPoirier
+  ## Not run: spatial point pattern in a rectangle sampling window of size [0,110] x [0,90]
+  swrm &lt;- spp(BP$trees, win=BP$rect, marks=BP$species)
+  #testing population independence hypothesis
+  k12swrm.pi &lt;- k12fun(swrm, 25, 1, 500, marks=c("beech","oak"))
+  plot(k12swrm.pi)
+  #testing random labelling hypothesis
+  k12swrm.rl &lt;- k12fun(swrm, 25, 1, 500, H0="rl", marks=c("beech","oak"))
+  plot(k12swrm.rl)
+
+  ## Not run: spatial point pattern in a circle with radius 50 centred on (55,45)
+  swc &lt;- spp(BP$trees, win=c(55,45,45), marks=BP$species)
+  k12swc.pi &lt;- k12fun(swc, 25, 1, 500, marks=c("beech","oak"))
+  plot(k12swc.pi)
+  
+  ## Not run: spatial point pattern in a complex sampling window
+  swrt.rl &lt;- spp(BP$trees, win=BP$rect, tri=BP$tri2, marks=BP$species)
+  k12swrt.rl &lt;- k12fun(swrt.rl, 25, 1, 500, H0="rl",marks=c("beech","oak"))
+  plot(k12swrt.rl)
+  ## Not run: testing population independence hypothesis requires minimizing the outer polygon
+  xr&lt;-range(BP$tri3$ax,BP$tri3$bx,BP$tri3$cx)
+  yr&lt;-range(BP$tri3$ay,BP$tri3$by,BP$tri3$cy)
+  rect.min&lt;-swin(c(xr[1], yr[1], xr[2], yr[2]))
+  swrt.pi &lt;- spp(BP$trees, window = rect.min, triangles = BP$tri3, marks=BP$species)
+  k12swrt.pi &lt;- k12fun(swrt.pi, 25, 1, nsim = 500, marks = c("beech", "oak"))
+  plot(k12swrt.pi)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>APHYLO_DEFAULT_MCMC_CONTROL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model estimation using Markov Chain Monte Carlo</h2>
+
+<h3>Description</h3>
+
+<p>The function is a wrapper of <code>fmcmc::MCMC()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">APHYLO_DEFAULT_MCMC_CONTROL
+
+aphylo_mcmc(
+  model,
+  params,
+  priors = uprior(),
+  control = list(),
+  check_informative = getOption("aphylo_informative", FALSE),
+  reduced_pseq = getOption("aphylo_reduce_pseq", TRUE)
+)
+
+APHYLO_PARAM_DEFAULT
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A model as specified in aphylo-model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>A vector of length 7 with initial parameters. In particular
+<code>psi[1]</code>, <code>psi[2]</code>, <code>mu[1]</code>, <code>mu[2]</code>, <code>eta[1]</code>, <code>eta[2]</code> and <code>Pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p>A function to be used as prior for the model (see bprior).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list with parameters for the optimization method (see
+details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_informative</code></td>
+<td>
+<p>Logical scalar. When <code>TRUE</code> the algorithm
+stops with an error when the annotations are uninformative (either 0s or 1s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduced_pseq</code></td>
+<td>
+<p>Logical. When <code>TRUE</code> it will use a reduced peeling sequence
+in which it drops unannotated leafs. If the model includes <code>eta</code> this is set
+to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>An object of class <code>list</code> of length 6.
+</p>
+<p>An object of class <code>numeric</code> of length 9.
+</p>
+
+
+<h3>Details</h3>
+
+<p><code>APHYLO_DEFAULT_MCMC_CONTROL</code> lists the default values for the MCMC
+estimation:
+</p>
+
+<ul>
+<li> <p><code>nsteps</code>: <code>1e4L</code>
+</p>
+</li>
+<li> <p><code>burnin</code>: <code>5e3L</code>
+</p>
+</li>
+<li> <p><code>thin</code> : <code>10L</code>
+</p>
+</li>
+<li> <p><code>nchains</code> : <code>2L</code>
+</p>
+</li>
+<li> <p><code>multicore</code> : <code>FALSE</code>
+</p>
+</li>
+<li> <p><code>conv_checker</code> : <code>fmcmc::convergence_auto(5e3)</code>
+</p>
+</li>
+</ul>
+<p>For more information about the MCMC estimation process, see <code>fmcmc::MCMC()</code>.
+</p>
+<p>Methods <code>base::print()</code>, <code>base::summary()</code>, stats::coef, <code>stats::window()</code>,
+<code>stats::vcov()</code>, <code>stats::logLik()</code>, predict(),
+and the various ways to query features of the trees via Ntip()
+are available post estimation.
+</p>
+<p>The vector <code>APHYLO_PARAM_DEFAULT</code> lists the starting values for the parameters
+in the model. The current defaults are:
+</p>
+
+<ul>
+<li> <p><code>psi0</code>: 0.10
+</p>
+</li>
+<li> <p><code>psi1</code>: 0.05
+</p>
+</li>
+<li> <p><code>mu_d0</code>: 0.90
+</p>
+</li>
+<li> <p><code>mu_d1</code>: 0.50
+</p>
+</li>
+<li> <p><code>mu_s0</code>: 0.10
+</p>
+</li>
+<li> <p><code>mu_s1</code>: 0.05
+</p>
+</li>
+<li> <p><code>eta0</code>: 1.00
+</p>
+</li>
+<li> <p><code>eta1</code>: 1.00
+</p>
+</li>
+<li> <p><code>Pi</code>: 0.50
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of class aphylo_estimates.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other parameter estimation: 
+<code>aphylo_mle()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Using the MCMC ------------------------------------------------------------
+
+
+
+set.seed(1233)
+# Simulating a tree
+tree &lt;- sim_tree(200)
+
+# Simulating functions
+atree &lt;- raphylo(
+  tree = tree,
+  psi  = c(.01, .03),
+  mu_d = c(.05, .02),
+  Pi   = .5
+)
+
+# Running the MCMC
+set.seed(1231)
+
+ans_mcmc &lt;- aphylo_mcmc(
+  atree ~ mu_d + psi + eta + Pi,
+  control = list(nsteps = 2e5, burnin=1000, thin=200)
+)
+
+</code></pre>
+
+
+</div>

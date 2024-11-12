@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mo_matching_score</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the Matching Score for Microorganisms</h2>
+
+<h3>Description</h3>
+
+<p>This algorithm is used by <code>as.mo()</code> and all the <code>mo_*</code> functions to determine the most probable match of taxonomic records based on user input.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mo_matching_score(x, n)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Any user input value(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A full taxonomic name, that exists in <code>microorganisms$fullname</code></p>
+</td>
+</tr>
+</table>
+<h3>Matching Score for Microorganisms</h3>
+
+<p>With ambiguous user input in <code>as.mo()</code> and all the <code>mo_*</code> functions, the returned results are chosen based on their matching score using <code>mo_matching_score()</code>. This matching score <code class="reqn">m</code>, is calculated as:
+</p>
+
+<p><img src="../help/figures/mo_matching_score.png" width="300" alt="mo matching score"></p>
+<p>where:
+</p>
+
+<ul>
+<li> <p><code class="reqn">x</code> is the user input;
+</p>
+</li>
+<li> <p><code class="reqn">n</code> is a taxonomic name (genus, species, and subspecies);
+</p>
+</li>
+<li> <p><code class="reqn">l_n</code> is the length of <code class="reqn">n</code>;
+</p>
+</li>
+<li> <p><code class="reqn">lev</code> is the <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance function</a> (counting any insertion as 1, and any deletion or substitution as 2) that is needed to change <code class="reqn">x</code> into <code class="reqn">n</code>;
+</p>
+</li>
+<li> <p><code class="reqn">p_n</code> is the human pathogenic prevalence group of <code class="reqn">n</code>, as described below;
+</p>
+</li>
+<li> <p><code class="reqn">k_n</code> is the taxonomic kingdom of <code class="reqn">n</code>, set as Bacteria = 1, Fungi = 1.25, Protozoa = 1.5, Archaea = 2, others = 3.
+</p>
+</li>
+</ul>
+<p>The grouping into human pathogenic prevalence <code class="reqn">p</code> is based on recent work from Bartlett <em>et al.</em> (2022, <a href="https://doi.org/10.1099/mic.0.001269">doi:10.1099/mic.0.001269</a>) who extensively studied medical-scientific literature to categorise all bacterial species into these groups:
+</p>
+
+<ul>
+<li> <p><strong>Established</strong>, if a taxonomic species has infected at least three persons in three or more references. These records have <code>prevalence = 1.0</code> in the microorganisms data set;
+</p>
+</li>
+<li> <p><strong>Putative</strong>, if a taxonomic species has fewer than three known cases. These records have <code>prevalence = 1.25</code> in the microorganisms data set.
+</p>
+</li>
+</ul>
+<p>Furthermore,
+</p>
+
+<ul>
+<li>
+<p> Any genus present in the <strong>established</strong> list also has <code>prevalence = 1.0</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any other genus present in the <strong>putative</strong> list has <code>prevalence = 1.25</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any other species or subspecies of which the genus is present in the two aforementioned groups, has <code>prevalence = 1.5</code> in the microorganisms data set;
+</p>
+</li>
+<li>
+<p> Any <em>non-bacterial</em> genus, species or subspecies of which the genus is present in the following list, has <code>prevalence = 1.25</code> in the microorganisms data set: <em>Absidia</em>, <em>Acanthamoeba</em>, <em>Acremonium</em>, <em>Aedes</em>, <em>Alternaria</em>, <em>Amoeba</em>, <em>Ancylostoma</em>, <em>Angiostrongylus</em>, <em>Anisakis</em>, <em>Anopheles</em>, <em>Apophysomyces</em>, <em>Aspergillus</em>, <em>Aureobasidium</em>, <em>Basidiobolus</em>, <em>Beauveria</em>, <em>Blastocystis</em>, <em>Blastomyces</em>, <em>Candida</em>, <em>Capillaria</em>, <em>Chaetomium</em>, <em>Chrysonilia</em>, <em>Cladophialophora</em>, <em>Cladosporium</em>, <em>Conidiobolus</em>, <em>Contracaecum</em>, <em>Cordylobia</em>, <em>Cryptococcus</em>, <em>Curvularia</em>, <em>Demodex</em>, <em>Dermatobia</em>, <em>Dientamoeba</em>, <em>Diphyllobothrium</em>, <em>Dirofilaria</em>, <em>Echinostoma</em>, <em>Entamoeba</em>, <em>Enterobius</em>, <em>Exophiala</em>, <em>Exserohilum</em>, <em>Fasciola</em>, <em>Fonsecaea</em>, <em>Fusarium</em>, <em>Giardia</em>, <em>Haloarcula</em>, <em>Halobacterium</em>, <em>Halococcus</em>, <em>Hendersonula</em>, <em>Heterophyes</em>, <em>Histomonas</em>, <em>Histoplasma</em>, <em>Hymenolepis</em>, <em>Hypomyces</em>, <em>Hysterothylacium</em>, <em>Leishmania</em>, <em>Malassezia</em>, <em>Malbranchea</em>, <em>Metagonimus</em>, <em>Meyerozyma</em>, <em>Microsporidium</em>, <em>Microsporum</em>, <em>Mortierella</em>, <em>Mucor</em>, <em>Mycocentrospora</em>, <em>Necator</em>, <em>Nectria</em>, <em>Ochroconis</em>, <em>Oesophagostomum</em>, <em>Oidiodendron</em>, <em>Opisthorchis</em>, <em>Pediculus</em>, <em>Penicillium</em>, <em>Phlebotomus</em>, <em>Phoma</em>, <em>Pichia</em>, <em>Piedraia</em>, <em>Pithomyces</em>, <em>Pityrosporum</em>, <em>Pneumocystis</em>, <em>Pseudallescheria</em>, <em>Pseudoterranova</em>, <em>Pulex</em>, <em>Rhizomucor</em>, <em>Rhizopus</em>, <em>Rhodotorula</em>, <em>Saccharomyces</em>, <em>Sarcoptes</em>, <em>Scolecobasidium</em>, <em>Scopulariopsis</em>, <em>Scytalidium</em>, <em>Spirometra</em>, <em>Sporobolomyces</em>, <em>Stachybotrys</em>, <em>Strongyloides</em>, <em>Syngamus</em>, <em>Taenia</em>, <em>Talaromyces</em>, <em>Toxocara</em>, <em>Trichinella</em>, <em>Trichobilharzia</em>, <em>Trichoderma</em>, <em>Trichomonas</em>, <em>Trichophyton</em>, <em>Trichosporon</em>, <em>Trichostrongylus</em>, <em>Trichuris</em>, <em>Tritirachium</em>, <em>Trombicula</em>, <em>Trypanosoma</em>, <em>Tunga</em>, or <em>Wuchereria</em>;
+</p>
+</li>
+<li>
+<p> All other records have <code>prevalence = 2.0</code> in the microorganisms data set.
+</p>
+</li>
+</ul>
+<p>When calculating the matching score, all characters in <code class="reqn">x</code> and <code class="reqn">n</code> are ignored that are other than A-Z, a-z, 0-9, spaces and parentheses.
+</p>
+<p>All matches are sorted descending on their matching score and for all user input values, the top match will be returned. This will lead to the effect that e.g., <code>"E. coli"</code> will return the microbial ID of <em>Escherichia coli</em> (<code class="reqn">m = 0.688</code>, a highly prevalent microorganism found in humans) and not <em>Entamoeba coli</em> (<code class="reqn">m = 0.381</code>, a less prevalent microorganism in humans), although the latter would alphabetically come first.
+</p>
+
+
+<h3>Reference Data Publicly Available</h3>
+
+<p>All data sets in this <code>AMR</code> package (about microorganisms, antibiotics, SIR interpretation, EUCAST rules, etc.) are publicly and freely available for download in the following formats: R, MS Excel, Apache Feather, Apache Parquet, SPSS, SAS, and Stata. We also provide tab-separated plain text files that are machine-readable and suitable for input in any software program, such as laboratory information systems. Please visit <a href="https://msberends.github.io/AMR/articles/datasets.html">our website for the download links</a>. The actual files are of course available on <a href="https://github.com/msberends/AMR/tree/main/data-raw">our GitHub repository</a>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This algorithm was originally described in: Berends MS <em>et al.</em> (2022). <strong>AMR: An R Package for Working with Antimicrobial Resistance Data</strong>. <em>Journal of Statistical Software</em>, 104(3), 1-31; <a href="https://doi.org/10.18637/jss.v104.i03">doi:10.18637/jss.v104.i03</a>.
+</p>
+<p>Later, the work of Bartlett A <em>et al.</em> about bacterial pathogens infecting humans (2022, <a href="https://doi.org/10.1099/mic.0.001269">doi:10.1099/mic.0.001269</a>) was incorporated.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dr. Matthijs Berends, 2018
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mo_reset_session()
+
+as.mo("E. coli")
+mo_uncertainties()
+
+mo_matching_score(
+  x = "E. coli",
+  n = c("Escherichia coli", "Entamoeba coli")
+)
+</code></pre>
+
+
+</div>

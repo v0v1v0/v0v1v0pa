@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>optimal_dispersion</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Maximize dispersion for K groups</h2>
+
+<h3>Description</h3>
+
+<p>Maximize dispersion for K groups
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">optimal_dispersion(
+  x,
+  K,
+  solver = NULL,
+  max_dispersion_considered = NULL,
+  min_dispersion_considered = NULL,
+  npartitions = 1,
+  time_limit = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The data input. Can be one of two structures: (1) A
+feature matrix where rows correspond to elements and columns
+correspond to variables (a single numeric variable can be
+passed as a vector). (2) An N x N matrix dissimilarity matrix;
+can be an object of class <code>dist</code> (e.g., returned by
+<code>dist</code> or <code>as.dist</code>) or a <code>matrix</code>
+where the entries of the upper and lower triangular matrix
+represent pairwise dissimilarities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The number of groups or a vector describing the size of
+each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>Optional argument; currently supports "lpSolve", 
+"glpk", and "symphony". See <code>optimal_anticlustering</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_dispersion_considered</code></td>
+<td>
+<p>Optional argument used for early
+stopping. If the dispersion found is equal to or exceeds this
+value, a solution having the previous best dispersion is
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_dispersion_considered</code></td>
+<td>
+<p>Optional argument used for
+speeding up the algorithm computation.  If passed, the
+dispersion is optimized starting from this value instead the
+global minimum distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npartitions</code></td>
+<td>
+<p>The number of groupings that are returned, each
+having an optimal dispersion value (defaults to 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_limit</code></td>
+<td>
+<p>Time limit in seconds, given to the solver.
+Default is there is no time limit.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The dispersion is the minimum distance between two elements
+within the same group. This function implements an optimal method
+to maximize the dispersion. If the data input <code>x</code> is a
+feature matrix and not a dissimilarity matrix, the pairwise
+Euclidean distance is used. It uses the algorithm presented in
+Max Diekhoff's Bachelor thesis at the Computer Science Department
+at Heinrich Heine University Düsseldorf.
+</p>
+<p>To find out which items are not allowed to be grouped in the same
+cluster for maximum dispersion, the algorithm sequentially builds
+instances of a graph coloring problem, using an integer linear
+programming (ILP) representation (also see Fernandez et al.,
+2013).  It is possible to specify the ILP solver via the argument
+<code>solver</code> (See <code>optimal_anticlustering</code> for more
+information on this argument). Optimally solving the maximum
+dispersion problem is NP-hard for K &gt; 2 and therefore
+computationally infeasible for larger data sets. For K = 3 and K
+= 4, it seems that this approach scales up to several 100
+elements, or even &gt; 1000 for K = 3 (at least when using the
+Symphony solver).  For larger data sets, use the heuristic
+approaches in <code>anticlustering</code> or
+<code>bicriterion_anticlustering</code>. However, note that for
+K = 2, the optimal approach is usually much faster than the
+heuristics.
+</p>
+<p>In the output, the element <code>edges</code> defines which elements
+must be in separate clusters in order to achieve maximum
+dispersion. All elements not listed here can be changed
+arbitrarily between clusters without reducing the dispersion.  If
+the maximum possible dispersion corresponds to the minimum
+dispersion in the data set, the output elements <code>edges</code> and
+<code>groups</code> are set to <code>NULL</code> because all possible
+groupings have the same value of dispersion.  In this case the
+output element <code>dispersions_considered</code> has length 1.
+</p>
+<p>If a <code>time_limit</code> is set and the function cannot find in the optimal
+dispersion in the given time, it will throw an error.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with four elements:  
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>dispersion</code></td>
+<td>
+<p>The optimal dispersion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>An assignment of elements to groups (vector)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edges</code></td>
+<td>
+<p>A matrix of 2 columns. Each row contains the indices of 
+elements that had to be investigated to find the dispersion (i.e., each pair
+of elements cannot be part of the same group in order to achieve maximum 
+dispersion).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dispersions_considered</code></td>
+<td>
+<p>All distances that were tested until the dispersion was found.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the SYMPHONY solver is used, an unfortunate "message" is
+printed to the console when this function terminates:
+</p>
+<p>sym_get_col_solution(): No solution has been stored!
+</p>
+<p>This message is no reason to worry and instead is a direct result
+of the algorithm finding the optimal value for the dispersion.
+Unfortunately, this message is generated in the C code underlying
+the SYMPHONY library (via the printing function <code>printf</code>),
+which cannot be prevented in R.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Max Diekhoff
+</p>
+<p>Martin Papenberg <a href="mailto:martin.papenberg@hhu.de">martin.papenberg@hhu.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Diekhoff (2023). Maximizing dispersion for anticlustering. Retrieved from 
+https://www.cs.hhu.de/fileadmin/redaktion/Fakultaeten/Mathematisch-Naturwissenschaftliche_Fakultaet/Informatik/Algorithmische_Bioinformatik/Bachelor-_Masterarbeiten/2831963_ba_ifo_AbschlArbeit_klau_mapap102_madie120_20230203_1815.pdf  
+</p>
+<p>Fernández, E., Kalcsics, J., &amp; Nickel, S. (2013). The maximum dispersion 
+problem. Omega, 41(4), 721–730. https://doi.org/10.1016/j.omega.2012.09.005
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dispersion_objective</code> <code>anticlustering</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+N &lt;- 30
+M &lt;- 5
+K &lt;- 3
+data &lt;- matrix(rnorm(N*M), ncol = M)
+distances &lt;- dist(data)
+
+opt &lt;- optimal_dispersion(distances, K = K)
+opt
+
+# Compare to bicriterion heuristic:
+groups_heuristic &lt;- anticlustering(
+  distances, 
+  K = K,
+  method = "brusco", 
+  objective = "dispersion", 
+  repetitions = 100
+)
+c(
+  OPT = dispersion_objective(distances, opt$groups),
+  HEURISTIC = dispersion_objective(distances, groups_heuristic)
+)
+
+# Different group sizes are possible:
+table(optimal_dispersion(distances, K = c(15, 10, 5))$groups)
+
+# Induce cannot-link constraints by maximizing the dispersion:
+solvable &lt;- matrix(1, ncol = 6, nrow = 6)
+solvable[2, 1] &lt;- -1
+solvable[3, 1] &lt;- -1
+solvable[4, 1] &lt;- -1
+solvable &lt;- as.dist(solvable)
+solvable
+
+# An optimal solution has to put item 1 in a different group than 
+# items 2, 3 and 4 -&gt; this is possible for K = 2
+optimal_dispersion(solvable, K = 2)$groups
+
+# It no longer works when item 1 can also not be linked with item 5:
+# (check out output!)
+unsolvable &lt;- as.matrix(solvable)
+unsolvable[5, 1] &lt;- -1
+unsolvable &lt;- as.dist(unsolvable)
+unsolvable
+optimal_dispersion(unsolvable, K = 2)
+# But:
+optimal_dispersion(unsolvable, K = c(2, 4)) # group sizes, not number of groups
+
+</code></pre>
+
+
+</div>

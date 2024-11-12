@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>admm.tv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Total Variation Minimization</h2>
+
+<h3>Description</h3>
+
+<p>1-dimensional total variation minimization - also known as
+signal denoising - is to solve the following
+</p>
+<p style="text-align: center;"><code class="reqn">\textrm{min}_x ~ \frac{1}{2}\|x-b\|_2^2 + \lambda \sum_i |x_{i+1}-x_i|</code>
+</p>
+
+<p>for a given signal <code class="reqn">b</code>.
+The implementation is borrowed from Stephen Boyd's
+<a href="https://stanford.edu/~boyd/papers/admm/total_variation/total_variation.html">MATLAB code</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">admm.tv(
+  b,
+  lambda = 1,
+  xinit = NA,
+  rho = 1,
+  alpha = 1,
+  abstol = 1e-04,
+  reltol = 0.01,
+  maxiter = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>a length-<code class="reqn">m</code> response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>regularization parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xinit</code></td>
+<td>
+<p>a length-<code class="reqn">m</code> vector for initial value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>an augmented Lagrangian parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>an overrelaxation parameter in <code class="reqn">[1,2]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abstol</code></td>
+<td>
+<p>absolute tolerance stopping criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>relative tolerance stopping criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a named list containing </p>
+
+<dl>
+<dt>x</dt>
+<dd>
+<p>a length-<code class="reqn">m</code> solution vector</p>
+</dd>
+<dt>history</dt>
+<dd>
+<p>dataframe recording iteration numerics. See the section for more details.</p>
+</dd>
+</dl>
+<h3>Iteration History</h3>
+
+<p>When you run the algorithm, output returns not only the solution, but also the iteration history recording
+following fields over iterates,
+</p>
+
+<dl>
+<dt>objval</dt>
+<dd>
+<p>object (cost) function value</p>
+</dd>
+<dt>r_norm</dt>
+<dd>
+<p>norm of primal residual</p>
+</dd>
+<dt>s_norm</dt>
+<dd>
+<p>norm of dual residual</p>
+</dd>
+<dt>eps_pri</dt>
+<dd>
+<p>feasibility tolerance for primal feasibility condition</p>
+</dd>
+<dt>eps_dual</dt>
+<dd>
+<p>feasibility tolerance for dual feasibility condition</p>
+</dd>
+</dl>
+<p>In accordance with the paper, iteration stops when both <code>r_norm</code> and <code>s_norm</code> values
+become smaller than <code>eps_pri</code> and <code>eps_dual</code>, respectively.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## generate sample data
+x1 = as.vector(sin(1:100)+0.1*rnorm(100))
+x2 = as.vector(cos(1:100)+0.1*rnorm(100)+5)
+x3 = as.vector(sin(1:100)+0.1*rnorm(100)+2.5)
+xsignal = c(x1,x2,x3)
+
+## run example
+output  = admm.tv(xsignal)
+
+## visualize
+opar &lt;- par(no.readonly=TRUE)
+plot(1:300, xsignal, type="l", main="TV Regularization")
+lines(1:300, output$x, col="red", lwd=2)
+par(opar)
+
+</code></pre>
+
+
+</div>

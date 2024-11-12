@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>glom,SoilProfileCollection-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Subset soil horizon data using a depth or depth interval</h2>
+
+<h3>Description</h3>
+
+<p>Make a "clod" of horizons from a SoilProfileCollection given a point or a depth interval to intersect. The interval <code style="white-space: pre;">⁠[z1,z2]⁠</code> may be profile-specific (equal in length to <code>p</code>), or may be recycled over all profiles (if boundaries are length 1). For "point" intersection, <code>z2</code> may be left as the default value <code>NULL</code>.
+</p>
+<p><code>trunc()</code> is a wrapper method (using S4 generic) for <code>glom()</code> where <code>truncate=TRUE</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'SoilProfileCollection'
+glom(
+  p,
+  z1,
+  z2 = NULL,
+  ids = FALSE,
+  df = FALSE,
+  truncate = FALSE,
+  invert = FALSE,
+  fill = FALSE,
+  modality = "all",
+  drop = !fill,
+  ...
+)
+
+## S4 method for signature 'SoilProfileCollection'
+trunc(x, z1, z2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z1</code></td>
+<td>
+<p>numeric vector of top depth to intersect horizon (required). Can be an expression involving <code>siteNames(p)</code> or quoted column name. Should evaluate to numeric length <code>1</code> or length equal to <code>length(p)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z2</code></td>
+<td>
+<p>numeric vector bottom depth of intersection interval (optional). Can also be an expression involving <code>siteNames(p)</code> or quoted column name. Should evaluate to numeric length <code>1</code>, length equal to <code>length(p)</code> or <code>NULL</code>. Default: <code>NULL</code> is "point" intersection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>return only horizon IDs? default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>return a data.frame, by intersection with <code>horizons(p)</code>? default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truncate</code></td>
+<td>
+<p>truncate horizon top and bottom depths to <code>z1</code> and <code>z2</code>? default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invert</code></td>
+<td>
+<p>get horizons <em>outside</em> the interval <code style="white-space: pre;">⁠[z1,z2]⁠</code>? default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>keep sites and preserve order for profiles that do not have horizons in interval by filling with a single horizon with <code>NA</code> top and bottom depth. default: <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modality</code></td>
+<td>
+<p>default: <code>"all"</code> return all horizons; or <code>modality = "thickest"</code>) to return the <em>thickest</em> horizon in interval. If multiple horizons have equal thickness, the first (shallowest) is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop</code></td>
+<td>
+<p>Inverted alias of fill for consistency with other methods. When <code>drop=FALSE</code>, filling occurs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p><code>trunc()</code>: additional arguments passed to <code>glom()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>"To glom" is "to steal" or to "become stuck or attached to". The word is related to the compound "glomalin", which is a glycoprotein produced by mycorrhizal fungi in soil.
+</p>
+<p>The full depth range of horizons included within the interval are returned (a "ragged" SoilProfileCollection) unless the <code>truncate</code> argument is set as <code>TRUE</code>. Horizon intersection is based on unique ID <code>hzidname(spc)</code> and depth range of interest. Profiles that lack data in the range of interest will be dropped from the resulting SoilProfileCollection.
+</p>
+<p>If inverting results with <code>invert</code>, it is possible that thick horizons (whose boundaries span wider than the specified interval) will be split into <em>two</em> horizons, where previously they were one. This may make the results from <code>ids = TRUE</code> different from what you expect, as they will be based on a profile with an "extra" horizon and re-calculated unique horizon ID (<code>hzidname(spc)</code>) <code>"hzID"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a SoilProfileCollection, data.frame, or a vector of horizon IDs. <code>NULL</code> if no result.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glomApply</code> <code>trunc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+data(sp1, package = 'aqp')
+depths(sp1) &lt;- id ~ top + bottom
+site(sp1) &lt;- ~ group
+
+p &lt;- glom(sp1, 25, 150)
+
+# 28 horizons
+nrow(p) 
+
+# inspect graphically
+par(mar = c(1,1,3,1))
+plot(p, color = "prop", max.depth = 200)
+abline(h = c(25, 100), lty = 2)
+
+## glom(..., truncate = TRUE)
+
+p2 &lt;- glom(sp1, 25, 150, truncate = TRUE)
+
+# 28 horizons
+nrow(p2) 
+
+# inspect graphically
+par(mar = c(1,1,3,1))
+plot(p2, color = "prop", max.depth = 200)
+abline(h = c(25, 100), lty = 2)
+
+## glom(..., truncate = TRUE, invert = TRUE)
+
+p3 &lt;- glom(sp1, 25, 150, truncate = TRUE, invert = TRUE)
+
+# 45 horizons
+nrow(p3) 
+
+# inspect graphically
+par(mar = c(1,1,3,1))
+plot(p3, color = "prop", max.depth = 200)
+abline(h = c(25, 100), lty = 2)
+
+## profile-specific interval, using expressions evaluated within sp1@site
+
+# calculate some new site-level variables containing target interval
+sp1$glom_top &lt;- (1:9) * 10
+sp1$glom_bottom &lt;- 10 + sp1$glom_top
+
+# glom evaluates non-standard expressions using siteNames(sp1) column names
+p4 &lt;- glom(sp1, glom_top / 2, glom_bottom * 1.2, truncate = TRUE)
+
+# inspect graphically
+par(mar = c(1,1,3,1))
+plot(p4, color = "prop", max.depth = 200)
+
+
+# load sample data
+data("sp3")
+
+# promote to SPC
+depths(sp3) &lt;- id ~ top + bottom
+
+### TRUNCATE all profiles in sp3 to [0,25]
+
+# set up plot parameters
+par(mfrow=c(2,1), mar=c(0,0,0,0))
+
+# full profiles
+plot(sp3)
+
+# trunc'd profiles
+plot(trunc(sp3, 0, 25))
+</code></pre>
+
+
+</div>

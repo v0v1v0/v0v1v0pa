@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Asymptotic timing</h2>
+
+<h3>Description</h3>
+
+<p>Computation time and memory for several R expressions of
+several different data sizes.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atime(
+N, setup, expr.list=NULL, times=10, seconds.limit=0.01, verbose=FALSE,
+result=FALSE, N.env.parent=NULL, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>numeric vector of at least two data sizes, default is <code>2^seq(2,20)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setup</code></td>
+<td>
+<p>expression to evaluate for every data size, before timings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expr.list</code></td>
+<td>
+<p>named list of expressions to time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>number of times to evaluate each timed expression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seconds.limit</code></td>
+<td>
+<p>if the median timing of any expression exceeds
+this many seconds, then no timings for larger N are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical, print messages after every data size?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result</code></td>
+<td>
+<p>logical, save each result? If <code>TRUE</code>, and result is
+a data frame with one row, then the numeric column names will be
+saved as more units to analyze (in addition to kilobytes and
+seconds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N.env.parent</code></td>
+<td>
+<p>environment to use as parent of environment
+created for each data size N, or NULL to use default parent env.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>named expressions to time.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Each iteration involves first computing the setup expression,
+and then computing several times the ... expressions. For
+convenience, expressions may be specified either via code (...) or
+data (<code>expr.list</code> arg).</p>
+
+
+<h3>Value</h3>
+
+<p>list of class atime with elements <code>unit.col.vec</code> (character
+vector of column names to analyze), <code>seconds.limit</code> (numeric
+input param), <code>measurements</code> (data table of results).</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example 1: polynomial and exponential time string functions.
+atime_result_string &lt;- atime::atime(
+  seconds.limit=0.001,
+  N=unique(as.integer(10^seq(0,3.5,l=100))),
+  setup={
+    subject &lt;- paste(rep("a", N), collapse="")
+    pattern &lt;- paste(rep(c("a?", "a"), each=N), collapse="")
+    linear_size_replacement &lt;- paste(rep("REPLACEMENT", N), collapse="")
+  },
+  PCRE.match=regexpr(pattern, subject, perl=TRUE),
+  TRE.match=regexpr(pattern, subject, perl=FALSE),
+  constant.replacement=gsub("a","constant size replacement",subject),
+  linear.replacement=gsub("a",linear_size_replacement,subject))
+plot(atime_result_string)
+
+## Example 2: combine using rbind inside or outside for loop.
+atime_result_rbind &lt;- atime::atime(
+  seconds.limit=0.001,
+  setup={
+    DF &lt;- data.frame(i=1:100)
+  },
+  inside={
+    big.frame &lt;- data.frame()
+    for(table.i in 1:N){
+      big.frame &lt;- rbind(big.frame, DF)
+    }
+  },
+  outside={
+    big.frame.list &lt;- list()
+    for(table.i in 1:N){
+      big.frame.list[[table.i]] &lt;- DF
+    }
+    big.frame &lt;- do.call(rbind, big.frame.list)
+  }
+)
+plot(atime_result_rbind)
+
+</code></pre>
+
+
+</div>

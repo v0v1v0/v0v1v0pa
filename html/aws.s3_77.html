@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>s3saveRDS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>saveRDS/readRDS</h2>
+
+<h3>Description</h3>
+
+<p>Serialization interface to read/write R objects to S3
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">s3saveRDS(
+  x,
+  object = paste0(as.character(substitute(x)), ".rds"),
+  bucket,
+  compress = TRUE,
+  ...
+)
+
+s3readRDS(object, bucket, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>For <code>s3saveRDS</code>, a single R object to be saved via <code>saveRDS</code> and uploaded to S3. <code>x</code> is analogous to the <code>object</code> argument in <code>saveRDS</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Character string with the object key, or an object of class “s3_object”. In most cases, if <code>object</code> is specified as the latter, <code>bucket</code> can be omitted because the bucket name will be extracted from “Bucket” slot in <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bucket</code></td>
+<td>
+<p>Character string with the name of the bucket, or an object of class “s3_bucket”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>A logical. See <code>saveRDS</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>s3HTTP</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that early versions of <code>s3saveRDS</code> from aws.s3 &lt;= 0.2.4 unintentionally serialized objects to big endian format (due to defaults in <code>serialize</code>. This can create problems when attempting to read these files using <code>readRDS</code>. The function attempts to catch the issue and read accordingly, but may fail. The solution used internally is <code>unserialize(memDecompress(get_object(), "gzip"))</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>s3saveRDS</code>, a logical. For <code>s3readRDS</code>, an R object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Steven Akins &lt;skawesome@gmail.com&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>s3save</code>,<code>s3load</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# create bucket
+b &lt;- put_bucket("myexamplebucket")
+
+# save a single object to s3
+s3saveRDS(x = mtcars, bucket = "myexamplebucket", object = "mtcars.rds")
+
+# restore it under a different name
+mtcars2 &lt;- s3readRDS(object = "mtcars.rds", bucket = "myexamplebucket")
+identical(mtcars, mtcars2)
+
+# cleanup
+delete_object(object = "mtcars.rds", bucket = "myexamplebucket")
+delete_bucket("myexamplebucket")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

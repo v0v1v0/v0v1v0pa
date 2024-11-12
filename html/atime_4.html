@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atime_pkg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Asymptotic timing package tests</h2>
+
+<h3>Description</h3>
+
+<p>R package performance testing, by computing time/memory
+usage of several R expressions of
+several different data sizes, for several package
+versions (base, HEAD, CRAN, merge-base, other historical references
+specified by user).
+<code>atime_pkg_test_info</code> returns an environment containing test
+code/calls (useful for running a single test), whereas
+<code>atime_pkg</code> runs all tests and saves results/plots to disk.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atime_pkg(pkg.path=".", tests.dir=NULL)
+atime_pkg_test_info(pkg.path=".", tests.dir=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pkg.path</code></td>
+<td>
+<p>path to git repository containing R package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tests.dir</code></td>
+<td>
+<p>path to directory which contains <code>atime/tests.R</code>,
+relative to <code>pkg.path</code> (default <code>NULL</code> means first
+existing directory of <code>"inst"</code> or <code>".ci"</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There should be a <code>tests.R</code> code file which
+defines <code>test.list</code>, a list with names corresponding to different
+tests.
+Each element should be a list with at least three named elements: <code>N</code>,
+<code>setup</code>, <code>expr</code>, (possibly others such as
+<code>pkg.edit.fun</code> and <code>version_name="1234567890abcdef"</code>)
+to be passed as named arguments to <code>atime_versions</code>, along with
+the following versions which are passed using the <code>sha.vec</code> argument:
+<code>base</code> ref comes from <code>GITHUB_BASE_REF</code> environment variable (default <code>master</code>),
+<code>HEAD</code> ref is the branch that you want to merge into base,
+<code>CRAN</code> is current published version (sha value <code>""</code>),
+<code>merge-base</code> is most recent common ancestor commit between <code>base</code> and
+<code>HEAD</code>.
+For visualization, default colors are provided for versions with names:
+<code>HEAD</code>, <code>base</code>, <code>CRAN</code>, <code>merge-base</code>,
+<code>Before</code>, <code>Regression</code>, <code>Slow</code>, <code>Fixed</code>,
+<code>Fast</code>; other version names will be gray using
+the default colors.
+If <code>tests.R</code> defines a variable named <code>version.colors</code>, then
+it should be a character vector of colors to be used instead of the
+default (names for versions, values for colors). 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>atime_pkg_test_info</code> returns an environment in which the code of
+<code>tests.R</code> was evaluated, including a variable <code>test.call</code>
+which is a list of un-evaluated <code>atime_versions</code> calls,
+one for each test
+(use with <code>eval</code> to run a single test).
+<code>atime_pkg</code> returns a named list of test results,
+names come from names of <code>test.list</code>, and values
+come from results of <code>atime_versions</code>. Side effect is that
+data/plot files are saved in <code>atime</code> directory, including
+tests.RData (test results which can be read into R if you want to make
+your own alternative plots/analyses), tests_all_facet.png (plot
+summarizing all test results), tests_preview_facet.png (plot
+summarizing only most significant results), and install_seconds.txt
+(total number of seconds used to install different package versions).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking</p>
+
+
+<h3>See Also</h3>
+
+<p><code>atime_test</code> for defining each test,
+<code>atime_test_list</code> for defining common arguments in each
+element of the test list.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(FALSE){
+
+  tdir &lt;- tempfile()
+  dir.create(tdir)
+  git2r::clone("https://github.com/tdhock/binsegRcpp", tdir)
+  repo &lt;- git2r::repository(tdir)
+  git2r::checkout(repo, "another-branch")
+  result.list &lt;- atime::atime_pkg(tdir)
+  inst.atime &lt;- file.path(tdir, "inst", "atime")
+  dir(inst.atime)
+  tests.RData &lt;- file.path(inst.atime, "tests.RData")
+  (objs &lt;- load(tests.RData))
+
+  atime::atime_versions_remove("binsegRcpp")
+
+}
+
+## https://github.com/tdhock/binsegRcpp/blob/atime-test-funs/.ci/atime/tests.R
+## has another real example, see how to run it in tests/testthat/test-versions.R
+
+</code></pre>
+
+
+</div>

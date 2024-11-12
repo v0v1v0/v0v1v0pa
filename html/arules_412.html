@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>weclat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mining Associations from Weighted Transaction Data with Eclat (WARM)</h2>
+
+<h3>Description</h3>
+
+<p>Find frequent itemsets with the Eclat algorithm. This implementation uses
+optimized transaction ID list joins and transaction weights to implement weighted
+association rule mining (WARM).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">weclat(data, parameter = NULL, control = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an object that can be coerced into an object of class
+transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>an object of class ASparameter (default
+values: <code>support = 0.1</code>, <code>minlen = 1L</code>, and <code>maxlen = 5L</code>) or
+a named list with corresponding components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>an object of class AScontrol (default values:
+<code>verbose = TRUE</code>) or a named list with corresponding components.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Transaction weights are stored in the transactions as a column called
+<code>weight</code> in transactionInfo.
+</p>
+<p>The weighted support of an itemset is the sum of the weights of the
+transactions that contain the itemset. An itemset is frequent if its
+weighted support is equal or greater than the threshold specified by
+<code>support</code> (assuming that the weights sum to one).
+</p>
+<p>Note that Eclat only mines (weighted) frequent itemsets. Weighted
+association rules can be created using <code>ruleInduction()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class itemsets. Note that
+weighted support is returned in quality as column <code>support</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The C code can be interrupted by <code>CTRL-C</code>. This is convenient but comes
+at the price that the code cannot clean up its internal memory.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Christian Buchta
+</p>
+
+
+<h3>References</h3>
+
+<p>G.D. Ramkumar, S. Ranka, and S. Tsur (1998).  Weighted
+Association Rules: Model and Algorithm, <em>Proceedings of ACM SIGKDD.</em>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other mining algorithms: 
+<code>APappearance-class</code>,
+<code>AScontrol-classes</code>,
+<code>ASparameter-classes</code>,
+<code>apriori()</code>,
+<code>eclat()</code>,
+<code>fim4r()</code>,
+<code>ruleInduction()</code>
+</p>
+<p>Other weighted association mining functions: 
+<code>SunBai</code>,
+<code>hits()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: SunBai data
+data(SunBai)
+SunBai
+
+## weights are stored in transactionInfo
+transactionInfo(SunBai)
+
+## mine weighted support itemsets using transaction support in SunBai
+s &lt;- weclat(SunBai, parameter = list(support = 0.3),
+		       control = list(verbose = TRUE))
+inspect(sort(s))
+
+## create rules using weighted support (satisfying a minimum
+## weighted confidence of 90%).
+r &lt;- ruleInduction(s, confidence = .9)
+inspect(r)
+
+## Example 2: Find association rules in weighted data
+trans &lt;-  list(
+    c("A", "B", "C", "D", "E"),
+    c("C", "F", "G"),
+    c("A", "B"),
+    c("A"),
+    c("C", "F", "G", "H"),
+    c("A", "G", "H")
+)
+
+weight &lt;- c(5, 10, 6, 7, 5, 1)
+
+## convert list to transactions
+trans &lt;-  transactions(trans)
+
+## add weight information
+transactionInfo(trans) &lt;- data.frame(weight = weight)
+inspect(trans)
+
+## mine weighed support itemsets
+s &lt;- weclat(trans, parameter = list(support = 0.3),
+		       control = list(verbose = TRUE))
+inspect(sort(s))
+
+## create association rules
+r &lt;- ruleInduction(s, confidence = .5)
+inspect(r)
+</code></pre>
+
+
+</div>

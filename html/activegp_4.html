@@ -1,0 +1,80 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>C_GP_ci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>CI on Eigenvalues via Monte Carlo/GP</h2>
+
+<h3>Description</h3>
+
+<p>CI on Eigenvalues via Monte Carlo/GP
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">C_GP_ci(model, B = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A homGP model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Monte Carlo iterates</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with elements ci giving 95
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">################################################################################
+## Example of uncertainty quantification on C estimate
+################################################################################
+library(hetGP); library(lhs)
+set.seed(42)
+
+nvar &lt;- 2
+n &lt;- 20
+nits &lt;- 20
+
+# theta gives the subspace direction
+f &lt;- function(x, theta, nugget = 1e-6){
+  if(is.null(dim(x))) x &lt;- matrix(x, 1)
+  xact &lt;- cos(theta) * x[,1] - sin(theta) * x[,2]
+  return(hetGP::f1d(xact) + rnorm(n = nrow(x), sd = rep(nugget, nrow(x))))
+}
+
+theta_dir &lt;- pi/6
+act_dir &lt;- c(cos(theta_dir), -sin(theta_dir))
+
+# Create design of experiments and initial GP model
+design &lt;- X &lt;- matrix(signif(maximinLHS(n, nvar), 2), ncol = nvar)
+response &lt;- Y &lt;- apply(design, 1, f, theta = theta_dir)
+model &lt;- mleHomGP(design, response, known = list(beta0 =  0))
+
+res &lt;- C_GP_ci(model)
+
+plot(c(1, 2), log(c(mean(res$eigen_draws[,1]), mean(res$eigen_draws[,2]))),
+  ylim = range(log(res$eigen_draws)), ylab = "Eigenvalue", xlab = "Index")
+  segments(1, log(res$ci[1,1]), 1, log(res$ci[2,1]))
+  segments(2, log(res$ci[1,2]), 2, log(res$ci[2,2]))
+
+</code></pre>
+
+
+</div>

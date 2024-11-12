@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>evaluate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate H2O Model(s) Performance</h2>
+
+<h3>Description</h3>
+
+<p>Multiple model performance metrics are computed for each model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">evaluate(id, newdata = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a character vector of H2O model IDs retrieved from H2O Grid search
+or AutoML random search. the <code>"h2o.get_ids"</code> function from
+<code>"h2otools"</code> can retrieve the IDs from grids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>h2o frame (data.frame). the data.frame must be already uploaded
+on h2o server (cloud). when specified, this dataset will be used
+for evaluating the models. if not specified, model performance
+on the training dataset will be reported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to be passed to <code>"h2o.performance"</code> from H2O package</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data.frame of various model performance metrics for each model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>E. F. Haghish
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+library(h2o)
+library(h2otools) #for h2o.get_ids() function
+library(autoEnsemble)
+
+# initiate the H2O server to train a grid of models
+h2o.init(ignore_config = TRUE, nthreads = 2, bind_to_localhost = FALSE, insecure = TRUE)
+
+# Run a grid search or AutoML search
+prostate_path &lt;- system.file("extdata", "prostate.csv", package = "h2o")
+prostate &lt;- h2o.importFile(path = prostate_path, header = TRUE)
+y &lt;- "CAPSULE"
+prostate[,y] &lt;- as.factor(prostate[,y])  #convert to factor for classification
+aml &lt;- h2o.automl(y = y, training_frame = prostate, max_runtime_secs = 30,
+                  seed = 2023, nfolds = 10, keep_cross_validation_predictions = TRUE)
+
+# get the model IDs from the H2O Grid search or H2O AutoML Grid
+ids &lt;- h2otools::h2o.get_ids(aml)
+
+# evaluate all the models and return a dataframe
+evals &lt;- evaluate(id = ids)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

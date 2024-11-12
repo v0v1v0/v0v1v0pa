@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_key_vault</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Azure key vault</h2>
+
+<h3>Description</h3>
+
+<p>Method for the AzureRMR::az_resource_group class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>create_key_vault(name, location = self$location, initial_access = default_access(),
+                 sku = "Standard", ..., wait = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: The name of the key vault.
+</p>
+</li>
+<li> <p><code>location</code>: The location/region in which to create the account. Defaults to the resource group location.
+</p>
+</li>
+<li> <p><code>initial_access</code>: The user or service principals that will have access to the vault. This should be a list of objects of type <code style="white-space: pre;">⁠[vault_access_policy]⁠</code>, created by the function of the same name. The default is to grant access to the logged-in user or service principal of the current Resource Manager client.
+</p>
+</li>
+<li> <p><code>sku</code>: The sku for the vault. Set this to "Premium" to enable the use of hardware security modules (HSMs).
+</p>
+</li>
+<li> <p><code>allow_vm_access</code>: Whether to allow Azure virtual machines to retrieve certificates from the vault.
+</p>
+</li>
+<li> <p><code>allow_arm_access</code>: Whether to allow Azure Resource Manager to retrieve secrets from the vault for template deployment purposes.
+</p>
+</li>
+<li> <p><code>allow_disk_encryption_access</code>: Whether to allow Azure Disk Encryption to retrieve secrets and keys from the vault.
+</p>
+</li>
+<li> <p><code>soft_delete</code>: Whether soft-deletion should be enabled for this vault. Soft-deletion is a feature which protects both the vault itself and its contents from accidental/malicious deletion; see below.
+</p>
+</li>
+<li> <p><code>purge_protection</code>: Whether purge protection is enabled. If this is TRUE and soft-deletion is enabled for the vault, manual purges are not allowed. Has no effect if <code>soft_delete=FALSE</code>.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments to pass to the az_key_vault initialization function.
+</p>
+</li>
+<li> <p><code>wait</code>: Whether to wait for the resource creation to complete before returning.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>This method deploys a new key vault resource, with parameters given by the arguments. A key vault is a secure facility for storing and managing encryption keys, certificates, storage account keys, and generic secrets.
+</p>
+<p>A new key vault will have access granted to the user or service principal used to sign in to the Azure Resource Manager client. To manage access policies after creation, use the <code>add_principal</code>, <code>list_principals</code> and <code>remove_principal</code> methods of the key vault object.
+</p>
+<p>Key Vault's soft delete feature allows recovery of the deleted vaults and vault objects, known as soft-delete. Specifically, it addresses the following scenarios:
+</p>
+
+<ul>
+<li>
+<p> Support for recoverable deletion of a key vault
+</p>
+</li>
+<li>
+<p> Support for recoverable deletion of key vault objects (keys, secrets, certificates)
+</p>
+</li>
+</ul>
+<p>With this feature, the delete operation on a key vault or key vault object is a soft-delete, effectively holding the resources for a given retention period (90 days), while giving the appearance that the object is deleted. The service further provides a mechanism for recovering the deleted object, essentially undoing the deletion.
+</p>
+<p>Soft-deleted vaults can be purged (permanently removed) by calling the <code>purge_key_vault</code> method for the resource group or subscription classes. The purge protection optional feature provides an additional layer of protection by forbidding manual purges; when this is on, a vault or an object in deleted state cannot be purged until the retention period of 90 days has passed.
+</p>
+<p>To see what soft-deleted key vaults exist, call the <code>list_deleted_key_vaults</code> method. To recover a soft-deleted key vault, call the <code>create_key_vault</code> method from the vault's original resource group, with the vault name. To purge (permanently delete) it, call the <code>purge_key_vault</code> method.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>az_key_vault</code> representing the created key vault.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>get_key_vault, delete_key_vault, purge_key_vault, az_key_vault, vault_access_policy
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+rg &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+# create a new key vault
+rg$create_key_vault("mykeyvault")
+
+# create a new key vault, and grant access to a service principal
+gr &lt;- AzureGraph::get_graph_login()
+svc &lt;- gr$get_service_principal("app_id")
+rg$create_key_vault("mykeyvault",
+    initial_access=list(vault_access_policy(svc, tenant=NULL)))
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

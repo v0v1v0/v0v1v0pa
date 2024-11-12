@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>facCombine.alldiffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combines several factors into one in the components of an <code>alldiffs.object</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Combines several <code>factors</code>, in the <code>prediction</code> component 
+of <code>object</code>, into one whose <code>levels</code> are the combinations of the 
+used <code>levels</code> of the individual <code>factors</code>. The matching 
+changes are made to the other components and the attributes of the 
+<code>alldiffs.object</code>. If any of the factors to be combined are in 
+<code>LSDby</code>, they are removed from the <code>LSDby</code>, unless the factors to 
+be combined are exactly those in the <code>LSDby</code>. 
+The levels of the <code>factors</code> are combined using <code>fac.combine</code> 
+from the <code>dae</code> package.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'alldiffs'
+facCombine(object, factors, order="standard", 
+           combine.levels=TRUE, sep="_", level.length = NA, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>A <code>character</code> containing the names of <code>factors</code> 
+in the <code>prediction</code> component of <code>object</code> whose levels are to be combined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Either <code>standard</code> or <code>yates</code>. The order in which the 
+<code>levels</code> combinations of the <code>factors</code> are to be considered as 
+numbered when forming the <code>levels</code> of the combined <code>factor</code>; 
+<code>standard</code> numbers them as if they are arranged in 
+standard order, that is with the levels of the first factor moving slowest and 
+those of the last factor moving fastest; <code>yates</code> numbers them as if they 
+are arranged in Yates order, that is with the levels of the first factor moving 
+fastest and those of the last factor moving slowest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine.levels</code></td>
+<td>
+<p>A <code>logical</code> specifying whether the <code>levels</code> 
+labels of the new <code>factor</code> are to be combined from those of the 
+<code>factors</code> being combined. The default is to 
+use the integers from 1 to the product of the numbers of combinations 
+of used <code>levels</code> of the individual <code>factors</code>, numbering the levels 
+according to <code>order</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>A <code>character</code> string to separate the levels when 
+<code>combine.levels = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level.length</code></td>
+<td>
+<p>The maximum number of characters from the levels of 
+factors to use in the row and column labels of the tables of 
+pairwise differences and their p-values and standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>redoErrorIntervals.alldiffs</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A modified <code>alldiffs.object</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.alldiffs</code>, <code>allDifferences.data.frame</code>, 
+<code>print.alldiffs</code>, <code>sort.alldiffs</code>, <br><code>renewClassify.alldiffs</code>; <code>fac.combine</code> in package <span class="pkg">dae</span>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data("Ladybird.dat")
+  
+  ## Use asreml to get predictions and associated statistics
+
+  ## Not run: 
+  m1.asr &lt;- asreml(logitP ~ Host*Cadavers*Ladybird, 
+                   random = ~ Run,
+                   data = Ladybird.dat)
+  current.asrt &lt;- as.asrtests(m1.asr)
+  HCL.pred &lt;- asreml::predict.asreml(m1.asr, classify="Host:Cadavers:Ladybird", 
+                                     sed=TRUE)
+  HCL.preds &lt;- HCL.pred$pvals
+  HCL.sed &lt;- HCL.pred$sed
+  HCL.vcov &lt;- NULL
+  wald.tab &lt;-  current.asrt$wald.tab
+  den.df &lt;- wald.tab[match("Host:Cadavers:Ladybird", rownames(wald.tab)), "denDF"]
+  
+## End(Not run)
+  
+  ## Use lmeTest and emmmeans to get predictions and associated statistics
+  if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+      requireNamespace("emmeans", quietly = TRUE))
+  {
+    m1.lmer &lt;- lmerTest::lmer(logitP ~ Host*Cadavers*Ladybird + (1|Run),
+                              data=Ladybird.dat)
+    HCL.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Host:Cadavers:Ladybird)
+    HCL.preds &lt;- summary(HCL.emm)
+    den.df &lt;- min(HCL.preds$df)
+    ## Modify HCL.preds to be compatible with a predictions.frame
+    HCL.preds &lt;- as.predictions.frame(HCL.preds, predictions = "emmean", 
+                                      se = "SE", interval.type = "CI", 
+                                      interval.names = c("lower.CL", "upper.CL"))
+    HCL.vcov &lt;- vcov(HCL.emm)
+    HCL.sed &lt;- NULL
+  }
+  
+  ## Use the predictions obtained with either asreml or lmerTest
+  if (exists("HCL.preds"))
+  {
+    ## Form an all.diffs object
+    HCL.diffs &lt;- as.alldiffs(predictions = HCL.preds, classify = "Host:Cadavers:Ladybird", 
+                             sed = HCL.sed, vcov = HCL.vcov, tdf = den.df)
+    
+    ## Check the class and validity of the alldiffs object
+    is.alldiffs(HCL.diffs)
+    validAlldiffs(HCL.diffs)
+
+    ## Combine Cadavers and Ladybird
+    HCL.diffs &lt;- facCombine(HCL.diffs, factors = c("Cadavers","Ladybird"))
+    
+    ## Check the validity of HCL.diffs
+    validAlldiffs(HCL.diffs)
+  }
+</code></pre>
+
+
+</div>

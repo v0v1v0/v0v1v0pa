@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lizards</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Phylogeny and quantitative traits of lizards</h2>
+
+<h3>Description</h3>
+
+<p>This data set describes the phylogeny of 18 lizards as reported by Bauwens
+and D\'iaz-Uriarte (1997). It also gives life-history traits corresponding
+to these 18 species.
+</p>
+
+
+<h3>Format</h3>
+
+<p><code>lizards</code> is a list containing the 3 following objects :
+</p>
+ <dl>
+<dt>traits</dt>
+<dd>
+<p>is a data frame with 18 species and 8 traits.</p>
+</dd>
+<dt>hprA</dt>
+<dd>
+<p>is a character string giving the phylogenetic tree (hypothesized
+phylogenetic relationships based on immunological distances) in Newick
+format.</p>
+</dd> <dt>hprB</dt>
+<dd>
+<p>is a character string giving the phylogenetic tree
+(hypothesized phylogenetic relationships based on morphological
+characteristics) in Newick format.</p>
+</dd> </dl>
+<h3>Details</h3>
+
+<p>Variables of <code>lizards$traits</code> are the following ones : mean.L (mean
+length (mm)), matur.L (length at maturity (mm)), max.L (maximum length
+(mm)), hatch.L (hatchling length (mm)), hatch.m (hatchling mass (g)),
+clutch.S (Clutch size), age.mat (age at maturity (number of months of
+activity)), clutch.F (clutch frequency).
+</p>
+
+
+<h3>Note</h3>
+
+<p>This dataset replaces the former version in ade4.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bauwens, D., and D\'iaz-Uriarte, R. (1997) Covariation of
+life-history traits in lacertid lizards: a comparative study.
+<em>American Naturalist</em>, <b>149</b>, 91–111.
+</p>
+<p>See a data description at <a href="http://pbil.univ-lyon1.fr/R/pdf/pps063.pdf">http://pbil.univ-lyon1.fr/R/pdf/pps063.pdf</a>
+(in French).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+if(require(ape) &amp;&amp; require(phylobase)){
+
+## see data
+data(lizards)
+liz.tr &lt;- read.tree(tex=lizards$hprA) # make a tree
+liz &lt;- phylo4d(liz.tr, lizards$traits) # make a phylo4d object
+table.phylo4d(liz)
+
+## compute and plot principal components
+if(require(ade4)){
+liz.pca1 &lt;- dudi.pca(lizards$traits, cent=TRUE,
+   scale=TRUE, scannf=FALSE, nf=2) # PCA of traits
+myPC &lt;- phylo4d(liz.tr, liz.pca1$li) # store PC in a phylo4d object
+varlab &lt;- paste("Principal \ncomponent", 1:2) # make labels for PCs
+table.phylo4d(myPC, ratio=.8, var.lab=varlab) # plot the PCs
+add.scatter.eig(liz.pca1$eig,2,1,2,posi="topleft", inset=c(0,.15))
+title("Phylogeny and the principal components")
+
+## compute a pPCA ##
+## remove size effect
+temp &lt;- lapply(liz.pca1$tab, function(e) residuals(lm(e~-1+liz.pca1$li[,1])) )
+temp &lt;- data.frame(temp)
+row.names(temp) &lt;- tipLabels(liz)
+
+## build corresponding phylo4d object
+liz.noSize &lt;- phylo4d(liz.tr, temp)
+ppca1 &lt;- ppca(liz.noSize, method="Abouheif", scale=FALSE, scannf=FALSE)
+plot(ppca1)
+
+}
+}
+
+
+</code></pre>
+
+
+</div>

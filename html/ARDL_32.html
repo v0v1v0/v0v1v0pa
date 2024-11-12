@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>to_lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert dynlm model (ardl, uecm, recm) to lm model</h2>
+
+<h3>Description</h3>
+
+<p>Takes a <code>dynlm</code> model of <code>class</code> 'ardl',
+'uecm' or 'recm' and converts it into an <code>lm</code> model. This
+can help using the model as a regular <code>lm</code> model with
+functions that are not compatible with <code>dynlm</code> models such
+as the <code>predict</code> function to forecast.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">to_lm(object, fix_names = FALSE, data_class = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of <code>class</code> 'ardl', 'uecm' or 'recm'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix_names</code></td>
+<td>
+<p>A logical, indicating whether the variable names should be
+rewritten without special functions and character in the names such as "d()"
+or "L()". When <code>fix_names = TRUE</code>, the characters "(", and "," are
+replaces with ".", and ")" and spaces are deleted. The name of the dependent
+variable is always transformed, regardless of the value of this parameter.
+Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_class</code></td>
+<td>
+<p>If "ts", it converts the data class to
+<code>ts</code> (see examples for its usage). The default is
+<code>NULL</code>, which uses the same data provided in the original
+object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Currently unused argument.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>to_lm</code> returns an object of <code>class</code>
+<code>"lm"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kleanthis Natsiopoulos, <a href="mailto:klnatsio@gmail.com">klnatsio@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ardl</code>, <code>uecm</code>, <code>recm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Convert ARDL into lm ------------------------------------------------
+
+ardl_3132 &lt;- ardl(LRM ~ LRY + IBO + IDE, data = denmark, order = c(3,1,3,2))
+ardl_3132_lm &lt;- to_lm(ardl_3132)
+summary(ardl_3132)$coefficients
+summary(ardl_3132_lm)$coefficients
+
+## Convert UECM into lm ------------------------------------------------
+
+uecm_3132 &lt;- uecm(ardl_3132)
+uecm_3132_lm &lt;- to_lm(uecm_3132)
+summary(uecm_3132)$coefficients
+summary(uecm_3132_lm)$coefficients
+
+## Convert RECM into lm ------------------------------------------------
+
+recm_3132 &lt;- recm(ardl_3132, case = 2)
+recm_3132_lm &lt;- to_lm(recm_3132)
+summary(recm_3132)$coefficients
+summary(recm_3132_lm)$coefficients
+
+## Use the lm model to forecast ----------------------------------------
+
+# Forecast using the in-sample data
+insample_data &lt;- ardl_3132$model
+head(insample_data)
+predicted_values &lt;- predict(ardl_3132_lm, newdata = insample_data)
+
+# The predicted values are expected to be the same as the fitted values
+ardl_3132$fitted.values
+predicted_values
+
+# Convert to ts class for the plot
+predicted_values &lt;- ts(predicted_values, start = c(1974,4), frequency=4)
+plot(denmark$LRM, lwd=4) #The input dependent variable
+lines(ardl_3132$fitted.values, lwd=4, col="blue") #The fitted values
+lines(predicted_values, lty=2, lwd=2, col="red") #The predicted values
+
+## Convert to lm for post-estimation testing ---------------------------
+
+# Ramsey's RESET test for functional form
+library(lmtest) # for resettest()
+library(strucchange) # for efp(), and sctest()
+
+## Not run: 
+    # This produces an error.
+    # resettest() cannot use data of class 'zoo' such as the 'denmark' data
+    # used to build the original model
+    resettest(uecm_3132, type = c("regressor"))
+
+## End(Not run)
+
+uecm_3132_lm &lt;- to_lm(uecm_3132, data_class = "ts")
+resettest(uecm_3132_lm, power = 2)
+
+# CUSUM test for structural change detection
+## Not run: 
+    # This produces an error.
+    # efp() does not understand special functions such as "d()" and "L()"
+    efp(uecm_3132$full_formula, data = uecm_3132$model)
+
+## End(Not run)
+
+uecm_3132_lm_names &lt;- to_lm(uecm_3132, fix_names = TRUE)
+fluctuation &lt;- efp(uecm_3132_lm_names$full_formula,
+                   data = uecm_3132_lm_names$model)
+sctest(fluctuation)
+plot(fluctuation)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dbReadTable,AzureKustoConnection,character-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>DBI methods for Kusto table management</h2>
+
+<h3>Description</h3>
+
+<p>DBI methods for Kusto table management
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'AzureKustoConnection,character'
+dbReadTable(conn, name, ...)
+
+## S4 method for signature 'AzureKustoConnection,ANY'
+dbWriteTable(conn, name, value, method, ...)
+
+## S4 method for signature 'AzureKustoConnection'
+dbCreateTable(conn, name, fields, ..., row.names = NULL, temporary = FALSE)
+
+## S4 method for signature 'AzureKustoConnection,ANY'
+dbRemoveTable(conn, name, ...)
+
+## S4 method for signature 'AzureKustoConnection'
+dbListTables(conn, ...)
+
+## S4 method for signature 'AzureKustoConnection,ANY'
+dbExistsTable(conn, name, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>conn</code></td>
+<td>
+<p>An AzureKustoConnection object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A string containing a table name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>run_query</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>For <code>dbWriteTable</code>, a data frame to be written to a Kusto table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>For <code>dbWriteTable</code>, the ingestion method to use to write the table. See ingest_local.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fields</code></td>
+<td>
+<p>For <code>dbCreateTable</code>, the table specification: either a named character vector, or a data frame of sample values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.names</code></td>
+<td>
+<p>For <code>dbCreateTable</code>, the row names. Not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>temporary</code></td>
+<td>
+<p>For <code>dbCreateTable</code>, whether to create a temporary table. Must be <code>FALSE</code> for Kusto.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions read, write, create and delete a table, list the tables in a Kusto database, and check for table existence. With the exception of <code>dbWriteTable</code>, they ultimately call <code>run_query</code> which does the actual work of communicating with the Kusto server. <code>dbWriteTable</code> calls <code>ingest_local</code> to write the data to the server; note that it only supports ingesting a local data frame, as per the DBI spec.
+</p>
+<p>Kusto does not have the concept of temporary tables, so calling <code>dbCreateTable</code> with <code>temporary</code> set to anything other than <code>FALSE</code> will generate an error.
+</p>
+<p><code>dbReadTable</code> and <code>dbWriteTable</code> are likely to be of limited use in practical scenarios, since Kusto tables tend to be much larger than available memory.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>dbReadTable</code>, an in-memory data frame containing the table.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>AzureKusto-connection, dbConnect, run_query, ingest_local
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+db &lt;- DBI::dbConnect(AzureKusto(),
+    server="https://mycluster.location.kusto.windows.net", database="database"...)
+
+DBI::dbListTables(db)
+
+if(!DBI::dbExistsTable(db, "mtcars"))
+    DBI::dbCreateTable(db, "mtcars")
+
+DBI::dbWriteTable(db, "mtcars", mtcars, method="inline")
+
+DBI::dbReadTable(db, "mtcars")
+
+DBI::dbRemoveTable(db, "mtcars")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

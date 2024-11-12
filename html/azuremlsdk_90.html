@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>inference_config</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an inference configuration for model deployments</h2>
+
+<h3>Description</h3>
+
+<p>The inference configuration describes how to configure the model to make
+predictions. It references your scoring script (<code>entry_script</code>) and is
+used to locate all the resources required for the deployment. Inference
+configurations use Azure Machine Learning environments (see <code>r_environment()</code>)
+to define the software dependencies needed for your deployment.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">inference_config(
+  entry_script,
+  source_directory = ".",
+  description = NULL,
+  environment = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>entry_script</code></td>
+<td>
+<p>A string of the path to the local file that contains
+the code to run for making predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_directory</code></td>
+<td>
+<p>A string of the path to the local folder
+that contains the files to package and deploy alongside your model, such as
+helper files for your scoring script (<code>entry_script</code>). The folder must
+contain the <code>entry_script</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>(Optional) A string of the description to give this
+configuration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>environment</code></td>
+<td>
+<p>An <code>Environment</code> object to use for the deployment. The
+environment does not have to be registered.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>InferenceConfig</code> object.
+</p>
+
+
+<h3>Defining the entry script</h3>
+
+<p>To deploy a model, you must provide an entry script that accepts requests,
+scores the requests by using the model, and returns the results. The
+entry script is specific to your model. It must understand the format of
+the incoming request data, the format of the data expected by your model,
+and the format of the data returned to clients. If the request data is in a
+format that is not usable by your model, the script can transform it into
+an acceptable format. It can also transform the response before returning
+it to the client.
+</p>
+<p>The entry script must contain an <code>init()</code> method that loads your model and
+then returns a function that uses the model to make a prediction based on
+the input data passed to the function. Azure ML runs the <code>init()</code> method
+once, when the Docker container for your web service is started. The
+prediction function returned by <code>init()</code> will be run every time the service
+is invoked to make a prediction on some input data. The inputs and outputs
+of this prediction function typically use JSON for serialization and
+deserialization.
+</p>
+<p>To locate the model in your entry script (when you load the model in the
+script's <code>init()</code> method), use <code>AZUREML_MODEL_DIR</code>, an environment variable
+containing the path to the model location. The environment variable is
+created during service deployment, and you can use it to find the location
+of your deployed model(s).
+</p>
+<p>To get the path to a file in a model, combine the environment variable
+with the filename you're looking for. The filenames of the model files
+are preserved during registration and deployment.
+</p>
+<p>Single model example:</p>
+<pre>model_path &lt;- file.path(Sys.getenv("AZUREML_MODEL_DIR"), "my_model.rds")
+</pre>
+<p>Multiple model example:</p>
+<pre>model1_path &lt;- file.path(Sys.getenv("AZUREML_MODEL_DIR"), "my_model/1/my_model.rds")
+</pre>
+
+
+<h3>See Also</h3>
+
+<p><code>r_environment()</code>, <code>deploy_model()</code>
+</p>
+
+
+</div>

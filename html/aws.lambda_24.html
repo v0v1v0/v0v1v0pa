@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_function</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Manage AWS Lambda Functions</h2>
+
+<h3>Description</h3>
+
+<p>Create, update, and version AWS Lambda functions
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_function(
+  name,
+  func,
+  handler,
+  role,
+  runtime = c("nodejs12.x", "nodejs10.x", "java11", "java8", "python3.8", "python3.7",
+    "python3.6", "python2.7", "dotnetcore3.1", "dotnetcore2.1", "go1.x", "ruby2.7",
+    "ruby2.5", "provided"),
+  timeout = 3L,
+  description,
+  ...
+)
+
+update_function_code(name, func, ...)
+
+update_function_config(
+  name,
+  description,
+  handler,
+  role,
+  runtime = c("nodejs12.x", "nodejs10.x", "java11", "java8", "python3.8", "python3.7",
+    "python3.6", "python2.7", "dotnetcore3.1", "dotnetcore2.1", "go1.x", "ruby2.7",
+    "ruby2.5", "provided"),
+  timeout = 3L,
+  ...
+)
+
+update_function(
+  name,
+  func,
+  description,
+  handler,
+  role,
+  runtime = c("nodejs12.x", "nodejs10.x", "java11", "java8", "python3.8", "python3.7",
+    "python3.6", "python2.7", "dotnetcore3.1", "dotnetcore2.1", "go1.x", "ruby2.7",
+    "ruby2.5", "provided"),
+  timeout = 3L,
+  ...
+)
+
+publish_function_version(name, description, ...)
+
+make_function_version(name, description, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A character string specifying the function name (either a full ARN or a max 64-character string). For functions other than <code>create_function</code> this can also be an object of class “aws_lambda_function”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>Either (1) a character string containing a url-style AWS S3
+bucket and object key (e.g., <code>"s3://bucketname/objectkey"</code>) where the
+object is the .zip file containing the AWS Lambda deployment package; (2) a
+file string pointing to a .zip containing the deployment package; or (3) a
+single file (e.g., a javascript file) that will be zipped and used as the
+deployment. The third option is merely a convenience for very simple
+deployment packages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>handler</code></td>
+<td>
+<p>A character string specifying the function within your code
+that Lambda calls to begin execution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>role</code></td>
+<td>
+<p>A character string containing an IAM role or an object of class
+“iam_role”. This is the role that is used when the function is
+invoked, so it must have permissions over any AWS resources needed by the
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runtime</code></td>
+<td>
+<p>A character string specifying the runtime environment for the
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeout</code></td>
+<td>
+<p>An integer specifying the timeout for the function, in
+seconds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Optionally, a max 256-character description of the
+function for your own use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>lambdaHTTP</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>create_function</code> creates a new function from a deployment
+package. <code>update_function_code</code> updates the code within a function.
+<code>update_function_config</code> updates the configuration settings of a
+function. <code>publish_function_version</code> records a function version (see
+<code>list_function_versions</code>; changes made between versioning are
+not recorded.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class “aws_lambda_function”.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html">API
+Reference: CreateFunction</a>
+<a href="https://docs.aws.amazon.com/lambda/latest/dg/API_UpdateFunctionCode.html">API
+Reference: UpdateFunctionCode</a>
+<a href="https://docs.aws.amazon.com/lambda/latest/dg/API_PublishVersion.html">API
+Reference: PublishVersion</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>invoke_function</code>, <code>create_function_alias</code>,
+<code>list_functions</code>, <code>delete_function</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# 'hello world!' example code
+hello &lt;- system.file("templates", "helloworld.js", package = "aws.lambda")
+
+# get IAM role for Lambda execution
+library("aws.iam")
+id &lt;- get_caller_identity()[["Account"]]
+# Note: This role may not work. We recommend copying the ARN of a
+# Lambda-capable role from the console once until we're able to more
+# smoothly integrate with aws.iam.
+role &lt;- paste0("arn:aws:iam::", id, ":role/lambda_basic_execution")
+
+lambda_func &lt;- create_function("helloworld",
+  func = hello,
+  handler = "helloworld.handler",
+  role = role
+)
+
+# invoke function
+invoke_function(lambda_func)
+
+# delete function
+delete_function(lambda_func)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>G.tuneup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tune-up the the genomic relationship matrix G</h2>
+
+<h3>Description</h3>
+
+<p>Generates a new matrix that can be <em>blended</em>, <em>bended</em> or <em>aligned</em>
+in order to make it stable for future use or matrix inversion. The input matrix should
+be of the full form (<code class="reqn">n \times n</code>) with individual names assigned to
+<code>rownames</code> and <code>colnames</code>.
+</p>
+<p>This routine provides three options of tune-up:
+</p>
+
+<ul>
+<li>
+<p><em>Blend</em>. The <code class="reqn">\boldsymbol{G}</code> matrix is blended (or averaged)
+with another matrix. <code class="reqn">\boldsymbol{G}^\ast=(1-p) \boldsymbol{G} + p
+ \boldsymbol{A}</code>, where <code class="reqn">\boldsymbol{G}^\ast</code> is the blended matrix,
+<code class="reqn">\boldsymbol{G}</code> is the original matrix,  <code class="reqn">p</code> is the proportion of
+the identity matrix or pedigree-based relationship matrix to consider, and
+<code class="reqn">\boldsymbol{A}</code> is the matrix to blend. Ideally, the pedigree-based
+relationship matrix should be used, but if this is not available (or it is
+of poor quality), then it is replaced by an identity matrix
+<code class="reqn">\boldsymbol{I}</code>.
+</p>
+</li>
+<li>
+<p><em>Bend</em>. It consists on adjusting the original
+<code class="reqn">\boldsymbol{G}</code> matrix to obtain a near positive definite matrix, which
+is done by making all negative or very small eigenvalues slightly positive.
+</p>
+</li>
+<li>
+<p><em>Align</em>. The original <code class="reqn">\boldsymbol{G}</code> matrix is aligned to
+the matching pedigree relationship matrix <code class="reqn">\boldsymbol{A}</code> where an
+<code class="reqn">\alpha</code> and <code class="reqn">\beta</code> parameters are obtained. More information can
+be found in the manual or in Christensen <em>et al.</em> (2012).
+</p>
+</li>
+</ul>
+<p>The user should provide the matrices <code class="reqn">\boldsymbol{G}</code> and
+<code class="reqn">\boldsymbol{A}</code> in full form (<code class="reqn">n \times n</code>)
+and matching individual names should be
+assigned to the <code>rownames</code> and <code>colnames</code> of the matrices.
+</p>
+<p>Based on procedures published by Nazarian and Gezan <em>et al.</em> (2016).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">G.tuneup(
+  G = NULL,
+  A = NULL,
+  blend = FALSE,
+  pblend = 0.02,
+  bend = FALSE,
+  eig.tol = 1e-06,
+  align = FALSE,
+  rcn = TRUE,
+  digits = 8,
+  sparseform = FALSE,
+  determinant = TRUE,
+  message = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>Input of the genomic matrix <code class="reqn">\boldsymbol{G}</code> to tune-up
+in full form (<code class="reqn">n \times n</code>) (default = <code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>Input of the matching pedigree relationship matrix <code class="reqn">\boldsymbol{A}</code>
+in full form (<code class="reqn">n \times n</code>) (default = <code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blend</code></td>
+<td>
+<p>If <code>TRUE</code> a <em>blending</em> with identity matrix <code class="reqn">\boldsymbol{I}</code> or pedigree relationship matrix
+<code class="reqn">\boldsymbol{A}</code> (if provided) is performed (default = <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pblend</code></td>
+<td>
+<p>If blending is requested this is the proportion of the identity matrix <code class="reqn">\boldsymbol{I}</code> or
+pedigree-based relationship matrix <code class="reqn">\boldsymbol{A}</code> to blend for (default = <code>0.02</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bend</code></td>
+<td>
+<p>If <code>TRUE</code> a <em>bending</em> is performed by making the matrix near positive definite (default = <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eig.tol</code></td>
+<td>
+<p>Defines relative positiveness (<em>i.e.</em>, non-zero) of eigenvalues compared to the largest one.
+It determines which threshold of eigenvalues will be treated as zero (default = <code>1e-06</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>align</code></td>
+<td>
+<p>If <code>TRUE</code> the genomic matrix <code class="reqn">\boldsymbol{G}</code> is <em>aligned</em> to the
+matching pedigree relationship matrix <code class="reqn">\boldsymbol{A}</code> (default = <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rcn</code></td>
+<td>
+<p>If <code>TRUE</code> the reciprocal conditional number of the original and the bended,
+blended or aligned matrix will be calculated (default = <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Set up the number of digits used to round the output matrix (default = <code>8</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparseform</code></td>
+<td>
+<p>If <code>TRUE</code> it generates an inverse matrix in sparse form to be used directly in <span class="pkg">asreml</span> with
+required attributes (default = <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>determinant</code></td>
+<td>
+<p>If <code>TRUE</code> the determinant will be calculated, otherwise, this is obtained for
+matrices of a dimension of less than 1,500 <code class="reqn">\times</code> 1,500 (default = <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>If <code>TRUE</code> diagnostic messages are printed on screen (default = <code>TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with six of the following elements:
+</p>
+
+<ul>
+<li>
+<p><code>Gb</code>: the inverse of <code class="reqn">\boldsymbol{G}</code> matrix in full form
+(only if sparseform = <code>FALSE</code>).
+</p>
+</li>
+<li>
+<p><code>Gb.sparse</code>: if requested, the inverse of <code class="reqn">\boldsymbol{G}</code> matrix in
+sparse form (only if sparseform = <code>TRUE</code>).
+</p>
+</li>
+<li>
+<p><code>rcn0</code>: the reciprocal conditional number of the original matrix.
+Values near zero are associated with an ill-conditioned matrix.
+</p>
+</li>
+<li>
+<p><code>rcnb</code>: the reciprocal conditional number of the blended, bended or aligned
+matrix. Values near zero are associated with an ill-conditioned matrix.
+</p>
+</li>
+<li>
+<p><code>det0</code>: if requested, the determinant of the original matrix.
+</p>
+</li>
+<li>
+<p><code>blend</code>: if the matrix was <em>blended</em>.
+</p>
+</li>
+<li>
+<p><code>bend</code>: if the matrix was <em>bended</em>.
+</p>
+</li>
+<li>
+<p><code>align</code>: if the matrix was <em>aligned</em>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Christensen, O.F., Madsen, P., Nielsen, B., Ostersen, T. and Su, G. 2012.
+Single-step methods for genomic evaluation in pigs. Animal 6:1565-1571.
+doi:10.1017/S1751731112000742.
+</p>
+<p>Nazarian A., Gezan S.A. 2016. GenoMatrix: A software package for pedigree-based
+and genomic prediction analyses on complex traits. Journal of Heredity 107:372-379.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example: Apple dataset.
+
+# Get G matrix.
+G &lt;- G.matrix(M = geno.apple, method = "VanRaden")$G
+G[1:5, 1:5]
+
+# Blend G matrix.
+G_blended &lt;- G.tuneup(G = G, blend = TRUE, pblend = 0.05)
+G_blended$Gb[1:5, 1:5]
+
+# Bend G matrix.
+G_bended &lt;- G.tuneup(G = G, bend = TRUE, eig.tol = 1e-03)
+G_bended$Gb[1:5, 1:5]
+
+
+# Example: Loblolly Pine dataset with pedigree - Aligned G matrix.
+
+A &lt;- AGHmatrix::Amatrix(ped.pine)
+dim(A)
+
+# Read and filter genotypic data.
+M.clean &lt;- qc.filtering(
+ M = geno.pine655,
+ maf = 0.05,
+ marker.callrate = 0.2, ind.callrate = 0.20,
+ na.string = "-9")$M.clean
+
+# Get G matrix.
+G &lt;- G.matrix(M = M.clean, method = "VanRaden", na.string = "-9")$G
+G[1:5, 1:5]
+dim(G)
+
+# Match G and A.
+Aclean &lt;- match.G2A(A = A, G = G, clean = TRUE, ord = TRUE, mism = TRUE)$Aclean
+
+# Align G with A.
+G_align &lt;- G.tuneup(G = G, A = Aclean, align = TRUE)
+G_align$Gb[1:5, 1:5]
+
+
+</code></pre>
+
+
+</div>

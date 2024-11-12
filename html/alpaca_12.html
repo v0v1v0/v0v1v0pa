@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getAPEs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute average partial effects after fitting binary choice models with a one-/two-/three-way error 
+component</h2>
+
+<h3>Description</h3>
+
+<p><code>getAPEs</code> is a post-estimation routine that can be used to estimate average partial 
+effects with respect to all covariates in the model and the corresponding covariance matrix. The 
+estimation of the covariance is based on a linear approximation (delta method) plus an optional 
+finite population correction. Note that the command automatically determines which of the regressors 
+are binary or non-binary.
+</p>
+<p><strong>Remark:</strong> The routine currently does not allow to compute average partial effects based 
+on functional forms like interactions and polynomials.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getAPEs(
+  object = NULL,
+  n.pop = NULL,
+  panel.structure = c("classic", "network"),
+  sampling.fe = c("independence", "unrestricted"),
+  weak.exo = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"biasCorr"</code> or <code>"feglm"</code>; currently restricted to 
+<code>binomial</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.pop</code></td>
+<td>
+<p>unsigned integer indicating a finite population correction for the estimation of the 
+covariance matrix of the average partial effects proposed by 
+Cruz-Gonzalez, Fernández-Val, and Weidner (2017). The correction factor is computed as follows: 
+<code class="reqn">(n^{\ast} - n) / (n^{\ast} - 1)</code>, 
+where <code class="reqn">n^{\ast}</code> and <code class="reqn">n</code> are the sizes of the entire 
+population and the full sample size. Default is <code>NULL</code>, which refers to a factor of zero and 
+a covariance obtained by the delta method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>panel.structure</code></td>
+<td>
+<p>a string equal to <code>"classic"</code> or <code>"network"</code> which determines the 
+structure of the panel used. <code>"classic"</code> denotes panel structures where for example the same
+cross-sectional units are observed several times (this includes pseudo panels). 
+<code>"network"</code> denotes panel structures where for example bilateral trade flows are observed 
+for several time periods. Default is <code>"classic"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling.fe</code></td>
+<td>
+<p>a string equal to <code>"independence"</code> or <code>"unrestricted"</code> which imposes 
+sampling assumptions about the unobserved effects. <code>"independence"</code> imposes that all 
+unobserved effects are independent sequences. <code>"unrestricted"</code> does not impose any
+sampling assumptions. Note that this option only affects the optional finite population correction. 
+Default is <code>"independence"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weak.exo</code></td>
+<td>
+<p>logical indicating if some of the regressors are assumed to be weakly exogenous (e. g. 
+predetermined). If object is of class <code>"biasCorr"</code>, the option will be automatically set to 
+<code>TRUE</code> if the chosen bandwidth parameter is larger than zero. Note that this option only 
+affects the estimation of the covariance matrix. Default is <code>FALSE</code>, which assumes that all 
+regressors are strictly exogenous.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function <code>getAPEs</code> returns a named list of class <code>"APEs"</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Cruz-Gonzalez, M., I. Fernández-Val, and M. Weidner (2017). "Bias corrections for probit and 
+logit models with two-way fixed effects". The Stata Journal, 17(3), 517-545.
+</p>
+<p>Czarnowske, D. and A. Stammann (2020). "Fixed Effects Binary Choice Models: Estimation and Inference
+with Long Panels". ArXiv e-prints.
+</p>
+<p>Fernández-Val, I. and M. Weidner (2016). "Individual and time effects in nonlinear panel models 
+with large N, T". Journal of Econometrics, 192(1), 291-312.
+</p>
+<p>Fernández-Val, I. and M. Weidner (2018). "Fixed effects estimation of large-t panel data 
+models". Annual Review of Economics, 10, 109-138.
+</p>
+<p>Hinz, J., A. Stammann, and J. Wanner (2020). "State Dependence and Unobserved Heterogeneity
+in the Extensive Margin of Trade". ArXiv e-prints.
+</p>
+<p>Neyman, J. and E. L. Scott (1948). "Consistent estimates based on partially consistent 
+observations". Econometrica, 16(1), 1-32.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>biasCorr</code>, <code>feglm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate an artificial data set for logit models
+library(alpaca)
+data &lt;- simGLM(1000L, 20L, 1805L, model = "logit")
+
+# Fit 'feglm()'
+mod &lt;- feglm(y ~ x1 + x2 + x3 | i + t, data)
+
+# Compute average partial effects
+mod.ape &lt;- getAPEs(mod)
+summary(mod.ape)
+
+# Apply analytical bias correction
+mod.bc &lt;- biasCorr(mod)
+summary(mod.bc)
+
+# Compute bias-corrected average partial effects
+mod.ape.bc &lt;- getAPEs(mod.bc)
+summary(mod.ape.bc)
+
+</code></pre>
+
+
+</div>

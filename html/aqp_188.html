@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hz_to_taxpartsize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Allocate Particle Size Class for the Control Section.</h2>
+
+<h3>Description</h3>
+
+<p>This function aggregates information in the horizon table and allocates it to the particle size class for the control section.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hz_to_taxpartsize(
+  x,
+  y,
+  taxpartsize = "taxpartsize",
+  clay = "clay",
+  idcol = "id",
+  depthcols = c("top", "bottom")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>data.frame</code> containing the original horizon table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a <code>data.frame</code> containing the particle size control section depths for each idcol.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxpartsize</code></td>
+<td>
+<p><code>character</code> column name for taxonomic family particle size class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clay</code></td>
+<td>
+<p><code>character</code> column name for clay percent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idcol</code></td>
+<td>
+<p>character: column name of the pedon ID within the object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depthcols</code></td>
+<td>
+<p>a character vector of length 2 specifying the names of the horizon depths (e.g. <code>c("top", "bottom")</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function differs from <code>texture_to_taxpartsize</code> in that is aggregates the results of <code>texture_to_taxpartsize</code>, and accounts for strongly contrasting particle size classes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> object containing the original idcol, the aggregated particle size control section allocation, and an aniso column to indicate more than one contrasting class.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Roecker
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>texture_to_taxpartsize()</code>, <code>lookup_taxpartsize()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+h &lt;- data.frame(
+id = 1,
+hzname = c("A", "BA", "Bw", "BC", "C"),
+top    = c( 0, 10, 45, 60,  90),
+bottom = c(10, 45, 60, 90, 150),
+clay   = c(15, 16, 45, 20,  10),
+sand   = c(10, 35, 40, 50,  90),
+frags  = c( 0,  5, 10, 38,  40)
+)
+
+h &lt;- cbind(
+h, 
+texcl = ssc_to_texcl(clay = h$clay, sand = h$sand)
+)
+
+pscs &lt;- data.frame(
+id = 1, 
+top = 25, 
+bottom = 100
+)
+
+h &lt;- cbind(
+h, 
+taxpartsize = texture_to_taxpartsize(
+texcl = h$texcl,
+clay  = h$clay, 
+sand  = h$sand,
+fragvoltot = h$frags
+))
+
+depths(h) &lt;- id ~ top + bottom
+
+# set required metadata for estimatePSCS()
+hzdesgnname(h) &lt;- "hzname"
+hztexclname(h) &lt;- "texcl"
+hzmetaname(h, "clay") &lt;- "clay"
+
+pscs &lt;- data.frame(id = h$id, rbind(estimatePSCS(h)))
+names(pscs)[2:3] &lt;- c("top", "bottom")
+
+hz_to_taxpartsize(horizons(h), pscs)
+ 
+
+</code></pre>
+
+
+</div>

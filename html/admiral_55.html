@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_period_dataset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a Reference Dataset for Subperiods, Periods, or Phases</h2>
+
+<h3>Description</h3>
+
+<p>The function creates a reference dataset for subperiods, periods, or phases
+from the <code>ADSL</code> dataset. The reference dataset can be used to derive
+subperiod, period, or phase variables like <code>ASPER</code>, <code>ASPRSDT</code>, <code>ASPREDT</code>,
+<code>APERIOD</code>, <code>APERSDT</code>, <code>APEREDT</code>, <code>TRTA</code>, <code>APHASEN</code>, <code>PHSDTM</code>, <code>PHEDTM</code>, ...
+in OCCDS and BDS datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_period_dataset(
+  dataset,
+  new_vars,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>new_vars</code> and <code>subject_keys</code> arguments are expected to be in the dataset.
+For each element of <code>new_vars</code> at least one variable of the form of the right
+hand side value must be available in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>New variables
+</p>
+<p>A named list of variables like <code>exprs(PHSDT = PHwSDT, PHEDT = PHwEDT, APHASE = APHASEw)</code> is expected. The left hand side of the elements defines a
+variable of the output dataset, the right hand side defines the source
+variables from the ADSL dataset in CDISC notation.
+</p>
+<p>If the lower case letter "w"  is used it refers to a phase variable, if the
+lower case letters "xx" are used it refers to a period variable, and if
+both "xx" and "w" are used it refers to a subperiod variable.
+</p>
+<p>Only one type must be used, e.g., all right hand side values must refer to
+period variables. It is not allowed to mix for example period and subperiod
+variables. If period <em>and</em> subperiod variables are required, separate
+reference datasets must be created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of expressions where the expressions are symbols as returned by
+<code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each subject and each subperiod/period/phase where at least one
+of the source variable is not <code>NA</code> an observation is added to the output
+dataset.
+</p>
+<p>Depending on the type of the source variable (subperiod, period, or phase)
+the variable <code>ASPER</code>, <code>APERIOD</code>, or <code>APHASEN</code> is added and set to the
+number of the subperiod, period, or phase.
+</p>
+<p>The variables specified for <code>new_vars</code> (left hand side) are added to the
+output dataset and set to the value of the source variable (right hand
+side).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A period reference dataset (see "Details" section)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>derive_vars_period()</code>
+</p>
+<p>Creating auxiliary datasets: 
+<code>consolidate_metadata()</code>,
+<code>create_query_data()</code>,
+<code>create_single_dose_dataset()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate)
+
+# Create reference dataset for periods
+adsl &lt;- tribble(
+  ~USUBJID, ~AP01SDT,     ~AP01EDT,     ~AP02SDT,     ~AP02EDT,     ~TRT01A, ~TRT02A,
+  "1",      "2021-01-04", "2021-02-06", "2021-02-07", "2021-03-07", "A",     "B",
+  "2",      "2021-02-02", "2021-03-02", "2021-03-03", "2021-04-01", "B",     "A",
+) %&gt;%
+  mutate(
+    across(matches("AP\\d\\d[ES]DT"), ymd)
+  ) %&gt;%
+  mutate(
+    STUDYID = "xyz"
+  )
+
+create_period_dataset(
+  adsl,
+  new_vars = exprs(APERSDT = APxxSDT, APEREDT = APxxEDT, TRTA = TRTxxA)
+)
+
+# Create reference dataset for phases
+adsl &lt;- tribble(
+  ~USUBJID, ~PH1SDT,      ~PH1EDT,      ~PH2SDT,      ~PH2EDT,      ~APHASE1,    ~APHASE2,
+  "1",      "2021-01-04", "2021-02-06", "2021-02-07", "2021-03-07", "TREATMENT", "FUP",
+  "2",      "2021-02-02", "2021-03-02", NA,           NA,           "TREATMENT", NA
+) %&gt;%
+  mutate(
+    across(matches("PH\\d[ES]DT"), ymd)
+  ) %&gt;%
+  mutate(
+    STUDYID = "xyz"
+  )
+
+create_period_dataset(
+  adsl,
+  new_vars = exprs(PHSDT = PHwSDT, PHEDT = PHwEDT, APHASE = APHASEw)
+)
+
+# Create reference datasets for subperiods
+adsl &lt;- tribble(
+  ~USUBJID, ~P01S1SDT,    ~P01S1EDT,    ~P01S2SDT,    ~P01S2EDT,    ~P02S1SDT,    ~P02S1EDT,
+  "1",      "2021-01-04", "2021-01-19", "2021-01-20", "2021-02-06", "2021-02-07", "2021-03-07",
+  "2",      "2021-02-02", "2021-03-02", NA,           NA,           "2021-03-03", "2021-04-01"
+) %&gt;%
+  mutate(
+    across(matches("P\\d\\dS\\d[ES]DT"), ymd)
+  ) %&gt;%
+  mutate(
+    STUDYID = "xyz"
+  )
+
+create_period_dataset(
+  adsl,
+  new_vars = exprs(ASPRSDT = PxxSwSDT, ASPREDT = PxxSwEDT)
+)
+</code></pre>
+
+
+</div>

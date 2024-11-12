@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>emFrequencies</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>emFrequencies: simple effect analysis of frequency data.</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>emFrequencies()</code> performs a simple effect analyses
+of frequencies after an omnibus analysis has been obtained with <code>anofa()</code>
+according to the ANOFA framework. See Laurencelle and Cousineau (2023) for more.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">emFrequencies(w, formula)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>An ANOFA object obtained from <code>anofa()</code>;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula which indicates what simple effect to analyze.
+only one simple effect formula at a time can be analyzed. The formula
+is given using a vertical bar, e.g., " ~ factorA | factorB " to obtain
+the effect of Factor A within every level of the Factor B.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>emFrequencies computes expected marginal frequencies and
+analyze the hypothesis of equal frequencies.
+The sum of the Gs of the simple effects are equal to the
+interaction and main effect Gs, as this is an additive decomposition
+of the effects.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a model fit of the simple effect.
+</p>
+
+
+<h3>References</h3>
+
+<p>Laurencelle L, Cousineau D (2023).
+“Analysis of frequency tables: The ANOFA framework.”
+<em>The Quantitative Methods for Psychology</em>, <b>19</b>, 173–193.
+<a href="https://doi.org/10.20982/tqmp.19.2.p173">doi:10.20982/tqmp.19.2.p173</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Basic example using a two-factors design with the data in compiled format. 
+# Ficticious data present frequency of observation classified according
+# to Intensity (three levels) and Pitch (two levels) for 6 possible cells.
+minimalExample
+
+# performs the omnibus analysis first (mandatory):
+w &lt;- anofa(Frequency ~ Intensity * Pitch, minimalExample) 
+summary(w)
+
+# execute the simple effect of Pitch for every levels of Intensity
+e &lt;- emFrequencies(w, ~ Pitch | Intensity)
+summary(e)
+
+# As a check, you can verify that the Gs are decomposed additively
+sum(e$results[,1])
+w$results[3,1]+w$results[4,1] 
+
+# Real-data example using a two-factor design with the data in compiled format:
+LandisBarrettGalvin2013
+
+w &lt;- anofa( obsfreq ~ provider * program, LandisBarrettGalvin2013)
+anofaPlot(w)
+summary(w)
+
+# there is an interaction, so look for simple effects
+e &lt;- emFrequencies(w, ~ program | provider )
+summary(e)
+
+# Example from Gillet1993 : 3 factors for appletrees 
+Gillet1993
+
+w &lt;- anofa( Freq ~ species * location * florished, Gillet1993)
+e &lt;- emFrequencies(w, ~ florished | location )
+
+# Again, as a check, you can verify that the Gs are decomposed additively
+w$results[4,1]+w$results[7,1] # B + B:C
+sum(e$results[,1])
+
+# You can ask easier outputs with
+summarize(w) # or summary(w) for the ANOFA table only
+explain(w)   # human-readable ouptut ((pending))
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,84 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>[[</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get column of horizon or site data in a SoilProfileCollection</h2>
+
+<h3>Description</h3>
+
+<p>Get the data from a column accessed by name. Column names other than profile ID are not shared between site and horizons.
+Bonus: <code>[[</code> gives access to all site and horizon level variables in tab complete for RStudio using the magrittr pipe operator!
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'SoilProfileCollection,ANY,ANY'
+x[[i, j]]
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>an expression resolving to a single column name in site or horizon table</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>(not used)</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(sp2)
+depths(sp2) &lt;- id ~ top + bottom
+site(sp2) &lt;- ~ surface
+
+# get with [[
+sp2[['surface']]
+
+# get using "unknown" expression:
+#  "2nd + 3rd horizon column names"
+for(i in horizonNames(sp2)[2:3])
+ print(sp2[[i]])
+
+data(sp5)
+
+# some column names to work with
+rgb.columns &lt;- c("R25","G25","B25")
+
+res &lt;- lapply(rgb.columns, function(x) {
+
+  # [[ allows you to access column names in a loop
+  round(sp5[[x]] * 255)
+
+})
+
+# rename scaled results
+names(res) &lt;- paste0(rgb.columns,"_scl")
+
+# add horizon ID to results
+result &lt;- data.frame(hzID = hzID(sp5), do.call('cbind', res))
+head(result)
+
+# join result back into horizons
+horizons(sp5) &lt;- result
+</code></pre>
+
+
+</div>

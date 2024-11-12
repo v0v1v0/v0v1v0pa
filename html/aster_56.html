@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.aster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarizing Aster Model Fits</h2>
+
+<h3>Description</h3>
+
+<p>These functions are all <code>methods</code> for class <code>aster</code> or
+<code>summary.aster</code> objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'aster'
+summary(object, info = c("expected", "observed"),
+    info.tol = sqrt(.Machine$double.eps),  show.graph = FALSE, ...)
+
+## S3 method for class 'summary.aster'
+print(x, digits = max(3, getOption("digits") - 3),
+      signif.stars = getOption("show.signif.stars"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"aster"</code>, usually, a result of a
+call to <code>aster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>the type of Fisher information use to compute standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info.tol</code></td>
+<td>
+<p>tolerance for eigenvalues of Fisher information.
+If <code>eval</code> is the vector of eigenvalues of the information matrix,
+then <code>eval &lt; cond.tol * max(eval)</code> are considered zero.  Hence the
+corresponding eigenvectors are directions of constancy or recession of
+the log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.graph</code></td>
+<td>
+<p>if <code>TRUE</code>, show the graphical model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"summary.aster"</code>, usually, a result of a
+call to <code>summary.aster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>the number of significant digits to use when printing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signif.stars</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, “significance stars”
+are printed for each coefficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>summary.aster</code> returns an object of class <code>"summary.aster"</code>
+list with the same components as <code>object</code>, which is of class
+<code>"aster"</code>.
+</p>
+
+
+<h3>Directions of Recession</h3>
+
+<p>This function may give an error message
+<code>"cannot compute standard errors, apparent directions of recession"</code>.
+There are two reasons why this can happen.
+</p>
+
+<ul>
+<li>
+<p> There may actually be a direction of recession (DOR).  Then the
+maximum likelihood estimate does not exist; increasing the likelihood
+drives (some of) the coefficients to infinity or minus infinity.
+</p>
+<p>This function's guess at the DOR can be extracted
+from the error object obtained by wrapping this function
+in <code>try</code> and then extracting the <code>dor</code> component
+of the <code>condition</code> attribute of the error object.
+An example of this is on the help page for the <code>foobar</code>
+data set.
+</p>
+<p>This function's guessed DOR are apparent null eigenvector(s) of the Fisher
+information matrix.  Due to inaccuracy of computer arithmetic, this is
+only a guess.  What are deemed null eigenvectors is controlled by the
+<code>info.tol</code> argument of this function.  Reducing <code>info.tol</code>
+to perhaps <code>1e-9</code> or <code>1e-10</code> or even a little lower
+may make the putative DOR go away.  In this case they were probably
+bogus (see next item).  Reducing <code>info.tol</code> to near or below the
+machine epsilon <code>.Machine$double.eps</code> (<code>.Machine</code>)
+instructs this function to feed you garbage with no error or warning.
+</p>
+<p>Putative DOR are probably true DOR if they are highly patterned with
+many zero or nearly zero components and other components that are
+nearly (small) integer multiples of each other.
+Putative DOR are probably bogus if they look like random noise.
+</p>
+<p>DOR, if true, cannot simply be ignored.  For more information,
+including how to do more rigorous investigation of whether putative
+DOR are true or bogus,
+see the example on the help page for the <code>foobar</code>
+data set and the reference cited on that help page.
+</p>
+</li>
+<li>
+<p> All of the putative directions of recession may be bogus.
+Due to inaccuracy of computer arithmetic, ill-conditioning
+of predictor variables, or ill-conditioning of the aster model itself
+(large graphs cause more inaccurate computation), what appear to be
+null eigenvectors of the Fisher information matrix need not be true
+null eigenvectors.
+</p>
+<p>In this case, the problem will go away when <code>info.tol</code> is decreased
+slightly.  Only when one has proved that there is no DOR, should one
+use <code>info.tol = 1e-20</code> which says to ignore the problem altogether
+(whether putative DOR are true or bogus).
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>aster</code>, <code>summary</code>.
+</p>
+
+
+</div>

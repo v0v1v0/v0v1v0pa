@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>negbin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Negative-Binomial Model for Counts</h2>
+
+<h3>Description</h3>
+
+<p>The function fits a negative-binomial log linear model accounting for overdispersion in counts <code class="reqn">y</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  negbin(formula, random, data, phi.ini = NULL, warnings = FALSE, 
+         na.action = na.omit, fixpar = list(),
+         hessian = TRUE, control = list(maxit = 2000), ...)
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula for the fixed effects. The left-hand side of the formula must be the counts <code>y</code> i.e., 
+positive integers (<code>y &gt;= 0</code>). The right-hand side can involve an offset term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>A right-hand formula for the overdispersion parameter(s) <code class="reqn">\phi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the response (<code>y</code>) and explanatory variable(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi.ini</code></td>
+<td>
+<p>Initial values for the overdispersion parameter(s) <code class="reqn">\phi</code>. Default to 0.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings</code></td>
+<td>
+<p>Logical to control printing of warnings occurring during log-likelihood maximization. Default to 
+FALSE (no printing).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>A function name. Indicates which action should be taken in the case of missing value(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixpar</code></td>
+<td>
+<p>A list with 2 components (scalars or vectors) of the same size, indicating which parameters are 
+fixed (i.e., not optimized) in the global parameter vector <code class="reqn">(b, \phi)</code> and the corresponding fixed values.<br>
+For example, <code>fixpar = list(c(4, 5), c(0, 0))</code> means that 4th and 5th parameters of the model are set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>A logical. When set to <code>FALSE</code>, the hessian and the variances-covariances matrices of the 
+parameters are not computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list to control the optimization parameters. See <code>optim</code>. By default, set the maximum number of iterations to 2000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>optim</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a given count <code class="reqn">y</code>, the model is:
+</p>
+<p style="text-align: center;"><code class="reqn">y~|~\lambda \sim Poisson(~\lambda)</code>
+</p>
+
+<p>with <code class="reqn">\lambda</code> following a Gamma distribution <code class="reqn">Gamma(r,~\theta)</code>.<br>
+If <code class="reqn">G</code> denote the gamma function, then:
+</p>
+<p style="text-align: center;"><code class="reqn">P(\lambda) = r^{-\theta} * \lambda^{\theta - 1} * \frac{exp(-\frac{\lambda}{r})}{G(\theta)}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">E[\lambda] = \theta * r</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[\lambda] = \theta * r^2</code>
+</p>
+
+<p>The marginal negative-binomial distribution is:
+</p>
+<p style="text-align: center;"><code class="reqn">P(y) = G(y + \theta) * \left(\frac{1}{1 + r}\right)^\theta * \frac{(\frac{r}{1 + r})^y}{y! * G(\theta)} </code>
+</p>
+
+<p>The function uses the parameterization <code class="reqn">\mu = \theta * r = exp(X b) = exp(\eta)</code> and <code class="reqn">\phi = 1 / \theta</code>, 
+where <code class="reqn">X</code> is a design-matrix, <code class="reqn">b</code> is a vector of fixed effects, <code class="reqn">\eta = X b</code> is the linear predictor and 
+<code class="reqn">\phi</code> the overdispersion parameter.<br>
+The marginal mean and variance are:
+</p>
+<p style="text-align: center;"><code class="reqn">E[y] = \mu</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Var[y] = \mu + \phi * \mu^2</code>
+</p>
+
+<p>The parameters <code class="reqn">b</code> and <code class="reqn">\phi</code> are estimated by maximizing the log-likelihood of the marginal model (using the 
+function <code>optim()</code>). Several explanatory variables are allowed in <code class="reqn">b</code>. Only one is allowed in <code class="reqn">\phi</code>.<br>
+An offset can be specified in the <code>formula</code> argument to model rates <code class="reqn">y/T</code>. The offset and the marginal mean
+are <code class="reqn">log(T)</code> and <code class="reqn">\mu = exp(log(T) + \eta)</code>, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of formal class “glimML”: see <code>glimML-class</code> for details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthieu Lesnoff <a href="mailto:matthieu.lesnoff@cirad.fr">matthieu.lesnoff@cirad.fr</a>, Renaud Lancelot <a href="mailto:renaud.lancelot@cirad.fr">renaud.lancelot@cirad.fr</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Lawless, J.F., 1987. <em>Negative binomial and mixed Poisson regression</em>.
+The Canadian Journal of Statistics, 15(3): 209-225.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glimML-class</code>, <code>glm</code> and <code>optim</code>,<br><code>glm.nb</code> in the recommended package <span class="pkg">MASS</span>,<br><code>gnlr</code> in package <span class="pkg">gnlm</span> available at <a href="https://www.commanster.eu/rcode.html">https://www.commanster.eu/rcode.html</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # without offset
+  data(salmonella)
+  negbin(y ~ log(dose + 10) + dose, ~ 1, salmonella)
+  library(MASS) # function glm.nb in MASS
+  fm.nb &lt;- glm.nb(y ~ log(dose + 10) + dose,
+                  link = log, data = salmonella)
+  coef(fm.nb)
+  1 / fm.nb$theta # theta = 1 / phi
+  c(logLik(fm.nb), AIC(fm.nb))
+  # with offset
+  data(dja)
+  negbin(y ~ group + offset(log(trisk)), ~ group, dja)
+  # phi fixed to zero in group TREAT
+  negbin(y ~ group + offset(log(trisk)), ~ group, dja,
+    fixpar = list(4, 0))
+  # glim without overdispersion
+  summary(glm(y ~ group + offset(log(trisk)),
+    family = poisson, data = dja))
+  # phi fixed to zero in both groups
+  negbin(y ~ group + offset(log(trisk)), ~ group, dja,
+    fixpar = list(c(3, 4), c(0, 0))) 
+  </code></pre>
+
+
+</div>

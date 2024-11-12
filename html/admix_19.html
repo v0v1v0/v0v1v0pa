@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IBM_estimProp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the weights related to the proportions of the unknown components of the two admixture models</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the component weights from the Inversion - Best Matching (IBM) method, related to the two admixture models
+with respective probability density function (pdf) l1 and l2, such that:
+l1 = p1*f1 + (1-p1)<em>g1 and l2 = p2</em>f2 + (1-p2)*g2, where g1 and g2 are the known component densities.
+For further details about IBM approach, see 'Details' below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IBM_estimProp(
+  sample1,
+  sample2,
+  known.prop = NULL,
+  comp.dist = NULL,
+  comp.param = NULL,
+  with.correction = TRUE,
+  n.integ = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sample1</code></td>
+<td>
+<p>Observations of the first sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample2</code></td>
+<td>
+<p>Observations of the second sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>known.prop</code></td>
+<td>
+<p>(optional) Numeric vector with two elements, respectively the component weight for the unknown component in the first and in the second samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.dist</code></td>
+<td>
+<p>A list with four elements corresponding to the component distributions (specified with R native names for these distributions)
+involved in the two admixture models. The two first elements refer to the unknown and known components of the 1st admixture model,
+and the last two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.dist' could be specified as follows: list(f1=NULL, g1='norm', f2=NULL, g2='norm').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.param</code></td>
+<td>
+<p>A list with four elements corresponding to the parameters of the component distributions, each element being a list
+itself. The names used in this list must correspond to the native R argument names for these distributions.
+The two first elements refer to the parameters of unknown and known components of the 1st admixture model, and the last
+two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.param' could be specified as follows: : list(f1=NULL, g1=list(mean=0,sd=1), f2=NULL, g2=list(mean=3,sd=1.1)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>with.correction</code></td>
+<td>
+<p>Boolean indicating whether the solution (estimated proportions) should be adjusted or not
+(with the constant determined thanks to the exact proportion, usually unknown except in case of simulations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.integ</code></td>
+<td>
+<p>Number of data points generated for the distribution on which to integrate.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the paper presenting the IBM approach at the following HAL weblink: https://hal.science/hal-03201760
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the two estimates of the component weights for each of the admixture model, plus that of the theoretical model if specified.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Milhaud <a href="mailto:xavier.milhaud.research@gmail.com">xavier.milhaud.research@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##### On a simulated example to see whether the true parameters are well estimated.
+## Simulate data:
+list.comp &lt;- list(f1 = 'norm', g1 = 'norm',
+                  f2 = 'norm', g2 = 'norm')
+list.param &lt;- list(f1 = list(mean = 3, sd = 0.5), g1 = list(mean = 0, sd = 1),
+                   f2 = list(mean = 3, sd = 0.5), g2 = list(mean = 5, sd = 2))
+sample1 &lt;- rsimmix(n=1500, unknownComp_weight=0.5, comp.dist = list(list.comp$f1,list.comp$g1),
+                                                 comp.param=list(list.param$f1,list.param$g1))
+sample2 &lt;- rsimmix(n=2000, unknownComp_weight=0.7, comp.dist = list(list.comp$f2,list.comp$g2),
+                                                 comp.param=list(list.param$f2,list.param$g2))
+## Estimate the mixture weights of the two admixture models (provide hat(theta)_n and theta^c):
+estim &lt;- IBM_estimProp(sample1 = sample1[['mixt.data']], sample2 = sample2[['mixt.data']],
+                       known.prop = c(0.5,0.7), comp.dist = list.comp, comp.param = list.param,
+                       with.correction = FALSE, n.integ = 1000)
+estim[['prop.estim']]
+estim[['theo.prop.estim']]
+##### On a real-life example (unknown component densities, unknown mixture weights).
+list.comp &lt;- list(f1 = NULL, g1 = 'norm',
+                  f2 = NULL, g2 = 'norm')
+list.param &lt;- list(f1 = NULL, g1 = list(mean = 0, sd = 1),
+                   f2 = NULL, g2 = list(mean = 5, sd = 2))
+## Estimate the mixture weights of the two admixture models (provide only hat(theta)_n):
+estim &lt;- IBM_estimProp(sample1 = sample1[['mixt.data']], sample2 = sample2[['mixt.data']],
+                       known.prop = NULL, comp.dist = list.comp, comp.param = list.param,
+                       with.correction = FALSE, n.integ = 1000)
+estim[['prop.estim']]
+estim[['theo.prop.estim']]
+
+</code></pre>
+
+
+</div>

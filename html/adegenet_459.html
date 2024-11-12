@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>spcaIllus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulated data illustrating the sPCA</h2>
+
+<h3>Description</h3>
+
+<p>Datasets illustrating the spatial Principal Component Analysis (Jombart et
+al. 2009).  These data were simulated using various models using Easypop
+(2.0.1).  Spatial coordinates were defined so that different spatial
+patterns existed in the data. The <code>spca-illus</code> is a list containing the
+following genind or genpop objects:<br> - dat2A:
+2 patches <br> - dat2B: cline between two pop <br> - dat2C: repulsion among
+individuals from the same gene pool <br> - dat3: cline and repulsion <br> -
+dat4: patches and local alternance <br></p>
+
+
+<h3>Format</h3>
+
+<p><code>spcaIllus</code> is list of 5 components being either genind or
+genpop objects.
+</p>
+
+
+<h3>Details</h3>
+
+<p>See "source" for a reference providing simulation details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a>
+</p>
+
+
+<h3>Source</h3>
+
+<p>Jombart, T., Devillard, S., Dufour, A.-B. and Pontier, D. Revealing
+cryptic spatial patterns in genetic variability by a new multivariate
+method. <em>Heredity</em>, <b>101</b>, 92–103.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jombart, T., Devillard, S., Dufour, A.-B. and Pontier, D.
+Revealing cryptic spatial patterns in genetic variability by a new
+multivariate method. <em>Heredity</em>, <b>101</b>, 92–103.
+</p>
+<p>Balloux F (2001) Easypop (version 1.7): a computer program for oppulation
+genetics simulations <em>Journal of Heredity</em>, <b>92</b>: 301-302
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spca</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+required_packages &lt;- require(adespatial) &amp;&amp; require(spdep)
+if (required_packages) {
+data(spcaIllus)
+attach(spcaIllus)
+opar &lt;- par(no.readonly=TRUE)
+## comparison PCA vs sPCA
+
+# PCA
+pca2A &lt;- dudi.pca(dat2A$tab,center=TRUE,scale=FALSE,scannf=FALSE)
+pca2B &lt;- dudi.pca(dat2B$tab,center=TRUE,scale=FALSE,scannf=FALSE)
+pca2C &lt;- dudi.pca(dat2C$tab,center=TRUE,scale=FALSE,scannf=FALSE)
+pca3 &lt;- dudi.pca(dat3$tab,center=TRUE,scale=FALSE,scannf=FALSE,nf=2)
+pca4 &lt;- dudi.pca(dat4$tab,center=TRUE,scale=FALSE,scannf=FALSE,nf=2)
+
+# sPCA
+spca2A &lt;-spca(dat2A,xy=dat2A$other$xy,ask=FALSE,type=1,
+plot=FALSE,scannf=FALSE,nfposi=1,nfnega=0)
+
+spca2B &lt;- spca(dat2B,xy=dat2B$other$xy,ask=FALSE,type=1,
+plot=FALSE,scannf=FALSE,nfposi=1,nfnega=0)
+
+spca2C &lt;- spca(dat2C,xy=dat2C$other$xy,ask=FALSE,
+type=1,plot=FALSE,scannf=FALSE,nfposi=0,nfnega=1)
+
+spca3 &lt;- spca(dat3,xy=dat3$other$xy,ask=FALSE,
+type=1,plot=FALSE,scannf=FALSE,nfposi=1,nfnega=1)
+
+spca4 &lt;- spca(dat4,xy=dat4$other$xy,ask=FALSE,
+type=1,plot=FALSE,scannf=FALSE,nfposi=1,nfnega=1)
+
+# an auxiliary function for graphics
+plotaux &lt;- function(x,analysis,axis=1,lab=NULL,...){
+neig &lt;- NULL
+if(inherits(analysis,"spca")) neig &lt;- nb2neig(analysis$lw$neighbours)
+xrange &lt;- range(x$other$xy[,1])
+xlim &lt;- xrange + c(-diff(xrange)*.1 , diff(xrange)*.45)
+yrange &lt;- range(x$other$xy[,2])
+ylim &lt;- yrange + c(-diff(yrange)*.45 , diff(yrange)*.1)
+
+s.value(x$other$xy,analysis$li[,axis],include.ori=FALSE,addaxes=FALSE,
+cgrid=0,grid=FALSE,neig=neig,cleg=0,xlim=xlim,ylim=ylim,...)
+
+par(mar=rep(.1,4))
+if(is.null(lab)) lab = gsub("[P]","",x$pop)
+text(x$other$xy, lab=lab, col="blue", cex=1.2, font=2)
+add.scatter({barplot(analysis$eig,col="grey");box();
+title("Eigenvalues",line=-1)},posi="bottomright",ratio=.3)
+}
+
+# plots
+plotaux(dat2A,pca2A,sub="dat2A - PCA",pos="bottomleft",csub=2)
+plotaux(dat2A,spca2A,sub="dat2A - sPCA glob1",pos="bottomleft",csub=2)
+
+plotaux(dat2B,pca2B,sub="dat2B - PCA",pos="bottomleft",csub=2)
+plotaux(dat2B,spca2B,sub="dat2B - sPCA glob1",pos="bottomleft",csub=2)
+
+plotaux(dat2C,pca2C,sub="dat2C - PCA",pos="bottomleft",csub=2)
+plotaux(dat2C,spca2C,sub="dat2C - sPCA loc1",pos="bottomleft",csub=2,axis=2)
+
+par(mfrow=c(2,2))
+plotaux(dat3,pca3,sub="dat3 - PCA axis1",pos="bottomleft",csub=2)
+plotaux(dat3,spca3,sub="dat3 - sPCA glob1",pos="bottomleft",csub=2)
+plotaux(dat3,pca3,sub="dat3 - PCA axis2",pos="bottomleft",csub=2,axis=2)
+plotaux(dat3,spca3,sub="dat3 - sPCA loc1",pos="bottomleft",csub=2,axis=2)
+
+plotaux(dat4,pca4,lab=dat4$other$sup.pop,sub="dat4 - PCA axis1",
+pos="bottomleft",csub=2)
+plotaux(dat4,spca4,lab=dat4$other$sup.pop,sub="dat4 - sPCA glob1",
+pos="bottomleft",csub=2)
+plotaux(dat4,pca4,lab=dat4$other$sup.pop,sub="dat4 - PCA axis2",
+pos="bottomleft",csub=2,axis=2)
+plotaux(dat4,spca4,lab=dat4$other$sup.pop,sub="dat4 - sPCA loc1",
+pos="bottomleft",csub=2,axis=2)
+
+# color plot
+par(opar)
+colorplot(spca3, cex=4, main="colorplot sPCA dat3")
+text(spca3$xy[,1], spca3$xy[,2], dat3$pop)
+
+colorplot(spca4, cex=4, main="colorplot sPCA dat4")
+text(spca4$xy[,1], spca4$xy[,2], dat4$other$sup.pop)
+
+# detach data
+detach(spcaIllus)
+}
+
+</code></pre>
+
+
+</div>

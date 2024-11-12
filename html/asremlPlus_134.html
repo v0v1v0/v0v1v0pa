@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>recalcLSD.alldiffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds or recalculates the <code>LSD.frame</code> that is a component of an 
+<code>alldiffs.object</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Given an <code>alldiffs.object</code>, adds or recalculate its <code>LSD.frame</code>. 
+<b>N.B. No changes are made to the error.intervals — use <code>redoErrorIntervals.alldiffs</code>
+to modify both the error.intervals and the <code>LSD.frame</code>.</b>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'alldiffs'
+recalcLSD(alldiffs.obj, LSDtype = "overall", LSDsupplied = NULL, 
+          LSDby = NULL, LSDstatistic = "mean", LSDaccuracy = "maxAbsDeviation", 
+          alpha = 0.05, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alldiffs.obj</code></td>
+<td>
+<p>An <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDtype</code></td>
+<td>
+<p>A <code>character</code> string that can be <code>overall</code>, <code>factor.combinations</code>, 
+<code>per.prediction</code> or <code>supplied</code>. It determines whether the values stored in a row  
+of a <code>LSD.frame</code> are the values calculated 
+(i) <code>overall</code> from the LSD values for all pairwise comparison2, 
+(ii) the values calculated from the pairwise LSDs for the levels of each 
+<code>factor.combination</code>, unless there is only one prediction for a level  of the 
+<code>factor.combination</code>, when a notional LSD is calculated,  
+(iii) <code>per.prediction</code>, being based, for each prediction, on all pairwise differences 
+involving that prediction, or 
+(iv) as <code>supplied</code> values of the LSD, specified with the <code>LSDsupplied</code> argument; 
+these supplied values are to be placed in the <code>assignedLSD</code> column of the 
+<code>LSD.frame</code> stored in an <code>alldiffs.object</code> so that they can be used 
+in LSD calculations.
+</p>
+<p>See <code>LSD.frame</code> for further information on the values in a row of this 
+<code>data.frame</code> and how they are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDsupplied</code></td>
+<td>
+<p>A <code>data.frame</code> or a named <code>numeric</code> containing a set of <code>LSD</code> 
+values that correspond to the observed combinations of the values of the <code>LSDby</code> variables 
+in the <code>predictions.frame</code> or a single LSD value that is an overall LSD. 
+If a <code>data.frame</code>, it may have (i) a column for the <code>LSDby</code> variable and a column 
+of <code>LSD</code> values or (ii) a single column of <code>LSD</code> values with rownames being the 
+combinations of the observed values of the <code>LSDby</code> variables. Any name can be used 
+for the column of <code>LSD</code> values; <code>assignedLSD</code> is sensible, but not obligatory. Otherwise, 
+a <code>numeric</code> containing the <code>LSD</code> values, each of which is named for the observed 
+combination of the values of the <code>LSDby</code> variables to which it corresponds. (Applying the 
+<code>function</code> <code>dae::fac.combine</code> to the <code>predictions</code> component is one way of 
+forming the required combinations for the (row) names.)  The values supplied 
+will be incorporated into <code>assignedLSD</code> column of the <code>LSD.frame</code> stored as the 
+<code>LSD</code> component of the <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDby</code></td>
+<td>
+<p>A <code>character</code> (vector) of variables names, being the names of the 
+<code>factors</code> or <code>numerics</code> in the <code>classify</code>; for each 
+combination of their levels and values, there will be or is a row in the <code>LSD.frame</code> 
+stored in the <code>LSD</code> component of the <code>alldiffs.object</code> when <code>LSDtype</code> is 
+<code>factor.combinatons</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDstatistic</code></td>
+<td>
+<p>A <code>character</code> nominating one or more of <code>minimum</code>, <code>q10</code>, <code>q25</code>,  
+<code>mean</code>, <code>median</code>, <code>q75</code>, <code>q90</code> or <code>maximum</code> as the value(s) to be 
+stored in the <code>assignedLSD</code> column in an <code>LSD.frame</code>; the values in the 
+<code>assignedLSD</code> column are used in computing <code>halfLeastSignificant</code> <code>error.intervals</code>. 
+Here <code>q10</code>,  <code>q25</code>, <code>q75</code> and <code>q90</code> indicate the sample quantiles corresponding 
+to probabilities of 0.1, 0.25, 0.75 and 0.9 for the group of LSDs from which a single LSD value 
+is calculated. The function <code>quantile</code> is used to obtain them. The <code>mean</code> LSD is 
+calculated as the square root of the mean of the squares of the LSDs for the group. The 
+<code>median</code> is calculated using the <code>median</code> function. Multiple values are only 
+produced for <code>LSDtype</code> set to <code>factor.combination</code>, in which case <code>LSDby</code> must 
+not be <code>NULL</code> and the number of values must equal the number of observed combinations of 
+the values of the variables specified by <code>LSDby</code>.  If <code>LSDstatistic</code> is <code>NULL</code>, 
+it is reset to <code>mean</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDaccuracy</code></td>
+<td>
+<p>A <code>character</code> nominating one of <code>maxAbsDeviation</code>, <code>maxDeviation</code>, 
+<code>q90Deviation</code> or <code>RootMeanSqDeviation</code> as the statistic to be calculated as a measure 
+of the accuracy of <code>assignedLSD</code>. The option <code>q90Deviation</code> produces the sample quantile 
+corresponding to a probability of 0.90. The deviations are the differences between the LSDs used in 
+calculating the LSD statistics and each assigned LSD and the accuracy is expressed as a 
+proportion of the assigned LSD value. The calculated values are stored in the column named 
+<code>accuracyLSD</code> in an <code>LSD.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The significance level for an LSD to compare a pair of predictions.
+It is stored as an attribute to the <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>allDifferences.data.frame</code>; 
+attributes <code>transform.power</code>, <code>offset</code> and <code>scale</code> cannot be passed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>alldiffs.object</code> with components 
+<code>predictions</code>, <code>vcov</code>, <code>differences</code>, <code>p.differences</code> 
+<code>sed</code>, <code>LSD</code> and, if present in <code>alldiffs.obj</code>, <code>backtransforms</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asremlPlus-package</code>, <code>as.alldiffs</code>, <code>sort.alldiffs</code>, 
+<code>subset.alldiffs</code>, <code>print.alldiffs</code>,  <br><code>renewClassify.alldiffs</code>, <code>exploreLSDs.alldiffs</code>, 
+<code>pickLSDstatistics.alldiffs</code>, <br><code>redoErrorIntervals.alldiffs</code>,   
+<code>plotPredictions.data.frame</code>, 
+<code>predictPlus.asreml</code>, <br><code>predictPresent.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(WaterRunoff.dat)
+
+##Use asreml to get predictions and associated statistics
+
+## Not run: 
+asreml.options(keep.order = TRUE) #required for asreml-R4 only
+current.asr &lt;- asreml(fixed = pH ~ Benches + (Sources * (Type + Species)), 
+                      random = ~ Benches:MainPlots,
+                      keep.order=TRUE, data= WaterRunoff.dat)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+TS.diffs &lt;- predictPlus(classify = "Sources:Type", 
+                        asreml.obj = current.asr, 
+                        wald.tab = current.asrt$wald.tab, 
+                        present = c("Sources", "Type", "Species"))
+
+## End(Not run)
+
+## Use lmeTest and emmmeans to get predictions and associated statistics
+
+if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+    requireNamespace("emmeans", quietly = TRUE))
+{
+  m1.lmer &lt;- lmerTest::lmer(pH ~ Benches + (Sources * (Type + Species)) + 
+                              (1|Benches:MainPlots),
+                            data=na.omit(WaterRunoff.dat))
+  TS.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Sources:Species)
+  TS.preds &lt;- summary(TS.emm)
+  den.df &lt;- min(TS.preds$df, na.rm = TRUE)
+  ## Modify TS.preds to be compatible with a predictions.frame
+  TS.preds &lt;- as.predictions.frame(TS.preds, predictions = "emmean", 
+                                   se = "SE", interval.type = "CI", 
+                                   interval.names = c("lower.CL", "upper.CL"))
+  
+  ## Form an all.diffs object and check its validity
+  TS.vcov &lt;- vcov(TS.emm)
+  TS.diffs &lt;- allDifferences(predictions = TS.preds, classify = "Sources:Species", 
+                             vcov = TS.vcov, tdf = den.df)
+  validAlldiffs(TS.diffs)
+}  
+
+## Plot p-values for predictions obtained using asreml or lmerTest
+if (exists("TS.diffs"))
+{
+  ##Recalculate the LSD values for predictions obtained using asreml or lmerTest  
+  TS.diffs &lt;- recalcLSD.alldiffs(TS.diffs, LSDtype = "factor.combinations", 
+                                 LSDby = "Sources")
+}
+</code></pre>
+
+
+</div>

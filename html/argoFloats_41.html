@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>[[,argoFloats-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Look up a Value Within an argoFloats Object</h2>
+
+<h3>Description</h3>
+
+<p>This function provides an easy way to look up values within an <code>argoFloats</code>
+object, without the need to know the exact structure of the data. The action
+taken by <code>[[</code> depends on the <code>type</code> element in the <code>metadata</code> slot of
+the object (which is set by the function that created the object), on the
+value of <code>i</code> and, in some cases, on the value of <code>j</code>; see “Details”.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'argoFloats'
+x[[i, j, ...]]
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an <code>argoFloats</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>a character value that specifies the item to be looked up;
+see “Details”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>supplemental index value, used for some <code>x</code> types
+and <code>i</code> values; see “Details”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are several possibilities, depending on the object <code>type</code>, as
+listed below. Note that these possibilities are checked in the
+order listed here.
+</p>
+
+<ol>
+<li>
+<p> For all object types:
+</p>
+
+<ol>
+<li>
+<p> If <code>i</code> is <code>"metadata"</code> then the <code>metadata</code> slot of <code>x</code> is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"data"</code> then the <code>data</code> slot of <code>x</code> is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"cycle"</code> then a character vector of the cycle
+numbers is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"processingLog"</code> then the <code>processingLog</code> slot of
+<code>x</code> is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"ID"</code> then a character vector of the ID numbers
+is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, the following steps are taken, depending on <code>type</code>.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> If <code>type</code> is <code>"index"</code>, i.e. if <code>x</code> was created with <code>getIndex()</code>
+or with <code>subset,argoFloats-method()</code> acting on the result of <code>getIndex()</code>,
+then:
+</p>
+
+<ol>
+<li>
+<p> If <code>i</code> is numeric and <code>j</code> is unspecified, then <code>i</code> is taken to
+be an index that identifies the row(s) of the data frame that
+was constructed by <code>getIndex()</code> based on the remote index file
+downloaded from the Argo server.  This has elements <code>file</code> for
+the remote file name, <code>date</code> for the date of the entry, <code>latitude</code>
+and <code>longitude</code> for the float position, etc.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is the name of an item in the <code>metadata</code> slot, then that item
+is returned. The choices are:
+<code>"destdir"</code>, <code>"destfileRda"</code>, <code>"filename"</code>, <code>"ftpRoot"</code>, <code>"header"</code>,
+<code>"server"</code>, <code>"type"</code>, and <code>"url"</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is the name of an item in the <code>data</code> slot, then that item
+is returned.  The choices are:
+<code>"date"</code>, <code>"date_update"</code>, <code>"file"</code>, <code>"institution"</code>, <code>"latitude"</code>,
+<code>"longitude"</code>, <code>"ocean"</code>, and <code>"profiler_type"</code>. Note that <code>"time"</code> and
+<code>"time_update"</code> may be used as synonyms for <code>"date"</code> and <code>"date_update"</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i=="index"</code> then that item from the <code>data</code> slot of <code>x</code> is returned.
+(For the possible names, see the previous item in this sub-list.)
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is an integer, then the <code>i</code>-th row of the <code>index</code> item in
+the <code>data</code> slot is returned.  This is a good way to learn the
+longitude and latitude of the profile, the file name on the server,
+etc.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"ID"</code> then the return value is developed from the
+<code>index$file</code> item within the <code>data</code> slot of <code>x</code>, in one of three cases:
+</p>
+
+<ol>
+<li>
+<p> If <code>j</code> is not supplied, the return value is a vector holding the
+identifiers (character codes for numbers) for all the data files
+referred to in the index.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>j</code> is numeric, then the return value is a subset of
+the ID codes, as indexed by <code>j</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, an error is reported.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> If <code>i</code> is <code>"length"</code>, the number of remote files pointed to by the index
+is returned.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Otherwise, if <code>type</code> is <code>"profiles"</code>, i.e. if <code>x</code> was created with <code>getProfiles()</code>, then:
+</p>
+
+<ol>
+<li>
+<p> If <code>i</code> is numeric and <code>j</code> is unspecified, then return the local file name(s)
+that are identified by using <code>i</code> as an index.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is the name of an item in the <code>metadata</code> slot, then that item
+is returned. The choices are:
+<code>"type"</code> and <code>"destdir"</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is the name of an item in the <code>data</code> slot, then that item
+is returned.  There is only one choice: <code>"file"</code>.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is <code>"length"</code>, the number of local file names that were downloaded
+by <code>getProfiles()</code> is returned.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Otherwise, if <code>type</code> is <code>"argos"</code>, i.e. if <code>x</code> was created with <code>readProfiles()</code>, then:
+</p>
+
+<ol>
+<li>
+<p> If <code>i</code> is equal to <code>"argos"</code>, and <code>j</code> is unspecified, then a list
+holding the oce::argo objects stored within <code>x</code> is returned.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is equal to <code>"argos"</code>, and <code>j</code> is provided, then the associated
+oce::argo object is returned.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is numeric and <code>j</code> is unspecified, then return the argo objects identified
+by using <code>i</code> as an index.
+</p>
+</li>
+<li>
+<p> If <code>i</code> is the name of an item in the <code>metadata</code> slot, then that item
+is returned. There is only choice, <code>"type"</code>.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is the name of an item in the <code>data</code> slot, then that item
+is returned as a named list.  (At present, there is only one choice: <code>"argos"</code>.)
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is <code>"length"</code> then the number of oce-type argo objects in <code>x</code> is returned.
+</p>
+</li>
+<li>
+<p> Otherwise, if <code>i</code> is a character value then it is taken to be
+an item within the <code>metadata</code> or <code>data</code> slots of the argo objects
+stored in <code>x</code>, and the returned value is a list containing that
+information with one (unnamed) item per profile.
+If <code>j</code> is provided
+and equal to <code>"byLevel"</code>, then the items from the <code>metadata</code> are
+repeated (if necessary) and formed into matrix or vector of the same
+shape as the <code>"pressure"</code> field; this can be convenient for computations
+involving items that only occur once per profile, such as <code>"longitude"</code>,
+but it should not be used for items that are not level-specific, such
+as the various <code>"HISTORY_*"</code> elements, which apply to a dataset, not to
+a level
+</p>
+</li>
+<li>
+<p> Otherwise, NULL is reported.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Otherwise, an error is reported.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>the indicated item, or NULL if it is neither stored within the first argument
+nor computable from its contents.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dan Kelley
+</p>
+
+
+<h3>References</h3>
+
+<p>Kelley, D. E., Harbin, J., &amp; Richards, C. (2021). argoFloats: An R package for analyzing
+Argo data. Frontiers in Marine Science, (8), 636922.
+<a href="https://doi.org/10.3389/fmars.2021.635922">doi:10.3389/fmars.2021.635922</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(index)
+# Full remote filename for first two item in index
+paste0(index[["server"]], "/dac/", index[["cycle", 1:2]])
+# File names and geographical locations of first 5 items in index
+index5 &lt;- subset(index, 1:5)
+data.frame(file=gsub(".*/", "", index5[["file"]][1]),
+           lon=index5[["longitude"]],
+           lat=index5[["latitude"]])
+
+</code></pre>
+
+
+</div>

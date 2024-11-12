@@ -1,0 +1,276 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_validateInputs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepares input for <code>apollo_estimate</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Searches the user work space (.GlobalEnv) for all necessary input to run <code>apollo_estimate</code>, and packs it in a single list.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_validateInputs(
+  apollo_beta = NA,
+  apollo_fixed = NA,
+  database = NA,
+  apollo_control = NA,
+  apollo_HB = NA,
+  apollo_draws = NA,
+  apollo_randCoeff = NA,
+  apollo_lcPars = NA,
+  recycle = FALSE,
+  silent = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apollo_beta</code></td>
+<td>
+<p>Named numeric vector. Names and values for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_fixed</code></td>
+<td>
+<p>Character vector. Names (as defined in <code>apollo_beta</code>) of parameters whose value should not change during estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>database</code></td>
+<td>
+<p>data.frame. Data used by model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_control</code></td>
+<td>
+<p>List. Options controlling the running of the code. User input is required for all settings except those with a default or marked as optional. 
+</p>
+
+<ul>
+<li> <p><strong><code>analyticGrad</code></strong>: Boolean. TRUE to use analytical gradients during parameter estimation, if they are available. FALSE to use numerical gradients. - TRUE by default.
+</p>
+</li>
+<li> <p><strong><code>calculateLLC</code></strong>: Boolean. TRUE if user wants to calculate LL at constants (if applicable). - TRUE by default.
+</p>
+</li>
+<li> <p><strong><code>HB</code></strong>: Boolean. TRUE if using RSGHB for Bayesian estimation of model.
+</p>
+</li>
+<li> <p><strong><code>indivID</code></strong>: Character. Name of column in the database with each decision maker's ID.
+</p>
+</li>
+<li> <p><strong><code>mixing</code></strong>: Boolean. TRUE for models that include random parameters.
+</p>
+</li>
+<li> <p><strong><code>modelDescr</code></strong>: Character. Description of the model. Used in output files.
+</p>
+</li>
+<li> <p><strong><code>modelName</code></strong>: Character. Name of the model. Used when saving the output to files.
+</p>
+</li>
+<li> <p><strong><code>nCores</code></strong>: Numeric&gt;0. Number of cores to use in calculations of the model likelihood.
+</p>
+</li>
+<li> <p><strong><code>noDiagnostics</code></strong>: Boolean. TRUE if user does not wish model diagnostics to be printed - FALSE by default.
+</p>
+</li>
+<li> <p><strong><code>noValidation</code></strong>: Boolean. TRUE if user does not wish model input to be validated before estimation - FALSE by default.
+</p>
+</li>
+<li> <p><strong><code>outputDirectory</code></strong>: Character. Optional directory for outputs if different from working director - empty by default
+</p>
+</li>
+<li> <p><strong><code>panelData</code></strong>: Boolean. TRUE if there are multiple observations (i.e. rows) for each decision maker - Automatically set based on <code>indivID</code> by default.
+</p>
+</li>
+<li> <p><strong><code>seed</code></strong>: Numeric. Seed for random number generation.
+</p>
+</li>
+<li> <p><strong><code>weights</code></strong>: Character. Name of column in database containing weights for estimation.
+</p>
+</li>
+<li> <p><strong><code>workInLogs</code></strong>: Boolean. TRUE for increased numeric precision in models with panel data - FALSE by default.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_HB</code></td>
+<td>
+<p>List. Contains options for Bayesian estimation. See <code>?RSGHB::doHB</code> for details.
+Parameters <code>modelname</code>, <code>gVarNamesFixed</code>, <code>gVarNamesNormal</code>,
+<code>gDIST</code>, <code>svN</code> and <code>FC</code> are automatically set based on the
+other arguments of this function.
+Other settings to include are the following.
+</p>
+
+<ul>
+<li> <p><strong><code>constraintNorm</code></strong>: Character vector. Constraints for <em>random</em> coefficients 
+in bayesian estimation. Constraints can be written as 
+"b1&gt;b2", "b1&lt;b2", "b1&gt;0", or "b1&lt;0".
+</p>
+</li>
+<li> <p><strong><code>fixedA</code></strong>: Named numeric vector. Contains the names and fixed mean values of 
+random parameters. For example, c(b1=0) fixes the mean of b1 to zero.
+</p>
+</li>
+<li> <p><strong><code>fixedD</code></strong>: Named numeric vector. Contains the names and fixed variance of 
+random parameters. For example, c(b1=1) fixes the variance of b1 to zero.
+</p>
+</li>
+<li> <p><strong><code>gNCREP</code></strong>: Numeric. Number of burn-in iterations to use prior to convergence (default=10^5).
+</p>
+</li>
+<li> <p><strong><code>gNEREP</code></strong>: Numeric. Number of iterations to keep for averaging after convergence has been reached (default=10^5).
+</p>
+</li>
+<li> <p><strong><code>gINFOSKIP</code></strong>: Numeric. Number of iterations between printing/plotting information about the iteration process (default=250).
+</p>
+</li>
+<li> <p><strong><code>hbDist</code></strong>: <em>Mandatory</em> setting. A named character vector determining
+the distribution of each parameter to be estimated. Possible 
+values are as follows.
+</p>
+
+<ul>
+<li> <p><strong><code>"CN+"</code></strong>: Positive censored normal.
+</p>
+</li>
+<li> <p><strong><code>"CN-"</code></strong>: Negative censored normal.
+</p>
+</li>
+<li> <p><strong><code>"DNE"</code></strong>: Parameter kept at its starting value (not estimated).
+</p>
+</li>
+<li> <p><strong><code>"JSB"</code></strong>: Johnson SB.
+</p>
+</li>
+<li> <p><strong><code>"LN+"</code></strong>: Positive log-normal.
+</p>
+</li>
+<li> <p><strong><code>"LN-"</code></strong>: Negative log-normal.
+</p>
+</li>
+<li> <p><strong><code>"N"</code></strong>: Normal.
+</p>
+</li>
+<li> <p><strong><code>"NR"</code></strong>: Fixed (as in non-random) parameter.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_draws</code></td>
+<td>
+<p>List of arguments describing the inter and intra individual draws. Required only if <code>apollo_control$mixing = TRUE</code>. Unused elements can be ommited.
+</p>
+
+<ul>
+<li> <p><strong><code>interDrawsType</code></strong>: Character. Type of inter-individual draws ('halton','mlhs','pmc','sobol','sobolOwen',
+'sobolFaureTezuka', 'sobolOwenFaureTezuka' or the name of an object loaded in memory,
+see manual in www.ApolloChoiceModelling.com for details).
+</p>
+</li>
+<li> <p><strong><code>interNDraws</code></strong>: Numeric scalar (&gt;=0). Number of inter-individual draws per individual. Should be set to 0 if not using them.
+</p>
+</li>
+<li> <p><strong><code>interNormDraws</code></strong>: Character vector. Names of normaly distributed inter-individual draws.
+</p>
+</li>
+<li> <p><strong><code>interUnifDraws</code></strong>: Character vector. Names of uniform-distributed inter-individual draws.
+</p>
+</li>
+<li> <p><strong><code>intraDrawsType</code></strong>: Character. Type of intra-individual draws ('halton','mlhs','pmc','sobol','sobolOwen','sobolFaureTezuka', 'sobolOwenFaureTezuka' or the name of an object loaded in memory).
+</p>
+</li>
+<li> <p><strong><code>intraNDraws</code></strong>: Numeric scalar (&gt;=0). Number of intra-individual draws per individual. Should be set to 0 if not using them.
+</p>
+</li>
+<li> <p><strong><code>intraUnifDraws</code></strong>: Character vector. Names of uniform-distributed intra-individual draws.
+</p>
+</li>
+<li> <p><strong><code>intraNormDraws</code></strong>: Character vector. Names of normaly distributed intra-individual draws.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_randCoeff</code></td>
+<td>
+<p>Function. Used with mixing models. Constructs the random parameters of a mixing model. Receives two arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters. 
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: The output of this function (<code>apollo_validateInputs</code>).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_lcPars</code></td>
+<td>
+<p>Function. Used with latent class models. Constructs a list of parameters for each latent class. Receives two arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters. 
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: The output of this function (<code>apollo_validateInputs</code>).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recycle</code></td>
+<td>
+<p>Logical. If TRUE, an older version of <code>apollo_inputs</code> is looked for in the calling environment (parent frame), and any
+element in that old version created by the user is copied into the new <code>apollo_inputs</code> returned by this function.
+For <code>recycle=TRUE</code> to work, the old version of <code>apollo_inputs</code> <strong>must</strong> be named "apollo_inputs".
+If FALSE, nothing is copied from any older version of apollo_inputs. FALSE is the default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>Logical. TRUE to keep the function from printing to the console. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All arguments to this function are optional. If the function is called without arguments, then it it will look in
+the user workspace (i.e. the global environment) for variables with the same name as its omitted arguments.
+We strongly recommend users to visit <a href="http://www.apollochoicemodelling.com/">http://www.apollochoicemodelling.com/</a> for examples on how to use Apollo.
+In the website, users will also find a detailed manual and a user-group for help and further reference.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List grouping several required input for model estimation.
+</p>
+
+
+</div>

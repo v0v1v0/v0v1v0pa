@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>repairMissingHzDepths</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Repair Problematic Lower Horizon Depths</h2>
+
+<h3>Description</h3>
+
+<p>Attempt a simple repair of horizon bottom depths in the presence of <code>NA</code>, or in cases where the horizon shares a common top and bottom depth. Both situations are common in pedon description where "contact" (Cd, Cr, R, etc.) was described without a lower depth.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">repairMissingHzDepths(x, adj = 10, max.depth = 200)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>SoilProfileCollection</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>vertical offset applied to "repair" missing bottom depths when top and bottom depth are equal or bottom depth is missing. (<code>NA</code> to use <code>max.depth</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.depth</code></td>
+<td>
+<p>If adj is <code>NA</code>, or the resulting offset sum exceeds <code>max.depth</code>, <code>max.depth</code> is used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This repair is applied to the deepest horizon within a profile as identified by <code>getLastHorizonID</code>, as well as to bottom depths of any horizon that has a horizon below it. Horizon bottom depths are adjusted by adding <code>adj</code> (if non-NA). If the resulting value exceeds <code>max.depth</code>, the <code>max.depth</code> value is returned (if not <code>NA</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>SoilProfileCollection</code> with a new (logical) horizon-level attribute <code>.repaired</code> marking affected horizons
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+h &lt;- data.frame(
+id = c(1, 1, 1, 2, 2, 2, 2, 3, 3),
+top = c(0:2, 0:3, 0:1) * 10,
+bottom = c(rep(NA_integer_, 7), c(10, 99))
+)
+
+# NA depths result in warnings
+suppressWarnings({
+  depths(h) &lt;- id ~ top + bottom
+})
+
+# inspect data before repairs
+plotSPC(h)
+
+g &lt;- repairMissingHzDepths(h)
+
+# all depth logic now valid
+all(checkHzDepthLogic(g)$valid)
+
+# inspect
+plotSPC(g)
+
+# no adj, max.depth only
+f &lt;- repairMissingHzDepths(h, adj = NA, max.depth = 200)
+all(checkHzDepthLogic(f)$valid)
+plotSPC(f)
+
+# max.depth defaults to max(x) if too small
+f$bottom[c(3,7)] &lt;- NA
+d &lt;- repairMissingHzDepths(f, adj = NA, max.depth = 20)
+all(checkHzDepthLogic(d)$valid)
+plotSPC(d)
+
+</code></pre>
+
+
+</div>

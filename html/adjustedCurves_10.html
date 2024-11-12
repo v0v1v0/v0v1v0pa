@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as_ggsurvplot_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Extract a <code>data.frame</code> containing the estimated survival curves from a <code>adjustedsurv</code> object
+</h2>
+
+<h3>Description</h3>
+
+<p>A small convenience function to extract the most important quantities from an <code>adjustedsurv</code> object. The resulting <code>data.frame</code> is structured according to the format required by the <code>ggsurvplot_df</code> function of the <span class="pkg">survminer</span> package, making it easy to use the <code>ggsurvplot_df</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as_ggsurvplot_df(adjsurv)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>adjsurv</code></td>
+<td>
+
+<p>An object of class <code>adjustedsurv</code> created by the <code>adjustedsurv</code> function.
+</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>Returns a <code>data.frame</code> containing the required information, extracted from the <code>adjustedsurv</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adjustedsurv</code>, <code>plot.adjustedsurv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+library(survival)
+
+set.seed(42)
+
+# simulate some example data
+sim_dat &lt;- sim_confounded_surv(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# treatment assignment model
+glm_mod &lt;- glm(group ~ x2 + x3 + x5 + x6, data=sim_dat, family="binomial")
+
+# estimate some adjusted survival curves
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=glm_mod,
+                        conf_int=TRUE,
+                        bootstrap=FALSE)
+
+# extract info
+df &lt;- as_ggsurvplot_df(adjsurv)
+
+# not run here to avoid dependency on survminer
+if (interactive()) {
+# plot using survminer, requires the 'survminer' package
+ggsurvplot_df(df)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dea.fast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Faster Solving of Additive DEA Models with Large Datasets
+</h2>
+
+<h3>Description</h3>
+
+<p>Reduce calculation time of additive DEA efficiency models when the data comprise of several thousand DMUs
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dea.fast(base, noutput, fixed = NULL, rts = 2, bound = NULL,
+  add.model = c("additive", "RAM", "BAM", "MIP", "LovPast", "SBM"),
+  blockSize = 200)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+
+<p>A data frame with N rows and S+M columns, where N is the number of Decision-Making Units (DMUs), S is the number of
+outputs and M is the number of inputs. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noutput</code></td>
+<td>
+
+<p>The number of outputs produced by the DMUs. All DMUs must produce the same number of outputs.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>A numeric vector containing column indices for fixed (non-controllable) outputs and/or inputs (if any) in the data.
+Defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rts</code></td>
+<td>
+
+<p>Returns to scale specification. 1 for constant returns to scale and 2 (default) for variable returns to scale.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound</code></td>
+<td>
+
+<p>A data frame with N rows and S+M columns containing user-defined bounds on the slacks of each DMU. If bounds are
+supplied by the user in cases where some outputs and/or inputs are fixed, values should be 0 for these fixed
+variables. Same for slacks that do not require bounds. Defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.model</code></td>
+<td>
+
+<p>Additive model to calculate efficiency. additive: unweighted additive model (Cooper et al., 2007); RAM: Range
+Adjusted Measure (Cooper et al., 1999; 2001); BAM: Bounded Adjusted Measure (Cooper et al., 2011); MIP: Measure
+of Inefficiency Proportions (Cooper et al., 1999); LovPast: the Lovell-Pastor Measure (Lovell and Pastor, 1995); SBM:   Slacks-Based Measure (Tone, 2001).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blockSize</code></td>
+<td>
+
+<p>How many DMUs should each sub-problem comprise of? Defaults to 200.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>dea.fast</code> speeds up computation time of functions <code>dea.gem</code> and <code>dea.sbm</code> when the data comprise of several thousand DMUs. It does so by dividing the data into several blocks consisting of a few hundred DMUs. Then, it finds the efficient DMUs in each block. The next step is to merge the efficient DMUs into one final set and to find the efficient DMUs in this set. Finally, the DMUs in each block are benchmarked against the DMUs that were found to be efficient in the final set of the previous step. See Newsletter 16 in <a href="http://www.saitech-inc.com/Products/Prod-DSP.asp">http://www.saitech-inc.com/Products/Prod-DSP.asp</a>.
+If N is not divisible by blockSize, dea.fast will split the data into a number of even blocks plus a final block with the remaining DMUs. For instance, if N=1050 and blockSize=200, there will be five blocks with 200 DMUs and a sixth one with 50 DMUs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a numeric vector containing the (in)efficiency scores of the DMUs.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The presence of DMUs with solution status other than 0 (see dea.gem and dea.sbm) will result in dea.fast NOT working. Ensure that there is a solution for all DMUs or, when the solution status is 5, that the data are scaled appropriately.
+</p>
+<p>Extreme care is needed when add.model = 'RAM' when ranges are too large relative to the slacks. In such a case, the slack-range ratios can be so small that an inefficient DMU may seem to have near-zero inefficiency (see Cooper et al., 1999). This makes it extremely hard for the algorithm to distinguish between efficient and inefficient DMUs when the former must be separated from the latter within each block (as described earlier). Avoiding using RAM with <code>dea.fast</code> for the time being is strongly recommended.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Diomedes Soteriades, <a href="mailto:andreassot10@yahoo.com">andreassot10@yahoo.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Cooper W. W., Park K. S., Pastor J. T. (1999) RAM: a range adjusted measure of inefficiency for use with additive models, and relations to other models and measures in DEA. <em>Journal of Productivity Analysis</em>, <b>11</b>, 5–42
+</p>
+<p>Cooper W. W., Park K. S., Pastor J. T. (2001) The range adjusted measure (RAM) in DEA: a response to the comment by Steinmann and Zweifel. <em>Journal of Productivity Analysis</em>, <b>15</b>, 145–152
+</p>
+<p>Cooper W. W., Pastor J. T., Borras F., Aparicio J., Pastor D. (2011) BAM: a bounded adjusted measure of efficiency for use with bounded additive models. <em>Journal of Productivity Analysis</em>, <b>35</b>, 85–94
+</p>
+<p>Cooper W. W., Seiford L., Tone K. (2007) <em>Data Envelopment Analysis: a comprehensive text with models, applications, references and DEA-Solver software</em>. New York: Springer
+</p>
+<p>Lovell, C. A. K., Pastor J. T. (1995) Units invariant and translation invariant DEA models. <em>Operations Research Letters</em>, <b>18</b>, 147–151
+</p>
+<p>Tone K. (2001) A slacks-based measure of efficiency in data envelopment analysis. <em>European Journal of Operational Research</em>, <b>130</b>, 498–509
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dea.gem</code>, <code>dea.sbm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Get data from package Benchmarking:
+library(Benchmarking)
+data(pigdata)
+base &lt;- pigdata[, 2:9][, c(7,8,1:6)]
+# Create trivial but large dataset
+base &lt;- rbind(base,base,base,base)
+system.time(dea.fast(base, noutput= 2, rts= 2,
+  add.model= "LovPast", blockSize = 200))
+
+## The function is currently defined as
+function (base, noutput, fixed = NULL, rts = 2, bound = NULL, 
+    add.model = c("additive", "RAM", "BAM", "MIP", "LovPast", 
+        "SBM"), blockSize = 200) 
+{
+    baseEfficient &lt;- list()
+    n &lt;- nrow(base)
+    mod &lt;- (n - (n%%blockSize))/blockSize
+    blocks &lt;- c(1, 1:mod * blockSize + 1)
+    for (i in 1:mod) {
+        aux &lt;- blocks[i]:(blocks[i + 1] - 1)
+        base1 &lt;- base[aux, ]
+        bound1 &lt;- bound[aux, ]
+        if (add.model != "SBM") {
+            eff &lt;- round(dea.gem(base = base1, noutput, fixed, 
+                rts, bound = bound1, add.model)$eff, 7)
+            index &lt;- which(is.na(eff))
+            if (length(index) &gt; 0) {
+                eff[index] &lt;- round(dea.gem(base = base1, noutput, 
+                  fixed, rts, bound = bound1, add.model, whichDMUs = index)$eff, 
+                  7)
+            }
+            baseEfficient[[i]] &lt;- base1[which(eff == 0), ]
+        }
+        else {
+            eff &lt;- round(dea.sbm(base = base1, noutput, fixed, 
+                rts, bound = bound1)$eff, 7)
+            index &lt;- which(is.na(eff))
+            if (length(index) &gt; 0) {
+                eff[index] &lt;- round(dea.sbm(base = base1, noutput, 
+                  fixed, rts, bound = bound1, whichDMUs = index)$eff, 
+                  7)
+            }
+            baseEfficient[[i]] &lt;- base1[which(eff == 1), ]
+        }
+    }
+    if (n%%blockSize != 0) {
+        aux &lt;- (n - (n%%blockSize) + 1):n
+        base1 &lt;- base[aux, ]
+        bound1 &lt;- bound[aux, ]
+        if (add.model != "SBM") {
+            eff &lt;- round(dea.gem(base = base1, noutput, fixed, 
+                rts, bound = bound1, add.model)$eff, 7)
+            index &lt;- which(is.na(eff))
+            if (length(index) &gt; 0) {
+                eff[index] &lt;- round(dea.gem(base = base1, noutput, 
+                  fixed, rts, bound = bound1, add.model, whichDMUs = index)$eff, 
+                  7)
+            }
+            baseEfficient[[i + 1]] &lt;- base1[which(eff == 0), 
+                ]
+        }
+        else {
+            eff &lt;- round(dea.sbm(base = base1, noutput, fixed, 
+                rts, bound = bound1)$eff, 7)
+            index &lt;- which(is.na(eff))
+            if (length(index) &gt; 0) {
+                eff[index] &lt;- round(dea.sbm(base = base1, noutput, 
+                  fixed, rts, bound = bound1, whichDMUs = index)$eff, 
+                  7)
+            }
+            baseEfficient[[i + 1]] &lt;- base1[which(eff == 1), 
+                ]
+        }
+    }
+    baseEfficient &lt;- do.call("rbind", baseEfficient)
+    if (add.model != "SBM") {
+        eff &lt;- round(dea.gem(base = base1, noutput, fixed, rts, 
+            bound = bound1, add.model)$eff, 7)
+        index &lt;- which(is.na(eff))
+        if (length(index) &gt; 0) {
+            eff[index] &lt;- round(dea.gem(base = base1, noutput, 
+                fixed, rts, bound = bound1, add.model, whichDMUs = index)$eff, 
+                7)
+        }
+        baseEfficient &lt;- base1[which(eff == 0), ]
+    }
+    else {
+        eff &lt;- round(dea.sbm(base = base1, noutput, fixed, rts, 
+            bound = bound1)$eff, 7)
+        index &lt;- which(is.na(eff))
+        if (length(index) &gt; 0) {
+            eff[index] &lt;- round(dea.sbm(base = base1, noutput, 
+                fixed, rts, bound = bound1, whichDMUs = index)$eff, 
+                7)
+        }
+        baseEfficient &lt;- base1[which(eff == 1), ]
+    }
+    eff &lt;- list()
+    for (i in 1:mod) {
+        aux &lt;- blocks[i]:(blocks[i + 1] - 1)
+        base1 &lt;- base[aux, ]
+        base1 &lt;- rbind(base1, baseEfficient)
+        bound1 &lt;- bound[aux, ]
+        if (!is.null(bound)) {
+            df &lt;- data.frame(matrix(0, nrow = nrow(base1[1:(nrow(base1) - 
+                blockSize), ]), ncol = ncol(base1)))
+            names(df) &lt;- names(bound1)
+            bound1 &lt;- rbind(bound1, df)
+        }
+        if (add.model != "SBM") {
+            eff[[i]] &lt;- dea.gem(base = base1, noutput, fixed, 
+                rts, bound = bound1, add.model, whichDMUs = 1:blockSize)$eff
+            index &lt;- which(is.na(eff[[i]]))
+            if (length(index) &gt; 0) {
+                eff[[i]][index] &lt;- dea.gem(base = base1, noutput, 
+                  fixed, rts, bound = bound1, add.model, whichDMUs = index)$eff
+            }
+        }
+        else {
+            eff[[i]] &lt;- dea.sbm(base = base1, noutput, fixed, 
+                rts, bound = bound1, whichDMUs = 1:blockSize)$eff
+            index &lt;- which(is.na(eff[[i]]))
+            if (length(index) &gt; 0) {
+                eff[[i]][index] &lt;- dea.sbm(base = base1, noutput, 
+                  fixed, rts, bound = bound1, whichDMUs = index)$eff
+            }
+        }
+    }
+    if (n%%blockSize != 0) {
+        aux &lt;- (n - (n%%blockSize) + 1):n
+        base1 &lt;- base[aux, ]
+        base1 &lt;- rbind(base1, baseEfficient)
+        bound1 &lt;- bound[aux, ]
+        newBlockSize &lt;- nrow(base) - mod * blockSize
+        if (!is.null(bound)) {
+            df &lt;- data.frame(matrix(0, nrow = nrow(base1[1:(nrow(base1) - 
+                newBlockSize), ]), ncol = ncol(base1)))
+            names(df) &lt;- names(bound1)
+            bound1 &lt;- rbind(bound1, df)
+        }
+        if (add.model != "SBM") {
+            eff[[i + 1]] &lt;- dea.gem(base = base1, noutput, fixed, 
+                rts, bound = bound1, add.model, whichDMUs = 1:newBlockSize)$eff
+            index &lt;- which(is.na(eff[[i + 1]]))
+            if (length(index) &gt; 0) {
+                eff[[i + 1]][index] &lt;- dea.gem(base = base1, 
+                  noutput, fixed, rts, bound = bound1, add.model, 
+                  whichDMUs = index)$eff
+            }
+        }
+        else {
+            eff[[i + 1]] &lt;- dea.sbm(base = base1, noutput, fixed, 
+                rts, bound = bound1, whichDMUs = 1:newBlockSize)$eff
+            index &lt;- which(is.na(eff[[i + 1]]))
+            if (length(index) &gt; 0) {
+                eff[[i + 1]][index] &lt;- dea.sbm(base = base1, 
+                  noutput, fixed, rts, bound = bound1, whichDMUs = index)$eff
+            }
+        }
+    }
+    eff &lt;- unlist(eff)
+    return(eff)
+  }
+</code></pre>
+
+
+</div>

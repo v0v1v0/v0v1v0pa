@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surv_direct_pseudo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Direct Adjusted Survival Curves using Pseudo-Values
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating direct adjusted survival curves using pseudo-values for single event time-to-event data (<code>method="direct_pseudo"</code> in the <code>adjustedsurv</code> function). All regular arguments of the <code>adjustedsurv</code> function can be used. Additionally, the <code>outcome_vars</code> argument has to be specified in the <code>adjustedsurv</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>outcome_vars</code></td>
+<td>
+
+<p>[<strong>required</strong>] A character vector of column names specifying variables to be used when modeling the outcome mechanism. See details and examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type_time</code></td>
+<td>
+
+<p>A character string specifying how the time should be modeled. Possible values are <code>"factor"</code> (modeling each point in time as a separate variable, the default), <code>"bs"</code> (modeling time using B-Splines) or <code>"ns"</code> (modeling time using natural splines).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline_df</code></td>
+<td>
+
+<p>The number of degrees of freedom used for the natural-spline or B-spline function. Ignored if <code>type_time="factor"</code>. Defaults to 5.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censoring_vars</code></td>
+<td>
+
+<p>An optional character vector specifying variables in <code>data</code>. Those are used in the calculation of inverse probability of censoring weighted pseudo observations. See <code>?pseudo_aareg</code> for more information. Set to <code>NULL</code> (default) to use standard pseudo-values without corrections for dependent censoring instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipcw_method</code></td>
+<td>
+
+<p>The specific method used in the calculation of inverse probability of censoring weighted pseudo observations. Can be either <code>"binder"</code> (default) or <code>"hajek"</code>. See <code>?pseudo_aareg</code> for more information. Ignored if <code>censoring_vars=NULL</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> Requires a character vector of variable names used to model the outcome mechanism (internally uses <code>geese</code>).
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Any number of levels in <code>variable</code> are allowed. Must be a factor variable.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are not available. Bootstrapping can still be used to estimate the confidence intervals (see <code>?adjustedsurv</code>).
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are not guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are not guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method relies on the <span class="pkg">geepack</span> and <span class="pkg">prodlim</span> packages. Additionally requires the <span class="pkg">eventglm</span> package if <code>censoring_vars</code> is specified.
+</p>
+</li>
+</ul>
+<p>This method works by executing the following steps: (1) First Pseudo-Values for the survival probabilities are estimated for each observation in the dataset and some points in time T. Afterwards (2) a new dataset is created in which every individual observation has multiple rows, one for each point in time of interest. (3) This dataset is used to fit a generalized estimating equations (geese) model, using the Pseudo-Values as independent variable. Next (4) multiple copies of the new dataset are created, one for each possible level of the <code>variable</code> of interest. (5) The <code>variable</code> is then set to one level for all observations in each dataset. (5) The <code>geese</code> model is used to predict the survival probabilities at some points in time T for each observation in all dataset copies. (6) Those estimated probabilities are averaged for each dataset at each point in time, resulting in adjusted survival probabilities for all levels of the group variable at the specified points in time.
+</p>
+<p>It is essentially the same procedure as described in <code>"direct"</code>. The only difference is that instead of relying on a <code>coxph</code> model, this method uses Pseudo-Values and a geese model. This can be useful if the data does not conform to some assumptions needed to use the Cox-Regression model (for example the proportional hazards assumption).
+</p>
+<p>When estimating the <code>geese</code> model the <code>ev_time</code> variable is used as a factor by default. This results in one coefficient being estimated for each unique point in time, which can be very slow computationally if there are a lot of unique points in time and/or the dataset has many rows. In these cases it is recommended to use <code>type_time="bs"</code> or <code>type_time="ns"</code>, which results in the <code>ev_time</code> being modeled using B-Splines or Natural Splines. Simulation studies indicate that there is little difference in the estimates when an appropriately large number of <code>spline_df</code> is used.
+</p>
+<p>Additionally, covariate-dependent censoring can be accounted for by using inverse probability of censoring weighted pseudo-values (Binder et al. 2014) instead of regular pseudo-values (specified using the <code>censoring_vars</code> and <code>ipcw_method</code> arguments).
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds the following additional objects to the output of the <code>adjustedsurv</code> function:
+</p>
+
+<ul>
+<li> <p><code>pseudo_values</code>: The matrix of estimated pseudo-values.
+</p>
+</li>
+<li> <p><code>geese_model</code>: The geese model used to make the predictions.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>Per Kragh Andersen, Elisavet Syriopoulou, and Erik T. Parner (2017). "Causal Inference in Survival Analysis using Pseudo-Observations". In: Statistics in Medicine 36, pp. 2669-2681
+</p>
+<p>Per Kragh Andersen and Maja Pohar Perme (2010). "Pseudo-Observations in Survival Analysis". In: Statistical Methods in Medical Research 19, pp. 71-99
+</p>
+<p>Aris Perperoglou, Willi Sauerbrei, Michal Abrahamowicz, and Matthias Schmid (2019). "A Review of Spline Function Procedures in R". in: BMC Medical Research Methodology 19.46, pp. 1-16
+</p>
+<p>Nadine Binder, Thomas A. Gerds, and Per Kragh Andersen (2014). "Pseudo-Observations for Competing Risks with Covariate Dependent Censoring". In: Lifetime Data Analysis 20, pp. 303-315
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>geese</code>, <code>jackknife</code>, <code>ns</code>, <code>bs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+
+if (requireNamespace("geepack") &amp; requireNamespace("prodlim")) {
+
+library(geepack)
+library(prodlim)
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_surv(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# calculate adjusted survival curves, with time as factor
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="direct_pseudo",
+                        outcome_vars=c("x1", "x2", "x3", "x4", "x5", "x6"),
+                        type_time="factor",
+                        force_bounds=TRUE,
+                        iso_reg=TRUE)
+
+# with time modelled as B-Spline using 5 degrees of freedom
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="direct_pseudo",
+                        outcome_vars=c("x1", "x2", "x3", "x4", "x5", "x6"),
+                        type_time="bs",
+                        spline_df=5,
+                        force_bounds=TRUE,
+                        iso_reg=TRUE)
+
+# plot the curves
+plot(adjsurv)
+}
+</code></pre>
+
+
+</div>

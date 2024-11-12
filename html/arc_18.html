@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prune</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classifier Builder</h2>
+
+<h3>Description</h3>
+
+<p>An implementation of the CBA-CB M1 algorithm (Liu et al, 1998) adapted for R and arules package apriori implementation in place of CBA-RG.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prune(
+  rules,
+  txns,
+  classitems,
+  default_rule_pruning = TRUE,
+  rule_window = 50000,
+  greedy_pruning = FALSE,
+  input_list_sorted_by_length = TRUE,
+  debug = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>object of class rules from arules package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>txns</code></td>
+<td>
+<p>input object with transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classitems</code></td>
+<td>
+<p>a list of items to appear in the consequent (rhs) of the rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_rule_pruning</code></td>
+<td>
+<p>boolean indicating whether default pruning should be performed. If set to TRUE, default pruning is performed as in the CBA algorithm.
+If set to FALSE, default pruning is not performed i.e. all rules surviving data coverage pruning are kept. In either case, a default rule is added to the end of the classifier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule_window</code></td>
+<td>
+<p>the number of rules to precompute for CBA data coverage pruning. The default value can be adjusted to decrease runtime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>greedy_pruning</code></td>
+<td>
+<p>setting to TRUE activates early stopping condition: pruning will be stopped on first rule on which total error increases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input_list_sorted_by_length</code></td>
+<td>
+<p>indicates by default that the input rule list is sorted by antecedent length (as output by arules), if this param is set to false, the list will be resorted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>output debug messages.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of class rules. Note that 'rules@quality' slot has been extended
+with additional measures, specifically 'orderedConf', 'orderedSupp', and 'cumulativeConf'. The rules are output in the order
+in which they are assumed to be applied in classification. Only the first applicable rule is used to
+classify the instance. As a result, in addition to rule confidence – which is computed over the
+whole training dataset – it makes sense to define order-sensitive confidence, which is computed
+only from instances reaching the given rule as <code class="reqn">a/(a+b)</code>, where <code class="reqn">a</code> is the number of instances
+matching both the antecedent and consequent (available in slot 'orderedSupp') and <code class="reqn">b</code> is the number of instances matching the antecedent, but
+not matching the consequent of the given rule.  The cumulative confidence is an experimental measure,
+which is computed as the accuracy of the rule list comprising the given rule and all higher priority
+rules (rules with lower index) with uncovered instances excluded from the computation.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ma, Bing Liu Wynne Hsu Yiming. Integrating classification and association rule mining. Proceedings of the fourth international conference on knowledge discovery and data mining. 1998.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>topRules</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> #Example 1
+  txns &lt;- as(discrNumeric(datasets::iris, "Species")$Disc.data,"transactions")
+  appearance &lt;- getAppearance(datasets::iris,"Species")
+  rules &lt;- apriori(txns, parameter = list(confidence = 0.5,
+  support= 0.01, minlen= 2, maxlen= 4),appearance = appearance)
+  prune(rules,txns, appearance$rhs)
+  inspect(rules)
+
+#Example 2
+ utils::data(Adult) # this dataset comes with the arules package
+ classitems &lt;- c("income=small","income=large")
+ rules &lt;- apriori(Adult, parameter = list(supp = 0.3, conf = 0.5,
+ target = "rules"), appearance=list(rhs=classitems, default="lhs"))
+ # produces 25 rules
+ rulesP &lt;- prune(rules,Adult,classitems)
+ rulesP@quality # inspect rule quality measured including the new additions
+ # Rules after data coverage pruning: 8
+ # Performing default rule pruning.
+ # Final rule list size:  6
+</code></pre>
+
+
+</div>

@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>slice_derivation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Execute a Derivation with Different Arguments for Subsets of the Input Dataset</h2>
+
+<h3>Description</h3>
+
+<p>The input dataset is split into slices (subsets) and for each slice the
+derivation is called separately. Some or all arguments of the derivation
+may vary depending on the slice.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">slice_derivation(dataset, derivation, args = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>derivation</code></td>
+<td>
+<p>Derivation
+</p>
+<p>A function that performs a specific derivation is expected. A derivation
+adds variables or observations to a dataset. The first argument of a
+derivation must expect a dataset and the derivation must return a dataset.
+The function must provide the <code>dataset</code> argument and all arguments
+specified in the <code>params()</code> objects passed to the <code>arg</code> argument.
+</p>
+<p>Please note that it is not possible to specify <code>{dplyr}</code>
+functions like <code>mutate()</code> or <code>summarize()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>args</code></td>
+<td>
+<p>Arguments of the derivation
+</p>
+<p>A <code>params()</code> object is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A <code>derivation_slice()</code> object is expected
+</p>
+<p>Each slice defines a subset of the input dataset and some of the parameters
+for the derivation. The derivation is called on the subset with the
+parameters specified by the <code>args</code> parameter and the <code>args</code> field of the
+<code>derivation_slice()</code> object. If a parameter is specified for both, the
+value in <code>derivation_slice()</code> overwrites the one in <code>args</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each slice the derivation is called on the subset defined by the
+<code>filter</code> field of the <code>derivation_slice()</code> object and with the parameters
+specified by the <code>args</code> parameter and the <code>args</code> field of the
+<code>derivation_slice()</code> object. If a parameter is specified for both, the
+value in <code>derivation_slice()</code> overwrites the one in <code>args</code>.
+</p>
+
+<ul>
+<li>
+<p> Observations that match with more than one slice are only considered for
+the first matching slice.
+</p>
+</li>
+<li>
+<p> Observations with no match to any of the slices are included in the
+output dataset but the derivation is not called for them.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The input dataset with the variables derived by the derivation added
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>params()</code> <code>restrict_derivation()</code>
+</p>
+<p>Higher Order Functions: 
+<code>call_derivation()</code>,
+<code>derivation_slice()</code>,
+<code>restrict_derivation()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(stringr)
+advs &lt;- tribble(
+  ~USUBJID, ~VSDTC,       ~VSTPT,
+  "1",      "2020-04-16", NA_character_,
+  "1",      "2020-04-16", "BEFORE TREATMENT"
+)
+
+# For the second slice filter is set to TRUE. Thus derive_vars_dtm is called
+# with time_imputation = "last" for all observations which do not match for the
+# first slice.
+slice_derivation(
+  advs,
+  derivation = derive_vars_dtm,
+  args = params(
+    dtc = VSDTC,
+    new_vars_prefix = "A"
+  ),
+  derivation_slice(
+    filter = str_detect(VSTPT, "PRE|BEFORE"),
+    args = params(time_imputation = "first")
+  ),
+  derivation_slice(
+    filter = TRUE,
+    args = params(time_imputation = "last")
+  )
+)
+</code></pre>
+
+
+</div>

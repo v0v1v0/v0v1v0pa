@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aks</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure Kubernetes Service class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an Azure Kubernetes Service (AKS) resource. For working with the cluster endpoint itself, including deploying images, creating services etc, see kubernetes_cluster.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_resource class:
+</p>
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new AKS object.
+</p>
+</li>
+<li> <p><code>get_cluster(config, role)</code>: Return an object representing the Docker registry endpoint.
+</p>
+</li>
+<li> <p><code>get_agent_pool(pollname)</code>: Returns an object of class <code>az_agent_pool</code> representing an agent pool. This class inherits from AzureRMR::az_resource; it currently has no extra methods, but these may be added in the future.
+</p>
+</li>
+<li> <p><code>list_agent_pools()</code>: Returns a list of agent pool objects.
+</p>
+</li>
+<li> <p><code>create_agent_pool(poolname, ..., wait=FALSE)</code>: Creates a new agent pool. See the agent_pool function for further arguments to this method.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠delete_agent_pool(poolname, confirm=TRUE. wait=FALSE)⁠</code>: Deletes an agent pool.
+</p>
+</li>
+<li> <p><code>list_cluster_resources()</code>: Returns a list of all the Azure resources managed by the cluster.
+</p>
+</li>
+<li> <p><code>update_aad_password(name=NULL, duration=NULL, ...)</code>: Update the password for Azure Active Directory integration, returning the new password invisibly. See 'Updating credentials' below.
+</p>
+</li>
+<li> <p><code>update_service_password(name=NULL, duration=NULL, ...)</code>: Update the password for the service principal used to manage the cluster resources, returning the new password invisibly.  See 'Updating credentials' below.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>Initializing a new object of this class can either retrieve an existing AKS resource, or create a new resource on the host. Generally, the best way to initialize an object is via the <code>get_aks</code>, <code>create_aks</code> or <code>list_aks</code> methods of the az_resource_group class, which handle the details automatically.
+</p>
+<p>Note that this class is separate from the Kubernetes cluster itself. This class exposes methods for working with the Azure resource: updating resource tags, updating and deleting the resource (including updating the Kubernetes version), and so on.
+</p>
+<p>For working with the cluster, including deploying images, services, etc use the object generated with the <code>get_cluster</code> method. This method takes two optional arguments:
+</p>
+
+<ul>
+<li> <p><code>config</code>: The file in which to store the cluster configuration details. By default, this will be located in the AzureR configuration directory if it exists (see AzureAuth::AzureR_dir); otherwise, in the R temporary directory. To use the Kubernetes default <code style="white-space: pre;">⁠~/.kube/config⁠</code> file, set this argument to NULL. Any existing file in the given location will be overwritten.
+</p>
+</li>
+<li> <p><code>role</code>: This can be <code>"User"</code> (the default) or <code>"Admin"</code>.
+</p>
+</li>
+</ul>
+<h3>Updating credentials</h3>
+
+<p>An AKS resource can have up to three service principals associated with it. Two of these are for Azure Active Directory (AAD) integration. The third is used to manage the subsidiary resources (VMs, networks, disks, etc) used by the cluster, if it doesn't have a service identity.
+</p>
+<p>Any service principals used by the AKS resource will have secret passwords, which have to be refreshed as they expire. The <code>update_aad_password()</code> and <code>update_service_password()</code> methods let you refresh the passwords for the cluster's service principals. Their arguments are:
+</p>
+
+<ul>
+<li> <p><code>name</code>: An optional friendly name for the password.
+</p>
+</li>
+<li> <p><code>duration</code>: The duration for which the new password is valid. Defaults to 2 years.
+</p>
+</li>
+<li> <p><code>...</code>: Other arguments passed to <code>AzureGraph::create_graph_login</code>. Note that these are used to authenticate with Microsoft Graph, which does the actual work of updating the service principals, not to the cluster itself.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>create_aks, get_aks, delete_aks, list_aks, AzureAuth::AzureR_dir, AzureGraph::create_graph_login
+</p>
+<p>kubernetes_cluster for interacting with the cluster endpoint
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/aks/">AKS documentation</a> and
+<a href="https://docs.microsoft.com/en-us/rest/api/aks/">API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+rg &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+myaks &lt;- rg$get_aks("mycluster")
+
+# sync with Azure: AKS resource creation can take a long time, use this to track status
+myaks$sync_fields()
+
+# get the cluster endpoint
+kubclus &lt;- myaks$get_cluster()
+
+# list of agent pools
+myaks$list_agent_pools()
+
+# create a new agent pool, then delete it
+pool &lt;- myaks$create_agent_pool("pool2", 3, size="Standard_DS3_v2")
+pool$delete()
+
+# refresh the service principal password (mostly for legacy clusters without a managed identity)
+myaks$update_service_password()
+
+# refresh the service principal password, using custom credentials to authenticate with MS Graph
+# arguments here are for Graph, not AKS!
+myaks$update_service_password(app="app_id", password="app_password")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_aval_adis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive AVAL variable for ADIS ADaM domain</h2>
+
+<h3>Description</h3>
+
+<p>Derive <code>AVAL</code> variable for Laboratory Immunology Data ADaM domain.
+A common rule has been decided for its derivation, based on <code>ISLLOQ</code>, <code>ISULOQ</code> and <code>ISORRES</code>
+when both <code>ISLLOQ</code> and <code>ISULOQ</code> are present.
+If <code>ISULOQ</code> is not present, the variables used are <code>ISLLOQ</code> and <code>ISORRES</code>.
+Please, refers to arguments description for additional details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_aval_adis(
+  dataset,
+  lower_rule,
+  middle_rule,
+  upper_rule = NULL,
+  round = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_rule</code></td>
+<td>
+<p>Derivation rule when <code>ISSTRESN</code> value is below <code>ISLLOQ</code>.
+When <code>ISSTRESN</code> is missing, the inequality in <code>ISORRES</code> is checked for the derivation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>middle_rule</code></td>
+<td>
+<p>Derivation rule when <code>ISSTRESN</code> value is greater than <code>ISLLOQ</code> and
+lower than <code>ISULOQ</code>.
+If <code>ISULOQ</code> is not present, derivation rule when <code>ISSTRESN</code> is greater than <code>ISLLOQ</code>.
+When <code>ISSTRESN</code> is missing, the inequality in <code>ISORRES</code> is checked for the derivation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_rule</code></td>
+<td>
+<p>Derivation rule when <code>ISSTRESN</code> value is greater than <code>ISULOQ</code>.
+This is an optional argument since <code>ISULOQ</code> may not be present.
+When <code>ISSTRESN</code> is missing, the inequality in <code>ISORRES</code>. is checked for the derivation.
+Default value is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>round</code></td>
+<td>
+<p>Rounding for <code>AVAL</code> variable. An integer argument which specifies
+the number of decimals displayed.
+Default value is <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Dataset with <code>AVAL</code> variable derived.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Federico Baratin
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other der_var: 
+<code>derive_vars_crit()</code>,
+<code>derive_vars_event_flag()</code>,
+<code>derive_vars_max_flag()</code>,
+<code>derive_vars_merged_vaccine()</code>,
+<code>derive_vars_params()</code>,
+<code>derive_vars_vaxdt()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(admiral)
+library(admiraldev)
+library(dplyr)
+library(rlang)
+
+input &lt;- tribble(
+  ~USUBJID, ~AVISITN, ~PARAMCD, ~PARAM, ~ISORRES, ~ISSTRESN, ~ISLLOQ, ~ISULOQ,
+  "ABC-1001", 10, "J0033VN", "J0033VN Antibody", NA, NA, 2, 100,
+  "ABC-1001", 10, "I0019NT", "I0019NT Antibody", "3", 3.0, 4, 200,
+  "ABC-1001", 10, "M0019LN", "M0019LN Antibody", "&gt;150", NA, 8, 150,
+  "ABC-1001", 10, "R0003MA", "R0003MA Antibody", "140.5", 140.5, 4, 120,
+  "ABC-1001", 30, "J0033VN", "J0033VN Antibody", "2", 2.0, 2, 100,
+  "ABC-1001", 30, "I0019NT", "I0019NT Antibody", NA, NA, 4, 200,
+  "ABC-1001", 30, "M0019LN", "M0019LN Antibody", NA, NA, 8, 150,
+  "ABC-1001", 30, "R0003MA", "R0003MA Antibody", "98.2", 98.2, 4, 120,
+  "ABC-1001", 10, "J0033VNL", "LOG10 (J0033VN Antibody)", NA, NA, 2, 100,
+  "ABC-1001", 10, "I0019NTL", "LOG10 (I0019NT Antibody)", "3", 3.0, 4, 200,
+  "ABC-1001", 10, "M0019LNL", "LOG10 (M0019LN Antibody)", "&gt;150", NA, 8, 150,
+  "ABC-1001", 10, "R0003MAL", "LOG10 (R0003MA Antibody)", "140.5", 140.5, 4, 120,
+  "ABC-1001", 30, "J0033VNL", "LOG10 (J0033VN Antibody)", "2", 2.0, 2, 100,
+  "ABC-1001", 30, "I0019NTL", "LOG10 (I0019NT Antibody)", NA, NA, 4, 200,
+  "ABC-1001", 30, "M0019LNL", "LOG10 (M0019LN Antibody)", NA, NA, 8, 150,
+  "ABC-1001", 30, "R0003MAL", "LOG10 (R0003MA Antibody)", "98.2", 98.2, 4, 120,
+  "ABC-1002", 10, "J0033VN", "J0033VN Antibody", "3", 3.0, 2, 100,
+  "ABC-1002", 10, "I0019NT", "I0019NT Antibody", NA, NA, 4, 200,
+  "ABC-1002", 10, "M0019LN", "M0019LN Antibody", NA, NA, 8, 150,
+  "ABC-1002", 10, "R0003MA", "R0003MA Antibody", "48.9", 48.9, 4, 120,
+  "ABC-1002", 30, "J0033VN", "J0033VN Antibody", NA, NA, 2, 100,
+  "ABC-1002", 30, "I0019NT", "I0019NT Antibody", NA, NA, 4, 200,
+  "ABC-1002", 30, "M0019LN", "M0019LN Antibody", "5", 5.0, 8, 150,
+  "ABC-1002", 30, "R0003MA", "R0003MA Antibody", "228.1", 228.1, 4, 120
+)
+
+derive_var_aval_adis(
+  dataset = input,
+  lower_rule = ISLLOQ / 2,
+  middle_rule = ISSTRESN,
+  upper_rule = ISULOQ,
+  round = 2
+)
+
+</code></pre>
+
+
+</div>

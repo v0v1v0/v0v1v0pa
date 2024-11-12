@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_marginal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exact independent samples from an approximate posterior distribution</h2>
+
+<h3>Description</h3>
+
+<p>Draws samples from an approximate marginal distribution for general posteriors
+approximated using <code>aghq</code>, or from the mixture-of-Gaussians approximation to the variables that were
+marginalized over in a marginal Laplace approximation fit using <code>aghq::marginal_laplace</code>
+or <code>aghq::marginal_laplace_tmb</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_marginal(
+  quad,
+  M,
+  transformation = default_transformation(),
+  interpolation = "auto",
+  ...
+)
+
+## S3 method for class 'aghq'
+sample_marginal(
+  quad,
+  M,
+  transformation = quad$transformation,
+  interpolation = "auto",
+  ...
+)
+
+## S3 method for class 'marginallaplace'
+sample_marginal(
+  quad,
+  M,
+  transformation = quad$transformation,
+  interpolation = "auto",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>quad</code></td>
+<td>
+<p>Object from which to draw samples.
+An object inheriting from class <code>marginallaplace</code>
+(the result of running <code>aghq::marginal_laplace</code> or <code>aghq::marginal_laplace_tmb</code>),
+or an object inheriting from class <code>aghq</code> (the result of running <code>aghq::aghq()</code>).
+Can also provide a <code>data.frame</code> returned by <code>aghq::compute_pdf_and_cdf</code> in which
+case samples are returned for <code>transparam</code> if <code>transformation</code> is provided,
+and for <code>param</code> if <code>transformation = NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Numeric, integer saying how many samples to draw</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformation</code></td>
+<td>
+<p>Optional. Draw samples for a transformation of the parameter
+whose posterior was normalized using adaptive quadrature.
+<code>transformation</code> is either: a) an <code>aghqtrans</code> object returned by <code>aghq::make_transformation</code>,
+or b) a list that will be passed to that function internally. See <code>?aghq::make_transformation</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+<p>Which method to use for interpolating the marginal posteriors
+(and hence to draw samples using the inverse CDF method), <code>'auto'</code> (choose for you), <code>'polynomial'</code>
+or <code>'spline'</code>? If <code>k &gt; 3</code> then the polynomial may be unstable and you should use the spline, but the spline
+doesn't work <em>unless</em> <code>k &gt; 3</code> so it's not the default. The default of <code>'auto'</code> figures this out for you.
+See <code>interpolate_marginal_posterior()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass additional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For objects of class <code>aghq</code> or their marginal distribution components,
+sampling is done using the inverse CDF method, which is just <code>compute_quantiles(quad$marginals[[1]],runif(M))</code>.
+</p>
+<p>For marginal Laplace approximations (<code>aghq::marginal_laplace()</code>): this method samples from the posterior and returns a vector that is ordered
+the same as the "<code>W</code>" variables in your marginal Laplace approximation. See Algorithm 1 in
+Stringer et. al. (2021, https://arxiv.org/abs/2103.07425) for the algorithm; the details of sampling
+from a Gaussian are described in the reference(s) therein, which makes use of the (sparse)
+Cholesky factors. These are computed once for each quadrature point and stored.
+</p>
+<p>For the marginal Laplace approximations where the "inner" model is handled entirely by <code>TMB</code>
+(<code>aghq::marginal_laplace_tmb</code>), the interface here is identical to above,
+with the order of the "<code>W</code>" vector being determined by <code>TMB</code>. See the
+<code>names</code> of <code>ff$env$last.par</code>, for example (where <code>ff</code> is your
+template obtained from a call to <code>TMB::MakeADFun</code>.
+</p>
+<p>If <code>getOption('mc.cores',1L) &gt; 1</code>, the Cholesky decompositions of the Hessians are computed
+in parallel using <code>parallel::mcapply</code>, for the Gaussian approximation involved for objects of class <code>marginallaplace</code>. This step is slow
+so may be sped up by parallelization, if the matrices are sparse (and hence the operation is just slow, but not memory-intensive).
+Uses the <code>parallel</code> package so is not available on Windows.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If run on a <code>marginallaplace</code> object, a list containing elements:
+</p>
+
+<ul>
+<li>
+<p><code>samps</code>:  <code>d x M</code> matrix where <code>d = dim(W)</code> and each column is a sample
+from <code>pi(W|Y,theta)</code>
+</p>
+</li>
+<li>
+<p><code>theta</code>: <code>M x S</code> tibble where <code>S = dim(theta)</code> containing the value of <code>theta</code> for
+each sample
+</p>
+</li>
+<li>
+<p><code>thetasamples</code>: A list of <code>S</code> numeric vectors each of length
+<code>M</code> where the <code>j</code>th element is a sample from <code>pi(theta_{j}|Y)</code>. These are samples
+from the <strong>marginals</strong>, NOT the <strong>joint</strong>. Sampling from the joint is a much more difficult
+problem and how to do so in this context is an active area of research.
+</p>
+</li>
+</ul>
+<p>If run on an <code>aghq</code> object, then a list with just the <code>thetasamples</code> element. It still
+returns a list to maintain output consistency across inputs.
+</p>
+<p>If, for some reason, you don't want to do the sampling from <code>pi(theta|Y)</code>, you can manually
+set <code>quad$marginals = NULL</code>. Note that this sampling is typically <em>very</em> fast
+and so I don't know why you would need to not do it but the option is there if you like.
+</p>
+<p>If, again for some reason, you just want samples from one marginal distribution using inverse CDF,
+you can just do <code>compute_quantiles(quad$marginals[[1]],runif(M))</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+objfunc2dmarg &lt;- function(W,theta) objfunc2d(c(W,theta))
+objfunc2dmarggr &lt;- function(W,theta) {
+  fn &lt;- function(W) objfunc2dmarg(W,theta)
+  numDeriv::grad(fn,W)
+}
+objfunc2dmarghe &lt;- function(W,theta) {
+  fn &lt;- function(W) objfunc2dmarg(W,theta)
+  numDeriv::hessian(fn,W)
+}
+
+funlist2dmarg &lt;- list(
+  fn = objfunc2dmarg,
+  gr = objfunc2dmarggr,
+  he = objfunc2dmarghe
+)
+
+</code></pre>
+
+
+</div>

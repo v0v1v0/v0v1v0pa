@@ -1,0 +1,525 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_extreme_event</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add the Worst or Best Observation for Each By Group as New Records</h2>
+
+<h3>Description</h3>
+
+<p>Add the first available record from <code>events</code> for each by group as new
+records, all variables of the selected observation are kept. It can be used
+for selecting the extreme observation from a series of user-defined events.
+This distinguishes <code>derive_extreme_event()</code> from <code>derive_extreme_records()</code>,
+where extreme records are derived based on certain order of existing
+variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_extreme_event(
+  dataset = NULL,
+  by_vars,
+  events,
+  tmp_event_nr_var = NULL,
+  order,
+  mode,
+  source_datasets = NULL,
+  ignore_event_order = NULL,
+  check_type = "warning",
+  set_values_to = NULL,
+  keep_source_vars = exprs(everything())
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>order</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Default</em>: <code>NULL</code>
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>events</code></td>
+<td>
+<p>Conditions and new values defining events
+</p>
+<p>A list of <code>event()</code> or <code>event_joined()</code> objects is expected. Only
+observations listed in the <code>events</code> are considered for deriving extreme
+event. If multiple records meet the filter <code>condition</code>, take the first
+record sorted by <code>order</code>. The data is grouped by <code>by_vars</code>, i.e., summary
+functions like <code>all()</code> or <code>any()</code> can be used in <code>condition</code>.
+</p>
+<p>For <code>event_joined()</code> events the observations are selected by calling
+<code>filter_joined()</code>. The <code>condition</code> field is passed to the <code>filter_join</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmp_event_nr_var</code></td>
+<td>
+<p>Temporary event number variable
+</p>
+<p>The specified variable is added to all source datasets and is set to the
+number of the event before selecting the records of the event.
+</p>
+<p>It can be used in <code>order</code> to determine which record should be used if
+records from more than one event are selected.
+</p>
+<p>The variable is not included in the output dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If a particular event from <code>events</code> has more than one observation, within
+the event and by group, the records are ordered by the specified order.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If a particular event from <code>events</code> has more than one observation,
+<code>"first"</code>/<code>"last"</code> is used to select the first/last record of this type of
+event sorting by <code>order</code>.
+</p>
+<p><em>Permitted Values:</em> <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source datasets
+</p>
+<p>A named list of datasets is expected. The <code>dataset_name</code> field of <code>event()</code>
+and <code>event_joined()</code> refers to the dataset provided in the list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_event_order</code></td>
+<td>
+<p>Ignore event order
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a>
+</p>
+<p>This argument is <em>deprecated</em>. If event order should be ignored, please
+specify neither <code>ignore_event_order</code> nor <code>tmp_event_nr_var</code>. If the event
+order should be considered, don't specify <code>ignore_event_order</code> but specify
+<code>tmp_event_nr_var</code> and and the specified variable to <code>order</code>.
+</p>
+<p>If the argument is set to <code>TRUE</code>, all events defined by <code>events</code> are
+considered equivalent. If there is more than one observation per by group
+the first or last (with respect to <code>mode</code> and <code>order</code>) is select without
+taking the order of the events into account.
+</p>
+<p><em>Permitted Values:</em> <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the input dataset are not unique with respect to the
+by variables and the order.
+</p>
+<p><em>Default:</em> <code>"warning"</code>
+</p>
+<p><em>Permitted Values:</em> <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations.
+</p>
+<p>Set a list of variables to some specified value for the new records
+</p>
+
+<ul>
+<li>
+<p> LHS refer to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value, an expression or NA. If summary functions are
+used, the values are summarized by the variables specified for <code>by_vars</code>.
+</p>
+</li>
+</ul>
+<p>For example:
+</p>
+<div class="sourceCode"><pre>  set_values_to = exprs(
+    AVAL = sum(AVAL),
+    DTYPE = "AVERAGE",
+  )
+</pre></div>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_source_vars</code></td>
+<td>
+<p>Variables to keep from the source dataset
+</p>
+<p>For each event the specified variables are kept from the selected
+observations. The variables specified for <code>by_vars</code> and created by
+<code>set_values_to</code> are always kept. The <code>keep_source_vars</code> field of
+the event will take precedence over the value of the <code>keep_source_vars</code>
+argument.
+</p>
+<p><em>Permitted Values</em>: A list of expressions where each element is
+a symbol or a tidyselect expression, e.g., <code>exprs(VISIT, VISITNUM, starts_with("RS"))</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> For each event select the observations to consider:
+</p>
+
+<ol>
+<li>
+<p> If the event is of class <code>event</code>, the observations of the source dataset
+are restricted by <code>condition</code> and then the first or last (<code>mode</code>)
+observation per by group (<code>by_vars</code>) is selected.
+</p>
+<p>If the event is of class <code>event_joined</code>, <code>filter_joined()</code> is called to
+select the observations.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> field of the event
+are added to the selected observations.
+</p>
+</li>
+<li>
+<p> The variable specified for <code>tmp_event_nr_var</code> is added and set to
+the number of the event.
+</p>
+</li>
+<li>
+<p> Only the variables specified for the <code>keep_source_vars</code> field of the
+event, and the by variables (<code>by_vars</code>) and the variables created by
+<code>set_values_to</code> are kept. If <code>keep_source_vars = NULL</code> is used for an event
+in <code>derive_extreme_event()</code> the value of the <code>keep_source_vars</code> argument of
+<code>derive_extreme_event()</code> is used.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> All selected observations are bound together.
+</p>
+</li>
+<li>
+<p> For each group (with respect to the variables specified for the
+<code>by_vars</code> parameter) the first or last observation (with respect to the
+order specified for the <code>order</code> parameter and the mode specified for the
+<code>mode</code> parameter) is selected.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> parameter are added to
+the selected observations.
+</p>
+</li>
+<li>
+<p> The observations are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the best or worst observation of each by group
+added as new observations.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>event()</code>, <code>event_joined()</code>, <code>derive_vars_extreme_event()</code>
+</p>
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_qtc()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr)
+library(lubridate)
+
+adqs &lt;- tribble(
+  ~USUBJID, ~PARAMCD,       ~AVALC,        ~ADY,
+  "1",      "NO SLEEP",     "N",              1,
+  "1",      "WAKE UP",      "N",              2,
+  "1",      "FALL ASLEEP",  "N",              3,
+  "2",      "NO SLEEP",     "N",              1,
+  "2",      "WAKE UP",      "Y",              2,
+  "2",      "WAKE UP",      "Y",              3,
+  "2",      "FALL ASLEEP",  "N",              4,
+  "3",      "NO SLEEP",     NA_character_,    1
+)
+
+# Add a new record for each USUBJID storing the the worst sleeping problem.
+derive_extreme_event(
+  adqs,
+  by_vars = exprs(USUBJID),
+  events = list(
+    event(
+      condition = PARAMCD == "NO SLEEP" &amp; AVALC == "Y",
+      set_values_to = exprs(AVALC = "No sleep", AVAL = 1)
+    ),
+    event(
+      condition = PARAMCD == "WAKE UP" &amp; AVALC == "Y",
+      set_values_to = exprs(AVALC = "Waking up more than three times", AVAL = 2)
+    ),
+    event(
+      condition = PARAMCD == "FALL ASLEEP" &amp; AVALC == "Y",
+      set_values_to = exprs(AVALC = "More than 30 mins to fall asleep", AVAL = 3)
+    ),
+    event(
+      condition = all(AVALC == "N"),
+      set_values_to = exprs(
+        AVALC = "No sleeping problems", AVAL = 4
+      )
+    ),
+    event(
+      condition = TRUE,
+      set_values_to = exprs(AVALC = "Missing", AVAL = 99)
+    )
+  ),
+  tmp_event_nr_var = event_nr,
+  order = exprs(event_nr, desc(ADY)),
+  mode = "first",
+  set_values_to = exprs(
+    PARAMCD = "WSP",
+    PARAM = "Worst Sleeping Problems"
+  )
+)
+
+# Use different mode by event
+adhy &lt;- tribble(
+  ~USUBJID, ~AVISITN, ~CRIT1FL,
+  "1",             1, "Y",
+  "1",             2, "Y",
+  "2",             1, "Y",
+  "2",             2, NA_character_,
+  "2",             3, "Y",
+  "2",             4, NA_character_
+) %&gt;%
+  mutate(
+    PARAMCD = "ALKPH",
+    PARAM = "Alkaline Phosphatase (U/L)"
+  )
+
+derive_extreme_event(
+  adhy,
+  by_vars = exprs(USUBJID),
+  events = list(
+    event(
+      condition = is.na(CRIT1FL),
+      set_values_to = exprs(AVALC = "N")
+    ),
+    event(
+      condition = CRIT1FL == "Y",
+      mode = "last",
+      set_values_to = exprs(AVALC = "Y")
+    )
+  ),
+  tmp_event_nr_var = event_nr,
+  order = exprs(event_nr, AVISITN),
+  mode = "first",
+  keep_source_vars = exprs(AVISITN),
+  set_values_to = exprs(
+    PARAMCD = "ALK2",
+    PARAM = "ALKPH &lt;= 2 times ULN"
+  )
+)
+
+# Derive confirmed best overall response (using event_joined())
+# CR - complete response, PR - partial response, SD - stable disease
+# NE - not evaluable, PD - progressive disease
+adsl &lt;- tribble(
+  ~USUBJID, ~TRTSDTC,
+  "1",      "2020-01-01",
+  "2",      "2019-12-12",
+  "3",      "2019-11-11",
+  "4",      "2019-12-30",
+  "5",      "2020-01-01",
+  "6",      "2020-02-02",
+  "7",      "2020-02-02",
+  "8",      "2020-02-01"
+) %&gt;%
+  mutate(TRTSDT = ymd(TRTSDTC))
+
+adrs &lt;- tribble(
+  ~USUBJID, ~ADTC,        ~AVALC,
+  "1",      "2020-01-01", "PR",
+  "1",      "2020-02-01", "CR",
+  "1",      "2020-02-16", "NE",
+  "1",      "2020-03-01", "CR",
+  "1",      "2020-04-01", "SD",
+  "2",      "2020-01-01", "SD",
+  "2",      "2020-02-01", "PR",
+  "2",      "2020-03-01", "SD",
+  "2",      "2020-03-13", "CR",
+  "4",      "2020-01-01", "PR",
+  "4",      "2020-03-01", "NE",
+  "4",      "2020-04-01", "NE",
+  "4",      "2020-05-01", "PR",
+  "5",      "2020-01-01", "PR",
+  "5",      "2020-01-10", "PR",
+  "5",      "2020-01-20", "PR",
+  "6",      "2020-02-06", "PR",
+  "6",      "2020-02-16", "CR",
+  "6",      "2020-03-30", "PR",
+  "7",      "2020-02-06", "PR",
+  "7",      "2020-02-16", "CR",
+  "7",      "2020-04-01", "NE",
+  "8",      "2020-02-16", "PD"
+) %&gt;%
+  mutate(
+    ADT = ymd(ADTC),
+    PARAMCD = "OVR",
+    PARAM = "Overall Response by Investigator"
+  ) %&gt;%
+  derive_vars_merged(
+    dataset_add = adsl,
+    by_vars = exprs(USUBJID),
+    new_vars = exprs(TRTSDT)
+  )
+
+derive_extreme_event(
+  adrs,
+  by_vars = exprs(USUBJID),
+  tmp_event_nr_var = event_nr,
+  order = exprs(event_nr, ADT),
+  mode = "first",
+  source_datasets = list(adsl = adsl),
+  events = list(
+    event_joined(
+      description = paste(
+        "CR needs to be confirmed by a second CR at least 28 days later",
+        "at most one NE is acceptable between the two assessments"
+      ),
+      join_vars = exprs(AVALC, ADT),
+      join_type = "after",
+      first_cond_upper = AVALC.join == "CR" &amp;
+        ADT.join &gt;= ADT + 28,
+      condition = AVALC == "CR" &amp;
+        all(AVALC.join %in% c("CR", "NE")) &amp;
+        count_vals(var = AVALC.join, val = "NE") &lt;= 1,
+      set_values_to = exprs(
+        AVALC = "CR"
+      )
+    ),
+    event_joined(
+      description = paste(
+        "PR needs to be confirmed by a second CR or PR at least 28 days later,",
+        "at most one NE is acceptable between the two assessments"
+      ),
+      join_vars = exprs(AVALC, ADT),
+      join_type = "after",
+      first_cond_upper = AVALC.join %in% c("CR", "PR") &amp;
+        ADT.join &gt;= ADT + 28,
+      condition = AVALC == "PR" &amp;
+        all(AVALC.join %in% c("CR", "PR", "NE")) &amp;
+        count_vals(var = AVALC.join, val = "NE") &lt;= 1,
+      set_values_to = exprs(
+        AVALC = "PR"
+      )
+    ),
+    event(
+      description = paste(
+        "CR, PR, or SD are considered as SD if occurring at least 28",
+        "after treatment start"
+      ),
+      condition = AVALC %in% c("CR", "PR", "SD") &amp; ADT &gt;= TRTSDT + 28,
+      set_values_to = exprs(
+        AVALC = "SD"
+      )
+    ),
+    event(
+      condition = AVALC == "PD",
+      set_values_to = exprs(
+        AVALC = "PD"
+      )
+    ),
+    event(
+      condition = AVALC %in% c("CR", "PR", "SD", "NE"),
+      set_values_to = exprs(
+        AVALC = "NE"
+      )
+    ),
+    event(
+      description = "set response to MISSING for patients without records in ADRS",
+      dataset_name = "adsl",
+      condition = TRUE,
+      set_values_to = exprs(
+        AVALC = "MISSING"
+      ),
+      keep_source_vars = exprs(TRTSDT)
+    )
+  ),
+  set_values_to = exprs(
+    PARAMCD = "CBOR",
+    PARAM = "Best Confirmed Overall Response by Investigator"
+  )
+) %&gt;%
+  filter(PARAMCD == "CBOR")
+
+</code></pre>
+
+
+</div>

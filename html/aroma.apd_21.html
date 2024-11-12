@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readApdRectangle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reads a spatial subset of probe-level data from Affymetrix APD files</h2>
+
+<h3>Description</h3>
+
+<p>Reads a spatial subset of probe-level data from Affymetrix APD files.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+readApdRectangle(filename, xrange=c(0, Inf), yrange=c(0, Inf), ..., asMatrix=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>The pathname of the APD file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xrange</code></td>
+<td>
+<p>A <code>numeric</code> <code>vector</code> of length two giving the left
+and right coordinates of the cells to be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yrange</code></td>
+<td>
+<p>A <code>numeric</code> <code>vector</code> of length two giving the top
+and bottom coordinates of the cells to be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>readApd</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asMatrix</code></td>
+<td>
+<p>If <code>TRUE</code>, the APD data fields are returned as
+matrices with element (1,1) corresponding to cell
+(xrange[1],yrange[1]).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named <code>list</code> APD structure similar to what <code>readApd</code>().
+In addition, if <code>asMatrix</code> is <code>TRUE</code>, the APD data fields
+are returned as matrices, otherwise not.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Henrik Bengtsson</p>
+
+
+<h3>See Also</h3>
+
+<p>The <code>readApd</code>() method is used internally.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Local functions
+rotate270 &lt;- function(x, ...) {
+  x &lt;- t(x)
+  nc &lt;- ncol(x)
+  if (nc &lt; 2) return(x)
+  x[,nc:1,drop=FALSE]
+}
+
+# Scan current directory for APD files
+files &lt;- list.files(pattern="[.](apd|APD)$")
+files &lt;- files[!file.info(files)$isdir]
+if (length(files) &gt; 0) {
+  apdFile &lt;- files[1]
+ 
+  # Read APD intensities in the upper left corner
+  apd &lt;- readApdRectangle(apdFile, xrange=c(0,250), yrange=c(0,250))
+  z &lt;- rotate270(apd$intensities)
+  sub &lt;- paste("Chip type:", apd$header$chipType)
+  image(z, col=gray.colors(256), axes=FALSE, main=apdFile, sub=sub)
+  text(x=0, y=1, labels="(0,0)", adj=c(0,-0.7), cex=0.8, xpd=TRUE)
+  text(x=1, y=0, labels="(250,250)", adj=c(1,1.2), cex=0.8, xpd=TRUE)
+}
+</code></pre>
+
+
+</div>

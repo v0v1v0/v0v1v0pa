@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_ards</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds data to an Analysis Results Dataset</h2>
+
+<h3>Description</h3>
+
+<p>The <code>add_ards</code> function dumps data from an input analysis 
+dataset
+to the ARDS dataset.  The function is designed to be pipe-friendly, and will
+return the input dataset unaltered.  The parameters on the function
+define how to extract the desired data from the analysis dataset.
+The "statvars" parameter defines which columns contain desired
+analysis results.  The values in these columns will be used to populate the
+"statval" variable in the output dataset.  Other parameters are used to
+define identifying information for the statistics values, and are optional.
+</p>
+<p>The <code>add_ards</code> function should be called immediately after any
+calculations, while the analysis results are still in numeric form.  This 
+recommendation is to ensure that the ARDS will contain full precision of the
+analysis values.  Once the analysis values are dumped into the ARDS, you
+may proceed to transform and format your analysis data, without affecting
+the values captured in the ARDS.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_ards(
+  data,
+  statvars,
+  statdesc = NULL,
+  byvars = NULL,
+  trtvar = NULL,
+  paramcd = NULL,
+  anal_var = NULL,
+  anal_val = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The input data to create analysis results for.  This parameter
+is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statvars</code></td>
+<td>
+<p>A vector of column names that identify the desired results.
+Statvar columns must be numeric.  This parameter is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statdesc</code></td>
+<td>
+<p>A vector of values or a column name that identifies a description 
+for each statvar. If passed as a vector of values, the number of values
+should correspond to the number of 'statvar' variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>byvars</code></td>
+<td>
+<p>A vector of column names to use for by variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trtvar</code></td>
+<td>
+<p>A column name to use for the treatment variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramcd</code></td>
+<td>
+<p>A character string that describes the analysis parameter 
+code or column name that contains the parameter code. If supplied as a
+column name, the function will populate the 'paramcd' column in the ARDS
+with the value of the 'paramcd' column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anal_var</code></td>
+<td>
+<p>A column name for the analysis variable or a string
+that identifies the analysis variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anal_val</code></td>
+<td>
+<p>The analysis variable value.  Can be identified by a column
+name or a vector of values. By default, the analysis values will be taken
+from the values of the variable passed in 'anal_var'.  This parameter 
+exists so that you may pass in the values from a different variable, if desired.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input data frame, unaltered.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other ards: 
+<code>get_ards()</code>,
+<code>init_ards()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ards)
+library(dplyr)
+
+# Initialize the ARDS
+init_ards(studyid = "MTCARS",
+          tableid = "01", adsns = "mtcars",
+          population = "all cars",
+          time = "1973")
+
+# Perform analysis on MPG
+# - Add to ARDS from within continuous variable pipeline
+mpgdf &lt;- mtcars |&gt; 
+  select(cyl, mpg) |&gt; 
+  group_by(cyl) |&gt; 
+  summarize(n = n(),
+            mean = mean(mpg),
+            std = sd(mpg),
+            min = min(mpg),
+            max = max(mpg)) |&gt; 
+  add_ards(statvars = c("n", "mean", "std", "min", "max"),
+         anal_var = "mpg", trtvar = "cyl")
+            
+# Perform analysis on GEAR
+# - Add to ARDS from within categorical variable pipeline
+geardf &lt;- mtcars |&gt; 
+  mutate(denom = n()) |&gt; 
+  select(cyl, gear, denom) |&gt; 
+  group_by(cyl, gear) |&gt; 
+  summarize(cnt = n(), 
+            denom = max(denom)) |&gt;
+  mutate(pct = cnt / denom * 100) |&gt; 
+  add_ards(statvars = c("cnt", "pct", "denom"),
+         anal_var = "gear", trtvar = "cyl")
+
+# Get the ARDS
+ards &lt;- get_ards() 
+
+# Uncomment to view ards
+# View(ards)
+</code></pre>
+
+
+</div>

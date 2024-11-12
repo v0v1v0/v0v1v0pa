@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ActivePathways</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ActivePathways</h2>
+
+<h3>Description</h3>
+
+<p>ActivePathways
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ActivePathways(
+  scores,
+  gmt,
+  background = makeBackground(gmt),
+  geneset_filter = c(5, 1000),
+  cutoff = 0.1,
+  significant = 0.05,
+  merge_method = c("Fisher", "Fisher_directional", "Brown", "DPM", "Stouffer",
+    "Stouffer_directional", "Strube", "Strube_directional"),
+  correction_method = c("holm", "fdr", "hochberg", "hommel", "bonferroni", "BH", "BY",
+    "none"),
+  cytoscape_file_tag = NA,
+  color_palette = NULL,
+  custom_colors = NULL,
+  color_integrated_only = "#FFFFF0",
+  scores_direction = NULL,
+  constraints_vector = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>A numerical matrix of p-values where each row is a gene and
+each column represents an omics dataset (evidence). Rownames correspond to the genes 
+and colnames to the datasets. All values must be 0&lt;=p&lt;=1. We recommend converting 
+missing values to ones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gmt</code></td>
+<td>
+<p>A GMT object to be used for enrichment analysis. If a filename, a
+GMT object will be read from the file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>background</code></td>
+<td>
+<p>A character vector of gene names to be used as a
+statistical background. By default, the background is all genes that appear
+in <code>gmt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geneset_filter</code></td>
+<td>
+<p>A numeric vector of length two giving the lower and 
+upper limits for the size of the annotated geneset to pathways in gmt.
+Pathways with a geneset shorter than <code>geneset_filter[1]</code> or longer
+than <code>geneset_filter[2]</code> will be removed. Set either value to NA
+to not enforce a minimum or maximum value, or set <code>geneset_filter</code> to 
+<code>NULL</code> to skip filtering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>A maximum merged p-value for a gene to be used for analysis.
+Any genes with merged, unadjusted <code>p &gt; significant</code> will be discarded 
+before testing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>significant</code></td>
+<td>
+<p>Significance cutoff for selecting enriched pathways. Pathways with
+<code>adjusted_p_val &lt;= significant</code> will be selected as results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_method</code></td>
+<td>
+<p>Statistical method to merge p-values. See section on Merging P-Values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction_method</code></td>
+<td>
+<p>Statistical method to correct p-values. See
+<code>p.adjust</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cytoscape_file_tag</code></td>
+<td>
+<p>The directory and/or file prefix to which the output files
+for generating enrichment maps should be written. If NA, files will not be written.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color_palette</code></td>
+<td>
+<p>Color palette from RColorBrewer::brewer.pal to color each
+column in the scores matrix. If NULL grDevices::rainbow is used by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_colors</code></td>
+<td>
+<p>A character vector of custom colors for each column in the scores matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color_integrated_only</code></td>
+<td>
+<p>A character vector of length 1 specifying the color of the 
+"combined" pathway contribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores_direction</code></td>
+<td>
+<p>A numerical matrix of log2 transformed fold-change values where each row is a
+gene and each column represents a dataset (evidence). Rownames correspond to the genes
+and colnames to the datasets. We recommend converting missing values to zero. 
+Must contain the same dimensions as the scores parameter. Datasets without directional information should be set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraints_vector</code></td>
+<td>
+<p>A numerical vector of +1 or -1 values corresponding to the user-defined
+directional relationship between columns in scores_direction. Datasets without directional information should
+be set to 0.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.table of terms (enriched pathways) containing the following columns:
+</p>
+
+<dl>
+<dt>term_id</dt>
+<dd>
+<p>The database ID of the term</p>
+</dd>
+<dt>term_name</dt>
+<dd>
+<p>The full name of the term</p>
+</dd>
+<dt>adjusted_p_val</dt>
+<dd>
+<p>The associated p-value, adjusted for multiple testing</p>
+</dd>
+<dt>term_size</dt>
+<dd>
+<p>The number of genes annotated to the term</p>
+</dd>
+<dt>overlap</dt>
+<dd>
+<p>A character vector of the genes enriched in the term</p>
+</dd>
+<dt>evidence</dt>
+<dd>
+<p>Columns of <code>scores</code> (i.e., omics datasets) that contributed 
+individually to the enrichment of the term. Each input column is evaluated 
+separately for enrichments and added to the evidence if the term is found.</p>
+</dd>
+</dl>
+<h3>Merging P-values</h3>
+
+<p>To obtain a single p-value for each gene across the multiple omics datasets considered, 
+the p-values in <code>scores</code> #' are merged row-wise using a data fusion approach of p-value merging. 
+The eight available methods are:
+</p>
+
+<dl>
+<dt>Fisher</dt>
+<dd>
+<p>Fisher's method assumes p-values are uniformly
+distributed and performs a chi-squared test on the statistic sum(-2 log(p)).
+This method is most appropriate when the columns in <code>scores</code> are
+independent.</p>
+</dd>
+<dt>Fisher_directional</dt>
+<dd>
+<p>Fisher's method modification that allows for 
+directional information to be incorporated with the <code>scores_direction</code>
+and <code>constraints_vector</code> parameters.</p>
+</dd>
+<dt>Brown</dt>
+<dd>
+<p>Brown's method extends Fisher's method by accounting for the
+covariance in the columns of <code>scores</code>. It is more appropriate when the
+tests of significance used to create the columns in <code>scores</code> are not
+necessarily independent. The Brown's method is therefore recommended for 
+many omics integration approaches.</p>
+</dd>
+<dt>DPM</dt>
+<dd>
+<p>DPM extends Brown's method by incorporating directional information
+using the <code>scores_direction</code> and <code>constraints_vector</code> parameters.</p>
+</dd>
+<dt>Stouffer</dt>
+<dd>
+<p>Stouffer's method assumes p-values are uniformly distributed
+and transforms p-values into a Z-score using the cumulative distribution function of a
+standard normal distribution. This method is appropriate when the columns in <code>scores</code>
+are independent.</p>
+</dd>
+<dt>Stouffer_directional</dt>
+<dd>
+<p>Stouffer's method modification that allows for 
+directional information to be incorporated with the <code>scores_direction</code>
+and <code>constraints_vector</code> parameters.</p>
+</dd>
+<dt>Strube</dt>
+<dd>
+<p>Strube's method extends Stouffer's method by accounting for the 
+covariance in the columns of <code>scores</code>.</p>
+</dd>
+<dt>Strube_directional</dt>
+<dd>
+<p>Strube's method modification that allows for 
+directional information to be incorporated with the <code>scores_direction</code>
+and <code>constraints_vector</code> parameters.</p>
+</dd>
+</dl>
+<h3>Cytoscape</h3>
+
+<p>To visualize and interpret enriched pathways, ActivePathways provides an option
+to further analyse results as enrichment maps in the Cytoscape software. 
+If <code>!is.na(cytoscape_file_tag)</code>, four files will be written that can be used 
+to build enrichment maps. This requires the EnrichmentMap and enhancedGraphics apps.
+</p>
+<p>The four files written are:
+</p>
+
+<dl>
+<dt>pathways.txt</dt>
+<dd>
+<p>A list of significant terms and the
+associated p-value. Only terms with <code>adjusted_p_val &lt;= significant</code> are
+written to this file.</p>
+</dd>
+<dt>subgroups.txt</dt>
+<dd>
+<p>A matrix indicating whether the significant terms (pathways)
+were also found to be significant when considering only one column from
+<code>scores</code>. A one indicates that term was found to be significant 
+when only p-values in that column were used to select genes.</p>
+</dd>
+<dt>pathways.gmt</dt>
+<dd>
+<p>A Shortened version of the supplied GMT
+file, containing only the significantly enriched terms in pathways.txt. </p>
+</dd>
+<dt>legend.pdf</dt>
+<dd>
+<p>A legend with colours matching contributions
+from columns in <code>scores</code>.</p>
+</dd>
+</dl>
+<p>How to use: Create an enrichment map in Cytoscape with the file of terms
+(pathways.txt) and the shortened gmt file
+(pathways.gmt). Upload the subgroups file (subgroups.txt) as a table
+using the menu File &gt; Import &gt; Table from File. To paint nodes according 
+to the type of supporting evidence, use the 'style'
+panel, set image/Chart1 to use the column 'instruct' and the passthrough
+mapping type. Make sure the app enhancedGraphics is installed. 
+Lastly, use the file legend.pdf as a reference for colors in the enrichment map.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    fname_scores &lt;- system.file("extdata", "Adenocarcinoma_scores_subset.tsv", 
+         package = "ActivePathways")
+    fname_GMT = system.file("extdata", "hsapiens_REAC_subset.gmt",
+         package = "ActivePathways")
+
+    dat &lt;- as.matrix(read.table(fname_scores, header = TRUE, row.names = 'Gene'))
+    dat[is.na(dat)] &lt;- 1
+
+    ActivePathways(dat, fname_GMT)
+
+</code></pre>
+
+
+</div>

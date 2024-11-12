@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gravity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gravity-based accessibility measures</h2>
+
+<h3>Description</h3>
+
+<p>Calculates gravity-based accessibility using a decay function specified by
+the user.
+</p>
+<p>This function is generic over any kind of numeric travel cost,
+such as distance, time and money.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gravity(
+  travel_matrix,
+  land_use_data,
+  opportunity,
+  travel_cost,
+  decay_function,
+  group_by = character(0),
+  active = TRUE,
+  fill_missing_ids = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>travel_matrix</code></td>
+<td>
+<p>A data frame. The travel matrix describing the costs
+(i.e. travel time, distance, monetary cost, etc.) between the origins and
+destinations in the study area. Must contain the columns <code>from_id</code>, <code>to_id</code>
+and any others specified in <code>travel_cost</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>land_use_data</code></td>
+<td>
+<p>A data frame. The distribution of opportunities within
+the study area cells. Must contain the columns <code>id</code> and any others
+specified in <code>opportunity</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opportunity</code></td>
+<td>
+<p>A string. The name of the column in <code>land_use_data</code>
+with the number of opportunities/resources/services to be considered when
+calculating accessibility levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>travel_cost</code></td>
+<td>
+<p>A string. The name of the column in <code>travel_matrix</code>
+with the travel cost between origins and destinations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decay_function</code></td>
+<td>
+<p>A <code>fuction</code> that converts travel cost into an
+impedance factor used to weight opportunities. This function should take a
+<code>numeric</code> vector and also return a <code>numeric</code> vector as output, with the
+same length as the input. For convenience, the package currently includes
+the following functions: <code>decay_binary()</code>, <code>decay_exponential()</code>,
+<code>decay_power()</code> and <code>decay_stepped()</code>. See the documentation of each decay
+function for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_by</code></td>
+<td>
+<p>A <code>character</code> vector. When not <code>character(0)</code> (the default),
+indicates the <code>travel_matrix</code> columns that should be used to group the
+accessibility estimates by. For example, if <code>travel_matrix</code> includes a
+departure time column, that specifies the departure time of each entry in
+the data frame, passing <code>"departure_time"</code> to this parameter results in
+accessibility estimates grouped by origin and by departure time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>A logical. Whether to calculate active accessibility (the
+of opportunities that can be reached from a given origin, the default) or
+passive accessibility (by how many people each destination can be reached).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill_missing_ids</code></td>
+<td>
+<p>A <code>logical</code>. When calculating grouped accessibility
+estimates (i.e. when <code>by_col</code> is not <code>NULL</code>), some combinations of groups
+and origins may be missing. For example, if a single trip can depart from
+origin <code>A</code> at 7:15am and reach destination <code>B</code> within 55 minutes, but no
+trips departing from <code>A</code> at 7:30am can be completed at all, this second
+combination will not be included in the output. When <code>TRUE</code> (the default),
+the function identifies which combinations would be left out and fills
+their respective accessibility values with 0, which incurs in a
+performance penalty.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame containing the accessibility estimates for each
+origin/destination (depending if <code>active</code> is <code>TRUE</code> or <code>FALSE</code>) in the
+travel matrix.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data_dir &lt;- system.file("extdata", package = "accessibility")
+travel_matrix &lt;- readRDS(file.path(data_dir, "travel_matrix.rds"))
+land_use_data &lt;- readRDS(file.path(data_dir, "land_use_data.rds"))
+
+df_linear &lt;- gravity(
+  travel_matrix,
+  land_use_data,
+  decay_function = decay_linear(cutoff = 50),
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+head(df_linear)
+
+df_exp &lt;- gravity(
+  travel_matrix,
+  land_use_data,
+  decay_function = decay_exponential(decay_value = 0.5),
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+head(df_exp)
+
+</code></pre>
+
+
+</div>

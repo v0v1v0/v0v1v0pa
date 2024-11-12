@@ -1,0 +1,488 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IFFChunk-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Coerce to and create IFFChunk objects</h2>
+
+<h3>Description</h3>
+
+<p>Convert <code>IFF.ANY</code> objects (created with <code>interpretIFFChunk()</code>) into
+<code>IFFChunk()</code> objects. A basic <code>IFFChunk()</code> can also be
+created with this method by providing the chunk type name.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IFFChunk(x, ...)
+
+## S3 method for class 'character'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.FORM'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.BODY'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.ANNO'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.AUTH'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.CHRS'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.NAME'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.TEXT'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.copyright'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.CHAN'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.VHDR'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.8SVX'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.ILBM'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.CMAP'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.BMHD'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.CAMG'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.CRNG'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.ANIM'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.ANHD'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.DLTA'
+IFFChunk(x, ...)
+
+## S3 method for class 'IFF.DPAN'
+IFFChunk(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An S3 class <code>IFF.ANY</code> object that needs to be coerced into an
+<code>IFFChunk-class()</code> object. <code>IFF.ANY</code> objects are created with the
+<code>interpretIFFChunk()</code> method. <code>x</code> can also be a <code>character</code> string
+of a IFF chunk type (e.g., "<code>FORM</code>" or "<code>BMHD</code>"). In that case an
+<code>IFFChunk()</code> object of that type is created with some basic content.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed onto methods underlying the interpretation of the
+specific IFF chunks. Allowed arguments depend on the specific type of IFF chunk that
+<code>x</code> represents.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>IFF data is stored in a <code>IFFChunk-class()</code> object when read from an
+IFF file (<code>read.iff()</code>). These objects reflect the file structure
+well, but the data is stored as <code>raw</code> information. IFF files can contain
+a wide variety of information types, ranging from bitmap images to audio
+clips. The raw information stored in <code>IFFChunk()</code> objects can
+be interpreted into more meaningful representations that can be handled in
+R. This is achieved with the <code>interpretIFFChunk()</code> method, which
+returns <code>IFF.ANY</code> objects.
+</p>
+<p>These <code>IFF.ANY</code> objects are a less strict representation of the
+IFF Chunk, but are easier to handle in R. The interpretation method is lossy
+and may not preserve all information in the <code>IFF.ANY</code> object.
+The <code>IFFChunk-method()</code> can coerce <code>IFF.ANY</code> back
+to the more strictly defined <code>IFFChunk-class()</code> objects.
+Be careful with conversions between <code>IFFChunk-class()</code> and
+<code>IFF.ANY</code> objects and vice versa, as information may get lost.
+</p>
+<p>More detailed information about IFF chunks can be found in the IFF chunk registry
+(see references).
+</p>
+
+<ul>
+<li> <p><code>IFF.FORM</code> represents a FORM chunk, which is a container that can hold any kind of chunk.
+When interpreted, it is represented as a <code>list</code>, where each element is an interpreted chunk
+nested inside the FORM.
+</p>
+</li>
+<li> <p><code>IFF.BODY</code> represents the actual data in an IFF file. However, without context
+this chunk cannot be interpreted and is therefore interpreted as a vector of <code>raw</code> data.
+</p>
+</li>
+<li> <p><code>IFF.ANIM</code> represents an animation (ANIM) chunk. When interpreted, it will return a <code>list</code> where each
+element is an animation frame represented as an <code>IFF.ILBM</code> object. Each animation frame should be
+nested inside an ILBM chunk nested inside a FORM chunk, nested inside an ANIM chunk.
+</p>
+
+<ul>
+<li> <p><code>IFF.ANHD</code> represents an ANimation HeaDer (ANHD) chunk. When interpreted,
+it returns a named <code>list</code> containing the
+following information:
+</p>
+
+<ul>
+<li> <p><code>operation</code> is a <code>character</code> string indicating how the bitmap
+data for the animation frame is encoded. Can be one of the following:
+"<code>standard</code>", "<code>XOR</code>", "<code>LongDeltaMode</code>",
+"<code>ShortDeltaMode</code>", "<code>GeneralDeltamode</code>",
+"<code>ByteVerticalCompression</code>", "<code>StereoOp5</code>", or
+"<code>ShortLongVerticalDeltaMode</code>". Currently, only the
+ByteVerticalCompression is implemented in this package.
+</p>
+</li>
+<li> <p><code>mask</code> is a <code>vector</code> of 8 <code>logical</code> values. It is currently
+ignored.
+</p>
+</li>
+<li> <p><code>w</code> and <code>h</code> are positive <code>numeric</code> values, specifying
+the width and height of the frame (should be identical for all frames).
+</p>
+</li>
+<li> <p><code>x</code> and <code>y</code> are <code>numeric</code> values, specifying the plotting
+position for the frame.
+</p>
+</li>
+<li> <p><code>abstime</code> is a positive <code>numeric</code> value - currently unused - used for
+timing the frame relative to the time the first frame was displayed. In
+jiffies (1/60 sec).
+</p>
+</li>
+<li> <p><code>reltime</code> is a positive <code>numeric</code> value for timing the frame
+relative to time previous frame was displayed. In jiffies (1/60 sec).
+</p>
+</li>
+<li> <p><code>interleave</code> is currently unused. It should be set to 0.
+</p>
+</li>
+<li> <p><code>pad0</code> is a padding byte (<code>raw</code>) for future use.
+</p>
+</li>
+<li> <p><code>flags</code> is a <code>vector</code> of 32 <code>logical</code> values. They contain
+information on how the bitmap data is stored.
+</p>
+</li>
+<li> <p><code>pad1</code> are 16 padding bytes (<code>raw</code>) for future use.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.DPAN</code> represents an DPaint ANimation (DPAN) chunk. Some software will
+require this chunk to correctly derive the total number of frames in the animation.
+When interpreted, it will return a named <code>list</code> with the following elements:
+</p>
+
+<ul>
+<li> <p><code>version</code> a <code>numeric</code> version number.
+</p>
+</li>
+<li> <p><code>nframes</code> a positive <code>numeric</code> value, indicating the number
+of frames in the animation.
+</p>
+</li>
+<li> <p><code>flags</code> a <code>vector</code> of 32 <code>logical</code> values. Ignored in
+this package as it was intended for future implementations.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.DLTA</code> represents a delta mode data chunk (DLTA). The first animation
+frame is stored as a normal InterLeaved BitMap (ILBM) image as described below.
+The following frames only store differences in bitmap data compared to the
+previous frames but is not interleaved. They are thus incorrectly embedded in
+an ILBM chunk (but is kept so for backward compatibility). When interpreted,
+a <code>grDevices</code> raster object is returned only showing the differences. It
+is not very meaningful to interpret these chunks on their own, but rather the
+entire parent ANIM chunk.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.ILBM</code> represents InterLeaved BitMap (ILBM) chunks. It is interpreted here as a
+raster image (see <code>grDevices::as.raster()</code>). ILBM chunks are usually nested inside
+a FORM container.
+</p>
+
+<ul>
+<li> <p><code>IFF.BMHD</code> represents the header chunk of a bitmap (BMHD), and should always be present
+(nested inside) an ILBM chunk. It is interpreted as a named list containing the following elements:
+</p>
+
+<ul>
+<li> <p><code>w</code> and <code>h</code> are positive <code>numeric</code> values specifying
+the bitmap width and height in pixels. Note that the width
+can be any positive whole number, whereas the bitmap data always
+has a width divisible by 16.
+</p>
+</li>
+<li> <p><code>x</code> and <code>y</code> are <code>numeric</code> values specifying the plotting
+position relative to the top left position of the screen.
+Although required in the bitmap header. It is ignored in the
+interpretation of bitmap images.
+</p>
+</li>
+<li> <p><code>nPlanes</code> is a positive value indicating the number of
+bitplanes in the image. The number of colours in an image
+can be calculated as <code>2^nPlanes</code>.
+</p>
+</li>
+<li> <p><code>Masking</code> indicates whether there are bitplanes that should
+be masked (i.e. are treated as transparent). It is a <code>character</code>
+string equalling any of the following: "<code>mskNone</code>",
+"<code>mskHasMask</code>", "<code>mskHasTransparentColour</code>",
+"<code>mskLasso</code>" or "<code>mskUnknown</code>". Only the first (no transparency)
+and third (one of the colours should be treated as transparent)
+id is currently interpreted correctly. The others are ignored.
+"<code>mskUnknown</code>" means that an undocumented mask is applied
+to the image.
+</p>
+</li>
+<li> <p><code>Compression</code> indicates whether the bitmap data is
+compressed. It is a <code>character</code> string that can equal any
+of the following: "<code>cmpNone</code>", "<code>cmpByteRun1</code>" or
+"<code>cmpUnknown</code>". The latter means an undocumented form of
+compression is applied and is currently ignored. In most cases
+bitmap data is compressed with the <code>cmpByteRun1</code> algorithm
+(<code>packBitmap()</code>). In some cases, bitmap data is not
+compressed (<code>cmpNone</code>).
+</p>
+</li>
+<li> <p><code>pad</code> is a <code>raw</code> byte that is only used to
+align data. It is ignored in the interpretation.
+</p>
+</li>
+<li> <p><code>transparentColour</code> is a <code>numeric</code> value that indicates
+which colour number in the palette should be treated as fully
+transparent (when <code>Masking</code> equals
+"<code>mskHasTransparentColour</code>").
+</p>
+</li>
+<li> <p><code>xAspect</code> and <code>yAspect</code> or positive <code>numeric</code>
+values that indicate the aspect ratio of
+the pixels in the image. Amiga screen modes allowed for some
+extreme pixel aspect ratios. These values are used to stretch
+the image to their intended display mode.
+</p>
+</li>
+<li> <p><code>pageWidth</code> and <code>pageHeight</code> are positive
+<code>numeric</code> values indicating the size of the screen in which
+the image should be displayed. They are ignored in the
+interpretation of the image.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.CMAP</code> represents the colour map (CMAP) or palette of a bitmap image. Although common,
+the chunk is optional and can be omitted from the parent ILBM chunk. It is interpreted as a
+vector of colours (i.e., a <code>character</code> string formatted as '#RRGGBB' or named colours such as
+'blue').
+</p>
+</li>
+<li> <p><code>IFF.CAMG</code> represents a chunk with information with respect
+to the display mode in which the bitmap image should be displayed.
+This information can be used to determine the correct pixel aspect
+ratio, or is sometimes required to correctly interpret the bitmap
+information. The <code>IFF.CAMG</code> chunk is interpreted as a named list
+containing the following elements:
+</p>
+
+<ul>
+<li> <p><code>monitor</code>: a <code>factor</code> indicating the hardware monitor
+on which the image was created and should be displayed (see
+<code>amiga_monitors()</code>).
+</p>
+</li>
+<li> <p><code>display.mode</code>: a <code>factor</code> indicating the display
+mode in which the image should be displayed (see
+<code>amiga_display_modes()</code>).
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.CRNG</code> is an optional chunk nested in an ILBM chunk.
+It represents a ‘colour range’ and is used to cycle through
+colours in the bitmap's palette in order to achieve
+animation effects. It is interpreted as a named list with the
+following elements. This chunk is currently not used with
+the interpretation of ILBM images.
+</p>
+
+<ul>
+<li> <p><code>padding</code> are two <code>raw</code> padding bytes and are
+ignored when interpreted.
+</p>
+</li>
+<li> <p><code>rate</code> is a <code>numeric</code> value specifying the rate
+at which the colours are cycled. The rate is in steps per
+second.
+</p>
+</li>
+<li> <p><code>flags</code> is a flag that indicates how colours should
+be cycled. It is a <code>character</code> string that can equal
+any of the following: "<code>RNG_OFF</code>", "<code>RNG_ACTIVE</code>",
+"<code>RNG_REVERSE</code>" or "<code>RNG_UNKNOWN</code>". When equal to the
+first, colours are not cycled. When equal to the second, colours
+are cycled. When equal to the third, colours are cycled in
+reverse direction. When equal to the latter, an undocumented
+form of cycling is applied.
+</p>
+</li>
+<li> <p><code>low</code> and <code>high</code> are <code>numeric</code> indices of
+colours between which should be cycled. Only colour from
+index <code>low</code> up to index <code>high</code> are affected.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.8SVX</code> represents 8-bit sampled voice chunks (8SVX). The original
+Amiga supported 8-bit audio which could be stored using the IFF. 8SVX chunks
+can contain separate audio samples for each octave. 8SVX chunks are usually
+stored inside a FORM container. Its body chunk contains 8-bit PCM wave data that
+could be compressed. When the 8SVX chunk is
+interpreted with this package, a <code>list</code> is returned where each element
+represents an octave given as a <code>tuneR::Wave()</code> object. Possible
+chunks nested in 8SVX chunks and currently supported by this package are
+as follows.
+</p>
+
+<ul>
+<li> <p><code>IFF.VHDR</code> represents voice header chunks (VHDR). It contains (meta-)information about
+the audio stored in the body of the parent 8SVX chunk. When interpreted, a named <code>list</code> is
+returned with the following elements:
+</p>
+
+<ul>
+<li> <p><code>oneShotHiSamples</code> is a <code>numeric</code> value indicating how many samples there are in the
+audio wave of the first octave in the file, that should not be looped (repeated).
+</p>
+</li>
+<li> <p><code>repeatHiSamples</code> is a <code>numeric</code> value indicating how many samples there are in the
+audio wave of the first octave in the file, that should be looped (repeated).
+</p>
+</li>
+<li> <p><code>samplesPerHiCycle</code> is a <code>numeric</code> value specifying the
+number of samples per repeat cycle in the first octave, or 0 when unknown.
+The number of <code>repeatHiSamples</code> should be an exact multiple of
+<code>samplesPerHiCycle</code>.
+</p>
+</li>
+<li> <p><code>samplesPerSec</code> is a <code>numeric</code> value specifying the data
+sampling rate.
+</p>
+</li>
+<li> <p><code>ctOctave</code> a positive whole <code>numeric</code> value indicating how many octaves are included.
+In 8SVX files the audio wave is resampled for each octave. The wave data in the body starts with
+the audio sample in the highest octave (least number of samples). The data is then followed by
+each subsequent octave, where the number of samples increase by a factor of 2 for each octave.
+</p>
+</li>
+<li> <p><code>sCompression</code> is a <code>character</code> string indicating whether and how the wave data in the body
+is compressed. It can have one of the following values: "<code>sCmpNone</code>" (no compression),
+"<code>sCmpFibDelta</code>" (<code>deltaFibonacciCompress()</code>ion is applied), "<code>sCmpUnknown</code>" (an
+undocumented and unknown form of compression is applied).
+</p>
+</li>
+<li> <p><code>volume</code> is a numeric value between <code>0</code> (minimum) and <code>0x10000</code> (maximum) playback volume.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.CHAN</code> represents the channel chunk (CHAN). When interpreted it returns a named list
+with 1 named element:
+"<code>channel</code>". It's value can be one of the following <code>character</code> strings "<code>LEFT</code>", "<code>RIGHT</code>" or
+"<code>STEREO</code>". This indicates for how many (one or two) audio channels data is available in the
+body of the parent
+8SVX chunk. It also indicates two which channels the audio should be played back.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IFF.ANNO</code>, <code>IFF.AUTH</code>, <code>IFF.CHRS</code>, <code>IFF.NAME</code>, <code>IFF.TEXT</code> and <code>IFF.copyright</code>
+are all unformatted text chunks that can be included optionally in any of the chunk types.
+Respectively, they
+represent an annotation, the author's name, a generic character string, the name of the work,
+generic unformatted text,
+and copyright text. They are interpreted as a <code>character</code> string.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Returns an <code>IFFChunk-class()</code> representation of <code>x</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://wiki.amigaos.net/wiki/IFF_FORM_and_Chunk_Registry">https://wiki.amigaos.net/wiki/IFF_FORM_and_Chunk_Registry</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## load an IFF file
+example.iff &lt;- read.iff(system.file("ilbm8lores.iff", package = "AmigaFFH"))
+
+## interpret the IFF file (in some cases information
+## will get lost in this step):
+example.itpt &lt;- interpretIFFChunk(example.iff)
+
+## now coerce back to a formal IFFChunk class object.
+## Only information in the interpreted object is used
+## The coerced object may therefore depart from the
+## original read from the file.
+example.coerce &lt;- IFFChunk(example.itpt)
+
+## and indeed the objects are not identical, as shown below.
+## In this case the difference is not disastrous, the order
+## of the colours in the palette have shifted. But be careful
+## with switching between formal IFFChunk objects and
+## interpreted IFF.ANY objects.
+identical(example.iff, example.coerce)
+
+## It is also possible to create simple IFFChunk objects
+## by providing the desired chunk type identifier as a
+## character string.
+
+## This creates a basic bitmap header:
+bmhd &lt;- IFFChunk("BMHD")
+
+## This creates a basic colour palette:
+cmap &lt;- IFFChunk("CMAP")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

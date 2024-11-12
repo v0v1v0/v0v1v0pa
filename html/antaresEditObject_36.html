@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createClusterBulk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create serial thermal cluster</h2>
+
+<h3>Description</h3>
+
+<p>For each area, the thermal cluster data are generated :
+</p>
+
+<ul>
+<li>
+<p> Writing <code>.ini</code> files
+</p>
+</li>
+<li>
+<p> Writing time_series files
+</p>
+</li>
+<li>
+<p> Writing prepro_data files
+</p>
+</li>
+<li>
+<p> Writing prepro_modulation files
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">createClusterBulk(
+  cluster_object,
+  area_zone,
+  add_prefix = TRUE,
+  opts = antaresRead::simOptions()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cluster_object</code></td>
+<td>
+<p><code>list</code> mutiple list containing the parameters for writing each cluster</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area_zone</code></td>
+<td>
+<p><code>character</code> name of area to create cluster</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_prefix</code></td>
+<td>
+<p><code>logical</code> prefix cluster name with area name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>List of simulation parameters returned by the function
+<code>antaresRead::setSimulationPath()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>see the example to write a cluster object,
+see the original function <code>createCluster()</code>
+</p>
+<p>Structure of <code>cluster_object</code> :
+</p>
+<p>The list must be structured with named items
+</p>
+
+<ul>
+<li> <p><code>parameter</code> : <code>list</code> of paramaters to write in .ini file
+</p>
+</li>
+<li> <p><code>overwrite</code> : <code>logical</code> to choose to overwrite an existing cluster (if not present, set to <code>FALSE</code>)
+</p>
+</li>
+<li> <p><code>time_series</code> : <code>matrix</code> or <code>data.frame</code> the "ready-made" 8760-hour time-series
+</p>
+</li>
+<li> <p><code>prepro_data</code> : <code>matrix</code> or <code>data.frame</code> Pre-process data
+</p>
+</li>
+<li> <p><code>prepro_modulation</code> : <code>matrix</code> or <code>data.frame</code> Pre-process modulation
+</p>
+</li>
+</ul>
+<p>Details for sublist <code>cluster_object[["parameter"]]</code> :
+</p>
+
+<ul>
+<li> <p><code>name</code> : Name for the cluster,
+it will prefixed by area name, unless you set add_prefix = FALSE
+</p>
+</li>
+<li> <p><code>group</code> : Group of the cluster, depends on cluster type
+</p>
+</li>
+<li> <p><code>...</code> : Parameters to write in the Ini file
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An updated list containing various information about the simulation.
+</p>
+<p><code>list</code> containing meta information about the simulation
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# /!\/!\/!\ use or create a study /!\/!\/!\
+
+# data preparation for sutructures
+ts &lt;- matrix(rep(c(0, 8000), each = 24*364), 
+             ncol = 2)
+
+df_pd &lt;- matrix(rep(c(1, 1, 1, 0), each = 24*365), 
+                ncol = 4)
+
+df_pm &lt;- matrix(data = c(rep(1, times = 365 * 24 * 3), rep(0, times = 365 * 24 * 1)), 
+                ncol = 4)
+
+
+# Example cluster object
+zone_test_1 &lt;- list(
+  `CCGT old 1`= list(
+  parameter= list(
+  name= "CCGT old 1",
+  group = "Other",
+  unitcount= 10L,
+  nominalcapacity= 100,
+   enabled= "true",
+   `min-stable-power`= 80L,
+   `min-up-time`= 20L,
+   `min-down_time`= 30L),
+   overwrite= TRUE,
+   time_series = ts_8760,
+   prepro_data = df_pd,
+   prepro_modulation = df_pm))
+ 
+ # overwrite existing cluster
+zone_test_2 &lt;- list(
+ `PEAK`= list(parameter= list(
+   name= "PEAK",
+   group = "Other"),
+   overwrite= TRUE,
+   time_series = ts,
+   prepro_data = df_pd,
+   prepro_modulation = df_pm))
+
+# Create multiple areas with multiple clusters
+list_areas &lt;- antaresRead::getAreas()[1:5]
+
+lapply(list_areas, createClusterBulk,
+cluster_object = c(zone_test_1, zone_test_2),
+add_prefix = TRUE)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

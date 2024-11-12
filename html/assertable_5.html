@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>assert_values</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Assert that a data.frame's columns are non-NA/infinite, or are greater, less than, equal/not-equal, or contain specified values.</h2>
+
+<h3>Description</h3>
+
+<p>Given a data.frame or data.table object, make assertions about values of the columns within the object.
+Assert that a column contains no missing/infinite values, or that it is greater/less than, equal to, or contains 
+either a single value, vector with nrow(data) values, or a vector of any length(for <em>in</em> option).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">assert_values(data, colnames, test = "not_na", test_val = NA,
+  display_rows = TRUE, na.rm = FALSE, warn_only = FALSE,
+  quiet = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or data.table</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnames</code></td>
+<td>
+<p>Character vector with column names corresponding to columns in <em>data</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>The type of evaluation you want to assert in your data
+</p>
+
+<ul>
+<li> <p><em>not_na</em>:      All values must not be Na
+</p>
+</li>
+<li> <p><em>not_nan</em>:     All values must not be NaN
+</p>
+</li>
+<li> <p><em>not_inf</em>:     All values must not be infinite
+</p>
+</li>
+<li> <p><em>lt</em>:          All values must be less than test_val
+</p>
+</li>
+<li> <p><em>lte</em>:         All values must be less than or equal to test_val
+</p>
+</li>
+<li> <p><em>gt</em>:          All values must be greater than test_val
+</p>
+</li>
+<li> <p><em>gte</em>:         All values must be greater than or equal to test_val
+</p>
+</li>
+<li> <p><em>equal</em>:       All values must be equal to test_val
+</p>
+</li>
+<li> <p><em>not_equal</em>:   All values must not equal test_val
+</p>
+</li>
+<li> <p><em>in</em>:          All values must be one of the values in test_val
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_val</code></td>
+<td>
+<p>A single value, a vector with length = nrow(data), or a vector of any length (if using the <em>in</em> option for test. 
+Must match the character type of colnames.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>display_rows</code></td>
+<td>
+<p>Do you want to show the actual rows that violate the assertion? Default=T</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Do you want to remove NA and NaN values from assertions? Default=F</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn_only</code></td>
+<td>
+<p>Do you want to warn, rather than error? Will return all offending rows from the first violation of the assertion Default=F</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Do you want to suppress the printed messages when a test is passed? Default = F.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Throws error if test is violated. If warn_only=T, will return all offending rows from the first violation of the assertion.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">assert_values(CO2, colnames="uptake", test="gt", 0) # Are all values greater than 0?
+assert_values(CO2, colnames="conc", test="lte", 1000) # Are all values less than/equal to 1000?
+## Not run: 
+ assert_values(CO2, colnames="uptake", test="lt", 40) # Are all values less than 40?
+ # Fails: not all values &lt; 40.
+
+## End(Not run)
+assert_values(CO2, colnames="Treatment", test="in", test_val = c("nonchilled","chilled"))
+CO2_mult &lt;- CO2
+CO2_mult$new_uptake &lt;- CO2_mult$uptake * 2
+assert_values(CO2, colnames="uptake", test="equal", CO2_mult$new_uptake/2)
+## Not run: 
+ assert_values(CO2, colnames="uptake", test="gt", CO2_mult$new_uptake/2, display_rows=F)
+ # Fails: uptake !&gt; new_uptake/2
+
+## End(Not run)
+</code></pre>
+
+
+</div>

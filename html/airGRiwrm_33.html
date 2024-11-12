@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getNodeProperties</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Properties of GRiwrm nodes</h2>
+
+<h3>Description</h3>
+
+<p><code>getNodeProperties</code> returns properties of a single node, and
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getNodeProperties(id, griwrm)
+
+getAllNodesProperties(griwrm)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>character Id of the node in the GRiwrm object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>griwrm</code></td>
+<td>
+<p>[GRiwrm object] describing the network of the semi-distributed model (See CreateGRiwrm)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A "Gauged" node is either a node containing a model that is already
+calibrated (parameters are already fixed) or a node containing a model where
+observations are available for calibration.
+</p>
+<p>A "Ungauged" node is a node containing a model which derives its parameters from
+another "donor" node.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>getNodeProperties</code> returns a list with the following items:
+</p>
+
+<ul>
+<li>
+<p> "position" (character): Position of the node in the network ("Upstream" or "Intermediate")
+</p>
+</li>
+<li>
+<p> "DirectInjection" (logical): is the node a Direct Injection node?
+</p>
+</li>
+<li>
+<p> "Diversion" (logical): is the node a Diversion node?
+</p>
+</li>
+<li>
+<p> "Reservoir" (logical): is the node a Reservoir?
+</p>
+</li>
+<li>
+<p> "airGR" (logical): is the node contains an airGR model?
+</p>
+</li>
+<li>
+<p> "calibration" (character): describe if the node is a "Gauged", or an "Ungauged" station,
+(see details), or "NA" otherwise
+</p>
+</li>
+<li>
+<p> "Upstream" (logical): is the node an upstream node?
+</p>
+</li>
+<li>
+<p> "RunOff" (logical): is the node contains an hydrological model?
+</p>
+</li>
+</ul>
+<p><code>getAllNodesProperties</code> returns a data.frame constituted from the list returned
+by <code>getNodeProperties</code> for all nodes.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CreateGRiwrm()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">###############################################################################
+# Severn network with :                                                       #
+# - a Diversion on the node "54001" which transfer flows to the node "540029" #
+# - node 54002 as a Direct Injection node                                     #
+###############################################################################
+data(Severn)
+nodes &lt;- Severn$BasinsInfo
+nodes$model &lt;- "RunModel_GR4J"
+str(nodes)
+nodes &lt;- nodes[, c("gauge_id", "downstream_id", "distance_downstream", "model", "area")]
+# Add a Diversion node from node "54001" to "54029"
+nodes &lt;- rbind(nodes,
+               data.frame(
+                 gauge_id = "54001",
+                 downstream_id = "54029",
+                 distance_downstream = 20,
+                 model = "Diversion",
+                 area = NA
+               ))
+# Set node '54002' as a Direct Injection node
+nodes$model[nodes$id == "54002"] &lt;- NA
+# Mismatch column names are renamed to stick with GRiwrm requirements
+rename_columns &lt;- list(id = "gauge_id",
+                       down = "downstream_id",
+                       length = "distance_downstream")
+# Create GRiwrm object and display properties
+griwrm &lt;- CreateGRiwrm(nodes, rename_columns)
+
+str(getNodeProperties("54001", griwrm))
+
+getAllNodesProperties(griwrm)
+</code></pre>
+
+
+</div>

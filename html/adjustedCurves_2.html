@@ -1,0 +1,465 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adjustedcif</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate Cause-Specific Confounder-Adjusted Cumulative Incidence Functions
+</h2>
+
+<h3>Description</h3>
+
+<p>This is one of two main functions of this R-Package. It allows the user to estimate cause-specific confounder-adjusted cumulative incidence functions in the presence of competing events using a variety of different methods. Some of these methods require additional packages to be installed and, depending on the specified method, there might be additional required arguments in the function call. More information is available on the documentation page of the respective <code>cif_method</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adjustedcif(data, variable, ev_time, event, cause,
+            method, conf_int=FALSE, conf_level=0.95,
+            times=NULL, bootstrap=FALSE, n_boot=500,
+            n_cores=1, na.action=options()$na.action,
+            clean_data=TRUE, iso_reg=FALSE,
+            force_bounds=FALSE, mi_extrapolation=FALSE,
+            ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A <code>data.frame</code> object containing the needed time-to-event data in standard format. Can also be a <code>mids</code> object created with the <span class="pkg">mice</span> package. See details for how this works.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+
+<p>A character string specifying the variable by which the cumulative incidence functions should be grouped. Must be a valid column name of <code>data</code>. The variable specified should needs to be a factor variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ev_time</code></td>
+<td>
+
+<p>A character string specifying the variable indicating the time-to-event or time-to-censoring. Must be a valid column name of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+
+<p>A character string specifying the numeric event indicator. The censoring indicator should be coded as 0 and all other events of interest as 1, 2, etc. Must be a valid column name of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cause</code></td>
+<td>
+
+<p>The cause of interest for which the cumulative incidence functions should be estimated. Should be a number that appears in the <code>event</code> column of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>A character string specifying the adjustment method to use. Case sensitive. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_int</code></td>
+<td>
+
+<p>A logical variable, indicating whether the asymptotic variances and confidence intervals of the cumulative incidence should be estimated. Not available for all methods. More information can be found in the documentation of each method. For an alternative way to get confidence intervals, see the <code>bootstrap</code> argument.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_level</code></td>
+<td>
+
+<p>A number specifying the confidence level of asymptotic and/or bootstrap confidence intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>A numeric vector of time points at which the cumulative incidences should be estimated or <code>NULL</code>. If <code>NULL</code> the cumulative incidence is estimated at all points in time at which any event occurred in the pooled sample.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+
+<p>A logical variable indicating whether bootstrapping should be performed or not. In bootstrapping, a number of simple random samples with replacement of size <code>nrow(data)</code> are drawn from <code>data</code>. For each sample the calculations are repeated and used to estimate standard errors and confidence intervals. This can be used to obtain confidence intervals when asymptotic variance calculations are not available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+
+<p>Number of bootstrap replications to perform. Ignored if <code>bootstrap</code> is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cores</code></td>
+<td>
+
+<p>The number of cores to use when calculating bootstrap estimates. Ignored if <code>bootstrap=FALSE</code>. Is set to 1 by default, resulting in single threaded processing. Internally uses the <span class="pkg">doParallel</span> package if <code>n_cores &gt; 1</code>. In that case it also uses the <span class="pkg">doRNG</span> package to make the results replicable. See <code>?doRNG</code> and <code>?doParallel</code> for more details. Using multiple cores will speed up the calculation considerably in most cases.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>How missing values should be handled. Can be one of: na.fail, na.omit, na.pass or na.exclude. Also accepts strings of the function names. See <code>?na.action</code> for more details. By default it uses the na.action which is set in the global options by the respective user.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clean_data</code></td>
+<td>
+
+<p>If <code>TRUE</code> all columns which are not needed for the estimation are removed from <code>data</code> before any further calculations are performed. This ensures that calls to <code>na.omit</code> (see argument <code>na.action</code>) do not remove rows which are fully observed in respect to relevant columns due to missing values in irrelevant columns. Set to <code>FALSE</code> to skip this step. Usually this argument can be ignored. When using non-standard outcome models however it should be set to <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iso_reg</code></td>
+<td>
+
+<p>Either <code>TRUE</code> or <code>FALSE</code> (default), controlling whether isotonic regression is performed on the resulting failure probability estimates. This can be used to ensure that the CIFs are non-decreasing. Since only a few methods may exhibit this problem, this argument is only relevant for some methods (see method specific documentation).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_bounds</code></td>
+<td>
+
+<p>Either <code>TRUE</code> or <code>FALSE</code> (default), controlling whether the resulting failure probability estimates should be forced to lie between 0 and 1. If <code>TRUE</code> and there are values higher than 1, they are simply set to 1. Values lower than 0 are similarly set to 0. Since only a few methods may exhibit this problem, this argument is only relevant for some methods (see method specific documentation).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mi_extrapolation</code></td>
+<td>
+
+<p>Whether to allow extrapolation due to imputed survival times or not. This argument is only relevant when using multiply imputed <code>data</code> with missing covariates in <code>variable</code>, <code>ev_time</code> or <code>event</code>. Depending on the algorithm used to obtain the imputed datasets, it may be possible that one or more imputed datasets contain survival times in a group that are larger than the maximum observed survival time in that group. This may lead to unwanted extrapolation (e.g. the survival curves extending further than they should). By keeping this argument at <code>FALSE</code>, these times are removed from the output. If set to <code>TRUE</code>, all available estimates will be used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to the respective <code>cif_method</code>. For example when using <code>method="direct"</code> all further arguments are passed to the <code>cif_direct</code> function. See details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The primary purpose of the <code>adjustedcif</code> function is to provide a convenient way to estimate confounder-adjusted cumulative incidence functions using any of the methods provided in the literature. A <code>plot</code> method is provided to graphically display the estimated cumulative incidence functions as well. Currently the following methods can be used:
+</p>
+
+<ul>
+<li>
+<p>"direct": Direct Standardization based on a model describing the outcome mechanism (<code>CSC</code>, <code>FGR</code>, ..).
+</p>
+</li>
+<li>
+<p>"direct_pseudo": Direct Standardization based on Pseudo-Values.
+</p>
+</li>
+<li>
+<p>"iptw": A weighted Aalen-Johansen estimator.
+</p>
+</li>
+<li>
+<p>"iptw_pseudo": A weighted estimator based on Pseudo-Values.
+</p>
+</li>
+<li>
+<p>"matching": Using Propensity Score Matching to estimate the adjusted CIFs.
+</p>
+</li>
+<li>
+<p>"aiptw": An Augmented Inverse Probability of Treatment Weighting estimator.
+</p>
+</li>
+<li>
+<p>"aiptw_pseudo": An Augmented Inverse Probability of Treatment Weighting estimator using Pseudo-Values.
+</p>
+</li>
+<li>
+<p>"aalen_johansen": A simple stratified Aalen-Johansen estimator without any form of adjustment.
+</p>
+</li>
+</ul>
+<p>A short description of each method is contained in the documentation of the respective <code>cif_method</code> function. A concise overview of the supported functionality of each method can be found in the associated vignette (<code>vignette(topic="method_overview", package="adjustedCurves")</code>). For more detailed descriptions the cited literature in the respective documentation pages can be used. The documentation for <code>method="direct"</code> for example can be accessed using <code>?cif_direct</code>.
+</p>
+<p><strong><em>Required &amp; Optional Arguments</em></strong>
+</p>
+<p>Every method requires the specification of the <code>data</code>, <code>variable</code>, <code>ev_time</code>, <code>event</code>, <code>cause</code> and <code>method</code> arguments. All other arguments mentioned on this page are optional and work for all methods. Depending on the method used, other arguments are required as well. Those can be found on the top of the help page of the respective method. The help pages also list additional optional arguments.
+</p>
+<p><strong><em>Confidence Intervals</em></strong>
+</p>
+<p>For most methods approximations for the asymptotic variance of point estimates of the CIF have been proposed in the literature. Where available, those can be estimated and added to the output object using <code>conf_int=TRUE</code>. It is however recommended to use bootstrapping to estimate the variance instead, which can be done by setting <code>bootstrap=TRUE</code>. The <code>n_boot</code> argument is set to 500 by default. This number was chosen because it worked well in simulations but it does not guarantee convergence in practice. Users are recommended to inspect the bootstrapped estimates and adjust the number of replications accordingly. To allow faster bootstrapping the user can choose to run the function on multiple CPU cores in parallel using the <code>n_cores</code> argument.
+</p>
+<p><strong><em>Missing Data</em></strong>
+</p>
+<p>There are two ways to deal with missing data using this function. The first is using the <code>na.action</code> argument. It simply calls the respective <code>na.action</code> function on the data before doing any further processing. By using <code>na.action="na.omit"</code> for example, only rows with complete data are kept for the analysis.
+</p>
+<p>Alternatively, this function also supports the use of multiple imputation via the <span class="pkg">mice</span> package. Instead of supplying a single data.frame, the user should create a <code>mids</code> object using the <code>mice</code> function and directly pass this to the <code>data</code> argument. When methods are used which rely on previously estimated treatment or outcome models such as <code>"direct"</code> or <code>"aiptw"</code>, the user is required to supply a <code>mira</code> object instead of a single model. In other words: the models have to be fit on every imputed dataset before supplying them to this function. See <code>?mice</code> and the associated documentation for more information on how to use multiple imputation. When using <code>bootstrap=TRUE</code> and multiple imputation, the bootstrapping is performed on every imputed dataset separately. Cumulative Incidences are simply averaged across the imputed datasets according to Rubins Rule. Confidence intervals are calculated by first averaging the standard errors over all imputed datasets and afterwards using this pooled value to obtain a new confidence interval with the normal approximation.
+</p>
+<p><strong><em>Competing Risks</em></strong>
+</p>
+<p>This function is meant to be used for data containing multiple competing risks. If the data does not contain competing-events, it is recommended to use the <code>adjustedsurv</code> function instead. It does not estimate the CIF directly, but the CIF can be calculated from the survival using CIF = 1 - <code class="reqn">S(t)</code>. This can be done automatically in the <code>plot.adjustedsurv</code> function using <code>cif=TRUE</code>.
+</p>
+<p><strong><em>Graphical Displays</em></strong>
+</p>
+<p>A general plot of the estimated adjusted CIFs can be obtained using the associated <code>plot</code> method. In addition, a plot of the difference between two estimated adjusted CIFs can be produced using the <code>plot_curve_diff</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an <code>adjustedcif</code> object containing the following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>A <code>data.frame</code> of estimated cumulative incidences for <code>cause</code> at some points in time for each level of <code>variable</code>. Depending on the arguments used also includes standard errors and confidence intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>The method used to adjust the CIFs.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorical</code></td>
+<td>
+<p>Whether there are more than 2 groups in <code>variable</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+
+<p>The original function call.
+</p>
+</td>
+</tr>
+</table>
+<p>When the argument <code>bootstrap</code> is set to <code>TRUE</code> it additionally contains the following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>boot_data</code></td>
+<td>
+<p>The adjusted CIFs estimated in each bootstrap sample.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_adj</code></td>
+<td>
+<p>The mean CIFs of all bootstrap samples and corresponding standard errors and percentile confidence intervals.
+</p>
+</td>
+</tr>
+</table>
+<p>When multiple imputation was used, the function additionally contains a <code>mids_analyses</code> object, containing the <code>adjustedcif</code> objects for each imputed dataset.
+</p>
+<p>Some method specific objects might also be contained in the output.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>The function itself was written by Robin Denz, but some <code>cif_method</code> functions include wrappers for functions written by other people. More information can be found in the respective <code>cif_method</code> documentation.
+</p>
+
+
+<h3>References</h3>
+
+<p>Robin Denz, Renate Klaaßen-Mielke, and Nina Timmesfeld (2023). "A Comparison of Different Methods to Adjust Survival Curves for Confounders". In: Statistics in Medicine 42.10, pp. 1461-1479
+</p>
+<p>More relevant literature can be found in the respective <code>cif_method</code> documentation.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.adjustedcif</code>, <code>adjusted_rmtl</code>, <code>plot_curve_diff</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+library(survival)
+
+set.seed(42)
+
+# simulate some example data
+sim_dat &lt;- sim_confounded_crisk(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# treatment assignment model
+glm_mod &lt;- glm(group ~ x2 + x3 + x5 + x6, data=sim_dat, family="binomial")
+
+if (requireNamespace("riskRegression")) {
+
+library(riskRegression)
+
+# outcome model
+cox_mod &lt;- CSC(Hist(time, event) ~ x1 + x2 + x4 + x5 + group, data=sim_dat)
+
+# using direct adjustment with asymptotic confidence intervals for cause 1
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="direct",
+                      outcome_model=cox_mod,
+                      conf_int=TRUE,
+                      bootstrap=FALSE)
+
+# using IPTW with asymptotic confidence intervals for cause 2
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      method="iptw",
+                      cause=2,
+                      treatment_model=glm_mod,
+                      conf_int=TRUE,
+                      bootstrap=FALSE)
+
+# using AIPTW with asymptotic confidence intervals for cause 1
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="aiptw",
+                      outcome_model=cox_mod,
+                      treatment_model=glm_mod,
+                      conf_int=TRUE,
+                      bootstrap=FALSE)
+
+# using direct adjustment at custom points in time
+custom_times &lt;- c(0.001, 0.1, 0.2, 0.6, 1.1)
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="direct",
+                      outcome_model=cox_mod,
+                      conf_int=TRUE,
+                      bootstrap=FALSE,
+                      times=custom_times)
+
+# using bootstrapping with direct adjustment
+# NOTE: In practice the number of bootstrap replications should be
+#       greater than 10. This is only shown here for convenience.
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="direct",
+                      outcome_model=cox_mod,
+                      conf_int=TRUE,
+                      bootstrap=TRUE,
+                      n_boot=10)
+
+}
+
+# not run because those are too slow
+
+# using bootstrapping with direct adjustment, run in parallel
+# on two cores
+library(foreach)
+library(parallel)
+library(doRNG)
+
+if (requireNamespace("riskRegression")) {
+
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      cause=1,
+                      method="direct",
+                      outcome_model=cox_mod,
+                      conf_int=TRUE,
+                      bootstrap=TRUE,
+                      n_boot=4,
+                      n_cores=2)
+}
+
+if (requireNamespace("mice") &amp; requireNamespace("WeightIt")) {
+
+# using multiple imputation
+library(mice)
+library(WeightIt)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_crisk(n=100, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# introduce random missingness in x1 as example
+# NOTE: This is only done as an example, in reality you would
+#       already have missing data, not introduce it yourself.
+sim_dat$x1 &lt;- ifelse(runif(n=50) &lt; 0.5, sim_dat$x1, NA)
+
+# perform multiple imputation
+mids &lt;- mice::mice(data=sim_dat, method="pmm", m=2, printFlag=FALSE)
+
+# IPTW Pseudo using WeightIt on imputed data, for cause = 1
+adj &lt;- adjustedcif(data=mids,
+                   variable="group",
+                   ev_time="time",
+                   event="event",
+                   method="iptw_pseudo",
+                   cause=1,
+                   treatment_model=group ~ x1 + x2 + x5 + x6,
+                   weight_method="ps")
+plot(adj, force_bounds=TRUE, iso_reg=TRUE)
+}
+
+# More specific examples can be found in the documentation of each
+# respective cif_method. See ?cif_ + "method" for more information.
+
+</code></pre>
+
+
+</div>

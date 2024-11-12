@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>glmscore</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Score Value in Generalized Linear Model
+</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to calculate the value of score function. This function can serve as a tool to assist the users in debugging their self-defined score function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">glmscore(beta, Y, data, weight, offset, family)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>a vector specifying the value of parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+
+<p>a vector specifying the response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>a matrix or data frame of covariates. If this is for score function debugging purpose, see detail for the rearrangement of the dataset.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+
+<p>a vector of weight.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+
+<p>a vector of offset.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>a <code>glm</code> “family” object.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In a general setting, Y can be treated as a response and data as covariates. 
+</p>
+<p>This function helps to debug the user specified score function. The data are needed to be specially arranged such that the score function output can be successfully passed into <code>augSIMEX</code> function in a correct order. The data should be a matrix or data frame of a combination with error-prone covariates (in the order of <code>err.var</code> as in <code>augSIMEX</code>), other covariates and binary variable that is prone to misclassification. The intercept, if considered, should be included the category of “other covariates”.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix of n times m, where n is the number of observations and m is the number of parameters. Each entry in the matrix represents the calculated score value for subject <code class="reqn">i</code> on parameter <code class="reqn">j</code>. The vector of row sum will be the score value vector.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Qihuang Zhang and Grace Y. Yi.
+</p>
+
+
+<h3>References</h3>
+
+<p>McCullagh P. Generalized linear models[J]. European Journal of Operational Research, 1984, 16(3): 285-292.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### The user specified function to be checked. (logit link in binomial family)
+scorefunction=function(beta,Y,data,weight,offset){
+  results&lt;-lapply(1:dim(data)[2],
+                  FUN=function(i){
+                    S&lt;-lapply(1:dim(data)[1],function(x){
+                      eta&lt;- matrix(beta,nrow=1) 
+                      return(weight[x]*Y[x]*data[x,i]-weight[x]*exp(eta)/(1+exp(eta))*data[x,i])})
+                    return(S)}
+  )
+  return(matrix(unlist(results),ncol=dim(data)[2]))
+}
+
+data(ToyUni)
+
+### Data need to rearranged. See detail.
+nsize&lt;-length(ToyUni$Main[,"Y"])
+data.in.score&lt;-data.frame(intercept=1,X=ToyUni$Main[,"Xstar"],
+                          W=ToyUni$Main[,"W"],Z=ToyUni$Main[,"Zstar"])
+
+## compare. The results should be identical.
+glmscore(rep(0,4),ToyUni$Main[,"Y"],data.in.score,rep(1,nsize),
+         rep(0,nsize),family=binomial(link=logit))
+scorefunction(rep(0,4),ToyUni$Main[,"Y"],data.in.score,rep(1,nsize),rep(0,nsize))
+</code></pre>
+
+
+</div>

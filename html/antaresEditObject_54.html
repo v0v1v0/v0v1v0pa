@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>editBindingConstraint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update an existing binding constraint</h2>
+
+<h3>Description</h3>
+
+<p><img src="../help/figures/badge_api_ok.svg" alt="Antares API OK"><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+<p>Update an existing binding constraint in an Antares study.
+The key search value of the constraint is the <code>id</code> field
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">editBindingConstraint(
+  name,
+  id = tolower(name),
+  values = NULL,
+  enabled = NULL,
+  timeStep = NULL,
+  operator = NULL,
+  filter_year_by_year = NULL,
+  filter_synthesis = NULL,
+  coefficients = NULL,
+  group = NULL,
+  opts = antaresRead::simOptions()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The name for the binding constraint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>An id, default is to use the name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Values used by the constraint.
+It contains one line per time step and three columns "less", "greater" and "equal"
+(see documentation below if you're using version study &gt;= v8.7.0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>enabled</code></td>
+<td>
+<p>Logical, is the constraint enabled ?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeStep</code></td>
+<td>
+<p>Time step the constraint applies to : <code>hourly</code>, <code>daily</code> or <code>weekly</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operator</code></td>
+<td>
+<p>Type of constraint: equality, inequality on one side or both sides.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_year_by_year</code></td>
+<td>
+<p>Marginal price granularity for year by year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_synthesis</code></td>
+<td>
+<p>Marginal price granularity for synthesis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>A named list containing the coefficients used by the constraint,
+the coefficients have to be alphabetically ordered see examples below for entering
+weight or weight with offset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>"character" group of the constraint, default value : "default"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>List of simulation parameters returned by the function
+<code>antaresRead::setSimulationPath()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An updated list containing various information about the simulation.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>Put values with rights dimensions :
+</p>
+
+<ul>
+<li>
+<p> hourly : 8784
+</p>
+</li>
+<li>
+<p> daily = 366
+</p>
+</li>
+</ul>
+<p><strong>&gt;= v8.7.0</strong> : For each constraint name, one file .txt containing <code style="white-space: pre;">⁠&lt;id&gt;_lt.txt, &lt;id&gt;_gt.txt, &lt;id&gt;_eq.txt⁠</code>
+Parameter <code>values</code> must be named <code>list</code> ("lt", "gt", "eq") containing <code>data.frame</code> scenarized.
+see example section below.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other binding constraints functions: 
+<code>createBindingConstraintBulk()</code>,
+<code>createBindingConstraint()</code>,
+<code>removeBindingConstraint()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+ # &lt; v8.7.0 :
+editBindingConstraint(
+  name = "myconstraint", 
+  values = matrix(data = rep(0, 8784 * 3), ncol = 3), 
+  enabled = FALSE, 
+  timeStep = "hourly",
+  operator = "both",
+  coefficients = list("fr%de" = 1)
+)
+
+# update binding constraint with weight + offset 
+editBindingConstraint(
+  name = "myconstraint", 
+  values = matrix(data = rep(0, 8784 * 3), ncol = 3), 
+  enabled = FALSE, 
+  timeStep = "hourly",
+  operator = "both",
+  coefficients = list("fr%de" = "1%-5")
+)
+
+ # &gt;= v8.7.0 :
+ 
+# data values scenarized (hourly)
+df &lt;- matrix(data = rep(0, 8784 * 3), ncol = 3)
+ 
+# you can provide list data with all value 
+# or just according with 'operator' (ex : 'lt' for 'less)
+values_data &lt;- list(lt=df, 
+                   gt= df, 
+                   eq= df)  
+                     
+editBindingConstraint(name = "myconstraint", 
+                      values = values_data, 
+                      enabled = TRUE, 
+                      timeStep = "hourly", 
+                      operator = "both", 
+                      filter_year_by_year = "hourly", 
+                      filter_synthesis = "hourly", 
+                      coefficients = list("fr%de" = 1), 
+                      group = "myconstraint_group")                   
+
+## End(Not run)
+</code></pre>
+
+
+</div>

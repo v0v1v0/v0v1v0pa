@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitSnpNmfArray</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Allele-specific copy number estimation using non-negative matrix factorization (NMF)</h2>
+
+<h3>Description</h3>
+
+<p>Allele-specific copy number estimation using non-negative matrix factorization (NMF).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitSnpNmfArray(Y, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An Lx2xI <code>array</code> where L is number of probe pairs,
+2 is the number of alleles (A and B),
+and I is the number of arrays.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>fitSnpNmf</code>().</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm is considered to have converged when the maximum update
+of any allele-specific copy number of any array (<code>H</code>) is greater
+than <code>acc</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>list</code> of class <code>SnpNmfFit</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>The Lx2xI <code>array</code> <code>Y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>The Kx2 <code>matrix</code> containing allele-specific affinity estimates
+where K=2L.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>A 2xI <code>matrix</code> containing allele-specific copy number estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hasConverged</code></td>
+<td>
+<p><code>TRUE</code> if the algorithm converged, otherwise <code>FALSE</code>.
+If not applicable, it is <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrOfIterations</code></td>
+<td>
+<p>The number of iteration ran before stopping.
+If not applicable, it is <code>NA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>Internally, the array is stacked into a 2LxI matrix and decomposed
+using <code>fitSnpNmf</code>().
+See <code>plot.SnpNmfFit</code>().
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# DATA: Lx2xI allele-specific signals for six different SNPs
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+filenames &lt;- sprintf("V%d.Rbin", 1:6)
+pathnames &lt;- system.file("extData", filenames, package="ACNE")
+Ys &lt;- lapply(pathnames, FUN=function(p) snpMatrixToArray(loadToEnv(p)$V))
+names(Ys) &lt;- sprintf("SNP #%d", seq_along(Ys))
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# ACNE fitting of NMF to the six SNPs
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for (name in names(Ys)) {
+  Y &lt;- Ys[[name]]
+  fit &lt;- fitSnpNmfArray(Y)
+  str(fit)
+  plot(fit, lim=c(0,2^14), main=name)
+}
+</code></pre>
+
+
+</div>

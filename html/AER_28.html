@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dispersiontest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dispersion Test</h2>
+
+<h3>Description</h3>
+
+<p>Tests the null hypothesis of equidispersion in Poisson GLMs against
+the alternative of overdispersion and/or underdispersion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dispersiontest(object, trafo = NULL, alternative = c("greater", "two.sided", "less"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted Poisson GLM of class <code>"glm"</code> as fitted
+by <code>glm</code> with family <code>poisson</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trafo</code></td>
+<td>
+<p>a specification of the alternative (see also details),
+can be numeric or a (positive) function or <code>NULL</code> (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>a character string specifying the alternative hypothesis:
+<code>"greater"</code> corresponds to overdispersion, <code>"less"</code> to
+underdispersion and <code>"two.sided"</code> to either one.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The standard Poisson GLM models the (conditional) mean
+<code class="reqn">\mathsf{E}[y] = \mu</code> which is assumed to be equal to the
+variance <code class="reqn">\mathsf{VAR}[y] = \mu</code>. <code>dispersiontest</code>
+assesses the hypothesis that this assumption holds (equidispersion) against
+the alternative that the variance is of the form:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathsf{VAR}[y] \quad = \quad \mu \; + \; \alpha \cdot \mathrm{trafo}(\mu).</code>
+</p>
+
+<p>Overdispersion corresponds to <code class="reqn">\alpha &gt; 0</code> and underdispersion to
+<code class="reqn">\alpha &lt; 0</code>. The coefficient <code class="reqn">\alpha</code> can be estimated
+by an auxiliary OLS regression and tested with the corresponding t (or z) statistic
+which is asymptotically standard normal under the null hypothesis.
+</p>
+<p>Common specifications of the transformation function <code class="reqn">\mathrm{trafo}</code> are
+<code class="reqn">\mathrm{trafo}(\mu) = \mu^2</code> or <code class="reqn">\mathrm{trafo}(\mu) = \mu</code>.
+The former corresponds to a negative binomial (NB) model with quadratic variance function
+(called NB2 by Cameron and Trivedi, 2005), the latter to a NB model with linear variance
+function (called NB1 by Cameron and Trivedi, 2005) or quasi-Poisson model with dispersion 
+parameter, i.e.,
+</p>
+<p style="text-align: center;"><code class="reqn">\mathsf{VAR}[y] \quad = \quad (1 + \alpha) \cdot \mu = \mathrm{dispersion} \cdot \mu.</code>
+</p>
+
+<p>By default, for <code>trafo = NULL</code>, the latter dispersion formulation is used in
+<code>dispersiontest</code>. Otherwise, if <code>trafo</code> is specified, the test is formulated
+in terms of the parameter <code class="reqn">\alpha</code>. The transformation <code>trafo</code> can either
+be specified as a function or an integer corresponding to the function <code>function(x) x^trafo</code>,
+such that <code>trafo = 1</code> and <code>trafo = 2</code> yield the linear and quadratic formulations
+respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"htest"</code>.</p>
+
+
+<h3>References</h3>
+
+<p>Cameron, A.C. and Trivedi, P.K. (1990). Regression-based Tests for Overdispersion in the Poisson Model.  
+<em>Journal of Econometrics</em>, <b>46</b>, 347–364.
+</p>
+<p>Cameron, A.C. and Trivedi, P.K. (1998). <em>Regression Analysis of Count Data</em>. 
+Cambridge: Cambridge University Press.
+</p>
+<p>Cameron, A.C. and Trivedi, P.K. (2005). <em>Microeconometrics: Methods and Applications</em>.
+Cambridge: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glm</code>, <code>poisson</code>, <code>glm.nb</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("RecreationDemand")
+rd &lt;- glm(trips ~ ., data = RecreationDemand, family = poisson)
+
+## linear specification (in terms of dispersion)
+dispersiontest(rd)
+## linear specification (in terms of alpha)
+dispersiontest(rd, trafo = 1)
+## quadratic specification (in terms of alpha)
+dispersiontest(rd, trafo = 2)
+dispersiontest(rd, trafo = function(x) x^2)
+
+## further examples
+data("DoctorVisits")
+dv &lt;- glm(visits ~ . + I(age^2), data = DoctorVisits, family = poisson)
+dispersiontest(dv)
+
+data("NMES1988")
+nmes &lt;- glm(visits ~ health + age + gender + married + income + insurance,
+  data = NMES1988, family = poisson)
+dispersiontest(nmes)
+</code></pre>
+
+
+</div>

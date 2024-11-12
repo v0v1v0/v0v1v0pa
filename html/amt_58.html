@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>steps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functions to create and work with steps</h2>
+
+<h3>Description</h3>
+
+<p><code>step_lengths</code> can be use to calculate step lengths of a track. <code>direction_abs</code> and <code>direction_rel</code> calculate the absolute and relative direction of steps. <code>steps</code> converts a <code style="white-space: pre;">⁠track_xy*⁠</code> from a point representation to a step representation and automatically calculates step lengths and relative turning angles.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">direction_abs(x, ...)
+
+## S3 method for class 'track_xy'
+direction_abs(
+  x,
+  full_circle = FALSE,
+  zero_dir = "E",
+  clockwise = FALSE,
+  append_last = TRUE,
+  lonlat = FALSE,
+  ...
+)
+
+direction_rel(x, ...)
+
+## S3 method for class 'track_xy'
+direction_rel(x, lonlat = FALSE, append_last = TRUE, zero_dir = "E", ...)
+
+step_lengths(x, ...)
+
+## S3 method for class 'track_xy'
+step_lengths(x, lonlat = FALSE, append_last = TRUE, ...)
+
+steps_by_burst(x, ...)
+
+## S3 method for class 'track_xyt'
+steps_by_burst(x, lonlat = FALSE, keep_cols = NULL, ...)
+
+steps(x, ...)
+
+## S3 method for class 'track_xy'
+steps(x, lonlat = FALSE, keep_cols = NULL, ...)
+
+## S3 method for class 'track_xyt'
+steps(x, lonlat = FALSE, keep_cols = NULL, diff_time_units = "auto", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>[track_xy, track_xyt]</code> <br> A track created with <code>make_track</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments, none implemented</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_circle</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical(1)=FALSE]⁠</code> <br> If <code>TRUE</code> angles are returned between 0 and $2pi$, otherwise angles are between $-pi$ and $pi$.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zero_dir</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character(1)='E']⁠</code> <br> Indicating the zero direction. Must be either <code>N</code>, <code>E</code>, <code>S</code>, or <code>W</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clockwise</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical(1)=FALSE]⁠</code> <br> Should angles be calculated clock or anti-clockwise?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append_last</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical(1)=TRUE]⁠</code> <br> If <code>TRUE</code> an <code>NA</code> is appended at the end of all angles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lonlat</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[logical(1)=TRUE]⁠</code> <br> Should geographical or planar coordinates be used? If <code>TRUE</code> geographic distances are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_cols</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character(1)=NULL]{'start', 'end', 'both'}⁠</code> <br> Should columns with attribute information be transferred to steps? If <code>keep_cols = 'start'</code> the attributes from the starting point are use, otherwise the columns from the end points are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff_time_units</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character(1)='auto']⁠</code> <br> The unit for time differences, see <code>?difftime</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code style="white-space: pre;">⁠dierctions_*()⁠</code> returns <code>NA</code> for 0 step lengths.
+</p>
+<p><code>step_lengths</code> calculates the step lengths between points a long the path. The last value returned is <code>NA</code>, because no observed step is 'started' at the last point. If <code>lonlat = TRUE</code>, <code>step_lengths()</code> wraps <code>sf::st_distance()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> <br> For <code>step_lengths()</code> and <code style="white-space: pre;">⁠direction_*⁠</code> a numeric vector. <br><code style="white-space: pre;">⁠[data.frame]⁠</code> <br> For <code>steps</code> and <code>steps_by_burst</code>, containing the steps.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+xy &lt;- tibble(
+  x = c(1, 4, 8, 8, 12, 12, 8, 0, 0, 4, 2),
+  y = c(0, 0, 0, 8, 12, 12, 12, 12, 8, 4, 2))
+trk &lt;- make_track(xy, x, y)
+
+# append last
+direction_abs(trk, append_last = TRUE)
+direction_abs(trk, append_last = FALSE)
+
+# degrees
+direction_abs(trk) |&gt; as_degree()
+
+# full circle or not: check
+direction_abs(trk, full_circle = TRUE)
+direction_abs(trk, full_circle = FALSE)
+direction_abs(trk, full_circle = TRUE) |&gt; as_degree()
+direction_abs(trk, full_circle = FALSE) |&gt; as_degree()
+
+# direction of 0
+direction_abs(trk, full_circle = TRUE, zero_dir = "N")
+direction_abs(trk, full_circle = TRUE, zero_dir = "E")
+direction_abs(trk, full_circle = TRUE, zero_dir = "S")
+direction_abs(trk, full_circle = TRUE, zero_dir = "W")
+
+# clockwise or not
+direction_abs(trk, full_circle = TRUE, zero_dir = "N", clockwise = FALSE)
+direction_abs(trk, full_circle = TRUE, zero_dir = "N", clockwise = TRUE)
+
+# Bearing (i.e. azimuth): only for lon/lat
+direction_abs(trk, full_circle = FALSE, zero_dir = "N", lonlat = FALSE, clockwise = TRUE)
+direction_abs(trk, full_circle = FALSE, zero_dir = "N", lonlat = TRUE, clockwise = TRUE)
+
+</code></pre>
+
+
+</div>

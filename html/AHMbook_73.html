@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simHDSopen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate open hierarchical distance sampling data
+</h2>
+
+<h3>Description</h3>
+
+<p>Simulates distance sampling data for multiple replicate surveys in a multi-season (or multi-year) model, incorporating habitat and detection covariates, temporary emigration, and a trend in abundance or density.
+</p>
+<p>At each site, it works with a strip of width <code>B*2</code> (for line transects) or a circle of radius <code>B</code> (for point transects).
+</p>
+<p>The state process is simulated by first drawing a covariate value, "habitat", for each site from a Normal(0, 1) distribution. This is used in a log-linear regression with arguments <code>mean.lam</code>, <code>beta.lam</code> and <code>beta.trend</code> to calculate the expected number of animals, lambda, in each strip or circle for each year. Site- and year-specific abundances are drawn from a Poisson distribution with mean lambda. The number available for capture at each replicate survey is simulated as a binomial distribution with probability <code>phi</code>.
+</p>
+<p>For line transects, the distance from the line is drawn from a Uniform(0, B) distribution. For point transects, the distance from the point is simulated from B*sqrt(Uniform(0,1)), which ensures a uniform distribution over the circle.
+</p>
+<p>A detection covariate, "wind", for each survey is drawn from a Uniform(-2, 2) distribution. This is used in a log-linear regression with arguments <code>mean.sig</code> and <code>beta.sig</code> to calculate the scale parameter, sigma, of the half-normal detection function. Detections are simulated as Bernoulli trials with probability of success decreasing with distance from the line or point.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simHDSopen(type=c("line", "point"), nsites = 100,
+  mean.lam = 2, beta.lam = 0, mean.sig = 1, beta.sig = 0,
+  B = 3, discard0 = TRUE, nreps = 2, phi = 0.7, nyears = 5, beta.trend = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>the transect protocol, either "line" or "point" .
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsites</code></td>
+<td>
+
+<p>Number of sites (spatial replication)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.lam</code></td>
+<td>
+
+<p>intercept of log-linear regression of expected lambda on a habitat covariate
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.lam</code></td>
+<td>
+
+<p>slope of log-linear regression of expected lambda on a habitat covariate
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.sig</code></td>
+<td>
+
+<p>intercept of log-linear regression of scale parameter of half-normal detection function on wind speed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.sig</code></td>
+<td>
+
+<p>slope of log-linear regression of scale parameter of half-normal detection function on wind speed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+
+<p>strip half width, or maximum distance from the observer for point counts
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discard0</code></td>
+<td>
+
+<p>Discard sites at which no individuals were captured. You may or may not want to do this depending on how the model is formulated so be careful.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nreps</code></td>
+<td>
+
+<p>the number of distance sampling surveys within a period of closure in a season (or year)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+
+<p>the availability parameter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyears</code></td>
+<td>
+
+<p>the number of seasons (typically years)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.trend</code></td>
+<td>
+
+<p>loglinear trend of annual population size or density
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the values of the arguments entered and the following additional elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data </code></td>
+<td>
+<p>simulated distance sampling data: a list with a component for each year, each itself a list with a component for each replicate; this is a matrix with a row for each individual detected and 5 columns: site ID, status (1 if captured), x and y coordinates (NA for line transects), distance from the line or point; if <code>discard0 = FALSE</code>, sites with no detections will appear in the matrix with NAs in columns 2 to 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>habitat </code></td>
+<td>
+<p>simulated habitat covariate, a vector of length <code>nsites</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wind </code></td>
+<td>
+<p>simulated detection covariate, a <code>nsites x nreps x nyears</code> array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M.true </code></td>
+<td>
+<p>simulated number of individuals, a <code>nsites x nyears</code> matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K </code></td>
+<td>
+<p><code>= nreps</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Na </code></td>
+<td>
+<p>the number of individuals available for detection, a <code>nsites x nreps x nyears</code> array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Na.real </code></td>
+<td>
+<p>for point counts, the number of individuals available for detection within the circle sampled, a <code>nsites x nreps x nyears</code> array</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>For "point" the realized density is [(area of circle) /(area of  square)]*lambda
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marc Kéry &amp; Andy Royle
+</p>
+
+
+<h3>References</h3>
+
+<p>Kéry, M. &amp; Royle, J.A. (2016) <em>Applied Hierarchical Modeling in Ecology</em> AHM1 - 9.5.4.1.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+tmp &lt;- simHDSopen() # Generate data with default parameters
+str(tmp)
+head(tmp$data[[1]][[1]])
+
+tmp &lt;- simHDSopen("point")
+str(tmp)
+head(tmp$data[[1]][[1]])
+
+tmp &lt;- simHDSopen(discard0=FALSE)
+str(tmp)
+head(tmp$data[[1]][[1]])
+</code></pre>
+
+
+</div>

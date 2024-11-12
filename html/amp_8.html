@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ic.data.examp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function for calculating the influence function used for
+the real data example.</h2>
+
+<h3>Description</h3>
+
+<p>Function for calculating the influence function used for
+the real data example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ic.data.examp(obs_data, what = "both", control = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs_data</code></td>
+<td>
+<p>the observed data.  The first column should be the outcome.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>what</code></td>
+<td>
+<p>the desired return value. Should be one of <code>"ic"</code>
+(influence curve), <code>"est"</code> (estimate), or <code>"both"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>any other control parameters to be passed to the estimator.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>what</code> is
+</p>
+<p>- <code>"est"</code>, then return the estimated parameter.
+</p>
+<p>- <code>"ic"</code>, then return the estimated IC of the parameter estimate.
+</p>
+<p>- <code>"both"</code>, then return both the parameter estimate and
+corresponding estimated IC.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+expit &lt;- function(x) exp(x) / (1 + exp(x))
+ws &lt;- matrix(rnorm(3000), ncol = 3)
+probs &lt;- expit(ws  %*% c(-1, 0, 2))
+y &lt;- rbinom(n = nrow(probs), size = 1, prob = probs[, 1])
+wts &lt;-   abs(rnorm(length(y))) + 1
+wts &lt;- length(wts) * wts / sum(wts)
+cats &lt;- rep(1:10, 100)
+obs_dat &lt;- cbind(y, "cat" = cats, "wt" = wts, ws)
+est_ic &lt;- ic.data.examp(obs_dat, what = "both")
+my_est &lt;- est_ic$est
+my_ic &lt;- est_ic$ic / nrow(ws)
+var_mat &lt;- t(my_ic) %*% my_ic
+sqrt(diag(var_mat))
+for(cov_idx in 1:ncol(ws)){
+ print(summary(stats::glm(y ~ ws[, cov_idx], weights = obs_dat[, "wt"],
+                    family = binomial))$coefficients[2, 1:2])
+}
+
+</code></pre>
+
+
+</div>

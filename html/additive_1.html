@@ -1,0 +1,542 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>additive</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>General Interface for Additive TidyModels</h2>
+
+<h3>Description</h3>
+
+<p><code>additive()</code> is a way to generate a <em>specification</em> of a model
+before fitting and allows the model to be created using
+<span class="pkg">mgcv</span> package in <span class="pkg">R</span>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">additive(
+  mode = "regression",
+  engine = "mgcv",
+  fitfunc = NULL,
+  formula.override = NULL,
+  family = NULL,
+  method = NULL,
+  optimizer = NULL,
+  control = NULL,
+  scale = NULL,
+  gamma = NULL,
+  knots = NULL,
+  sp = NULL,
+  min.sp = NULL,
+  paraPen = NULL,
+  chunk.size = NULL,
+  rho = NULL,
+  AR.start = NULL,
+  H = NULL,
+  G = NULL,
+  offset = NULL,
+  subset = NULL,
+  start = NULL,
+  etastart = NULL,
+  mustart = NULL,
+  drop.intercept = NULL,
+  drop.unused.levels = NULL,
+  cluster = NULL,
+  nthreads = NULL,
+  gc.level = NULL,
+  use.chol = NULL,
+  samfrac = NULL,
+  coef = NULL,
+  discrete = NULL,
+  select = NULL,
+  fit = NULL
+)
+
+## S3 method for class 'additive'
+update(
+  object,
+  parameters = NULL,
+  fitfunc = NULL,
+  formula.override = NULL,
+  family = NULL,
+  method = NULL,
+  optimizer = NULL,
+  control = NULL,
+  scale = NULL,
+  gamma = NULL,
+  knots = NULL,
+  sp = NULL,
+  min.sp = NULL,
+  paraPen = NULL,
+  chunk.size = NULL,
+  rho = NULL,
+  AR.start = NULL,
+  H = NULL,
+  G = NULL,
+  offset = NULL,
+  subset = NULL,
+  start = NULL,
+  etastart = NULL,
+  mustart = NULL,
+  drop.intercept = NULL,
+  drop.unused.levels = NULL,
+  cluster = NULL,
+  nthreads = NULL,
+  gc.level = NULL,
+  use.chol = NULL,
+  samfrac = NULL,
+  coef = NULL,
+  discrete = NULL,
+  select = NULL,
+  fit = NULL,
+  fresh = FALSE,
+  ...
+)
+
+additive_fit(formula, data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>A single character string for the prediction outcome mode.
+Possible values for this model are "unknown", "regression", or
+"classification".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>engine</code></td>
+<td>
+<p>A single character string specifying what computational
+engine to use for fitting. Possible engines are listed below.
+The default for this model is <code>"mgcv"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitfunc</code></td>
+<td>
+<p>A named character vector that describes how to call
+a function for fitting a generalized additive model. This defaults
+to <code>c(pkg = "mgcv", fun = "gam")</code> (<code>gam</code>).
+<code>fitfunc</code> should have elements <code>pkg</code> and <code>fun</code>.
+The former is optional but is recommended and the latter is
+required. For example, <code>c(pkg = "mgcv", fun = "bam")</code> would
+be used to invoke <code>bam</code> for big data.
+A user-specified function is also accepted provided that it is
+fully compatible with <code>gam</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula.override</code></td>
+<td>
+<p>Overrides the formula; for details see
+<code>formula.gam</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>This is a family object specifying the distribution and link to use in
+fitting etc (see <code>glm</code> and <code>family</code>). See 
+<code>family.mgcv</code> for a full list of what is available, which goes well beyond exponential family.
+Note that <code>quasi</code> families actually result in the use of extended quasi-likelihood 
+if <code>method</code> is set to a RE/ML method (McCullagh and Nelder, 1989, 9.6).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The smoothing parameter estimation method. <code>"GCV.Cp"</code> to use GCV for unknown scale parameter and
+Mallows' Cp/UBRE/AIC for known scale. <code>"GACV.Cp"</code> is equivalent, but using GACV in place of GCV. <code>"NCV"</code>
+for neighbourhood cross-validation using the neighbourhood structure speficied by <code>nei</code> (<code>"QNCV"</code> for numerically more ribust version).  <code>"REML"</code> 
+for REML estimation, including of unknown scale, <code>"P-REML"</code> for REML estimation, but using a Pearson estimate 
+of the scale. <code>"ML"</code> and <code>"P-ML"</code> are similar, but using maximum likelihood in place of REML. Beyond the 
+exponential family <code>"REML"</code> is the default, and the only other options are <code>"ML"</code>, <code>"NCV"</code> or <code>"QNCV"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimizer</code></td>
+<td>
+<p>An array specifying the numerical optimization method to use to optimize the smoothing 
+parameter estimation criterion (given by <code>method</code>). <code>"outer"</code> 
+for the direct nested optimization approach. <code>"outer"</code> can use several alternative optimizers, specified in the 
+second element of <code>optimizer</code>: <code>"newton"</code> (default), <code>"bfgs"</code>, <code>"optim"</code> or <code>"nlm"</code>. <code>"efs"</code>
+for the extended Fellner Schall method of Wood and Fasiolo (2017).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of fit control parameters to replace defaults returned by 
+<code>gam.control</code>. Values not set assume default values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p> If this is positive then it is taken as the known scale parameter. Negative signals that the 
+scale parameter is unknown. 0 signals that the scale parameter is 1  for Poisson and binomial and unknown otherwise. 
+Note that (RE)ML methods can only work with scale parameter 1 for the Poisson and binomial cases.    
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Increase this beyond 1 to produce smoother models. <code>gamma</code> multiplies the effective degrees of freedom in the GCV or UBRE/AIC. <code>n/gamma</code> can be viewed as an effective sample size in the GCV score, and this also enables it to be used with REML/ML. Ignored with P-RE/ML or the <code>efs</code> optimizer. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knots</code></td>
+<td>
+<p>this is an optional list containing user specified knot values to be used for basis construction. 
+For most bases the user simply supplies the knots to be used, which must match up with the <code>k</code> value
+supplied (note that the number of knots is not always just <code>k</code>). 
+See <code>tprs</code> for what happens in the <code>"tp"/"ts"</code> case. 
+Different terms can use different numbers of knots, unless they share a covariate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp</code></td>
+<td>
+<p>A vector of smoothing parameters can be provided here.
+Smoothing parameters must be supplied in the order that the smooth terms appear in the model 
+formula. Negative elements indicate that the parameter should be estimated, and hence a mixture 
+of fixed and estimated parameters is possible. If smooths share smoothing parameters then <code>length(sp)</code> 
+must correspond to the number of underlying smoothing parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.sp</code></td>
+<td>
+<p>Lower bounds can be supplied for the smoothing parameters. Note
+that if this option is used then the smoothing parameters <code>full.sp</code>, in the 
+returned object, will need to be added to what is supplied here to get the 
+smoothing parameters actually multiplying the penalties. <code>length(min.sp)</code> should 
+always be the same as the total number of penalties (so it may be longer than <code>sp</code>,
+if smooths share smoothing parameters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paraPen</code></td>
+<td>
+<p>optional list specifying any penalties to be applied to parametric model terms. 
+<code>gam.models</code> explains more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk.size</code></td>
+<td>
+<p>The model matrix is created in chunks of this size, rather than ever being formed whole. 
+Reset to <code>4*p</code> if <code>chunk.size &lt; 4*p</code> where <code>p</code> is the number of coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>An AR1 error model can be used for the residuals (based on dataframe order), of Gaussian-identity 
+link models. This is the AR1 correlation parameter. Standardized residuals (approximately 
+uncorrelated under correct model) returned in 
+<code>std.rsd</code> if non zero. Also usable with other models when <code>discrete=TRUE</code>, in which case the AR model
+is applied to the working residuals and corresponds to a GEE approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AR.start</code></td>
+<td>
+<p>logical variable of same length as data, <code>TRUE</code> at first observation of an independent
+section of AR1 correlation. Very first observation in data frame does not need this. If <code>NULL</code> then 
+there are no breaks in AR1 correlaion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>A user supplied fixed quadratic penalty on the parameters of the 
+GAM can be supplied, with this as its coefficient matrix. A common use of this term is 
+to add a ridge penalty to the parameters of the GAM in circumstances in which the model
+is close to un-identifiable on the scale of the linear predictor, but perfectly well
+defined on the response scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>Usually <code>NULL</code>, but may contain the object returned by a previous call to <code>gam</code> with 
+<code>fit=FALSE</code>, in which case all other arguments are ignored except for
+<code>sp</code>, <code>gamma</code>, <code>in.out</code>, <code>scale</code>, <code>control</code>, <code>method</code> <code>optimizer</code> and <code>fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>Can be used to supply a model offset for use in fitting. Note
+that this offset will always be completely ignored when predicting, unlike an offset 
+included in <code>formula</code> (this used to conform to the behaviour of
+<code>lm</code> and <code>glm</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p> an optional vector specifying a subset of observations to be
+used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Initial values for the model coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etastart</code></td>
+<td>
+<p>Initial values for the linear predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mustart</code></td>
+<td>
+<p>Initial values for the expected response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop.intercept</code></td>
+<td>
+<p>Set to <code>TRUE</code> to force the model to really not have a constant in the parametric model part,
+even with factor variables present. Can be vector when <code>formula</code> is a list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop.unused.levels</code></td>
+<td>
+<p>by default unused levels are dropped from factors before fitting. For some smooths 
+involving factor variables you might want to turn this off. Only do so if you know what you are doing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p><code>bam</code> can compute the computationally dominant QR decomposition in parallel using parLapply
+from the <code>parallel</code> package, if it is supplied with a cluster on which to do this (a cluster here can be some cores of a 
+single machine). See details and example code. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nthreads</code></td>
+<td>
+<p>Number of threads to use for non-cluster computation (e.g. combining results from cluster nodes).
+If <code>NA</code> set to <code>max(1,length(cluster))</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gc.level</code></td>
+<td>
+<p>to keep the memory footprint down, it can help to call the garbage collector often, but this takes 
+a substatial amount of time. Setting this to zero means that garbage collection only happens when R decides it should. Setting to 2 gives frequent garbage collection. 1 is in between. Not as much of a problem as it used to be, but can really matter for very large datasets.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.chol</code></td>
+<td>
+<p>By default <code>bam</code> uses a very stable QR update approach to obtaining the QR decomposition
+of the model matrix. For well conditioned models an alternative accumulates the crossproduct of the model matrix
+and then finds its Choleski decomposition, at the end. This is somewhat more efficient, computationally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samfrac</code></td>
+<td>
+<p>For very large sample size Generalized additive models the number of iterations needed for the model fit can 
+be reduced by first fitting a model to a random sample of the data, and using the results to supply starting values. This initial fit is run with sloppy convergence tolerances, so is typically very low cost. <code>samfrac</code> is the sampling fraction to use. 0.1 is often reasonable. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>initial values for model coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discrete</code></td>
+<td>
+<p>experimental option for setting up models for use with discrete methods employed in <code>bam</code>. Do not modify.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p> If this is <code>TRUE</code> then <code>gam</code> can add an extra penalty to each term so 
+that it can be penalized to zero.  This means that the smoothing parameter estimation that is 
+part of fitting can completely remove terms from the model. If the corresponding 
+smoothing parameter is estimated as zero then the extra penalty has no effect. Use <code>gamma</code> to increase level of penalization.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>If this argument is <code>TRUE</code> then <code>gam</code> sets up the model and fits it, but if it is
+<code>FALSE</code> then the model is set up and an object <code>G</code> containing what
+would be required to fit is returned is returned. See argument <code>G</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A Generalized Additive Model (GAM) specification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>A 1-row tibble or named list with <em>main</em>
+parameters to update. If the individual arguments are used,
+these will supersede the values in <code>parameters</code>. Also, using
+engine arguments in this object will result in an error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fresh</code></td>
+<td>
+<p>A logical for whether the arguments should be
+modified in-place of or replaced wholesale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to internal functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> A GAM formula, or a list of formulae (see <code>formula.gam</code> and also <code>gam.models</code>). 
+These are exactly like the formula for a GLM except that smooth terms, <code>s</code>, <code>te</code>, <code>ti</code> 
+and <code>t2</code>, can be added to the right hand side to specify that the linear predictor depends on smooth functions of predictors (or linear functionals of these).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> A data frame or list containing the model response variable and 
+covariates required by the formula. By default the variables are taken 
+from <code>environment(formula)</code>: typically the environment from 
+which <code>gam</code> is called.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments are converted to their specific names at the
+time that the model is fit. Other options and argument can be
+set using <code>set_engine()</code>. If left to their defaults
+here (<code>NULL</code>), the values are taken from the underlying model
+functions. If parameters need to be modified, <code>update()</code> can be
+used in lieu of recreating the object from scratch.
+</p>
+<p>The data given to the function are not saved and are only used
+to determine the <em>mode</em> of the model. For <code>additive()</code>, the
+possible modes are "regression" and "classification".
+</p>
+<p>The model can be created by the <code>fit()</code> function using the
+following <em>engines</em>:
+</p>
+
+<ul><li> <p><span class="pkg">mgcv</span>:  <code>"mgcv"</code>
+</p>
+</li></ul>
+<h3>Value</h3>
+
+<p>An updated model specification.
+</p>
+
+
+<h3>Engine Details</h3>
+
+<p>Engines may have pre-set default arguments when executing the model fit
+call. For this type of model, the template of the fit calls are:
+</p>
+<div class="sourceCode r"><pre>additive() |&gt;
+  set_engine("mgcv") |&gt;
+  translate()
+</pre></div>
+<div class="sourceCode"><pre>## Generalized Additive Model (GAM) Specification (regression)
+## 
+## Computational engine: mgcv 
+## 
+## Model fit template:
+## additive::additive_fit(formula = missing_arg(), data = missing_arg(), 
+##     weights = missing_arg())
+</pre></div>
+
+
+<h3>See Also</h3>
+
+<p><code>mgcv-package</code>,
+<code>gam</code>,
+<code>bam</code>,
+<code>gamObject</code>,
+<code>gam.models</code>,
+<code>smooth.terms</code>,
+<code>predict.gam</code>,
+<code>plot.gam</code>,
+<code>summary.gam</code>,
+<code>gam.side</code>,
+<code>gam.selection</code>,
+<code>gam.control</code>,
+<code>gam.check</code>,
+<code>vis.gam</code>,
+<code>family.mgcv</code>,
+<code>formula.gam</code>,
+<code>family</code>,
+<code>formula</code>,
+<code>update.formula</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+additive()
+
+show_model_info("additive")
+
+additive(mode = "classification")
+additive(mode = "regression")
+
+set.seed(2020)
+dat &lt;- gamSim(1, n = 400, dist = "normal", scale = 2)
+
+additive_mod &lt;-
+  additive() |&gt;
+  set_engine("mgcv") |&gt;
+  fit(
+    y ~ s(x0) + s(x1) + s(x2) + s(x3),
+    data = dat
+  )
+
+summary(additive_mod$fit)
+
+model &lt;- additive(select = FALSE)
+model
+update(model, select = TRUE)
+update(model, select = TRUE, fresh = TRUE)
+</code></pre>
+
+
+</div>

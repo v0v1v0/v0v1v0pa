@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastRRBLUP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast RR-BLUP</h2>
+
+<h3>Description</h3>
+
+<p>Solves an RR-BLUP model for genomic predictions given known variance
+components. This implementation is meant as a fast and low memory
+alternative to <code>RRBLUP</code> or <code>RRBLUP2</code>. Unlike
+the those functions, the fastRRBLUP does not fit fixed effects (other
+than the intercept) or account for unequal replication.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastRRBLUP(
+  pop,
+  traits = 1,
+  use = "pheno",
+  snpChip = 1,
+  useQtl = FALSE,
+  maxIter = 1000,
+  Vu = NULL,
+  Ve = NULL,
+  simParam = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>a <code>Pop-class</code> to serve as the training population</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>traits</code></td>
+<td>
+<p>an integer indicating the trait to model, a trait name,
+or a function of the traits returning a single value. Only univariate models
+are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+<p>train model using phenotypes "pheno", genetic values "gv",
+estimated breeding values "ebv", breeding values "bv", or randomly "rand"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snpChip</code></td>
+<td>
+<p>an integer indicating which SNP chip genotype
+to use</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useQtl</code></td>
+<td>
+<p>should QTL genotypes be used instead of a SNP chip.
+If TRUE, snpChip specifies which trait's QTL to use, and thus these
+QTL may not match the QTL underlying the phenotype supplied in traits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Vu</code></td>
+<td>
+<p>marker effect variance. If value is NULL, a
+reasonable value is chosen automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ve</code></td>
+<td>
+<p>error variance. If value is NULL, a
+reasonable value is chosen automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simParam</code></td>
+<td>
+<p>an object of <code>SimParam</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments if using a function for
+traits</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Create founder haplotypes
+founderPop = quickHaplo(nInd=10, nChr=1, segSites=20)
+
+#Set simulation parameters
+SP = SimParam$new(founderPop)
+
+SP$addTraitA(10)
+SP$setVarE(h2=0.5)
+SP$addSnpChip(10)
+
+#Create population
+pop = newPop(founderPop, simParam=SP)
+
+#Run GS model and set EBV
+ans = fastRRBLUP(pop, simParam=SP)
+pop = setEBV(pop, ans, simParam=SP)
+
+#Evaluate accuracy
+cor(gv(pop), ebv(pop))
+
+</code></pre>
+
+
+</div>

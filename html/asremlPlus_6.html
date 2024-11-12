@@ -1,0 +1,605 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addSpatialModel.asrtests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds, to a supplied model, a spatial model that accounts for local spatial variation.</h2>
+
+<h3>Description</h3>
+
+<p>Adds either a correlation, two-dimensional tensor-product natural cubic 
+smoothing spline (TPNCSS), or a two-dimensional tensor-product penalized P-spline 
+model (TPPS) to account for the local spatial variation exhibited by a response variable 
+measured on a potentially irregular grid of rows and columns of the units. The data may 
+be arranged in sections, for each of which there is a grid and for which the model is to 
+be fitted separately. Also, the rows and columns of a grid are not necessarily one 
+observational unit wide. For <code>TPPS</code> models for which the order of differencing the 
+penalty matrix is two, the an optimal rotation of the null-space eigenvectors of the 
+penalty matrix can be investigated.
+</p>
+<p>No hypothesis testing or comparison of information criteria is made. To use information 
+criteria to decide whether to change the model use <code>chooseSpatialModelOnIC.asrtests</code>.
+</p>
+<p>The model fit supplied in the <code>asrtests.obj</code> should not include terms that will 
+be included in the local spatial model. All spatial model terms are fitted as fixed or 
+random. Consequently, the residual model does not have to be iid.
+</p>
+<p>One or more rows is added for each <code>section</code> to the <code>test.summary</code> 
+<code>data.frame</code>. Convergence and the occurrence of fixed correlations in fitting the 
+model is checked and a note included in the <code>action</code> if there was not. 
+All components of the <code>asrtests.object</code> are updated for the new model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asrtests'
+addSpatialModel(asrtests.obj, spatial.model = "TPPS", 
+                sections = NULL, 
+                row.covar = "cRow", col.covar = "cCol", 
+                row.factor = "Row", col.factor = "Col", 
+                corr.funcs = c("ar1", "ar1"), corr.orders = c(0, 0), 
+                row.corrFitfirst = TRUE, 
+                allow.corrsJointFit = TRUE, nugget.variance = TRUE, 
+                dropFixed = NULL, dropRandom = NULL, 
+                nsegs = NULL, nestorder = c(1,1), 
+                degree = c(3,3), difforder = c(2,2), 
+                usRandLinCoeffs = TRUE, 
+                rotateX = FALSE, ngridangles = NULL, 
+                which.rotacriterion = "AIC", nrotacores = 1, 
+                asreml.option = "grp", tpps4mbf.obj = NULL, 
+                allow.unconverged = FALSE, allow.fixedcorrelation = FALSE,
+                checkboundaryonly = FALSE, update = FALSE, trace = FALSE, 
+                maxit = 30, IClikelihood = "full", which.IC = "AIC", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asrtests.obj</code></td>
+<td>
+<p>An <code>asrtests.object</code> containing the components 
+(i) <code>asreml.obj</code>, (ii) <code>wald.tab</code>, and (iii) <code>test.summary</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatial.model</code></td>
+<td>
+<p>A single <code>character</code> string nominating the type of spatial 
+model to fit. Possible values are <code>corr</code>, <code>TPNCSS</code> and 
+<code>TPPS</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sections</code></td>
+<td>
+<p>A single <code>character</code> string that specifies the name of the column 
+in the <code>data.frame</code> that contains the <code>factor</code> 
+that identifies different sections of the data to which separate spatial 
+models are to be fitted. Note that, for other terms that involve 
+<code>sections</code> in the random formula, there should be separate terms for 
+each level of <code>sections</code>. For example, in a blocked experiment 
+involving multiple sites, there should be the sum of separate terms for 
+the Blocks at each Site i.e. a formula that contains terms like 
+at(Site, i):Block for each site and these are separated by <code>'+'</code>. 
+Otherwise, the combined term (e.g. Site:Block) will impact on the 
+fitting of the local spatial models for the different Sites. Similarly, 
+a separate residual variance for each of the <code>sections</code> should be 
+fitted, unless there is a need to fit a different variance structure to 
+the residual, e.g. heterogeneous residual variances depending on 
+treatments. Separate residual variances for <code>sections</code> can be 
+achieved using the <code>asreml</code> functions <code>dsum</code> or <code>idh</code>. 
+Because, unlike random terms, terms for residual variances are not 
+removed from the model, compound residual terms can be used to include 
+them in the model, e.g. terms with <code>idh</code> or <code>dsum</code> with multiple
+<code>levels</code> in the <code>list</code> or leaving <code>levels</code> out altogether. 
+In addition to allowing the independent fitting of models to the 
+<code>sections</code>, separate residual variance terms allows a nugget variance 
+to be fitted in a correlation model for each of the <code>sections</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.covar</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>numeric</code> 
+that contains the values of a centred covariate indexing the rows of a 
+grid. The <code>numeric</code> must be a column in the 
+<code>data.frame</code> stored in the <code>asreml.obj</code> that is a 
+component of the supplied <code>asrtests.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.covar</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>numeric</code> 
+that contains the values of a centred covariate indexing the columns 
+of a grid. The <code>numeric</code> must be a column in the 
+<code>data.frame</code> stored in the <code>asreml.obj</code> that is a 
+component of the supplied <code>asrtests.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.factor</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>factor</code> 
+that indexes the rows of a grid that are to be one dimension of a 
+spatial correlation model. The <code>factor</code> must a column in 
+the <code>data.frame</code> stored in the <code>asreml.obj</code> that is 
+a component of the supplied <code>asrtests.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.factor</code></td>
+<td>
+<p>A single <code>character</code> string nominating a <code>factor</code> 
+that indexes the columns of a grid that are to be one dimension of a 
+spatial correlation model. The <code>factor</code> must a column in 
+the <code>data.frame</code> stored in the <code>asreml.obj</code> that is 
+a component of the supplied <code>asrtests.obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr.funcs</code></td>
+<td>
+<p>A single <code>character</code> string of length two that specifies the 
+<code>asreml</code> one-dimensional correlation or variance model function 
+for the row and column dimensions of a two-dimensional separable spatial 
+correlation model to be fitted when <code>spatial.model</code> is <code>corr</code>; 
+the two-dimensional model is fitted as a random term. If a correlation 
+or variance model is not to be investigated for one of the dimensions, 
+specify <code>""</code> for that dimension. If the correlation model is  
+<code>corb</code>, the values of <code>corr.orders</code> are used for its order 
+argument (<code>b</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr.orders</code></td>
+<td>
+<p>A <code>numeric</code> of length two that specifies the order argument 
+(<code>b</code>) values for the row and column dimensions of a two-dimensional 
+separable spatial correlation model when <code>spatial.model</code> is 
+<code>corr</code> and the <code>corr.funcs</code> for a dimension is <code>corb</code>, 
+the <code>asreml</code> banded correlation model. If one of the dimensions 
+does not involve an order argument, set the value of <code>corr.orders</code> 
+for that dimension to zero. For a dimension for which the 
+<code>corr.funcs</code> is <code>corb</code> and <code>corr.orders</code> is zero, a 
+model with a single band, the correlation between immediate neighbours, 
+will be fitted and then further bands, up to a maximum of 10 bands, will 
+be added until the addition of an extra band does not reduce the 
+information criterion nominated using <code>which.IC</code>. Note that the 
+two-dimensional spatial model is fitted as a random term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.corrFitfirst</code></td>
+<td>
+<p>A <code>logical</code>. If <code>TRUE</code> then, in fitting the 
+model for <code>spatial.model</code> set to <code>corr</code>, the row correlation  
+or variance function is fitted first, followed by the addition of the 
+column correlation or variance function. If <code>FALSE</code>, the order 
+of fitting is reversed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.corrsJointFit</code></td>
+<td>
+<p>A <code>logical</code> which, if <code>TRUE</code>, will allow 
+the simultaneous fitting of correlation functions for the two dimensions 
+of the grid when separate fits have failed to fit any correlation 
+functions. This argument is available for when a joint fit 
+hangs the system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nugget.variance</code></td>
+<td>
+<p>A <code>logical</code> which, if <code>TRUE</code>, will result in 
+an attempt to fit a nugget or unit-specific variance. Otherwise, 
+a nugget or unit-specific variance will not be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dropFixed</code></td>
+<td>
+<p>A single <code>character</code> string or a <code>character</code> vector of strings 
+with an element for each level of <code>sections</code> in the same order as the 
+<code>sections</code> levels. Each string, which if it is not <code>NA</code> and after 
+the addition of <code>". ~ . -"</code> and conversion to a formula that is then 
+expanded, specifies the  sum of a set of terms to be dropped from the fixed 
+formula in fitting splines (<code>TPPS</code> and <code>TPNCSS</code>). The result is 
+that the fitted model supplied in the <code>asrtests.obj</code>, that includes these 
+terms, will be compared with the fitted model that has had them removed and 
+a spatial model added.
+</p>
+<p>An element that is <code>NA</code> indicates that no term pertaining to the 
+corresponding <code>sections</code> level is to be removed. If <code>sections</code> 
+is not <code>NULL</code> and a single <code>character</code> string has been supplied, 
+the terms specified by the string are taken to be terms that are 
+independent of the <code>sections</code> and will be removed when adding the 
+spatial model for the first <code>sections</code>. 
+</p>
+<p>The terms must match those in the <code>wald.tab</code> component of the 
+<code>asrtests.obj</code>. The fixed terms will be reordered so that 
+single-variable terms come first, followed by two-variable terms and 
+so on. Note also that multiple terms specified using a single 
+<code>asreml::at</code> function can only be dropped as a whole. If the term 
+was specified using an <code>asreml::at</code> function with a single level, 
+then it can be removed and either the level itself or its 
+<code>numeric</code> position in the levels returned by the 
+<code>levels</code> function can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dropRandom</code></td>
+<td>
+<p>A single <code>character</code> string or a <code>character</code> vector of strings 
+with an element for each level of <code>sections</code> in the same order as the 
+<code>sections</code> levels. Each string, which if it is not <code>NA</code> and after 
+the addition of <code>" ~ . -"</code> and conversion to a formula that is then 
+expanded, specifies the  sum of a set of terms to be dropped from the random 
+formula in fitting splines (<code>TPPS</code> and <code>TPNCSS</code>). The result is 
+that the fitted model supplied in the <code>asrtests.obj</code>, that includes 
+these terms, will be compared with the fitted model that has had them removed 
+and a spatial model added.
+</p>
+<p>An element that is <code>NA</code> indicates that no term pertaining to the 
+corresponding <code>sections</code> level is to be removed. If <code>sections</code> 
+is not <code>NULL</code> and a single <code>character</code> string has been supplied, 
+the terms specified by the string are taken to be terms that are 
+independent of the <code>sections</code> and will be removed when adding the 
+spatial model for the first <code>sections</code>. 
+</p>
+<p>The terms must match those in the <code>vparameters</code> component of the 
+<code>asreml.obj</code> component in the <code>asrtests.obj</code>. Note also that 
+multiple terms specified using a single <code>asreml::at</code> function 
+can only be dropped as a whole. If the term was specified using 
+an <code>asreml::at</code> function with a single level, then it can be 
+removed and either the level itself or its <code>numeric</code> 
+position in the levels returned by the <code>levels</code> function 
+can be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsegs</code></td>
+<td>
+<p>A pair of <code>numeric</code> values giving the number of segments into
+which the column and row ranges are to be split, respectively, for fitting 
+a P-spline model (<code>TPPS</code>) (each value specifies the number of internal 
+knots + 1). If not specified, then (number of unique values - 1) is used 
+in each dimension; for a grid layout with equal spacing, this gives a knot 
+at each data value. If <code>sections</code> is not <code>NULL</code> and the grid 
+differs between the <code>sections</code>, then <code>nsegs</code> will differ between 
+the <code>sections</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nestorder</code></td>
+<td>
+<p>A <code>numeric</code> of length 2. The order of nesting for column 
+and row dimensions, respectively, in fitting a P-spline model (<code>TPPS</code>). 
+A value of 1 specifies no nesting, a value of 2 generates a spline with 
+half the number of segments in that 
+dimension, etc. The number of segments in each direction must be a 
+multiple of the order of nesting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>A <code>numeric</code>  of length 2. The degree of polynomial spline to 
+be used for column and row dimensions respectively, in fitting a P-spline 
+(<code>TPPS</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>difforder</code></td>
+<td>
+<p>A <code>numeric</code> of length 2. The order of differencing for 
+column and row dimensions, respectively, in fitting a P-spline 
+(<code>TPPS</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usRandLinCoeffs</code></td>
+<td>
+<p>A <code>logical</code> which, if <code>TRUE</code>, will attempt to  
+fit an unstructured variance model to the constant and linear terms in 
+the interactions for constant and linear terms in one grid dimension 
+interacting with smooth terms in the second grid dimension. The 
+unstructured variance model can only be fitted if both the constant and 
+linear interaction terms have been retained in the fitted model. 
+This argument can be used to omit the attempt to fit an unstructured 
+variance model when the attempt results in a system error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotateX</code></td>
+<td>
+<p>A <code>logical</code> indicating whether to rotate the eigenvectors of the 
+penalty matrix, as described by Piepho, Boer and Williams (2022), when 
+fitting a P-spline (<code>TPPS</code>). Setting <code>rotateX</code> to <code>TRUE</code> 
+results in a search for an optimized rotation under a model that omits 
+the random spline interaction terms. If <code>ngridangles</code> is set to 
+<code>NULL</code>, the optimal rotation us found using an optimizer 
+(<code>nloptr::bobyqa</code>). Otherwise, the optimal rotation is found by 
+exploring the fit over a  two-dimensional grid of rotation angle pairs. 
+The optimization seeks to optimize the criterion nominated in 
+<code>which.rotacriterion</code>. Rotation of the eigenvectors is only relevant 
+for <code>difforder</code> values greater than 1 and has only been implemented 
+for <code>difforder</code> equal to 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngridangles</code></td>
+<td>
+<p>A <code>numeric</code> of length 2. If <code>NULL</code> (the default), 
+the optimal pair of angles for rotating the eigenvectors of the penalty 
+matrix of a P-spline (<code>TPPS</code>) will be determined using a nonlinear 
+optimizer (<code>nloptr::bobyqa</code>). Otherwise, its two values specify the 
+numbers of angles between 0 and 90 degrees for each of the row and column 
+dimensions to be used in determining the optimal pair of angles. Specifying 
+factors of 90 will result in integer-valued angles. The number of grid 
+points, and hence re-analyses will be the product of the values of 
+(<code>ngridangles</code> + 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which.rotacriterion</code></td>
+<td>
+<p>A single <code>character</code> string nominating which of the 
+criteria, out of the <code>deviance</code>, the <code>likelihood</code>, the 
+<code>AIC</code> and the <code>BIC</code>, is to be used in determining the optimal 
+rotation of the eigenvectors of the penalty matrix. The <code>deviance</code> 
+uses the REML value computed by <code>asreml</code>; the other criteria use 
+the full likelihood, evaluated using the REML estimates, that is computed 
+by <code>infoCriteria.asreml</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrotacores</code></td>
+<td>
+<p>A <code>numeric</code> specifying the number of cores to deploy for 
+running the analyses required to search the two-dimensional grid of rotation 
+angles when <code>rotateX</code> is <code>TRUE</code>. Parallel processing has been 
+implemented for analyzing, for each column angle, the set of angles to be 
+investigated for the row dimension.  The default value of one means that 
+parallel processing will not be used. The value chosen for <code>nrotacores</code> 
+needs to balanced against the other processes that are using parallel 
+processing at the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asreml.option</code></td>
+<td>
+<p>A single <code>character</code> string specifying whether the <code>grp</code> or 
+<code>mbf</code> methods are to be used to supply externally formed covariate 
+matrices to <code>asreml</code> when fitting a P-spline (<code>TPPS</code>). Compared 
+to the <code>mbf</code> method, the <code>grp</code> method is somewhat faster, but 
+creates large <code>asrtests.object</code>s for which the time it takes 
+to save them can exceed any gains in execution speed. The <code>grp</code> 
+method adds columns to the <code>data.frame</code> containing the <code>data</code>. 
+On the other hand, the <code>mbf</code> method adds only the fixed covariates 
+to <code>data</code> and stores the random covariates in the environment of the 
+internal function that calls the spline-fitting function; there are three smaller 
+<code>data.frames</code> for each <code>section</code> that are not stored in the 
+<code>asreml.object</code> resulting from the fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tpps4mbf.obj</code></td>
+<td>
+<p>An object made with <code>makeTPPSplineMats.data.frame</code> 
+that contains the spline basis information for fitting P-splines. 
+The argument <code>tpps4mbf.obj</code> only needs to be set when the <code>mbf</code> 
+option of <code>asreml.option</code> is being used and it is desired to use 
+<code>mbf</code> <code>data.frames</code> that have been created and stored 
+prior to calling <code>addSpatialModel.asrtests</code>. If <code>tpps4mbf.obj</code> 
+is <code>NULL</code>, <br><code>makeTPPSplineMats.data.frame</code> will be called 
+internally to produce the required <code>mbf</code> <code>data.frames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.unconverged</code></td>
+<td>
+<p>A <code>logical</code> indicating whether to accept a new model 
+even when it does not converge. If <code>FALSE</code> and the fit of the new 
+model does not converge, the supplied <code>asrtests.obj</code> is returned.  
+Also, if <code>FALSE</code> and the fit of the new model has converged, but that 
+of the old model has not, the new model will be accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.fixedcorrelation</code></td>
+<td>
+<p>A <code>logical</code> indicating whether to accept a new model 
+even when it contains correlations in the model whose values have been 
+designated as fixed, bound or singular. If <code>FALSE</code> and the new model 
+contains correlations whose values have not been able to be estimated, 
+the supplied <code>asrtests.obj</code> is returned. The fit in the 
+<code>asreml.obj</code> component of the supplied <code>asrtests.obj</code> will 
+also be tested and a warning issued if both fixed correlations are found 
+in it and <code>allow.fixedcorrelation</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkboundaryonly</code></td>
+<td>
+<p>If <code>TRUE</code> then boundary and singular terms are not removed by 
+<code>rmboundary.asrtests</code>; a warning is issued instead. Note that, for 
+correlation models, the fitting of each dimension and the test for a nugget 
+term are performed with <code>checkboundaryonly</code>  set to <code>TRUE</code> and its 
+supplied setting only honoured using a call to <code>rmboundary.asrtests</code> 
+immediately prior to returning the final result of the fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE</code>, then <code>newfit.asreml</code> is called to fit the 
+model to be tested, using the values of the variance parameters stored in 
+the <code>asreml.object</code>, that is stored in <code>asrtests.obj</code>, as starting values. 
+If <code>FALSE</code>, then <code>newfit.asreml</code> will not use the stored 
+variance parameter values as starting values when fitting the new model, 
+the only modifications being (i) to add the terms for the spatial models 
+and (ii) those specified via <code>...</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If <code>TRUE</code> then the stages in fitting a correlation model are displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>A <code>numeric</code> specifying the maximum number of iterations that 
+<code>asreml</code> should perform in fitting a model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IClikelihood</code></td>
+<td>
+<p>A <code>character</code> that controls both the occurrence and the type 
+of likelihood for information criterion in the <code>test.summary</code> 
+of the new <code>asrtests.object</code>. If <code>none</code>, none are 
+included. Otherwise, if <code>REML</code>, then the AIC and BIC based 
+on the Restricted Maximum Likelihood are included; if <code>full</code>, 
+then the AIC and BIC based on the full likelihood, evaluated 
+using REML estimates, are included. 
+(See also <code>infoCriteria.asreml</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which.IC</code></td>
+<td>
+<p>A <code>character</code> specifying the information criterion to be used in 
+selecting the best model. Possible values are <code>AIC</code> and <code>BIC</code>. 
+The value of the criterion for supplied model must exceed that for changed 
+model for the changed model to be returned. (For choosing the rotation angle 
+of the eigenvectors of the penalty matrix, see <code>which.rotacriterion</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to <code>changeModelOnIC.asrtests</code>, <code>newfit.asreml</code>, <code>asreml</code> and 
+<code>tpsmmb</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The model to which the spatial models is to be added is supplied in the <code>asrtests.obj</code>. It should not include terms that will be included in the local spatial model. All spatial model terms are fitted as fixed or random. Consequently, the residual model does not have to be iid. The improvement in the fit resulting from the addition of a spatial model to the supplied model is evaluated. Note that the data must be in the order that corresponds to the <code>residual</code> argument with a variable to the right of another variable changes levels in the data frame faster than those of the other variable e.g. <code>Row:Column</code> implies that all levels for <code>Column</code> in consecutive rows of the <code>data.frame</code> with a single <code>Row</code> level. 
+</p>
+<p>For the <code>corr</code> spatial model, the default model is an autocorrelation model of order one (<code>ar1</code>) for each dimension. However, any of the single dimension correlation/variance models from <code>asreml</code> can be specified for each dimension, as can no correlation model for a dimension; the models for the two dimensions can differ. Using a forward selection procedure, a series of models are tried, without removing boundary or singular terms, beginning with the addition of row correlation and followed by the addition of column correlation or, if the <code>row.corrFitfirst</code> is set to <code>FALSE</code>, the reverse order. If the fitting of the first-fitted correlation did not result in a model change because the fitting did not converge or correlations were fixed, but the fit of the second correlation was successful, then adding the first correlation will be retried. If one of the metric correlation functions is specified (e.g. <code>exp</code>), then the <code>row.covar</code> or <code>col.covar</code> will be used in the spatial model. However, because the correlations are fitted separately for the two dimensions, the <code>row.factor</code> and <code>col.factor</code> are needed for all models and is used for a dimension that does not involve a correlation/variance function for the fit being performed. Also, the correlation models are fitted as <code>random</code> terms and so the correlation model will include a variance parameter for the grid even when <code>ar1</code> is used to specify the correlation model, i.e. the model fitted is a variance model and there is no difference between <code>ar1</code> and <code>ar1v</code> in fitting the model. The variance parameter for this term represents the spatial variance and the fit necessarily includes a nugget term, this being the residual variance. If any correlation is retained in the model, for a section if <code>sections</code> is not <code>NULL</code>, then the need for a nugget term is assessed by fixing the corresponding residual variance to one, unless there are multiple residual variances and these are not related to the <code>sections</code>. Once the fitting of the correlation model has been completed, the <code>rmboundary</code> function will be executed with the <code>checkboundaryonly</code> value supplied in the <code>addSpatialModel.asrtests</code> call. Finally, checking for bound and singular random terms associated with the correlation model and residual terms will be carried out when there are correlation terms in the model and <code>checkboundaryonly</code> has been set to <code>FALSE</code>; as many as possible will be removed from the fitted model, in some cases by fixing variance terms to one.
+</p>
+
+<p>The tensor-product natural-cubic-smoothing-spline (<code>TPNCSS</code>) spatial model is as described by Verbyla et al. (2018), the tensor-product penalized-cubic-spline (<code>TPPSC2</code>) model with second-order differencing of the penalty is similar to that described by Rodriguez-Alvarez et al. (2018), and the tensor-product, first-difference-penalty, linear spline (<code>TPPSL1</code>) model is amongst those described by Piepho, Boer and Williams (2022).  The fixed terms for the spline models are <code>row.covar + col.covar + row.covar:col.covar</code> and the random terms are <code>spl(row.covar) + spl(col.covar) + dev(row.covar) + dev(col.covar) + spl(row.covar):col.covar + row.covar:spl(col.covar) + spl(row.covar):spl(col.covar)</code>, except that <code>spl(row.covar) + spl(col.covar)</code> is replaced with <code>spl(row.covar):int(col.covar) + int(row.covar):spl(col.covar)</code> in the <code>TPPSC2</code> model, where <code>int(.)</code> indicates an intercept or constant value specific to its argument. For <code>TPPSL1</code> models, the terms <code>spl(row.covar):col.covar + row.covar:spl(col.covar)</code> are omitted,  The supplied model should not include any of these terms. However, any fixed or random main-effect Row or Column term that has been included as an initial model for comparison with a spatial model can be removed prior to fitting the spatial model using <code>dropFixed</code> or <code>dropRandom</code>.  For the P-spline models with second-order differencing, the model matrices used to fit the pairs of random terms (i) <code>spl(row.covar):int(col.covar)</code> and  <code>spl(row.covar):col.covar</code> and (ii) <code>int(row.covar):spl(col.covar)</code> and <code>row.covar:spl(col.covar)</code> are transformed using the spectral decomposition of their penalty matrices. An unstructured variance model is tried for each of these pairs. For <code>TPPSC2</code>, it is also possible to optimize the rotation of the null-space eigenvectors of the penalty matrix for each of these random-term pairs (for more information see Piepho, Boer and Williams, 2022). The optimization is achieved either using an optimizer or takes the form of a search over a grid of rotation angles for a reduced model; the fit of the full model with rotation using the optimal rotation angles will be returned.
+</p>
+<p>The <code>TPPCS</code> and <code>TPP1LS</code> models are fitted using functions from the <code>R</code> package <code>TPSbits</code> authored by Sue Welham (2022). There are two methods for supplying the spline basis information produced by <code>tpsmmb</code> to <code>asreml</code>. The <code>grp</code> method adds it to the <code>data.frame</code> supplied in the <code>data</code> argument of the <code>asreml</code> call. The <code>mbf</code> method creates smaller <code>data.frames</code> with the spline basis information in the same environment as the internal function that calls the spline-fitting function. If it is desired to use in a later session, an <code>asreml</code> function, or <code>asrtests</code> function that calls <code>asreml</code>, (e.g. <code>predict.asreml</code>, <code>predictPlus.asreml</code>, or <code>changeTerms.asrtests</code>) on an <code>asreml.object</code> created using <code>mbf</code> terms, then the <code>mbf</code> <code>data.frames</code> will need to be recreated using <code>makeTPPSplineMats.data.frame</code> in the new session, supplying, if there has been rotation of the penalty matrix eigenvectors, the <code>theta</code> values that are returned as the attribute <code>theta.opt</code> of the <code>asreml.obj</code>. 
+</p>
+<p>All models utlize the function <code>changeTerms.asrtests</code> to fit the spatial model. Arguments from <code>tpsmmb</code> and <code>changeTerms.asrtests</code> can be supplied in calls to <code>addSpatialModel.asrtests</code> and will be passed on to the relevant function through the ellipses argument (...).
+</p>
+<p>The data for experiment can be divided <code>sections</code> and the same spatial model fitted separately to each. The fit over all of the sections is assessed. For more detail see <code>sections</code> above.
+</p>
+<p>Each combination of a row.coords and a col.coords does not have to specify a single observation; 
+for example, to fit a local spatial model to the main units of a split-unit design, 
+each combination would correspond to a main unit and all subunits of the main unit would 
+have the same combination.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>asrtests.object</code> containing the components (i) <code>asreml.obj</code>, 
+possibly with attribute <code>theta.opt</code>, 
+(ii) <code>wald.tab</code>, and (iii) <code>test.summary</code> for the model that includes the 
+spatial model, unless the spatial model fails to be fitted when <code>allow.unconverged</code> 
+and/or <code>allow.fixedcorrelation</code> is set to <code>FALSE</code>. If the 
+<code>asrtests.object</code> is the result of fitting a <code>TPPCS</code> model with 
+an exploration of the rotation of the eigenvectors of the penalty matrix for the linear 
+components, then the <code>asreml.obj</code> will have an attribute <code>theta.opt</code> that contains 
+the optimal rotation angles of the eigenvectors.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>References</h3>
+
+<p>Piepho, H.-P., Boer, M. P., &amp; Williams, E. R. (2022). Two-dimensional P-spline smoothing for spatial analysis of plant breeding trials. <em>Biometrical Journal</em>, <b>64</b>, 835-857.
+</p>
+<p>Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., &amp; Eilers, P. H. C. (2018). Correcting for spatial heterogeneity in plant breeding experiments with P-splines. <em>Spatial Statistics</em>, <b>23</b>, 52-71. 
+</p>
+<p>Verbyla, A. P., De Faveri, J., Wilkie, J. D., &amp; Lewis, T. (2018). Tensor Cubic Smoothing Splines in Designed Experiments Requiring Residual Modelling. <em>Journal of Agricultural, Biological and Environmental Statistics</em>, <b>23(4)</b>, 478-508.
+</p>
+<p>Welham, S. J. (2022) <code>TPSbits</code>: <em>Creates Structures to Enable Fitting and Examination of 2D Tensor-Product Splines using ASReml-R.</em> Version 1.0.0 <a href="https://mmade.org/tpsbits/">https://mmade.org/tpsbits/</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.asrtests</code>, 
+<code>makeTPPSplineMats.data.frame</code>, 
+<code>addSpatialModelOnIC.asrtests</code>, <br><code>chooseSpatialModelOnIC.asrtests</code>, 
+<code>changeModelOnIC.asrtests</code>, 
+<code>changeTerms.asrtests</code>,  <br><code>rmboundary.asrtests</code>,  
+<code>testranfix.asrtests</code>, 
+<code>testresidual.asrtests</code>, 
+<code>newfit.asreml</code>, <br><code>reparamSigDevn.asrtests</code>, 
+<code>changeTerms.asrtests</code>, 
+<code>infoCriteria.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+data(Wheat.dat)
+
+#Add row and column covariates
+Wheat.dat &lt;- within(Wheat.dat, 
+                    {
+                      cColumn &lt;- dae::as.numfac(Column)
+                      cColumn &lt;- cColumn  - mean(unique(cColumn))
+                      cRow &lt;- dae::as.numfac(Row)
+                      cRow &lt;- cRow - mean(unique(cRow))
+                    })
+
+#Fit initial model
+current.asr &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                      random = ~ Row + Column,
+                      data=Wheat.dat)
+
+#Create an asrtests object, removing boundary terms
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL, 
+                            label = "Random Row and Column effects")
+current.asrt &lt;- rmboundary(current.asrt)
+
+#Create an asrtests object with a P-spline spatial variation model 
+spatial.asrt &lt;- addSpatialModel(current.asrt, spatial.model = "TPPS", 
+                                row.covar = "cRow", col.covar = "cColumn",
+                                dropRowterm = "Row", dropColterm = "Column",
+                                asreml.option = "grp")
+infoCriteria(current.asrt$asreml.obj)
+
+#Create an asrtests object with a P-spline spatial variation model 
+#that includes rotation of the eigenvectors of the penalty matrix
+spatial.asrt &lt;- addSpatialModel(current.asrt, spatial.model = "TPPS", 
+                                row.covar = "cRow", col.covar = "cColumn",
+                                dropRowterm = "Row", dropColterm = "Column",
+                                rotateX = TRUE, 
+                                which.rotacriterion = "dev", 
+                                nrotacores = parallel::detectCores(), 
+                                asreml.option = "mbf")
+infoCriteria(current.asrt$asreml.obj)
+
+## End(Not run)</code></pre>
+
+
+</div>

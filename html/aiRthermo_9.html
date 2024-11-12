@@ -1,0 +1,287 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CAPE_CIN</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculation of CAPE and CIN
+</h2>
+
+<h3>Description</h3>
+
+<p>Taking into account the data obtained in a radiosonde, and after defining the initial values of the parcel, this function calculates the values of CAPE and CIN for the sounding.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CAPE_CIN(Ps, Ts, ws, deltaP = 5, P0 = NA, T0 = NA, w0 = NA, PlowTop = NA, 
+precoolType = "none", doLog = 0, getLiftedBack = FALSE, upToTop = TRUE, 
+checkBuoyancy = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ps</code></td>
+<td>
+
+<p>Pressures (Pa) defining the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ts</code></td>
+<td>
+
+<p>Temperatures (K) defining the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ws</code></td>
+<td>
+
+<p>Mixing ratios (kg/kg) defining the sounding.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaP</code></td>
+<td>
+
+<p>The width (Pa) of the layers used in the calculation of the numerical solution for the vertical evolution. A default value of 5 Pa is used. It must be positive.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0</code></td>
+<td>
+
+<p>The initial pressure (Pa) for the parcel that is lifted (may be the lowest level of the sounding). Missing value is used by default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T0</code></td>
+<td>
+
+<p>The initial temperature (K) of the parcel being lifted. Missing value is used by default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w0</code></td>
+<td>
+
+<p>The initial mixing ratio (kg/kg) of the parcel being lifted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PlowTop</code></td>
+<td>
+
+<p>If some layers must be averaged in the bottom of the sounding this argument provides the pressure (Pa) at the top of the layer that must be averaged in the bottom of the sounding. <code>NA</code> is used by default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precoolType</code></td>
+<td>
+
+<p>If requested, an adiabatic or an isobaric precooling of the initial parcel is performed. "none" is used by default, but "adiabatic" and "isobaric" are also accepted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doLog</code></td>
+<td>
+
+<p>Use logarithmic vertical interpolation between sounding levels if doLog=1. The default value is doLog=0.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getLiftedBack</code></td>
+<td>
+
+<p>TRUE/FALSE requests that the evolution of the lifted particle until the top level of the soundig is returned as a set of vectors for P, T and w (fields Pl, Tl and wl respectively). FALSE is used by default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upToTop</code></td>
+<td>
+
+<p>TRUE(FALSE) requests that the lifted particle continues(stops) after the first crossing with the ambient sounding (EL) (until the sounding finishes). If TRUE, remaining negative areas above are accumulated into CIN only if the parcel becomes buoyant again in upper levels depending on the setting of <em>checkBuoyancy</em>. TRUE is used by default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkBuoyancy</code></td>
+<td>
+
+<p>If <em>checkBuoyancy</em> is TRUE, the computation of CAPE and CIN proceed to the top of the sounding if <em>upToTop</em> is TRUE if CAPE is larger than CIN while the parcel passes non-buoyant regions. The default value is FALSE.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>CAPE and CIN (J/kg) are calculated from a sounding given by 1D arrays for pressure Ps (Pa), for temperature Ts (K) and for mixing ratio ws (kg/kg).
+</p>
+<p>If <code class="reqn">P_0</code>/<code class="reqn">T_0</code>/<code class="reqn">w_0</code> are provided, no low vertical averaging is done and these values are used as initial points for the parcel. Missing value is used by default for these arguments.
+</p>
+<p>This function returns some error codes in field <em>outCode</em> in the return value if the computation of CAPE and CIN failed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>airStart</code></td>
+<td>
+
+<p>The real starting variable of the air parcel. It is a vector with 6 elements: P (Pa), Temp (K), w (kg/kg), theta (K), Tvirtual (K) and wsat (kg/kg). The values are computed depending on the input arguments.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cape</code></td>
+<td>
+
+<p>CAPE index (J/kg).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cin</code></td>
+<td>
+
+<p>CIN index (J/kg) as a negative number.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apLCL</code></td>
+<td>
+
+<p>Variables of the air parcel at the Lifting Condensation Level (LCL). It is returned as a vector with 6 elements: P (Pa), Temp (K), w (kg/kg), theta (K), virtualT (K) and wsat (kg/kg).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apLFC</code></td>
+<td>
+
+<p>Variables of the Level of Free Convection (LFC). If LFC is found, it is returned as a vector with six elements: P (Pa), Temp (K), w (kg/kg), theta (K), virtualT (K) and wsat (kg/kg).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apEL</code></td>
+<td>
+
+<p>End Level (EL). If EL is found, it is returned as a vector with six elements: P (Pa), Temp (K), w (kg/kg), theta (K), virtualT (K) and wsat (kg/kg).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gotLCL</code></td>
+<td>
+
+<p>TRUE/FALSE whether the LCL has been found or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gotLFC</code></td>
+<td>
+
+<p>TRUE/FALSE whether the LFC has been found or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gotEL</code></td>
+<td>
+
+<p>TRUE/FALSE whether the EL has been found or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pl</code></td>
+<td>
+
+<p>Pressure (Pa) at every step of the lifted particle during its evolution. If requested by using getLiftedBack==TRUE, every step until the end of the radiosonde is returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tl</code></td>
+<td>
+
+<p>Temp (K) at every step of the lifted particle during its evolution. If requested by using getLiftedBack==TRUE, every step until the end of the radiosonde is returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wl</code></td>
+<td>
+
+<p>Mixing-ratio of the lifted particle during its evolution. If requested by using getLiftedBack==TRUE, every step until the end of the radiosonde is returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Olifted</code></td>
+<td>
+
+<p>Number of elements in  Pl/Tl/wl.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upToTop</code></td>
+<td>
+
+<p>Process the whole sounding even after finding the first "EL level".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outCode</code></td>
+<td>
+
+<p>The  error code returned by the C routine that computes CAPE/CIN. If 0, everything has been OK!
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(RadiosondeA)
+aPs&lt;-RadiosondeA[,1]*100
+aTs&lt;-C2K(RadiosondeA[,3])
+aws&lt;-RadiosondeA[,6]/1000
+capeCin&lt;-CAPE_CIN(PlowTop=98000,precoolType="adiabatic",
+                  Ps=aPs,Ts=aTs,ws=aws,doLog=0,deltaP=5,
+                  getLiftedBack=TRUE,upToTop=TRUE)
+print(min(capeCin$Tl))
+
+pdf("stuve.pdf")
+stuveA&lt;-stuve_diagram(Pres = aPs/100,Temp=aTs-273.15)
+lines(capeCin$Tl-273.15,capeCin$Pl/100,col="red",lwd=2)
+dev.off()
+</code></pre>
+
+
+</div>

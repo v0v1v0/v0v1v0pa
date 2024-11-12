@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_sedc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates</h2>
+
+<h3>Description</h3>
+
+<p>Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_sedc(
+  from = NULL,
+  locs = NULL,
+  locs_id = NULL,
+  sedc_bandwidth = NULL,
+  target_fields = NULL,
+  geom = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p><code>SpatVector</code> object. Locations where each SEDC is calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locs</code></td>
+<td>
+<p><code>SpatVector</code> object. Locations where
+the sum of SEDCs are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locs_id</code></td>
+<td>
+<p>character(1). Name of the unique id field in <code>point_to</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedc_bandwidth</code></td>
+<td>
+<p>numeric(1).
+Distance at which the source concentration is reduced to
+<code>exp(-3)</code> (approximately -95 %)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_fields</code></td>
+<td>
+<p>character(varying). Field names in characters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>logical(1). Should the function return a <code>SpatVector</code>?
+Default is <code>FALSE</code>. The coordinate reference system of the <code>SpatVector</code> is
+that of <code>from.</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data.frame (tibble) or SpatVector object with input field names with
+a suffix <code>"_sedc"</code> where the sums of EDC are stored.
+Additional attributes are attached for the EDC information.
+</p>
+
+<ul>
+<li>
+<p> 'attr(result, "sedc_bandwidth")“: the bandwidth where
+concentration reduces to approximately five percent
+</p>
+</li>
+<li>
+<p> 'attr(result, "sedc_threshold")“: the threshold distance
+at which emission source points are excluded beyond that
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>The function is originally from
+<a href="https://github.com/NIEHS/chopin">chopin</a>
+Distance calculation is done with terra functions internally.
+Thus, the function internally converts sf objects in
+<code>point_*</code> arguments to terra.
+The threshold should be carefully chosen by users.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Insang Song
+</p>
+
+
+<h3>References</h3>
+
+<p>Messier KP, Akita Y, Serre ML (2012).
+“Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene.”
+<em>Environmental Science &amp; Technology</em>, <b>46</b>(5), 2772–2780.
+ISSN 0013-936X, <a href="https://doi.org/10.1021/es203152a">doi:10.1021/es203152a</a>.
+</p>
+<p>Wiesner C (????).
+“Euclidean Sum of Exponentially Decaying Contributions Tutorial.”
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(terra)
+library(sf)
+set.seed(101)
+ncpath &lt;- system.file("gpkg/nc.gpkg", package = "sf")
+nc &lt;- terra::vect(ncpath)
+nc &lt;- terra::project(nc, "EPSG:5070")
+pnt_locs &lt;- terra::centroids(nc, inside = TRUE)
+pnt_locs &lt;- pnt_locs[, "NAME"]
+pnt_from &lt;- terra::spatSample(nc, 10L)
+pnt_from$pid &lt;- seq(1, 10)
+pnt_from &lt;- pnt_from[, "pid"]
+pnt_from$val1 &lt;- rgamma(10L, 1, 0.05)
+pnt_from$val2 &lt;- rgamma(10L, 2, 1)
+
+vals &lt;- c("val1", "val2")
+calc_sedc(pnt_locs, pnt_from, "NAME", 1e4, vals)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kusto_database_endpoint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Endpoints for communicating with a Kusto database</h2>
+
+<h3>Description</h3>
+
+<p>Endpoints for communicating with a Kusto database
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kusto_database_endpoint(
+  ...,
+  .connection_string = NULL,
+  .query_token = NULL,
+  .use_integer64 = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Named arguments which are the properties for the endpoint object. See 'Details' below for the properties that AzureKusto recognises.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.connection_string</code></td>
+<td>
+<p>An alternative way of specifying the properties, as a database connection string. Properties supplied here override those in <code>...</code> if they overlap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.query_token</code></td>
+<td>
+<p>Optionally, an Azure Active Directory (AAD) token to authenticate with. If this is supplied, it overrides other tokens specified in <code>...</code> or in the connection string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.use_integer64</code></td>
+<td>
+<p>For <code>kusto_database_endpoint</code>, whether to convert columns with Kusto <code>long</code> datatype into 64-bit integers in R, using the bit64 package. If FALSE, represent them as numeric instead.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a list of properties recognised by <code>kusto_database_endpoint</code>, and their alternate names. Property names not in this list will generate an error. Note that not all properties that are recognised are currently supported by AzureKusto.
+</p>
+<p>General properties:
+</p>
+
+<ul>
+<li>
+<p> server: The URI of the server, usually of the form 'https://clustername.location.kusto.windows.net'.
+</p>
+
+<ul><li>
+<p> addr, address, network address, datasource, host
+</p>
+</li></ul>
+</li>
+<li>
+<p> database: The database.
+</p>
+
+<ul><li>
+<p> initialcatalog, dbname
+</p>
+</li></ul>
+</li>
+<li>
+<p> tenantid: The AAD tenant name or ID to authenticate with.
+</p>
+
+<ul><li>
+<p> authority
+</p>
+</li></ul>
+</li>
+<li>
+<p> appclientid: The AAD app/service principal ID
+</p>
+
+<ul><li>
+<p> applicationclientid
+</p>
+</li></ul>
+</li>
+<li>
+<p> traceclientversion: The client version for tracing.
+</p>
+</li>
+<li>
+<p> queryconsistency: The level of query consistency. Defaults to "weakconsistency".
+</p>
+</li>
+<li>
+<p> response_dynamic_serialization: How to serialize dynamic responses.
+</p>
+</li>
+<li>
+<p> response_dynamic_serialization_2: How to serialize dynamic responses.
+</p>
+</li>
+</ul>
+<p>User authentication properties:
+</p>
+
+<ul><li>
+<p> password
+</p>
+</li></ul>
+<ul>
+<li>
+<p> user: The user name.
+</p>
+
+<ul><li>
+<p> uid, userid
+</p>
+</li></ul>
+</li>
+<li>
+<p> traceusername: The user name for tracing.
+</p>
+</li>
+<li>
+<p> usertoken: The AAD token for user authentication.
+</p>
+</li>
+<li> 
+
+<ul><li>
+<p> usertoken, usrtoken
+</p>
+</li></ul>
+</li>
+<li>
+<p> fed: Logical, whether federated authentication is enabled. Currently unsupported; if this is TRUE, <code>kusto_database_endpoint</code> will print a warning and ignore it.
+</p>
+
+<ul><li>
+<p> federated security, federated, aadfed, aadfederatedsecurity
+</p>
+</li></ul>
+</li>
+</ul>
+<p>App authentication properties:
+</p>
+
+<ul>
+<li>
+<p> appkey: The secret key for the app.
+</p>
+
+<ul><li>
+<p> applicationkey
+</p>
+</li></ul>
+</li>
+<li>
+<p> traceappname: The AAD app for tracing.
+</p>
+</li>
+<li>
+<p> apptoken: The AAD token for app authentication.
+</p>
+
+<ul><li>
+<p> apptoken, applicationtoken
+</p>
+</li></ul>
+</li>
+</ul>
+<p>Currently, AzureKusto only supports authentication via Azure Active Directory. Authenticating with DSTS is planned for the future.
+</p>
+<p>The way <code>kusto_database_endpoint</code> obtains an AAD token is as follows.
+</p>
+
+<ol>
+<li>
+<p> If the <code>.query_token</code> argument is supplied, use it.
+</p>
+</li>
+<li>
+<p> Otherwise, if the <code>usertoken</code> property is supplied, use it.
+</p>
+</li>
+<li>
+<p> Otherwise, if the <code>apptoken</code> property is supplied, use it.
+</p>
+</li>
+<li>
+<p> Otherwise, if the <code>appclientid</code> property is supplied, use it to obtain a token:
+</p>
+
+<ul>
+<li>
+<p> With the <code>user</code> and <code>pwd</code> properties if available
+</p>
+</li>
+<li>
+<p> Or with the <code>appkey</code> property if available
+</p>
+</li>
+<li>
+<p> Otherwise do an interactive authentication and ask for the user credentials
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Otherwise, if no <code>appclientid</code> property is supplied, authenticate with the KustoClient app:
+</p>
+
+<ul>
+<li>
+<p> With the <code>user</code> and <code>pwd</code> properties if available
+</p>
+</li>
+<li>
+<p> Otherwise do an interactive authentication and ask for the user credentials using a device code
+</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>An object of class <code>kusto_database_endpoint</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>run_query, az_kusto_database
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+kusto_database_endpoint(server="myclust.australiaeast.kusto.windows.net", database="db1")
+
+# supplying a token obtained previously
+token &lt;- get_kusto_token("myclust.australiaeast.kusto.windows.net")
+kusto_database_endpoint(server="myclust.australiaeast.kusto.windows.net", database="db1",
+                        .query_token=token)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

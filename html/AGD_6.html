@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extractLMS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extracts LMS values from a gamlss object.</h2>
+
+<h3>Description</h3>
+
+<p>Extract LMS values from a gamlss object for solutions that transform the age
+axis according to the M-curve.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extractLMS(
+  fit,
+  data,
+  sex = "M",
+  grid = "classic",
+  decimals = c(4, 4, 4),
+  flatAge = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>A gamlss object containing the final fit on transformed age,
+<code>t.age</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the original data, with both <code>age</code>
+and <code>t.age</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>A character vector indicating whether the fit applied to males
+<code>sex="M"</code> or females <code>sex="F"</code>. The default is <code>sex="M"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>A character vector indicating the desired age grid. See
+<code>ageGrid()</code> for possible options. The default is a
+<code>grid="classic"</code>, a grid of 59 age points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decimals</code></td>
+<td>
+<p>A numerical vector of length 3 indicating the number of
+significant digits for rounding of the L, M and S curves, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flatAge</code></td>
+<td>
+<p>A scalar indicating the age beyond which the L, M and S values
+should be constant. The default (NULL) is not to flatten the curves.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is crucial that <code>t.age</code> in <code>data</code> correspond to exactly the same
+age transformation as used to fit the <code>gamlss</code> object. Age grid values
+beyond the range of <code>data$age</code> produce <code>NA</code> in the L, M and S
+values. Parameter <code>flatAge</code> should be one of the values of the age grid.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame with rows corresponding to time points, and with the
+following columns: <code>sex</code>,<code>x</code>,<code>L</code>,<code>M</code>,<code>S</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stef van Buuren, 2010
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+#
+library(gamlss)
+boys &lt;- boys7482
+
+# calculate initial M curve
+data &lt;- na.omit(boys[,1:2])
+f0154  &lt;- gamlss(hgt~cs(age,df=15,c.spar=c(-1.5,2.5)),
+                sigma.formula=~cs(age,df=4,c.spar=c(-1.5,2.5)),
+                data=data,family=NO,
+                control=gamlss.control(n.cyc=3))                      
+
+# calculate transformed age
+t.age &lt;- fitted(lm(data$age~fitted(f0154)))
+t.age &lt;- t.age - min(t.age)
+data.t &lt;- data.frame(data,t.age=t.age)
+
+# calculate final solution
+f0106r &lt;- gamlss(hgt~cs(t.age,df=10,c.spar=c(-1.5,2.5)),
+                sigma.formula=~cs(t.age,df=6,c.spar=c(-1.5,2.5)),
+                data=data.t,family=NO,
+                control=gamlss.control(n.cyc=3))
+
+# extract the LMS reference table in the 'classic' age grid
+nl4.hgt.boys &lt;- extractLMS(fit = f0106r, data=data.t, grid="compact", 
+               dec = c(0,2,5))
+nl4.hgt.boys
+
+
+# flatten the reference beyond age 20Y (not very useful in this data)
+nl4.hgt.boys.flat &lt;- extractLMS(fit = f0106r, data=data.t, flatAge=20)
+nl4.hgt.boys.flat
+
+# use log age transformation
+data.t &lt;- data.frame(data, t.age = log(data$age))
+f0106rlog &lt;- gamlss(hgt~cs(t.age,df=10,c.spar=c(-1.5,2.5)),
+                sigma.formula=~cs(t.age,df=6,c.spar=c(-1.5,2.5)),
+                data=data.t,family=NO,
+                control=gamlss.control(n.cyc=1))
+
+nl4.hgt.boys.log &lt;- extractLMS(fit = f0106rlog, data=data.t)
+nl4.hgt.boys.log
+
+## End(Not run)
+</code></pre>
+
+
+</div>

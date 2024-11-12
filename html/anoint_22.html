@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pim.subsets</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform all subsets proportional interactions modeling</h2>
+
+<h3>Description</h3>
+
+<p>Computes all possible proportional interactions model among <code>p</code> covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pim.subsets(formula,trt,data,family="binomial",na.action=na.omit,fwer=0.05,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula for covariate model as given in <code>glm</code> or <code>coxph</code>, i.e. <code>y~x1+x2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt</code></td>
+<td>
+<p>character name of treatment assignment indicator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame containing the variables of <code>formula</code> and <code>trt</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>character specifying family of <code>glm</code> or character "coxph" if <code>coxph</code> model is fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>function, na.action to perform for handling observations with missing variables among variables in formula. Default is <code>na.omit</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fwer</code></td>
+<td>
+<p>numeric value for the desired familywise error rate, should be between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>glm</code> or <code>coxph</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Under the proportional interaction model the <code>coef</code> of the main covariate effects in the control arm are multiplied by the <code>interaction</code> effect to get the covariate effects for the treatment group.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with 
+</p>
+
+<dl>
+<dt>subset</dt>
+<dd>
+<p>indicator of the covariates included in the fitted model</p>
+</dd>
+<dt>interaction</dt>
+<dd>
+<p>value of the interaction effect of the proportional interaction model, see details</p>
+</dd>
+<dt>LRT</dt>
+<dd>
+<p>value of likelihood ratio test of proportional interaction</p>
+</dd>
+<dt>lower</dt>
+<dd>
+<p>lower endpoints of 95 percent confidence interval for interaction parameter</p>
+</dd>
+<dt>upper</dt>
+<dd>
+<p>upper endpoints of 95 percent confidence interval for interaction parameter</p>
+</dd>
+<dt>pvalue</dt>
+<dd>
+<p>pvalue for 1-df chi-squared test</p>
+</dd>
+<dt>include.exclude.matrix</dt>
+<dd>
+<p>matrix of same rows as subsets and columns as covariates with logical entries indicating which covariates (columns) were include in which subset model (row)</p>
+</dd>
+<dt>covariates</dt>
+<dd>
+<p>vector of covariate names as in formula</p>
+</dd>
+<dt>reject</dt>
+<dd>
+<p>indicator of rejected hypotheses using a multiple testing correction such that familywise error is controlled at level <code>fwer</code></p>
+</dd>
+</dl>
+<p>.
+
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephanie Kovalchik &lt;s.a.kovalchik@gmail.com&gt;</p>
+
+
+<h3>References</h3>
+
+<p>Follmann DA, Proschan MA. A multivariate test of interaction for use in clinical trials. <em>Biometrics</em> 1999; 55(4):1151-1155
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(11903)
+
+# NO INTERACTION CONDITION, LOGISTIC MODEL
+
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.5),log(.5*.75)),
+                             beta = log(c(1.5,2)),
+                             gamma = rep(1,2),
+                             mean = c(0,0),
+                             vcov = diag(2),
+                             type="survival", n = 500
+                             )
+
+head(null.interaction)
+
+pim.subsets(Surv(y, event)~V1+V2,trt="trt",data=null.interaction,family="coxph")
+
+
+# PROPORTIONAL INTERACTION WITH THREE COVARIATES AND BINARY OUTCOME
+
+pim.interaction &lt;- data.anoint(
+			     n = 5000,
+                             alpha = c(log(.2/.8),log(.2*.75/(1-.2*.75))),
+                             beta = rep(log(.8),3),
+                             gamma = rep(1.5,3),
+                             mean = c(0,0,0),
+                             vcov = diag(3),
+                             type="binomial"
+                             )
+
+pim.subsets(y~V1+V2+V3,trt="trt",data=pim.interaction,family="binomial")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateErrorCrit_GAPX</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creation of the ErrorCrit_GAPX function</h2>
+
+<h3>Description</h3>
+
+<p>Function which creates the function <code>ErrorCrit_GAPX</code>.
+</p>
+<p>The produced function <code>ErrorCrit_GAPX</code> allows computing an error criterion based on the GAPX formula proposed by Lavenne et al. (2019).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateErrorCrit_GAPX(FUN_TRANSFO)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>FUN_TRANSFO</code></td>
+<td>
+<p>[function] The parameter transformation function used with the model</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>In addition to the criterion value, the function outputs include a multiplier (-1 or +1) that allows
+the use of the function for model calibration: the product <code class="reqn">CritValue \times Multiplier</code> is the criterion to be minimised
+(<code>Multiplier = -1</code> for NSE).
+</p>
+
+
+<h3>Value</h3>
+
+<p>[function] function <code>ErrorCrit_GAPX</code> embedding the parameter transformation function used with the model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Dorchies
+</p>
+
+
+<h3>References</h3>
+
+<p>de Lavenne, A., Andréassian, V., Thirel, G., Ramos, M.-H. and Perrin, C. (2019).
+A Regularization Approach to Improve the Sequential Calibration of a Semidistributed Hydrological Model.
+Water Resources Research 55, 8821–8839. <a href="https://doi.org/10.1029/2018WR024266">doi:10.1029/2018WR024266</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CreateInputsCrit</code>, <code>ErrorCrit_RMSE</code>, <code>ErrorCrit_NSE</code>,
+<code>ErrorCrit_KGE</code>, <code>ErrorCrit_KGE2</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## calibration period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+                               IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
+OutputsModel &lt;- RunModel_GR4J(InputsModel = InputsModel,
+                              RunOptions = RunOptions, Param = Param)
+
+## Creation of the ErrorCrit GAPX function
+ErrorCrit_GAPX &lt;- CreateErrorCrit_GAPX(TransfoParam_GR4J)
+
+## The "a priori" parameters for GAPX
+AprParamR &lt;- c(X1 = 157, X2 = 0.8, X3 = 100, X4 = 1.5)
+AprParamT &lt;- TransfoParam_GR4J(AprParamR, "RT")
+
+## Single efficiency criterion: GAPX with a priori parameters
+InputsCrit &lt;- CreateInputsCrit(ErrorCrit_GAPX,
+                               InputsModel,
+                               RunOptions,
+                               Obs = AprParamT,
+                               VarObs = "ParamT")
+ErrorCrit &lt;- ErrorCrit_GAPX(InputsCrit, OutputsModel)
+str(ErrorCrit)
+</code></pre>
+
+
+</div>

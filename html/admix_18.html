@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IBM_empirical_contrast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Empirical computation of the contrast in the Inversion - Best Matching (IBM) method</h2>
+
+<h3>Description</h3>
+
+<p>Defines the empirical version of the contrast in the IBM method, to be minimized in the optimization process. For further details
+about the contrast definition, see 'Details' below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IBM_empirical_contrast(
+  par,
+  fixed.p.X = NULL,
+  sample1,
+  sample2,
+  G,
+  comp.dist,
+  comp.param
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>Numeric vector with two elements, corresponding to the two parameter values at which to compute the contrast. In practice
+the component weights for the two admixture models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed.p.X</code></td>
+<td>
+<p>Arbitrary value chosen by the user for the component weight related to the unknown component of the first
+admixture model. Only useful for optimization when the known components of the two models are identical
+(G1=G2, leading to unidimensional optimization).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample1</code></td>
+<td>
+<p>Observations of the first sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample2</code></td>
+<td>
+<p>Observations of the second sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>Distribution on which to integrate when calculating the contrast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.dist</code></td>
+<td>
+<p>A list with four elements corresponding to the component distributions (specified with R native names for these distributions)
+involved in the two admixture models. The two first elements refer to the unknown and known components of the 1st admixture model,
+and the last two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.dist' could be specified as follows: list(f1=NULL, g1='norm', f2=NULL, g2='norm').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.param</code></td>
+<td>
+<p>A list with four elements corresponding to the parameters of the component distributions, each element being a list
+itself. The names used in this list must correspond to the native R argument names for these distributions.
+The two first elements refer to the parameters of unknown and known components of the 1st admixture model, and the last
+two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.param' could be specified as follows: : list(f1=NULL, g1=list(mean=0,sd=1), f2=NULL, g2=list(mean=3,sd=1.1)).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the paper presenting the IBM approach at the following HAL weblink: https://hal.science/hal-03201760
+</p>
+
+
+<h3>Value</h3>
+
+<p>The empirical contrast value evaluated at parameter values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Milhaud <a href="mailto:xavier.milhaud.research@gmail.com">xavier.milhaud.research@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data:
+list.comp &lt;- list(f1 = 'norm', g1 = 'norm',
+                  f2 = 'norm', g2 = 'norm')
+list.param &lt;- list(f1 = list(mean = 3, sd = 0.5), g1 = list(mean = 0, sd = 1),
+                   f2 = list(mean = 1, sd = 0.1), g2 = list(mean = 5, sd = 2))
+sample1 &lt;- rsimmix(n=1500, unknownComp_weight=0.5, comp.dist = list(list.comp$f1,list.comp$g1),
+                                               comp.param = list(list.param$f1,list.param$g1))
+sample2 &lt;- rsimmix(n=2000, unknownComp_weight=0.7, comp.dist = list(list.comp$f2,list.comp$g2),
+                                               comp.param = list(list.param$f2,list.param$g2))
+## Create the distribution on which the contrast will be integrated:
+G &lt;- stats::rnorm(n = 1000, mean = sample(c(sample1[['mixt.data']], sample2[['mixt.data']]),
+                                          size = 1000, replace = TRUE),
+                  sd = density(c(sample1[['mixt.data']], sample2[['mixt.data']]))$bw)
+## Compute the empirical contrast at parameters (p1,p2) = (0.2,0.7) in a real-life setting:
+list.comp &lt;- list(f1 = NULL, g1 = 'norm',
+                  f2 = NULL, g2 = 'norm')
+list.param &lt;- list(f1 = NULL, g1 = list(mean = 0, sd = 1),
+                   f2 = NULL, g2 = list(mean = 5, sd = 2))
+IBM_empirical_contrast(par = c(0.2,0.7), fixed.p.X = NULL, sample1 = sample1[['mixt.data']],
+           sample2= sample2[['mixt.data']], G=G, comp.dist = list.comp, comp.param = list.param)
+
+</code></pre>
+
+
+</div>

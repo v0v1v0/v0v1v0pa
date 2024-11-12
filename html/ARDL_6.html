@@ -1,0 +1,415 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auto_ardl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic ARDL model selection</h2>
+
+<h3>Description</h3>
+
+<p>It searches for the best ARDL order specification, according to the selected
+criterion, taking into account the constraints provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auto_ardl(
+  formula,
+  data,
+  max_order,
+  fixed_order = -1,
+  starting_order = NULL,
+  selection = "AIC",
+  selection_minmax = c("min", "max"),
+  grid = FALSE,
+  search_type = c("horizontal", "vertical"),
+  start = NULL,
+  end = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A "formula" describing the linear model. Details for model
+specification are given under 'Details' in the help file of the
+<code>ardl</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A time series object (e.g., "ts", "zoo" or "zooreg") or a data
+frame containing the variables in the model. In the case of a data frame,
+it is coerced into a <code>ts</code> object with <code>start = 1</code>,
+<code>end = nrow(data)</code> and <code>frequency = 1</code>. If not found in data, the
+variables are NOT taken from any environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_order</code></td>
+<td>
+<p>It sets the maximum order for each variable where the search
+is taking place. A numeric vector of the same length as the total number of
+variables (excluding the fixed ones, see 'Details' in the help file of the
+<code>ardl</code> function). It should only contain positive integers. An
+integer could be provided if the maximum order for all variables is the
+same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_order</code></td>
+<td>
+<p>It allows setting a fixed order for some variables. The
+algorithm will not search for any other order than this. A numeric vector
+of the same length as the total number of variables (excluding the fixed
+ones). It should contain positive integers or 0 to set as a constraint. A
+-1 should be provided for any variable that should not be constrained.
+<code>fixed_order</code> overrides the corresponding <code>max_order</code> and
+<code>starting_order</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starting_order</code></td>
+<td>
+<p>Specifies the order for each variable from which each
+search will start. It is a numeric vector of the same length as the total
+number of variables (excluding the fixed ones). It should contain positive
+integers or 0 or only one integer could be provided if the starting order
+for all variables is the same. Default is set to NULL. If unspecified
+(<code>NULL</code>) and <code>grid = FALSE</code>, then all possible <code class="reqn">ARDL(p)</code>
+models are calculated (constraints are taken into account), where <code class="reqn">p</code>
+is the minimum value in <code>max_order</code>. Note that where
+<code>starting_order</code> is provided, its first element will be the minimum
+value of <code class="reqn">p</code> that the searching algorithm will consider (think of it like
+a 'minimum p order' restriction) (see 'Searching algorithm' below). If
+<code>grid = TRUE</code>, only the first argument (<code class="reqn">p</code>) will have an effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>A character string specifying the selection criterion
+according to which the candidate models will be ranked. Default is
+<code>AIC</code>. Any other selection criterion can be used (a user
+specified or a function from another package) as long as it can be applied
+as <code>selection(model)</code>. The preferred model is the one with the smaller
+value of the selection criterion. If the selection criterion works the
+other way around (the bigger the better), <code>selection_minmax = "max"</code>
+should also be supplied (see 'Examples' below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection_minmax</code></td>
+<td>
+<p>A character string that indicates whether the
+criterion in <code>selection</code> is supposed to be minimized (default) or
+maximized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>If <code>FALSE</code> (default), the stepwise searching regression
+algorithm will search for the best model by adding and subtracting terms
+corresponding to different ARDL orders. If <code>TRUE</code>, the whole set of
+all possible ARDL models (accounting for constraints) will be evaluated.
+Note that this method can be very time-consuming in case that
+<code>max_order</code> is big and there are many independent variables that
+create a very big number of possible combinations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search_type</code></td>
+<td>
+<p>A character string describing the search type. If
+"horizontal" (default), the searching algorithm increases or decreases by 1
+the order of each variable in each iteration. When the order of the last
+variable has been accessed, it begins again from the first variable until
+it converges. If "vertical", the searching algorithm increases or decreases
+by 1 the order of a variable until it converges. Then it continues the same
+for the next variable. The two options result to very similar top orders.
+The default ("horizontal"), sometimes is a little more accurate, but the
+"vertical" is almost 2 times faster. Not applicable if <code>grid = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Start of the time period which should be used for fitting the
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+<p>End of the time period which should be used for fitting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to the low level regression
+fitting functions.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>auto_ardl</code> returns a list which contains:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>best_model</code></td>
+<td>
+<p>An object of class <code>c("dynlm", "lm", "ardl")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best_order</code></td>
+<td>
+<p>A numeric vector with the order of the best model selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top_orders</code></td>
+<td>
+<p>A data.frame with the orders of the top 20 models</p>
+</td>
+</tr>
+</table>
+<h3>Searching algorithm</h3>
+
+<p>The algorithm performs the optimization process
+starting from multiple starting points concerning the autoregressive order
+<code class="reqn">p</code>. The searching algorithm will perform a complete search, each time
+starting from a different starting order. These orders are presented in the
+tables below, for <code>grid = FALSE</code> and different values of
+<code>starting_order</code>.
+</p>
+<p><code>starting_order = NULL</code>:
+</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+  ARDL(p) </td>
+<td style="text-align: center;"> -&gt; </td>
+<td style="text-align: center;"> p </td>
+<td style="text-align: center;"> q1 </td>
+<td style="text-align: center;"> q2 </td>
+<td style="text-align: center;"> ... </td>
+<td style="text-align: center;"> qk</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  ARDL(1) </td>
+<td style="text-align: center;"> -&gt; </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> ... </td>
+<td style="text-align: center;"> 1</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  ARDL(2) </td>
+<td style="text-align: center;"> -&gt; </td>
+<td style="text-align: center;"> 2 </td>
+<td style="text-align: center;"> 2 </td>
+<td style="text-align: center;"> 2 </td>
+<td style="text-align: center;"> ... </td>
+<td style="text-align: center;"> 2</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  : </td>
+<td style="text-align: center;"> -&gt; </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> :</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  ARDL(P) </td>
+<td style="text-align: center;"> -&gt; </td>
+<td style="text-align: center;"> P </td>
+<td style="text-align: center;"> P </td>
+<td style="text-align: center;"> P </td>
+<td style="text-align: center;"> ... </td>
+<td style="text-align: center;"> P
+  </td>
+</tr>
+</table>
+<p><code>starting_order = c(3, 0, 1, 2)</code>:
+</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+  p </td>
+<td style="text-align: center;"> q1 </td>
+<td style="text-align: center;"> q2 </td>
+<td style="text-align: center;"> q3</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  3 </td>
+<td style="text-align: center;"> 0 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 2</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  4 </td>
+<td style="text-align: center;"> 0 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 2</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  : </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> : </td>
+<td style="text-align: center;"> :</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+  P </td>
+<td style="text-align: center;"> 0 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 2
+  </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Kleanthis Natsiopoulos, <a href="mailto:klnatsio@gmail.com">klnatsio@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ardl</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(denmark)
+
+## Find the best ARDL order --------------------------------------------
+
+# Up to 5 for the autoregressive order (p) and 4 for the rest (q1, q2, q3)
+
+# Using the defaults search_type = "horizontal", grid = FALSE and selection = "AIC"
+# ("Not run" indications only for testing purposes)
+## Not run: 
+model1 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                    max_order = c(5,4,4,4))
+model1$top_orders
+
+## Same, with search_type = "vertical" -------------------------------
+
+model1_h &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                      max_order = c(5,4,4,4), search_type = "vertical")
+model1_h$top_orders
+
+## Find the global optimum ARDL order ----------------------------------
+
+# It may take more than 10 seconds
+model_grid &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), grid = TRUE)
+
+## Different selection criteria ----------------------------------------
+
+# Using BIC as selection criterion instead of AIC
+model1_b &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                      max_order = c(5,4,4,4), selection = "BIC")
+model1_b$top_orders
+
+# Using other criteria like adjusted R squared (the bigger the better)
+adjr2 &lt;- function(x) { summary(x)$adj.r.squared }
+model1_adjr2 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                           max_order = c(5,4,4,4), selection = "adjr2",
+                           selection_minmax = "max")
+model1_adjr2$top_orders
+
+# Using functions from other packages as selection criteria
+if (requireNamespace("qpcR", quietly = TRUE)) {
+
+library(qpcR)
+model1_aicc &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                          max_order = c(5,4,4,4), selection = "AICc")
+model1_aicc$top_orders
+adjr2 &lt;- function(x){ Rsq.ad(x) }
+model1_adjr2 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                           max_order = c(5,4,4,4), selection = "adjr2",
+                           selection_minmax = "max")
+model1_adjr2$top_orders
+
+## DIfferent starting order --------------------------------------------
+
+# The searching algorithm will start from the following starting orders:
+# p q1 q2 q3
+# 1 1  3  2
+# 2 1  3  2
+# 3 1  3  2
+# 4 1  3  2
+# 5 1  3  2
+
+model1_so &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), starting_order = c(1,1,3,2))
+
+# Starting from p=3 (don't search for p=1 and p=2)
+# Starting orders:
+# p q1 q2 q3
+# 3 1  3  2
+# 4 1  3  2
+# 5 1  3  2
+
+model1_so_3 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), starting_order = c(3,1,3,2))
+
+# If starting_order = NULL, the starting orders for each iteration will be:
+# p q1 q2 q3
+# 1 1  1  1
+# 2 2  2  2
+# 3 3  3  3
+# 4 4  4  4
+# 5 5  5  5
+}
+
+## Add constraints -----------------------------------------------------
+
+# Restrict only the order of IBO to be 2
+model1_ibo2 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), fixed_order = c(-1,-1,2,-1))
+model1_ibo2$top_orders
+
+# Restrict the order of LRM to be 3 and the order of IBO to be 2
+model1_lrm3_ibo2 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), fixed_order = c(3,-1,2,-1))
+model1_lrm3_ibo2$top_orders
+
+## Set the starting date for the regression (data starts at "1974 Q1") -
+
+# Set regression starting date to "1976 Q1"
+model1_76q1 &lt;- auto_ardl(LRM ~ LRY + IBO + IDE, data = denmark,
+                        max_order = c(5,4,4,4), start = "1976 Q1")
+start(model1_76q1$best_model)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

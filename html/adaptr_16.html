@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_results_batch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract results from a batch of trials from an object with multiple trials</h2>
+
+<h3>Description</h3>
+
+<p>Used internally by <code>extract_results()</code>. Extracts results from a batch of
+simulations from a simulation object with multiple simulation results
+returned by <code>run_trials()</code>, used to facilitate parallelisation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_results_batch(
+  trial_results,
+  control = control,
+  select_strategy = select_strategy,
+  select_last_arm = select_last_arm,
+  select_preferences = select_preferences,
+  te_comp = te_comp,
+  which_ests = which_ests,
+  te_comp_index = te_comp_index,
+  te_comp_true_y = te_comp_true_y
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trial_results</code></td>
+<td>
+<p>list of trial results to summarise, the current batch.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>single character string, the common <code>control</code> arm from the
+trial specification (<code>NULL</code> if none).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_strategy</code></td>
+<td>
+<p>single character string. If a trial was not stopped
+due to superiority (or had only 1 arm remaining, if <code>select_last_arm</code> is
+set to <code>TRUE</code> in trial designs with a common <code>control</code> arm; see below),
+this parameter specifies which arm will be considered selected when
+calculating trial design performance metrics, as described below;
+this corresponds to the consequence of an inconclusive trial, i.e., which
+arm would then be used in practice.<br>
+The following options are available and must be written exactly as below
+(case sensitive, cannot be abbreviated):
+</p>
+
+<ul>
+<li> <p><code>"control if available"</code> (default): selects the <strong>first</strong>
+<code>control</code> arm for trials with a common <code>control</code> arm <em><strong>if</strong></em> this
+arm is active at end-of-trial, otherwise no arm will be selected. For
+trial designs without a common <code>control</code>, no arm will be selected.
+</p>
+</li>
+<li> <p><code>"none"</code>: selects no arm in trials not ending with superiority.
+</p>
+</li>
+<li> <p><code>"control"</code>: similar to <code>"control if available"</code>, but will throw
+an error if used for trial designs without a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"final control"</code>: selects the <strong>final</strong> <code>control</code> arm regardless
+of whether the trial was stopped for practical equivalence, futility,
+or at the maximum sample size; this strategy can only be specified
+for trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"control or best"</code>: selects the <strong>first</strong> <code>control</code> arm if still
+active at end-of-trial, otherwise selects the best remaining arm
+(defined as the remaining arm with the highest probability of being
+the best in the last adaptive analysis conducted). Only works for
+trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"best"</code>: selects the best remaining arm (as described under
+<code>"control or best"</code>).
+</p>
+</li>
+<li> <p><code>"list or best"</code>: selects the first remaining arm from a specified
+list (specified using <code>select_preferences</code>, technically a character
+vector). If none of these arms are are active at end-of-trial, the best
+remaining arm will be selected (as described above).
+</p>
+</li>
+<li> <p><code>"list"</code>: as specified above, but if no arms on the provided list
+remain active at end-of-trial, no arm is selected.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_last_arm</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>. If <code>TRUE</code>, the
+only remaining active arm (the last <code>control</code>) will be selected in trials
+with a common <code>control</code> arm ending with <code>equivalence</code> or <code>futility</code>, before
+considering the options specified in <code>select_strategy</code>. Must be <code>FALSE</code> for
+trial designs without a common <code>control</code> arm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_preferences</code></td>
+<td>
+<p>character vector specifying a number of arms used
+for selection if one of the <code>"list or best"</code> or <code>"list"</code> options are
+specified for <code>select_strategy</code>. Can only contain valid <code>arms</code>
+available in the trial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>te_comp</code></td>
+<td>
+<p>character string, treatment-effect comparator. Can be either
+<code>NULL</code> (the default) in which case the <strong>first</strong> <code>control</code> arm is used for
+trial designs with a common control arm, or a string naming a single trial
+<code>arm</code>. Will be used when calculating <code>err_te</code> and <code>sq_err_te</code> (the error
+and the squared error of the treatment effect comparing the selected arm to
+the comparator arm, as described below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_ests</code></td>
+<td>
+<p>single character string, a combination of the <code>raw_ests</code>
+and <code>final_ests</code> arguments from <code>extract_results()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>te_comp_index</code></td>
+<td>
+<p>single integer, index of the treatment effect comparator
+arm (<code>NULL</code> if none).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>te_comp_true_y</code></td>
+<td>
+<p>single numeric value, true <code>y</code> value in the treatment
+effect comparator arm (<code>NULL</code> if none).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> containing all columns returned by <code>extract_results()</code>
+and described in that function (<code>sim</code> will start from <code>1</code>, but this is
+changed where relevant by <code>extract_results()</code>).
+</p>
+
+
+</div>

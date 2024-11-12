@@ -1,0 +1,403 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>first_isolate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determine First Isolates</h2>
+
+<h3>Description</h3>
+
+<p>Determine first isolates of all microorganisms of every patient per episode and (if needed) per specimen type. These functions support all four methods as summarised by Hindler <em>et al.</em> in 2007 (<a href="https://doi.org/10.1086/511864">doi:10.1086/511864</a>). To determine patient episodes not necessarily based on microorganisms, use <code>is_new_episode()</code> that also supports grouping with the <code>dplyr</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">first_isolate(
+  x = NULL,
+  col_date = NULL,
+  col_patient_id = NULL,
+  col_mo = NULL,
+  col_testcode = NULL,
+  col_specimen = NULL,
+  col_icu = NULL,
+  col_keyantimicrobials = NULL,
+  episode_days = 365,
+  testcodes_exclude = NULL,
+  icu_exclude = FALSE,
+  specimen_group = NULL,
+  type = "points",
+  method = c("phenotype-based", "episode-based", "patient-based", "isolate-based"),
+  ignore_I = TRUE,
+  points_threshold = 2,
+  info = interactive(),
+  include_unknown = FALSE,
+  include_untested_sir = TRUE,
+  ...
+)
+
+filter_first_isolate(
+  x = NULL,
+  col_date = NULL,
+  col_patient_id = NULL,
+  col_mo = NULL,
+  episode_days = 365,
+  method = c("phenotype-based", "episode-based", "patient-based", "isolate-based"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a data.frame containing isolates. Can be left blank for automatic determination, see <em>Examples</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_date</code></td>
+<td>
+<p>column name of the result date (or date that is was received on the lab) - the default is the first column with a date class</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_patient_id</code></td>
+<td>
+<p>column name of the unique IDs of the patients - the default is the first column that starts with 'patient' or 'patid' (case insensitive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_mo</code></td>
+<td>
+<p>column name of the names or codes of the microorganisms (see <code>as.mo()</code>) - the default is the first column of class <code>mo</code>. Values will be coerced using <code>as.mo()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_testcode</code></td>
+<td>
+<p>column name of the test codes. Use <code>col_testcode = NULL</code> to <strong>not</strong> exclude certain test codes (such as test codes for screening). In that case <code>testcodes_exclude</code> will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_specimen</code></td>
+<td>
+<p>column name of the specimen type or group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_icu</code></td>
+<td>
+<p>column name of the logicals (<code>TRUE</code>/<code>FALSE</code>) whether a ward or department is an Intensive Care Unit (ICU). This can also be a logical vector with the same length as rows in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_keyantimicrobials</code></td>
+<td>
+<p>(only useful when <code>method = "phenotype-based"</code>) column name of the key antimicrobials to determine first isolates, see <code>key_antimicrobials()</code>. The default is the first column that starts with 'key' followed by 'ab' or 'antibiotics' or 'antimicrobials' (case insensitive). Use <code>col_keyantimicrobials = FALSE</code> to prevent this. Can also be the output of <code>key_antimicrobials()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>episode_days</code></td>
+<td>
+<p>episode in days after which a genus/species combination will be determined as 'first isolate' again. The default of 365 days is based on the guideline by CLSI, see <em>Source</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testcodes_exclude</code></td>
+<td>
+<p>a character vector with test codes that should be excluded (case-insensitive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>icu_exclude</code></td>
+<td>
+<p>a logical to indicate whether ICU isolates should be excluded (rows with value <code>TRUE</code> in the column set with <code>col_icu</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specimen_group</code></td>
+<td>
+<p>value in the column set with <code>col_specimen</code> to filter on</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type to determine weighed isolates; can be <code>"keyantimicrobials"</code> or <code>"points"</code>, see <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method to apply, either <code>"phenotype-based"</code>, <code>"episode-based"</code>, <code>"patient-based"</code> or <code>"isolate-based"</code> (can be abbreviated), see <em>Details</em>. The default is <code>"phenotype-based"</code> if antimicrobial test results are present in the data, and <code>"episode-based"</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_I</code></td>
+<td>
+<p>logical to indicate whether antibiotic interpretations with <code>"I"</code> will be ignored when <code>type = "keyantimicrobials"</code>, see <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>points_threshold</code></td>
+<td>
+<p>minimum number of points to require before differences in the antibiogram will lead to inclusion of an isolate when <code>type = "points"</code>, see <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>a logical to indicate info should be printed - the default is <code>TRUE</code> only in interactive mode</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_unknown</code></td>
+<td>
+<p>a logical to indicate whether 'unknown' microorganisms should be included too, i.e. microbial code <code>"UNKNOWN"</code>, which defaults to <code>FALSE</code>. For WHONET users, this means that all records with organism code <code>"con"</code> (<em>contamination</em>) will be excluded at default. Isolates with a microbial ID of <code>NA</code> will always be excluded as first isolate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_untested_sir</code></td>
+<td>
+<p>a logical to indicate whether also rows without antibiotic results are still eligible for becoming a first isolate. Use <code>include_untested_sir = FALSE</code> to always return <code>FALSE</code> for such rows. This checks the data set for columns of class <code>sir</code> and consequently requires transforming columns with antibiotic results using <code>as.sir()</code> first.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed on to <code>first_isolate()</code> when using <code>filter_first_isolate()</code>, otherwise arguments passed on to <code>key_antimicrobials()</code> (such as <code>universal</code>, <code>gram_negative</code>, <code>gram_positive</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To conduct epidemiological analyses on antimicrobial resistance data, only so-called first isolates should be included to prevent overestimation and underestimation of antimicrobial resistance. Different methods can be used to do so, see below.
+</p>
+<p>These functions are context-aware. This means that the <code>x</code> argument can be left blank if used inside a data.frame call, see <em>Examples</em>.
+</p>
+<p>The <code>first_isolate()</code> function is a wrapper around the <code>is_new_episode()</code> function, but more efficient for data sets containing microorganism codes or names.
+</p>
+<p>All isolates with a microbial ID of <code>NA</code> will be excluded as first isolate.
+</p>
+
+
+<h4>Different methods</h4>
+
+<p>According to Hindler <em>et al.</em> (2007, <a href="https://doi.org/10.1086/511864">doi:10.1086/511864</a>), there are different methods (algorithms) to select first isolates with increasing reliability: isolate-based, patient-based, episode-based and phenotype-based. All methods select on a combination of the taxonomic genus and species (not subspecies).
+</p>
+<p>All mentioned methods are covered in the <code>first_isolate()</code> function:</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   <strong>Method</strong> </td>
+<td style="text-align: left;"> <strong>Function to apply</strong> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <strong>Isolate-based</strong> </td>
+<td style="text-align: left;"> <code>first_isolate(x, method = "isolate-based")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <em>(= all isolates)</em> </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <strong>Patient-based</strong> </td>
+<td style="text-align: left;"> <code>first_isolate(x, method = "patient-based")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <em>(= first isolate per patient)</em> </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <strong>Episode-based</strong> </td>
+<td style="text-align: left;"> <code>first_isolate(x, method = "episode-based")</code>, or: </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <em>(= first isolate per episode)</em> </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   - 7-Day interval from initial isolate </td>
+<td style="text-align: left;"> - <code>first_isolate(x, method = "e", episode_days = 7)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   - 30-Day interval from initial isolate </td>
+<td style="text-align: left;"> - <code>first_isolate(x, method = "e", episode_days = 30)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <strong>Phenotype-based</strong> </td>
+<td style="text-align: left;"> <code>first_isolate(x, method = "phenotype-based")</code>, or: </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <em>(= first isolate per phenotype)</em> </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   - Major difference in any antimicrobial result </td>
+<td style="text-align: left;"> - <code>first_isolate(x, type = "points")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   - Any difference in key antimicrobial results </td>
+<td style="text-align: left;"> - <code>first_isolate(x, type = "keyantimicrobials")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h4>Isolate-based</h4>
+
+<p>This method does not require any selection, as all isolates should be included. It does, however, respect all arguments set in the <code>first_isolate()</code> function. For example, the default setting for <code>include_unknown</code> (<code>FALSE</code>) will omit selection of rows without a microbial ID.
+</p>
+
+
+
+<h4>Patient-based</h4>
+
+<p>To include every genus-species combination per patient once, set the <code>episode_days</code> to <code>Inf</code>. Although often inappropriate, this method makes sure that no duplicate isolates are selected from the same patient. In a large longitudinal data set, this could mean that isolates are <em>excluded</em> that were found years after the initial isolate.
+</p>
+
+
+
+<h4>Episode-based</h4>
+
+<p>To include every genus-species combination per patient episode once, set the <code>episode_days</code> to a sensible number of days. Depending on the type of analysis, this could be 14, 30, 60 or 365. Short episodes are common for analysing specific hospital or ward data, long episodes are common for analysing regional and national data.
+</p>
+<p>This is the most common method to correct for duplicate isolates. Patients are categorised into episodes based on their ID and dates (e.g., the date of specimen receipt or laboratory result). While this is a common method, it does not take into account antimicrobial test results. This means that e.g. a methicillin-resistant <em>Staphylococcus aureus</em> (MRSA) isolate cannot be differentiated from a wildtype <em>Staphylococcus aureus</em> isolate.
+</p>
+
+
+
+<h4>Phenotype-based</h4>
+
+<p>This is a more reliable method, since it also <em>weighs</em> the antibiogram (antimicrobial test results) yielding so-called 'first weighted isolates'. There are two different methods to weigh the antibiogram:
+</p>
+
+<ol>
+<li>
+<p> Using <code>type = "points"</code> and argument <code>points_threshold</code> (default)
+</p>
+<p>This method weighs <em>all</em> antimicrobial drugs available in the data set. Any difference from I to S or R (or vice versa) counts as <code>0.5</code> points, a difference from S to R (or vice versa) counts as <code>1</code> point. When the sum of points exceeds <code>points_threshold</code>, which defaults to <code>2</code>, an isolate will be selected as a first weighted isolate.
+</p>
+<p>All antimicrobials are internally selected using the <code>all_antimicrobials()</code> function. The output of this function does not need to be passed to the <code>first_isolate()</code> function.
+</p>
+</li>
+<li>
+<p> Using <code>type = "keyantimicrobials"</code> and argument <code>ignore_I</code>
+</p>
+<p>This method only weighs specific antimicrobial drugs, called <em>key antimicrobials</em>. Any difference from S to R (or vice versa) in these key antimicrobials will select an isolate as a first weighted isolate. With <code>ignore_I = FALSE</code>, also differences from I to S or R (or vice versa) will lead to this.
+</p>
+<p>Key antimicrobials are internally selected using the <code>key_antimicrobials()</code> function, but can also be added manually as a variable to the data and set in the <code>col_keyantimicrobials</code> argument. Another option is to pass the output of the <code>key_antimicrobials()</code> function directly to the <code>col_keyantimicrobials</code> argument.
+</p>
+</li>
+</ol>
+<p>The default method is phenotype-based (using <code>type = "points"</code>) and episode-based (using <code>episode_days = 365</code>). This makes sure that every genus-species combination is selected per patient once per year, while taking into account all antimicrobial test results. If no antimicrobial test results are available in the data set, only the episode-based method is applied at default.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A logical vector
+</p>
+
+
+<h3>Source</h3>
+
+<p>Methodology of this function is strictly based on:
+</p>
+
+<ul>
+<li> <p><strong>M39 Analysis and Presentation of Cumulative Antimicrobial Susceptibility Test Data, 5th Edition</strong>, 2022, <em>Clinical and Laboratory Standards Institute (CLSI)</em>. <a href="https://clsi.org/standards/products/microbiology/documents/m39/">https://clsi.org/standards/products/microbiology/documents/m39/</a>.
+</p>
+</li>
+<li>
+<p> Hindler JF and Stelling J (2007). <strong>Analysis and Presentation of Cumulative Antibiograms: A New Consensus Guideline from the Clinical and Laboratory Standards Institute.</strong> Clinical Infectious Diseases, 44(6), 867-873. <a href="https://doi.org/10.1086/511864">doi:10.1086/511864</a>
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>key_antimicrobials()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># `example_isolates` is a data set available in the AMR package.
+# See ?example_isolates.
+
+example_isolates[first_isolate(info = TRUE), ]
+
+# get all first Gram-negatives
+example_isolates[which(first_isolate(info = FALSE) &amp; mo_is_gram_negative()), ]
+
+if (require("dplyr")) {
+  # filter on first isolates using dplyr:
+  example_isolates %&gt;%
+    filter(first_isolate(info = TRUE))
+}
+if (require("dplyr")) {
+  # short-hand version:
+  example_isolates %&gt;%
+    filter_first_isolate(info = FALSE)
+}
+if (require("dplyr")) {
+  # flag the first isolates per group:
+  example_isolates %&gt;%
+    group_by(ward) %&gt;%
+    mutate(first = first_isolate(info = TRUE)) %&gt;%
+    select(ward, date, patient, mo, first)
+}
+
+</code></pre>
+
+
+</div>

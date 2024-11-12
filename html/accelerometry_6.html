@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bouts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Physical Activity Bout Detection</h2>
+
+<h3>Description</h3>
+
+<p>Identify bouts of physical activity based on a vector of accelerometer count 
+values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bouts(counts, weartime = NULL, bout_length = 10L, thresh_lower = 0L,
+  thresh_upper = 100000L, tol = 0L, tol_lower = 0L, tol_upper = 100000L,
+  nci = FALSE, days_distinct = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Integer vector with accelerometer count values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weartime</code></td>
+<td>
+<p>Integer vector with 1's for wear time minutes and 0's for 
+non-wear time minutes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bout_length</code></td>
+<td>
+<p>Integer value specifying minimum length of an activity 
+bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh_lower</code></td>
+<td>
+<p>Integer value specifying lower bound for count values to 
+be included for the intensity level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh_upper</code></td>
+<td>
+<p>Integer value specifying upper bound for count values to 
+be included for the intensity level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Integer value specifying number of minutes with count values 
+outside of [<code>thresh_lower</code>, <code>thresh_upper</code>] to allow during an 
+activity bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_lower</code></td>
+<td>
+<p>Integer value specifying lower cut-off for count values 
+outside of intensity range during an activity bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_upper</code></td>
+<td>
+<p>Integer value specifying upper cut-off for count values 
+outside of intensity range during an activity bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nci</code></td>
+<td>
+<p>Logical value for whether to use algorithm from NCI's SAS 
+programs. See <b>Details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days_distinct</code></td>
+<td>
+<p>Logical value for whether to treat each day of data as 
+distinct, i.e. identify non-wear time and activity bouts for day 1, then day 
+2, etc. If <code>FALSE</code>, algorithm is applied to full monitoring period 
+continuously. If protocol has participants remove accelerometer for sleep, 
+strongly recommend setting to <code>FALSE</code> to capture non-wear periods that 
+start between 11 pm and midnight. Function assumes that first 1440 data 
+points are day 1, next 1440 are day 2, and so on.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>nci = FALSE</code>, the algorithm uses a moving window to go through 
+every possible interval of length <code>bout_length</code> in <code>counts</code>. Any 
+interval in which all counts are &gt;= <code>tol_lower</code> and &lt;= 
+<code>tol_upper</code>, and no more than <code>tol</code> counts are less than 
+<code>thresh_lower</code> or greater than <code>thresh_upper</code>, is classified as an 
+activity bout.
+</p>
+<p>If <code>nci = TRUE</code>, activity bouts are classified according to the 
+algorithm used in the NCI's SAS programs. Briefly, this algorithm defines an 
+activity bout as an interval of length <code>bout_length</code> that starts with a 
+count value in <code>[thresh_lower, thresh_upper]</code> and has no more than 
+<code>tol</code> counts outside of that range. If these criteria are met, the bout 
+continues until there are <code>(tol + 1)</code> consecutive minutes outside of 
+<code>[thresh_lower, thresh_upper]</code>. The parameters <code>tol_lower</code> and 
+<code>tol_upper</code> are not used.
+</p>
+<p>If the user allows for a tolerance (e.g. <code>tol = 2</code>) and does not use 
+the NCI algorithm (i.e. <code>nci = FALSE</code>), specifying a non-zero value for 
+<code>tol_lower</code> is highly recommended. Otherwise the algorithm will tend to 
+classify minutes immediately before and after an activity bout as being part 
+of the bout.
+</p>
+<p>Specifying <code>thresh_lower</code> while using an arbitrarily large value for 
+<code>thresh_upper</code> is generally recommended. Specifying both of these 
+parameters can be overly restrictive in that the algorithm may miss bouts of 
+activity in which counts are consistently high, but not exclusively in one 
+intensity range.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Integer vector with 1's for minutes that are part of an activity 
+bout and 0's for minutes that are not.
+</p>
+
+
+<h3>References</h3>
+
+<p>National Cancer Institute. Risk factor monitoring and methods: SAS programs 
+for analyzing NHANES 2003-2004 accelerometer data. Available at: 
+<a href="http://riskfactor.cancer.gov/tools/nhanes_pam">http://riskfactor.cancer.gov/tools/nhanes_pam</a>. Accessed Aug. 19, 2018.
+</p>
+<p>Acknowledgment: This material is based upon work supported by the National 
+Science Foundation Graduate Research Fellowship under Grant No. DGE-0940903.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load accelerometer data for first 5 participants in NHANES 2003-2004
+data(unidata)
+
+# Get data from ID number 21005
+counts.part1 &lt;- unidata[unidata[, "seqn"] == 21005, "paxinten"]
+
+# Identify periods of valid wear time
+wear.part1 &lt;- weartime(counts = counts.part1)
+
+# Identify moderate-to-vigorous activity bouts
+mvpa.bouts &lt;- bouts(counts = counts.part1, weartime = wear.part1, 
+                    thresh_lower = 2020)
+
+
+</code></pre>
+
+
+</div>

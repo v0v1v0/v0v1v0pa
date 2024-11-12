@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multigrp_dist_struc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Construct the distance structure for the multiple groups.
+</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to calculate the distance structure for multiple 
+groups. The output of this function can be feed into the argument <code>distmat</code>
+of the main functions <code>kwaymatching</code> and <code>tripletmatching</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multigrp_dist_struc(.data, grouplabel, components, wgts)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+
+<p>The data frame or matrix of the dataset. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grouplabel</code></td>
+<td>
+
+<p>The information on the group structure of the units. See description of 
+<code>kwaymatching</code> for details on the argument.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>components</code></td>
+<td>
+
+<p>A list specifying the components of the distance structure.
+Each element of the list is a character vector of column names
+of the .data on which 'distance' will be calculated. The 
+element names specify the function to be used to calculate to 
+distance of two groups. Element named
+'prop' indicates the propensity distance where the propensity
+is calculated from the specified variable. 
+Element named 'mahal' or 'Mahalanobis' for rank based
+Mahalanobis distance. 
+</p>
+<p>User can spacify their own distance function. For example, a function 
+<code>myDist</code> should be a function of two arguments:
+a logical vector of the first group indicator and a data matrix. It
+should return a numeric matrix of size number of units of 
+first group<code class="reqn">\times</code>number of units of 
+second group. See details for an example.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wgts</code></td>
+<td>
+
+<p>A non-negative numeric vector of weights of the components. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used to get distance structure suitable 
+for creating the distances between the units of the groups. 
+</p>
+<p>For an example of the kind of user defined distance function that can be used see <code>smahal</code> below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list describing the distance structure. For detail see the description of 
+the argument <code>distmat</code> in the function <code>kwaymatching</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bikram Karmakar
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>kwaymatching</code>, <code>tripletmatching</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	data(Dodgeram)
+	
+	# Example distance structure
+	components &lt;- list(prop = c("AGE", "SEX.2", "FR.pass", "REST_USE1", "ROLLOVER1",
+	            "IMPACT3", "SP_LIMIT", "DR_DRINK", "FIRE_EXP1.1"), 
+	            mahal = c("SEX.2", "AGE", "SP_LIMIT", "DR_DRINK"), 				
+	            mahal = c("IMPACT3", "REST_USE1"))
+	wgts &lt;- c(5, 8, 20)
+	
+	distmat &lt;- multigrp_dist_struc(Dodgeram, 
+            grouplabel = c("NOSAB","optSAB","WITHSABS"), components, wgts)
+	
+	## Propensity score caliper can be implemented mannually
+	
+	distmat &lt;- multigrp_dist_struc(Dodgeram, 
+            grouplabel = c("NOSAB","optSAB","WITHSABS"), 
+            list(mahal = c("SEX.2", "AGE", "SP_LIMIT", "DR_DRINK"), 				
+                mahal = c("IMPACT3", "REST_USE1")), wgts=c(2, 5))
+	distmat_prop &lt;- multigrp_dist_struc(Dodgeram, 
+                grouplabel = c("NOSAB", "optSAB", "WITHSABS"), 
+              list(prop = c("AGE", "SEX.2", "FR.pass", "REST_USE1", "ROLLOVER1",
+	            "IMPACT3", "SP_LIMIT", "DR_DRINK", "FIRE_EXP1.1")), 1)
+		
+	## Distance structure with caliper
+	for(i in 1:length(distmat))
+			distmat[[i]][distmat_prop[[i]]&gt;.2] &lt;- 100*max(distmat[[i]])
+			
+				
+									   
+## An example function for argument detail.
+
+smahal &lt;-  function(z,X){
+        X&lt;-as.matrix(X)
+		n&lt;-dim(X)[1]
+		rownames(X)&lt;-1:n
+		k&lt;-dim(X)[2]
+		m&lt;-sum(z)
+		for (j in 1:k) X[,j]&lt;-rank(X[,j])
+		cv&lt;-cov(X)
+		vuntied&lt;-var(1:n)
+		rat&lt;-sqrt(vuntied/diag(cv))
+		cv&lt;-diag(rat)
+		out&lt;-matrix(NA,m,n-m)
+		Xc&lt;-X[z==0,,drop=FALSE]
+		Xt&lt;-X[z==1,,drop=FALSE]
+		rownames(out)&lt;-rownames(X)[z==1]
+		colnames(out)&lt;-rownames(X)[z==0]
+		#library(MASS)
+		icov&lt;-ginv(cv)
+		for (i in 1:m) 
+			out[i,]&lt;-mahalanobis(Xc,Xt[i,],icov,inverted=T)
+		sqrt(out)
+	}
+</code></pre>
+
+
+</div>

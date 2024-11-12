@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>appe.glm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<code class="reqn">C</code>-statistics adjusted for predictor distributions
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculates adjusted <code class="reqn">C</code> statistics by predictor distributions for
+a generalized linear model with binary outcome. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">appe.glm(mdl, dat.train, dat.test, method = "uLSIF", sigma = NULL,
+         lambda = NULL, kernel_num = NULL, fold = 5, stabilize = TRUE, 
+         qstb = 0.025, reps = 2000, conf.level = 0.95)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mdl</code></td>
+<td>
+
+<p>a <code>glm</code> object describing a prediction model to be evaluated. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat.train</code></td>
+<td>
+
+<p>a dataframe used to construct a prediction model (specified in
+<code>mdl</code>), corresponding to a training data. Need to include
+outcome and all predictors. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat.test</code></td>
+<td>
+
+<p>a dataframe corresponding to a validation (testing) data. 
+Need to include outcome and all predictors. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>uLSIF or KLIEP.
+Same as the argument in <code>densratio</code> function from densratio
+package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+
+<p>a positive numeric vector corresponding to candidate values of a
+bandwidth for Gaussian kernel.
+Same as the argument in <code>densratio</code> function from densratio
+package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a positive numeric vector corresponding to candidate values of a
+regularization parameter.
+Same as the argument in <code>densratio</code> function from densratio
+package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel_num</code></td>
+<td>
+
+<p>a positive integer corresponding to number of kernels.
+Same as the argument in <code>densratio</code> function from densratio
+package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+
+<p>a positive integer corresponding to a number of the folds of
+cross-validation in the KLIEP method.
+Same as the argument in <code>densratio</code> function from densratio
+package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stabilize</code></td>
+<td>
+
+<p>a logical value as to whether tail weight stabilization is performed
+or not. 
+If TRUE, both tails of the estimated density ratio distribution are
+replaced by the constant value which is specified at <code>qstb</code>
+option. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qstb</code></td>
+<td>
+
+<p>a positive numerical value less than 1 to control the degree of
+weight stabilization. Default value is 0.025, indicating estimated
+density ratio values less than the 2.5 percentile and more than the
+97.5 percentile are set to 2.5 percentile and 97.5 percentile,
+respectively.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+
+<p>a positive integer to specify bootstrap repetitions. If 0, bootstrap
+calculations are not performed. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+
+<p>a numerical value indicating a confidence level of interval. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Adjusted and non-adjusted estimates of <code class="reqn">C</code>-statistics are provided
+as matrix form.
+"Cstat" indicates non-adjusted version, "C adjusted by score"
+indicates adjusted version by linear predictors distribution, and
+"C adjusted by predictors" indicates adjusted version by
+predictor distributions (multi-dimensionally). 
+For confidence intervals, "Percentile" indicates a confidence interval
+by percentile method and "Approx" indicates approximated versions
+by Normal distribution.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(100)
+
+# generating learning data
+n0  = 100
+Z   = cbind(rbeta(n0, 5, 5), rbeta(n0, 5, 5))
+Y   = apply(Z, 1, function (xx) {
+        rbinom(1, 1, (1/(1+exp(-(sum(c(-2,2,2) * c(1,xx)))))))})
+dat = data.frame(Y=Y, Za=Z[,1], Zb=Z[,2])
+
+# the model to be evaluated
+mdl = glm(Y~., binomial, data=dat)
+
+# validation dataset, with different centers on predictors
+n1   = 100
+Z1   = cbind(rbeta(n1, 6, 4), rbeta(n1, 6, 4))
+Y1   = apply(Z1, 1, function (xx) {
+         rbinom(1, 1, (1/(1+exp(-(sum(c(-2,2,2) * c(1,xx)))))))})
+dat1 = data.frame(Y=Y1, Za=Z1[,1], Zb=Z1[,2])
+
+# calculation of L1 and L2 for this model
+appe.glm(mdl, dat, dat1, reps=0)
+</code></pre>
+
+
+</div>

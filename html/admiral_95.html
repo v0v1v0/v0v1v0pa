@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_query</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Query Variables</h2>
+
+<h3>Description</h3>
+
+<p>Derive Query Variables
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_query(dataset, dataset_queries)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_queries</code></td>
+<td>
+<p>A dataset containing required columns <code>PREFIX</code>,
+<code>GRPNAME</code>, <code>SRCVAR</code>, <code>TERMCHAR</code> and/or <code>TERMNUM</code>, and optional columns
+<code>GRPID</code>, <code>SCOPE</code>, <code>SCOPEN</code>.
+</p>
+<p><code>create_query_data()</code> can be used to create the dataset.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used to derive CDISC variables such as
+<code>SMQzzNAM</code>, <code>SMQzzCD</code>, <code>SMQzzSC</code>, <code>SMQzzSCN</code>, and <code>CQzzNAM</code> in ADAE and
+ADMH, and variables such as <code>SDGzzNAM</code>, <code>SDGzzCD</code>, and <code>SDGzzSC</code> in ADCM.
+An example usage of this function can be found in the
+<a href="../articles/occds.html">OCCDS vignette</a>.
+</p>
+<p>A query dataset is expected as an input to this function. See the
+<a href="../articles/queries_dataset.html">Queries Dataset Documentation vignette</a>
+for descriptions, or call <code>data("queries")</code> for an example of a query dataset.
+</p>
+<p>For each unique element in <code>PREFIX</code>, the corresponding "NAM"
+variable will be created. For each unique <code>PREFIX</code>, if <code>GRPID</code> is
+not "" or NA, then the corresponding "CD" variable is created; similarly,
+if <code>SCOPE</code> is not "" or NA, then the corresponding "SC" variable will
+be created; if <code>SCOPEN</code> is not "" or NA, then the corresponding
+"SCN" variable will be created.
+</p>
+<p>For each record in <code>dataset</code>, the "NAM" variable takes the value of
+<code>GRPNAME</code> if the value of <code>TERMCHAR</code> or <code>TERMNUM</code> in <code>dataset_queries</code> matches
+the value of the respective SRCVAR in <code>dataset</code>.
+Note that <code>TERMCHAR</code> in <code>dataset_queries</code> dataset may be NA only when <code>TERMNUM</code>
+is non-NA and vice versa. The matching is case insensitive.
+The "CD", "SC", and "SCN" variables are derived accordingly based on
+<code>GRPID</code>, <code>SCOPE</code>, and <code>SCOPEN</code> respectively,
+whenever not missing.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with query variables derived.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>create_query_data()</code>
+</p>
+<p>OCCDS Functions: 
+<code>derive_var_trtemfl()</code>,
+<code>derive_vars_atc()</code>,
+<code>get_terms_from_db()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+data("queries")
+adae &lt;- tribble(
+  ~USUBJID, ~ASTDTM, ~AETERM, ~AESEQ, ~AEDECOD, ~AELLT, ~AELLTCD,
+  "01", "2020-06-02 23:59:59", "ALANINE AMINOTRANSFERASE ABNORMAL",
+  3, "Alanine aminotransferase abnormal", NA_character_, NA_integer_,
+  "02", "2020-06-05 23:59:59", "BASEDOW'S DISEASE",
+  5, "Basedow's disease", NA_character_, 1L,
+  "03", "2020-06-07 23:59:59", "SOME TERM",
+  2, "Some query", "Some term", NA_integer_,
+  "05", "2020-06-09 23:59:59", "ALVEOLAR PROTEINOSIS",
+  7, "Alveolar proteinosis", NA_character_, NA_integer_
+)
+derive_vars_query(adae, queries)
+</code></pre>
+
+
+</div>

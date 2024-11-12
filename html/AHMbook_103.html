@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>valid_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Validates simulated observational data against data-generating values.</h2>
+
+<h3>Description</h3>
+
+<p>Where species identifications (from photos, recorded calls, etc) is doubtful, it is sometimes feasible for a subset of the data to be validated by experts. Chambert et al (2017) used simulations to investigate the effectiveness of such partial validation. Where a data set with false positives has been simulated and the true status is known, <code>valid_data</code> compares a subset with truth and returns the number of detections checked per site and the number checked and found to be valid. The function attempts to validate equal numbers of detections at each site (not equal proportions) subject to the actual number of detections and the total number to be validated; if the number of detections is small, all will be validated, otherwise a random sample is used; see Examples.
+</p>
+<p>To recreate the data sets used in the book with R 3.6.0 or later, include <code>sample.kind="Rounding"</code> in the call to <code>set.seed</code>. This should only be used for reproduction of old results.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">valid_data(N, tp, n.valid, prop.valid=FALSE)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>a vector with the number of detections for each site, including true positives and false positives.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tp</code></td>
+<td>
+
+<p>a vector with the number of true positive detections for each site.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.valid</code></td>
+<td>
+
+<p>the number of detections to be validated (if <code>prop.valid=FALSE)</code> or the proportion of detections to be validated (if <code>prop.valid=TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.valid</code></td>
+<td>
+
+<p>logical; determines how <code>n.valid</code> is interpreted.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>n </code></td>
+<td>
+<p>a vector with the number of detections checked for each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k </code></td>
+<td>
+<p>a vector with the number of detections checked and found to be valid (true positives) for each site.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Mike Meredith.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chambert, T., Waddle, J.H., Miller, D.A.W., Walls, S.C., &amp; Nichols, J.D. (2017) A new framework for analysing automated acoustic species-detection data: occupancy estimation and optimization of recordings post-processing. <em>Methods in Ecology and Evolution</em>, 9, 560-570.
+
+</p>
+<p>Kéry, M. &amp; Royle, J.A. (2021) <em>Applied Hierarchical Modeling in Ecology</em> AHM2 - 7.6.2.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate some data for 100 sites
+set.seed(42, kind="Mersenne-Twister")
+z &lt;- rbinom(100, 1, 0.7)  # z[i] == 1 if species present at site 1, 0 otherwise
+tp &lt;- rpois(100, 3*z)     # Number of true detections, 0 if species not present
+N &lt;- tp + rpois(100, 0.5) # Add false positives
+
+# Validate a subset of 150 detections
+out &lt;- valid_data(N, tp, 150)
+head(tmp &lt;- cbind(z=z, tp=tp, N=N, n=out$n, k=out$k), 10)
+colSums(tmp)
+
+# Plot the number validated vs all detections:
+graphics::sunflowerplot(N, out$n, xlab="Number of detections at each site",
+  ylab="Number validated")
+# For sites with &lt;= 2 detections, all are validated; otherwise at least 2 are validated,
+#   with a 3rd draw from randomly selected sites to bring the total to 150.
+</code></pre>
+
+
+</div>

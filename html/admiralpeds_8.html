@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_params_growth_age</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Anthropometric indicators (Z-Scores/Percentiles-for-Age) based on Standard Growth Charts</h2>
+
+<h3>Description</h3>
+
+<p>Derive Anthropometric indicators (Z-Scores/Percentiles-for-Age) based on Standard Growth Charts
+for Height/Weight/BMI/Head Circumference by Age
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_params_growth_age(
+  dataset,
+  sex,
+  age,
+  age_unit,
+  meta_criteria,
+  parameter,
+  analysis_var,
+  bmi_cdc_correction = FALSE,
+  who_correction = FALSE,
+  set_values_to_sds = NULL,
+  set_values_to_pctl = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified in <code>sex</code>, <code>age</code>, <code>age_unit</code>, <code>parameter</code>, <code>analysis_var</code>
+are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>Sex
+</p>
+<p>A character vector is expected.
+</p>
+<p>Expected Values: <code>M</code>, <code>F</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Current Age
+</p>
+<p>A numeric vector is expected. Note that this is the actual age at the current visit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_unit</code></td>
+<td>
+<p>Age Unit
+A character vector is expected.
+</p>
+<p>Expected values: <code>days</code>, <code>weeks</code>, <code>months</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meta_criteria</code></td>
+<td>
+<p>Metadata dataset
+</p>
+<p>A metadata dataset with the following expected variables:
+<code>AGE</code>, <code>AGEU</code>, <code>SEX</code>, <code>L</code>, <code>M</code>, <code>S</code>
+</p>
+<p>The dataset can be derived from CDC/WHO or user-defined datasets.
+The CDC/WHO growth chart metadata datasets are available in the package and will
+require small modifications.
+</p>
+<p>If the <code>age</code> value from <code>dataset</code> falls between two <code>AGE</code> values in <code>meta_criteria</code>,
+then the <code>L</code>/<code>M</code>/<code>S</code> values that are chosen/mapped will be the <code>AGE</code> that has the
+smaller absolute difference to the value in <code>age</code>.
+e.g. If dataset has a current age of 27.49 months, and the metadata contains records
+for 27 and 28 months, the <code>L</code>/<code>M</code>/<code>S</code> corresponding to the 27 months record will be used.
+</p>
+
+<ul>
+<li> <p><code>AGE</code> - Age
+</p>
+</li>
+<li> <p><code>AGEU</code> - Age Unit
+</p>
+</li>
+<li> <p><code>SEX</code> - Sex
+</p>
+</li>
+<li> <p><code>L</code> - Power in the Box-Cox transformation to normality
+</p>
+</li>
+<li> <p><code>M</code> - Median
+</p>
+</li>
+<li> <p><code>S</code> - Coefficient of variation
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>Anthropometric measurement parameter to calculate z-score or percentile
+</p>
+<p>A condition is expected with the input dataset <code>VSTESTCD</code>/<code>PARAMCD</code>
+for which we want growth derivations:
+</p>
+<p>e.g. <code>parameter = VSTESTCD == "WEIGHT"</code>.
+</p>
+<p>There is CDC/WHO metadata available for Height, Weight, BMI, and Head Circumference available
+in the <code>admiralpeds</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Variable containing anthropometric measurement
+</p>
+<p>A numeric vector is expected, e.g. <code>AVAL</code>, <code>VSSTRESN</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bmi_cdc_correction</code></td>
+<td>
+<p>Extended CDC BMI-for-age correction
+</p>
+<p>A logical scalar, e.g. <code>TRUE</code>/<code>FALSE</code> is expected.
+CDC developed extended percentiles (&gt;95%) to monitor high BMI values,
+if set to <code>TRUE</code> the CDC's correction is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>who_correction</code></td>
+<td>
+<p>WHO adjustment for weight-based indicators
+</p>
+<p>A logical scalar, e.g. <code>TRUE</code>/<code>FALSE</code> is expected.
+WHO constructed a restricted application of the LMS method for weight-based indicators.
+More details on these exact rules applied can be found at the document page 302 of the
+<a href="https://www.who.int/publications/i/item/924154693X">WHO Child Growth Standards Guidelines</a>.
+If set to <code>TRUE</code> the WHO correction is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to_sds</code></td>
+<td>
+<p>Variables to be set for Z-Scores
+</p>
+<p>The specified variables are set to the specified values for the new
+observations. For example,
+<code>set_values_to_sds(exprs(PARAMCD = "BMIASDS", PARAM = "BMI-for-age z-score"))</code>
+defines the parameter code and parameter.
+</p>
+<p>The formula to calculate the Z-score is as follows:
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{((\frac{obs}{M})^L - 1)}{L * S}</code>
+</p>
+
+<p>where "obs" is the observed value for the respective anthropometric measure being calculated.
+</p>
+<p><em>Permitted Values</em>: List of variable-value pairs
+</p>
+<p>If left as default value, <code>NULL</code>, then parameter not derived in output dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to_pctl</code></td>
+<td>
+<p>Variables to be set for Percentile
+</p>
+<p>The specified variables are set to the specified values for the new
+observations. For example,
+<code>set_values_to_pctl(exprs(PARAMCD = "BMIAPCTL", PARAM = "BMI-for-age percentile"))</code>
+defines the parameter code and parameter.
+</p>
+<p><em>Permitted Values</em>: List of variable-value pair
+</p>
+<p>If left as default value, <code>NULL</code>, then parameter not derived in output dataset</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input dataset additional records with the new parameter added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Vital Signs Functions for adding Parameters/Records
+<code>derive_params_growth_height()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+library(lubridate, warn.conflicts = FALSE)
+library(rlang, warn.conflicts = FALSE)
+library(admiral, warn.conflicts = FALSE)
+
+advs &lt;- dm_peds %&gt;%
+  select(USUBJID, BRTHDTC, SEX) %&gt;%
+  right_join(., vs_peds, by = "USUBJID") %&gt;%
+  mutate(
+    VSDT = ymd(VSDTC),
+    BRTHDT = ymd(BRTHDTC)
+  ) %&gt;%
+  derive_vars_duration(
+    new_var = AGECUR_D,
+    new_var_unit = CURU_D,
+    start_date = BRTHDT,
+    end_date = VSDT,
+    out_unit = "days",
+    trunc_out = FALSE
+  ) %&gt;%
+  derive_vars_duration(
+    new_var = AGECUR_M,
+    new_var_unit = CURU_M,
+    start_date = BRTHDT,
+    end_date = VSDT,
+    out_unit = "months",
+    trunc_out = FALSE
+  ) %&gt;%
+  mutate(
+    AGECUR = ifelse(AGECUR_D &gt;= 365.25 * 2, AGECUR_M, AGECUR_D),
+    AGECURU = ifelse(AGECUR_D &gt;= 365.25 * 2, CURU_M, CURU_D)
+  )
+
+# metadata is in months
+cdc_meta_criteria &lt;- admiralpeds::cdc_htage %&gt;%
+  mutate(
+    age_unit = "months",
+    SEX = ifelse(SEX == 1, "M", "F")
+  )
+
+# metadata is in days
+who_meta_criteria &lt;- bind_rows(
+  (admiralpeds::who_lgth_ht_for_age_boys %&gt;%
+    mutate(
+      SEX = "M",
+      age_unit = "days"
+    )
+  ),
+  (admiralpeds::who_lgth_ht_for_age_girls %&gt;%
+    mutate(
+      SEX = "F",
+      age_unit = "days"
+    )
+  )
+) %&gt;%
+  rename(AGE = Day)
+
+criteria &lt;- bind_rows(
+  cdc_meta_criteria,
+  who_meta_criteria
+) %&gt;%
+  rename(AGEU = age_unit)
+
+derive_params_growth_age(
+  advs,
+  sex = SEX,
+  age = AGECUR,
+  age_unit = AGECURU,
+  meta_criteria = criteria,
+  parameter = VSTESTCD == "HEIGHT",
+  analysis_var = VSSTRESN,
+  set_values_to_sds = exprs(
+    PARAMCD = "HGTSDS",
+    PARAM = "Height-for-age z-score"
+  ),
+  set_values_to_pctl = exprs(
+    PARAMCD = "HGTPCTL",
+    PARAM = "Height-for-age percentile"
+  )
+)
+</code></pre>
+
+
+</div>

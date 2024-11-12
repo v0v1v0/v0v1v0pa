@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_qtc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a Parameter for Corrected QT (an ECG measurement)</h2>
+
+<h3>Description</h3>
+
+<p>Adds a record for corrected QT using either Bazett's, Fridericia's or Sagie's
+formula for each by group (e.g., subject and visit) where the source parameters
+are available.
+</p>
+<p><strong>Note:</strong> This is a wrapper function for the more generic <code>derive_param_computed()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_qtc(
+  dataset,
+  by_vars,
+  method,
+  set_values_to = default_qtc_paramcd(method),
+  qt_code = "QT",
+  rr_code = "RR",
+  get_unit_expr,
+  filter = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>get_unit_expr</code> arguments are expected to be in the dataset.
+<code>PARAMCD</code>, and <code>AVAL</code> are expected as well.
+</p>
+<p>The variable specified by <code>by_vars</code> and <code>PARAMCD</code> must be a unique key of
+the input dataset after restricting it by the filter condition (<code>filter</code>
+parameter) and to the parameters specified by <code>qt_code</code> and <code>rr_code</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>Only variables specified in <code>by_vars</code> will be populated
+in the newly created records.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method used to QT correction
+</p>
+<p>Permitted Values: <code>"Bazett"</code>, <code>"Fridericia"</code>, <code>"Sagie"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations. For example <code>exprs(PARAMCD = "MAP")</code> defines the parameter code
+for the new parameter.
+</p>
+<p><em>Permitted Values</em>: List of variable-value pairs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qt_code</code></td>
+<td>
+<p>QT parameter code
+</p>
+<p>The observations where <code>PARAMCD</code> equals the specified value are considered
+as the QT interval assessments. It is expected that QT is measured in msec.
+</p>
+<p>Permitted Values: character value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rr_code</code></td>
+<td>
+<p>RR parameter code
+</p>
+<p>The observations where <code>PARAMCD</code> equals the specified value are considered
+as the RR interval assessments. It is expected that RR is measured in msec.
+</p>
+<p>Permitted Values: character value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get_unit_expr</code></td>
+<td>
+<p>An expression providing the unit of the parameter
+</p>
+<p>The result is used to check the units of the input parameters.
+</p>
+<p>Permitted Values: A variable of the input dataset or a function call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Filter condition
+</p>
+<p>The specified condition is applied to the input dataset before deriving the
+new parameter, i.e., only observations fulfilling the condition are taken
+into account.
+</p>
+<p><em>Permitted Values:</em> a condition</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input dataset with the new parameter added. Note, a variable will only
+be populated in the new parameter rows if it is specified in <code>by_vars</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>compute_qtc()</code>
+</p>
+<p><code>compute_qtc()</code>
+</p>
+<p>BDS-Findings Functions for adding Parameters/Records: 
+<code>default_qtc_paramcd()</code>,
+<code>derive_expected_records()</code>,
+<code>derive_extreme_event()</code>,
+<code>derive_extreme_records()</code>,
+<code>derive_locf_records()</code>,
+<code>derive_param_bmi()</code>,
+<code>derive_param_bsa()</code>,
+<code>derive_param_computed()</code>,
+<code>derive_param_doseint()</code>,
+<code>derive_param_exist_flag()</code>,
+<code>derive_param_exposure()</code>,
+<code>derive_param_framingham()</code>,
+<code>derive_param_map()</code>,
+<code>derive_param_rr()</code>,
+<code>derive_param_wbc_abs()</code>,
+<code>derive_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+adeg &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~PARAM, ~AVAL, ~AVALU, ~VISIT,
+  "01-701-1015", "HR", "Heart Rate (beats/min)", 70.14, "beats/min", "BASELINE",
+  "01-701-1015", "QT", "QT Duration (msec)", 370, "msec", "WEEK 2",
+  "01-701-1015", "HR", "Heart Rate (beats/min)", 62.66, "beats/min", "WEEK 1",
+  "01-701-1015", "RR", "RR Duration (msec)", 710, "msec", "WEEK 2",
+  "01-701-1028", "HR", "Heart Rate (beats/min)", 85.45, "beats/min", "BASELINE",
+  "01-701-1028", "QT", "QT Duration (msec)", 480, "msec", "WEEK 2",
+  "01-701-1028", "QT", "QT Duration (msec)", 350, "msec", "WEEK 3",
+  "01-701-1028", "HR", "Heart Rate (beats/min)", 56.54, "beats/min", "WEEK 3",
+  "01-701-1028", "RR", "RR Duration (msec)", 842, "msec", "WEEK 2",
+)
+
+derive_param_qtc(
+  adeg,
+  by_vars = exprs(USUBJID, VISIT),
+  method = "Bazett",
+  set_values_to = exprs(
+    PARAMCD = "QTCBR",
+    PARAM = "QTcB - Bazett's Correction Formula Rederived (msec)",
+    AVALU = "msec"
+  ),
+  get_unit_expr = AVALU
+)
+
+derive_param_qtc(
+  adeg,
+  by_vars = exprs(USUBJID, VISIT),
+  method = "Fridericia",
+  set_values_to = exprs(
+    PARAMCD = "QTCFR",
+    PARAM = "QTcF - Fridericia's Correction Formula Rederived (msec)",
+    AVALU = "msec"
+  ),
+  get_unit_expr = extract_unit(PARAM)
+)
+
+derive_param_qtc(
+  adeg,
+  by_vars = exprs(USUBJID, VISIT),
+  method = "Sagie",
+  set_values_to = exprs(
+    PARAMCD = "QTLCR",
+    PARAM = "QTlc - Sagie's Correction Formula Rederived (msec)",
+    AVALU = "msec"
+  ),
+  get_unit_expr = extract_unit(PARAM)
+)
+</code></pre>
+
+
+</div>

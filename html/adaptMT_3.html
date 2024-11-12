@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adapt_glm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive P-value Thresholding with Generalized Linear Models</h2>
+
+<h3>Description</h3>
+
+<p><code>adapt_glm</code> is a wrapper of <code>adapt</code> that fits pi(x) and mu(x) by <code>glm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adapt_glm(x, pvals, pi_formulas, mu_formulas, dist = beta_family(),
+  s0 = rep(0.45, length(pvals)), alphas = seq(0.01, 1, 0.01),
+  piargs = list(), muargs = list(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>covariates (i.e. side-information). Should be compatible to <code>models</code>. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvals</code></td>
+<td>
+<p>a vector of values in [0, 1]. P-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pi_formulas</code></td>
+<td>
+<p>a vector/list of strings/formulas. Formulas for fitting pi(x) by glm. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_formulas</code></td>
+<td>
+<p>a vector/list of strings/formulas. Formulas for fitting mu(x) by glm. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>an object of class "<code>gen_exp_family</code>". <code>beta_family()</code> as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s0</code></td>
+<td>
+<p>a vector of values in [0, 0.5). Initial threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>a vector of values in (0, 1). Target FDR levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piargs</code></td>
+<td>
+<p>a list. Other arguments passed to glm for fitting pi(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muargs</code></td>
+<td>
+<p>a list. Other arguments passed to glm for fitting mu(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to <code>adapt</code> (except <code>models</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pi_formulas</code> and <code>mu_formulas</code> can either be a list or a vector with each element being a string or a formula. For instance, suppose <code>x</code> has a single column with name <code>x1</code>, the following five options are valid for the same inputs (<code>ns</code> forms a spline basis with <code>df</code> knots):
+</p>
+
+<ol>
+<li>
+<p>c("x1", "ns(x1, df = 8)");
+</p>
+</li>
+<li>
+<p>c("~ x1", "~ ns(x1, df = 8)");
+</p>
+</li>
+<li>
+<p>list("x1", "ns(x1, df = 8)");
+</p>
+</li>
+<li>
+<p>list("~ x1", "~ ns(x1, df = 8)");
+</p>
+</li>
+<li>
+<p>list(~ x1, ~ ns(x1, df = 8))
+</p>
+</li>
+</ol>
+<p>There is no need to specify the name of the response variable, as this is handled in the function.
+</p>
+<p>When <code>x</code> has a few variables, it is common to use non-parametric GLM by replacing <code>x</code> by a spline basis of <code>x</code>. In this case, <code>ns</code> from <code>library(splines)</code> package is suggested.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adapt</code>, <code>adapt_gam</code>, <code>adapt_glmnet</code>, <code>glm</code>, <code>ns</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Load estrogen data
+data(estrogen)
+pvals &lt;- as.numeric(estrogen$pvals)
+x &lt;- data.frame(x = as.numeric(estrogen$ord_high))
+dist &lt;- beta_family()
+
+# Subsample the data for convenience
+inds &lt;- (x$x &lt;= 5000)
+pvals &lt;- pvals[inds]
+x &lt;- x[inds,,drop = FALSE]
+
+# Run adapt_glm
+library("splines")
+formulas &lt;- paste0("ns(x, df = ", 6:10, ")")
+res &lt;- adapt_glm(x = x, pvals = pvals, pi_formulas = formulas,
+                 mu_formulas = formulas, dist = dist, nfits = 10)
+
+# Run adapt by manually setting models for glm
+models &lt;- lapply(formulas, function(formula){
+    piargs &lt;- muargs &lt;- list(formula = formula)
+    gen_adapt_model(name = "glm", piargs = piargs, muargs = muargs)
+})
+res2 &lt;- adapt(x = x, pvals = pvals, models = models,
+              dist = dist, nfits = 10)
+
+# Check equivalence
+identical(res, res2)
+
+
+</code></pre>
+
+
+</div>

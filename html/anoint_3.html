@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anoint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create analysis of interactions object</h2>
+
+<h3>Description</h3>
+
+<p>Prepares formula and data to be used in methods with the analysis of interactions class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anoint(formula,data,family="binomial",select=NULL,nfolds=10,
+  type.measure="deviance",keep.vars=NULL,na.action=na.omit,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>analysis of interaction formula for <code>glm</code> or <code>coxph</code>, see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame containing the variables of <code>formula</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>character specifying family of <code>glm</code> or character "coxph" if <code>coxph</code> model is fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>character for type of selection to perform, either "<code>stepAIC</code>" or "<code>glmnet</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>number of folds used in cross-validation to find lasso penalty parameter when <code>select</code> is set to <code>TRUE</code>. Used only when <code>select</code> is <code>glmnet</code>. See cv.glmnet</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.measure</code></td>
+<td>
+<p>loss to use for cross-validation. Used only when <code>select</code> is <code>glmnet</code>. See cv.glmnet</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.vars</code></td>
+<td>
+<p>vector of names of variables to retain if selection procedure is used. Used only when <code>select</code> is <code>glmnet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>function, na.action to perform for handling observations with missing variables among variables in formula. Default is <code>na.omit</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>cv.glmnet</code> when <code>select</code> is <code>glmnet</code> or <code>stepAIC</code> when <code>select</code> is <code>stepAIC</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To test proportional multiple interactions between treatment variable indicator <code>z</code> (binary, 0 or 1) and variables <code>a</code>, <code>b</code>, with response <code>y</code> of a GLM model, <code>formula</code> must be <code>y~(a+b)*z</code>. If a Cox model with event time <code>time</code> and event indicator <code>event</code>, <code>formula</code> is <code>Surv(time,event)~(a+b)*z</code>.
+</p>
+<p>Factors should not be included as <code>a</code> or <code>b</code> because this could change how the reference group is represented in the model. Separate 0/1 dummy variables must be supplied by the user. 
+</p>
+<p>When <code>select</code> is <code>glmnet</code> a Lasso method (<code>cv.glmnet</code>) is used to select prognostic factors using 10-fold cross-validation with the control data only. If <code>select</code> is set to stepAIC a stepwise selection procedure is used with specifications based on arguments passed to <code>...</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns instance of <code>anoint</code> class.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephanie Kovalchik &lt;s.a.kovalchik@gmail.com&gt;</p>
+
+
+<h3>References</h3>
+
+<p>Follmann DA, Proschan MA. A multivariate test of interaction for use in clinical trials. <em>Biometrics</em> 1999; 55(4):1151-1155
+</p>
+
+
+<h3>See Also</h3>
+
+<p>data.anoint,cv.glmnet</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# NO INTERACTION CONDITION, LOGISTIC MODEL
+
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.5),log(.5*.75)),
+                             beta = log(c(1.5,2)),
+                             gamma = rep(1,2),
+                             mean = c(0,0),
+                             vcov = diag(2),
+                             type="survival", n = 500
+                             )
+
+head(null.interaction)
+
+object &lt;- anoint(Surv(y, event)~(V1+V2)*trt,data=null.interaction,family="coxph")
+
+object
+
+summary(object)
+
+# NO INTERACTION CONDITION, WITH PROGNOSTIC SELECTION
+
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.2/.8),log(.2*.75/(1-.2*.75))),
+                             beta = c(1.5,2,0,0),
+                             gamma = rep(1,4),
+                             mean = rep(0,4),
+                             vcov = diag(4),
+                             type="binomial", n = 500
+                             )
+
+head(null.interaction)
+
+object &lt;- anoint(y~(V1+V2+V3+V4)*trt,data=null.interaction,select="glmnet")
+
+summary(object)
+
+# FORCE V1, V2 INTO THE MODEL; INTERCEPT IS ALWAYS THE FIRST TERM OF MODEL
+object &lt;- anoint(y~(V1+V2+V3+V4)*trt,data=null.interaction,
+			select="glmnet",keep.vars=c("V1","V2"))
+
+summary(object)
+
+# SELECTION WITH STEPWISE SELECTION AND AIC CRITERION
+object &lt;- anoint(y~(V1+V2+V3+V4)*trt,data=null.interaction,
+			select="stepAIC")
+
+summary(object)
+
+</code></pre>
+
+
+</div>

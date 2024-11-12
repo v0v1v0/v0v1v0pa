@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tmpyr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Temperature Data</h2>
+
+<h3>Description</h3>
+
+<p>Central England mean yearly temperatures from 1659 to 1976
+</p>
+
+
+<h3>Format</h3>
+
+<p>A ts tmpyr
+</p>
+
+
+<h3>Details</h3>
+
+<p>Hosking notes that while the ARFIMA(1, d, 1) has a lower AIC, it is not much
+lower than the AIC of the ARFIMA(1, d, 0).
+</p>
+<p>Bhansali and Kobozka find: muHat = 9.14, d = 0.28, phi = -0.77, and theta =
+-0.66 for the ARFIMA(1, d, 1), which is close to our result, although our
+result reveals trimodality if <code>numeach</code> is large enough.  The third
+mode is close to Hosking's fit of an ARMA(1, 1) to these data, while the
+second is very antipersistent.
+</p>
+<p>Our package gives a very close result to Hosking for the ARFIMA(1, d, 0)
+case, although there is also a second mode.  Given how close it is to the
+boundary, it may or may not be spurious.  A check with <code>dmean = FALSE</code>
+shows that it is not the optimized mean giving a spurious mode.
+</p>
+<p>If, however, we use <code>whichopt = 1</code>, we only have one mode.  Note that
+Nelder-Mead sometimes does take out non-spurious modes, or add spurious
+modes to the surface.
+</p>
+
+
+<h3>Source</h3>
+
+<p><a href="https://hadleyserver.metoffice.gov.uk/hadobs/hadcet/">https://hadleyserver.metoffice.gov.uk/hadobs/hadcet/</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Parker, D.E., Legg, T.P., and Folland, C.K. (1992).  A new daily
+Central England Temperature Series, 1772-1991. Int. J. Clim., Vol 12, pp
+317-342
+</p>
+<p>Manley,G. (1974).  Central England Temperatures: monthly means 1659 to 1973.
+Q.J.R. Meteorol. Soc., Vol 100, pp 389-405.
+</p>
+<p>Hosking, J. R. M. (1984). Modeling persistence in hydrological time series
+using fractional differencing, Water Resour. Res., 20(12)
+</p>
+<p>Bhansali, R. J. and Koboszka, P. S. (2003) Prediction of Long-Memory Time
+Series In Doukhan, P., Oppenheim, G. and Taqqu, M. S. (Eds) Theory and
+Applications of Long-Range Dependence (pp355-368) Birkhauser Boston Inc.
+</p>
+<p>Veenstra, J.Q. Persistence and Antipersistence:  Theory and
+Software (PhD Thesis)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+data(tmpyr)
+
+fit &lt;- arfima(tmpyr, order = c(1, 0, 1), numeach = c(3, 3), dmean = TRUE, back=TRUE)
+fit
+##suspect that fourth mode may be spurious, even though not close to a boundary
+##may be an induced mode from the optimization of the mean
+
+fit &lt;- arfima(tmpyr, order = c(1, 0, 1), numeach = c(3, 3), dmean = FALSE, back=TRUE)
+fit
+
+##perhaps so
+
+
+plot(tacvf(fit), maxlag = 30, tacf = TRUE)
+
+fit1 &lt;- arfima(tmpyr, order = c(1, 0, 0), dmean = TRUE, back=TRUE)
+fit1
+
+fit2 &lt;- arfima(tmpyr, order = c(1, 0, 0), dmean = FALSE, back=TRUE)
+fit2  ##still bimodal.  Second mode may or may not be spurious.
+
+fit3 &lt;- arfima(tmpyr, order = c(1, 0, 0), dmean = FALSE, whichopt = 1, numeach = c(3, 3))
+fit3  ##Unimodal.  So the second mode was likely spurious.
+
+plot(tacvf(fit2), maxlag = 30, tacf = TRUE)
+##maybe not spurious.  Hard to tell without visualizing the surface.
+
+##compare to plotted tacf of fit1:  looks alike
+plot(tacvf(fit1), maxlag = 30, tacf = TRUE)
+
+tacfplot(list(fit1, fit2))
+
+</code></pre>
+
+
+</div>

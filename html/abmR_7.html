@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>moveSIM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Runs agent-based model (ABM) movement simulations based on environmental data</h2>
+
+<h3>Description</h3>
+
+<p>Here, agent mortality occurs when agent fails to achieve suitable raster
+values at least n_failures+1 timesteps in a row. Agent energy stores are not
+dynamic, so movement speed isn't directly affected by quality of raster cells
+achieved. Results may be analyzed with moveVIZ(). Relies on underlying
+function moveSIM_helper(), which is not to be used alone.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">moveSIM(
+  replicates = 100,
+  days,
+  modeled_species,
+  env_rast,
+  optimum,
+  dest_x,
+  dest_y,
+  mot_x,
+  mot_y,
+  search_radius = 375,
+  direction = "S",
+  sigma = 0.1,
+  mortality = TRUE,
+  fail_thresh = 0.5,
+  n_failures = 4,
+  single_rast = FALSE,
+  write_results = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>replicates</code></td>
+<td>
+<p>Integer, desired number of replicates per run. Default 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days</code></td>
+<td>
+<p>Integer, how many days (timesteps) would you like to model? Range (1,nlayers(env_rast))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modeled_species</code></td>
+<td>
+<p>Object of class "species"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env_rast</code></td>
+<td>
+<p>Rasterstack or Rasterbrick with number of layers &gt;= days</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimum</code></td>
+<td>
+<p>Numeric, optimal environmental value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dest_x</code></td>
+<td>
+<p>Numeric, destination x coordinate (longitude)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dest_y</code></td>
+<td>
+<p>Numeric, destination y coordinate (latitude)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mot_x</code></td>
+<td>
+<p>Numeric, movement motivation in x direction, range (0,1], default 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mot_y</code></td>
+<td>
+<p>Numeric, movement motivation in y direction, range (0,1], default 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search_radius</code></td>
+<td>
+<p>Radius of semicircle search regions (in km). Default 375.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>direction</code></td>
+<td>
+<p>Character, movement direction, one of "N","S","E","W", or "R" (Random). Default "S".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>Numeric, randomness parameter, range (-Inf, Inf). Default 0.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mortality</code></td>
+<td>
+<p>Logical, should low energy levels result in death? Default T.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fail_thresh</code></td>
+<td>
+<p>What percentage deviation from optimum leads to death? E.g. default of
+.50 means 50 percent or greater deviation from optimum on a particular step constitutes failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_failures</code></td>
+<td>
+<p>How many failures are allowable before agent experiences death (at n_failures+1). What constitutes
+a failure is determined by fail_thresh, range (1,days]. Default 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>single_rast</code></td>
+<td>
+<p>Logical, are you using a one-layer raster for all timesteps? Default F.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write_results</code></td>
+<td>
+<p>Logical, save results to csv? Default F.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each timestep, agents can have status "Alive",
+"Stopped", or "Died". All agents start alive and may stop if, on a particular timestep,
+there are no non-NA raster values in the search region. This often occurs when agents
+are searching over an ocean or a large lake, for example. Once an agent stops, they
+remain stopped for the rest of the run. Similarly, once an agent dies, they retain
+this status for all subsequent timesteps. All timesteps with agent status "Stopped"
+or "Died" will have lat/lon=NA, so as to not affect subsequent analyses.
+</p>
+<p>Arguments mortality, n_failures, and fail_thresh interact with each other. If
+mortality = F, values for n_failures and fail_thresh are ignored. If mortality=T, fail_thresh
+determines what constitutes a failure, and n_failures indicates how many failures are allowed before
+death. Note: If n_failures=days, this is equivalent to mortality=F.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Under "results", a (days+1 * replicates) row X 7 column dataframe containing data on agent_id, day, longitude, latitude,
+current agent status (Alive, Stopped, or Died), distance traveled from last timestep (in km), and final status.
+Using tidy_results() provides a cleaner display of results.
+</p>
+<p>Under "run_params", a record of function parameters used as well as missing_pct
+and mortality_pct. missing_pct corresponds to the percent of rows in the results dataframe
+missing information on lon/lat, which occurs when the agent has "died" or "stopped". mortality_pct
+refers to the percentage of agents in the run that died.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Define species object
+pop1 &lt;- as.species(
+  x = -98.7, y = 34.7)
+ 
+# Run function
+EX2 &lt;- moveSIM( replicates = 3, days = 10, env_rast = ex_raster,
+search_radius = 300, sigma = .1, dest_x = -108.6, dest_y = 26.2,
+ mot_x = .8, mot_y = .8, modeled_species = pop1, optimum = .6,
+  n_failures = 5, fail_thresh = .40, direction = "R",
+  write_results = FALSE, single_rast = TRUE, mortality = TRUE)
+# View Results in Clean Format
+tidy_results(EX2, type = "results")
+tidy_results(EX2, type = "run_params")
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CloudCeiling</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Cloud ceiling height
+</h2>
+
+<h3>Description</h3>
+
+<p>The cloud ceiling heights, collected by the National Center for Atmospheric Research (NCAR), 
+were observed hourly in San Francisco during March 1989, consisting of n=716 observations 
+(Park et al. 2007).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(CloudCeiling)
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>This data frame contains the following columns:
+</p>
+
+<dl>
+<dt><code>y</code></dt>
+<dd>
+<p>Logarithm of the cloud ceiling heights.</p>
+</dd>
+<dt><code>cc</code></dt>
+<dd>
+<p>Right censoring indicator (1 if the observation is right-censored and 0 otherwise).</p>
+</dd>
+</dl>
+<h3>Source</h3>
+
+<p>Park JW, Genton MG, Ghosh SK (2007).
+“Censored time series analysis with autoregressive moving average models.”
+<em>Canadian Journal of Statistics</em>, <b>35</b>(1), 151–168.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ARCensReg</code>, <code>ARtCensReg</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+
+data(CloudCeiling)
+ggplot(CloudCeiling) + geom_line(aes(x=1:length(y), y=y)) + 
+  labs(x="Time") + theme_bw()
+
+# Proportion of censoring
+prop.table(table(CloudCeiling$cc))
+
+## Not run: 
+# A censored regression model
+## This may take a long time due to the number of censored observations.
+## For other examples see help(ARCensReg).
+
+x   = as.matrix(rep(1, length(CloudCeiling$y)))
+cc  = CloudCeiling$cc
+lcl = CloudCeiling$y
+ucl = rep(Inf, length(CloudCeiling$y))
+miss =  which(is.na(CloudCeiling$y))
+cc[miss]  = 1
+lcl[miss] = -Inf
+AR_reg = ARCensReg(cc, lcl, ucl, CloudCeiling$y, x, p=1, tol=.001)
+## End(Not run)
+</code></pre>
+
+
+</div>

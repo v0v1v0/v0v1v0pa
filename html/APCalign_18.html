@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update_taxonomy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update to currently accepted APC name and add APC/APNI name metadata</h2>
+
+<h3>Description</h3>
+
+<p>For a list of taxon names aligned to the APC, update the name to an accepted
+taxon concept per the APC and add scientific name and taxon concept metadata
+to names aligned to either the APC or APNI.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">update_taxonomy(
+  aligned_data,
+  taxonomic_splits = "most_likely_species",
+  quiet = TRUE,
+  output = NULL,
+  resources = load_taxonomic_resources()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>aligned_data</code></td>
+<td>
+<p>A tibble of plant names to update. This table must
+include 5 columns, original_name, aligned_name, taxon_rank,
+taxonomic_dataset, and aligned_reason.
+These columns are created by the function <code>align_taxa</code>.
+The columns <code>original_name</code> and <code>aligned_name</code> must be in the format of the
+scientific name, with genus and species,
+and may contain additional qualifiers such as subspecies or varieties. The
+names are case insensitive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomic_splits</code></td>
+<td>
+<p>Variable that determines what protocol to use to
+update taxon names that are ambiguous due to taxonomic splits.
+The three options are:
+</p>
+
+<ul>
+<li> <p><code>most_likely_species</code>, which returns the species name in use before the
+split; alternative names are returned in a separate column
+</p>
+</li>
+<li> <p><code>return_all</code>, which returns all possible names
+</p>
+</li>
+<li> <p><code>collapse_to_higher_taxon</code>, which declares that an ambiguous name cannot
+be aligned to an accepted species/infraspecific name and the name is
+demoted to genus rank
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical to indicate whether to display messages while updating
+taxa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>(optional) Name of the file where results are saved. The
+default is NULL and no file is created. If specified, the output will be
+saved in a CSV file with the given name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resources</code></td>
+<td>
+<p>the taxonomic resources required to make the summary
+statistics.  Loading this can be slow, so call load_taxonomic_resources
+separately to greatly speed this function up and pass the resources in.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> This function uses the APC to update the taxonomy of names aligned to a
+taxon concept listed in the APC to the currently accepted name for the taxon
+concept.
+</p>
+</li>
+<li>
+<p> The aligned_data data frame that is input must contain 5 columns,
+<code>original_name</code>, <code>aligned_name</code>, <code>taxon_rank</code>, <code>taxonomic_dataset</code>, and
+<code>aligned_reason</code>. (These are the columns output by the function <code>align_taxa</code>.)
+</p>
+</li>
+<li>
+<p> The aligned name is a plant name that has been aligned to a taxon name in
+the APC or APNI by the align_taxa function.
+</p>
+</li>
+</ul>
+<p>Notes:
+</p>
+
+<ul><li>
+<p> As the input for this function is a table with 5 columns (output by
+align_taxa), this function will only be used when you explicitly want to
+separate the alignment and updating components of APCalign. This function is
+the second half of create_taxonomic_update_lookup.
+</p>
+</li></ul>
+<h3>Value</h3>
+
+<p>A tibble with updated taxonomy for the specified plant names. The
+tibble contains the following columns:
+</p>
+
+<ul>
+<li>
+<p> original_name: the original plant name.
+</p>
+</li>
+<li>
+<p> aligned_name: the input plant name that has been aligned to a taxon name
+in the APC or APNI by the align_taxa function.
+</p>
+</li>
+<li>
+<p> accepted_name: the APC-accepted plant name, when available.
+</p>
+</li>
+<li>
+<p> suggested_name: the suggested plant name to use. Identical to the
+accepted_name, when an accepted_name exists; otherwise the the suggested_name
+is the aligned_name.
+</p>
+</li>
+<li>
+<p> genus: the genus of the accepted (or suggested) name; only APC-accepted
+genus names are filled in.
+</p>
+</li>
+<li>
+<p> family: the family of the accepted (or suggested) name; only APC-accepted
+family names are filled in.
+</p>
+</li>
+<li>
+<p> taxon_rank: the taxonomic rank of the suggested (and accepted) name.
+</p>
+</li>
+<li>
+<p> taxonomic_dataset: the source of the suggested (and accepted) names (APC or
+APNI).
+</p>
+</li>
+<li>
+<p> taxonomic_status: the taxonomic status of the suggested (and accepted) name.
+</p>
+</li>
+<li>
+<p> taxonomic_status_aligned: the taxonomic status of the aligned name, before
+any taxonomic updates have been applied.
+</p>
+</li>
+<li>
+<p> aligned_reason: the explanation of a specific taxon name alignment (from an
+original name to an aligned name).
+</p>
+</li>
+<li>
+<p> update_reason: the explanation of a specific taxon name update (from an
+aligned name to an accepted or suggested name).
+</p>
+</li>
+<li>
+<p> subclass: the subclass of the accepted name.
+</p>
+</li>
+<li>
+<p> taxon_distribution: the distribution of the accepted name; only filled in
+if an APC accepted_name is available.
+</p>
+</li>
+<li>
+<p> scientific_name_authorship: the authorship information for the accepted
+(or synonymous) name; available for both APC and APNI names.
+</p>
+</li>
+<li>
+<p> taxon_ID: the unique taxon concept identifier for the accepted_name; only
+filled in if an APC accepted_name is available.
+</p>
+</li>
+<li>
+<p> taxon_ID_genus: an identifier for the genus; only filled in if an
+APC-accepted genus name is available.
+</p>
+</li>
+<li>
+<p> scientific_name_ID: an identifier for the nomenclatural (not taxonomic)
+details of a scientific name; available for both APC and APNI names.
+</p>
+</li>
+<li>
+<p> row_number: the row number of a specific original_name in the input.
+</p>
+</li>
+<li>
+<p> number_of_collapsed_taxa: when taxonomic_splits == "collapse_to_higher_taxon",
+the number of possible taxon names that have been collapsed.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>load_taxonomic_resources
+</p>
+<p>Other taxonomic alignment functions: 
+<code>align_taxa()</code>,
+<code>create_taxonomic_update_lookup()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Update taxonomy for two plant names and print the result
+
+resources &lt;- load_taxonomic_resources()
+
+update_taxonomy(
+ dplyr::tibble(
+   original_name = c("Dryandra preissii", "Banksia acuminata"),
+   aligned_name = c("Dryandra preissii", "Banksia acuminata"),
+   taxon_rank = c("species", "species"),
+   taxonomic_dataset = c("APC", "APC"),
+   aligned_reason = c(NA_character_,
+   NA_character_)
+ ),
+ resources = resources
+)
+
+</code></pre>
+
+
+</div>

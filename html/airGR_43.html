@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RunModel_Lag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run with the Lag model</h2>
+
+<h3>Description</h3>
+
+<p>Function which performs a single run for the Lag model over the test period.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RunModel_Lag(InputsModel, RunOptions, Param, QcontribDown)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <em>InputsModel</em>] created with SD model inputs, see <code>CreateInputsModel</code> for details. The object should also contain a key <em>OutputsModel</em> of class <code>CreateInputsModel</code> coming from the simulation of the downstream subcatchment runoff.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RunOptions</code></td>
+<td>
+<p>[object of class <em>RunOptions</em>] see <code>CreateRunOptions</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Param</code></td>
+<td>
+<p>[numeric] vector of 1 parameter
+</p>
+
+<table><tr>
+<td style="text-align: left;">
+      Velocity </td>
+<td style="text-align: left;"> mean flow velocity [m/s]
+    </td>
+</tr></table>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>QcontribDown</code></td>
+<td>
+<p>[numeric] vector or [OutputsModel] containing the time series of the runoff contribution of the downstream sub-basin</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>[list] see <code>RunModel_GR4J</code> or <code>RunModel_CemaNeigeGR4J</code> for details.
+</p>
+<p>The list value contains an extra item named <code>QsimDown</code> which is a copy of the runoff contribution of the downstream sub-basin contained in argument <code>QcontribDown</code> in [mm/time step].
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olivier Delaigue, David Dorchies, Guillaume Thirel
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RunModel</code>, <code>CreateInputsModel</code>, <code>CreateRunOptions</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#####################################################################
+## Simulation of a reservoir with a purpose of low-flow mitigation ##
+#####################################################################
+
+## ---- preparation of the InputsModel object
+
+## loading package and catchment data
+library(airGR)
+data(L0123001)
+
+## ---- simulation of the hydrological catchment with GR4J
+
+InputsModelDown &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                     Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## creation of the RunOptions object
+RunOptionsDown &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                                   InputsModel = InputsModelDown, IndPeriod_Run = Ind_Run)
+
+## simulation of the runoff of the catchment with a GR4J model
+Param &lt;- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
+OutputsModelDown &lt;- RunModel_GR4J(InputsModel = InputsModelDown,
+                                  RunOptions = RunOptionsDown, Param = Param)
+
+## ---- specifications of the reservoir
+
+## the reservoir withdraws 1 m3/s when it's possible considering the flow observed in the basin
+Qupstream &lt;- matrix(-sapply(BasinObs$Qls / 1000 - 1, function(x) {
+  min(1, max(0, x, na.rm = TRUE))
+}), ncol = 1)
+
+## except between July and September when the reservoir releases 3 m3/s for low-flow mitigation
+month &lt;- as.numeric(format(BasinObs$DatesR, "%m"))
+Qupstream[month &gt;= 7 &amp; month &lt;= 9] &lt;- 3
+Qupstream &lt;- Qupstream * 86400 ## Conversion in m3/day
+
+## the reservoir is not an upstream subcachment: its areas is NA
+BasinAreas &lt;- c(NA, BasinInfo$BasinArea)
+
+## delay time between the reservoir and the catchment outlet is 2 days and the distance is 150 km
+LengthHydro &lt;- 150
+
+## ---- simulation of the basin with the reservoir influence
+
+InputsModelInf &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                    Precip = BasinObs$P, PotEvap = BasinObs$E,
+                                    Qupstream = Qupstream, LengthHydro = LengthHydro,
+                                    BasinAreas = BasinAreas)
+## creation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModelInf, IndPeriod_Run = Ind_Run)
+
+## with a delay of 2 days for 150 km, the flow velocity is 75 km per day
+Velocity &lt;- (LengthHydro * 1e3 / 2) / (24 * 60 * 60) ## Conversion km/day -&gt; m/s
+
+## run the lag model which routes precipitation-runoff model and upstream flows
+OutputsModel &lt;- RunModel_Lag(InputsModel = InputsModelInf,
+                             RunOptions = RunOptions,
+                             Param = Velocity,
+                             QcontribDown = OutputsModelDown)
+
+## results preview of comparison between naturalised (observed) and influenced flow (simulated)
+plot(OutputsModel, Qobs = OutputsModel$QsimDown)
+</code></pre>
+
+
+</div>

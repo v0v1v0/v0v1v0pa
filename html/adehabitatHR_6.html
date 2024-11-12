@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clusthr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of the Home Range by Single-Linkage Cluster Analysis</h2>
+
+<h3>Description</h3>
+
+<p><code>clusthr</code> allows the estimation of the home range by
+single-linkage cluster analysis (see details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clusthr(xy, unin = c("m", "km"),
+        unout = c("ha", "m2", "km2"),
+        duplicates=c("random","remove"), amount = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>an object inheriting the class <code>SpatialPoints</code>
+containing the x and y relocations of the animal.  If <code>xy</code>
+inherits the class <code>SpatialPointsDataFrame</code>, it should contain
+only one column (factor) corresponding to the identity of the
+animals for each relocation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unin</code></td>
+<td>
+<p>the units of the relocations coordinates.  Either
+<code>"m"</code> (default) for
+meters or <code>"km"</code> for kilometers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unout</code></td>
+<td>
+<p>the units of the output areas.  Either <code>"m2"</code> for
+square meters, <code>"km2"</code> for square kilometers or <code>"ha"</code> for
+hectares (default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>duplicates</code></td>
+<td>
+<p>a setting to determine how duplicated points are
+handled.  If "<code>random</code>" the duplicated points are slightly moved
+randomly. If "<code>remove</code>" the duplicated points are removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amount</code></td>
+<td>
+<p>if <code>duplicates == random</code>, this parameter controls the
+amount of noise added to the data (see the help page of <code>jitter</code>
+for additional information on this parameter).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This method estimates home range using the single-linkage cluster
+analysis modified by Kenward et
+al. (2001). The clustering process is described hereafter: the three
+locations with the minimum mean of nearest-neighbour joining distances
+(NNJD) form the first cluster. At each step, two distances are
+computed: (i) the minimum mean NNJD between three locations (which
+corresponds to the next potential cluster) and (ii) the minimum of the
+NNJD between a cluster "c" and the closest location.  If (i) is smaller
+that (ii), another cluster is defined with these three locations.
+If (ii) is smaller than (i), the cluster "c" gains a new location.  If
+this new location belong to another cluster, the two cluster
+fuses. The process stop when all relocations are assigned to the same
+cluster.
+</p>
+<p>At each step of the clustering process, the proportion of all
+relocations which are assigned to a cluster is computed (so that the
+home range can be defined to enclose a given proportion of the
+relocations at hand, i.e. to an uncomplete process).
+At a given step, the home range is defined as
+the set of minimum convex polygon enclosing the relocations in the
+clusters.
+</p>
+<p>Note that a given home-range contour can be extracted using the
+function <code>getverticeshr</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>clusthr</code> returns either objects of class
+<code>SpatialPolygonsDataFrame</code> (if the relocations of only one
+animals are passed as the <code>xy</code> argument) or a list of
+<code>SpatialPolygonsDataFrame</code> of class <code>MCHu</code> – Multiple
+Convex Hull (if the relocations of several animals are passed as the
+<code>xy</code> argument).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Clement Calenge <a href="mailto:clement.calenge@ofb.gouv.fr">clement.calenge@ofb.gouv.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Kenwward R.E., Clarke R.T., Hodder K.H. and Walls S.S. (2001) Density
+and linkage estimators of homre range: nearest neighbor clustering
+defines multinuclear cores. <em>Ecology</em>, <b>82</b>, 1905–1920.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>MCHu</code> for further information on the class
+<code>MCHu</code>, and <code>SpatialPolygonsDataFrame-class</code> for
+additional information on this class. See <code>getverticeshr</code>
+to extract a given home range contour.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(puechabonsp)
+lo&lt;-puechabonsp$relocs[,1]
+
+## Home Range Estimation
+res &lt;- clusthr(lo)
+
+## Displays the home range
+plot(res)
+
+## Computes the home range size
+MCHu2hrsize(res)
+
+## get the 95 percent home range:
+plot(getverticeshr(res, percent=95))
+
+
+</code></pre>
+
+
+</div>

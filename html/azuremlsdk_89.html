@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hyperdrive_config</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a configuration for a HyperDrive run</h2>
+
+<h3>Description</h3>
+
+<p>The HyperDrive configuration includes information about hyperparameter
+space sampling, termination policy, primary metric, estimator, and
+the compute target to execute the experiment runs on.
+</p>
+<p>To submit the HyperDrive experiment, pass the <code>HyperDriveConfig</code> object
+returned from this method to <code>submit_experiment()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hyperdrive_config(
+  hyperparameter_sampling,
+  primary_metric_name,
+  primary_metric_goal,
+  max_total_runs,
+  max_concurrent_runs = NULL,
+  max_duration_minutes = 10080L,
+  policy = NULL,
+  estimator = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>hyperparameter_sampling</code></td>
+<td>
+<p>The hyperparameter sampling space.
+Can be a <code>RandomParameterSampling</code>, <code>GridParameterSampling</code>, or
+<code>BayesianParameterSampling</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>primary_metric_name</code></td>
+<td>
+<p>A string of the name of the primary metric
+reported by the experiment runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>primary_metric_goal</code></td>
+<td>
+<p>The <code>PrimaryMetricGoal</code> object. This
+parameter determines if the primary metric is to be minimized or
+maximized when evaluating runs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_total_runs</code></td>
+<td>
+<p>An integer of the maximum total number of runs
+to create. This is the upper bound; there may be fewer runs when the
+sample space is smaller than this value. If both <code>max_total_runs</code> and
+<code>max_duration_minutes</code> are specified, the hyperparameter tuning experiment
+terminates when the first of these two thresholds is reached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_concurrent_runs</code></td>
+<td>
+<p>An integer of the maximum number of runs to
+execute concurrently. If <code>NULL</code>, all runs are launched in parallel.
+The number of concurrent runs is gated on the resources available in the
+specified compute target. Hence, you need to ensure that the compute target
+has the available resources for the desired concurrency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_duration_minutes</code></td>
+<td>
+<p>An integer of the maximum duration of the
+HyperDrive run. Once this time is exceeded, any runs still executing are
+cancelled. If both <code>max_total_runs</code> and <code>max_duration_minutes</code> are specified,
+the hyperparameter tuning experiment terminates when the first of these two
+thresholds is reached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>policy</code></td>
+<td>
+<p>The early termination policy to use. Can be either a
+<code>BanditPolicy</code>, <code>MedianStoppingPolicy</code>, or <code>TruncationSelectionPolicy</code>
+object. If <code>NULL</code> (the default), no early termination policy will be used.
+</p>
+<p>The <code>MedianStoppingPolicy</code> with <code style="white-space: pre;">⁠delay_evaluation of = 5⁠</code> is a good
+termination policy to start with. These are conservative settings that can
+provide 25%-35% savings with no loss on primary metric
+(based on our evaluation data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimator</code></td>
+<td>
+<p>The <code>Estimator</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>HyperDriveConfig</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>submit_experiment()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Load the workspace
+ws &lt;- load_workspace_from_config()
+
+# Get the compute target
+compute_target &lt;- get_compute(ws, cluster_name = 'mycluster')
+
+# Define the primary metric goal
+goal = primary_metric_goal("MAXIMIZE")
+
+# Define the early termination policy
+early_termination_policy = median_stopping_policy(evaluation_interval = 1L,
+                                                  delay_evaluation = 5L)
+
+# Create the estimator
+est &lt;- estimator(source_directory = '.',
+                 entry_script = 'train.R',
+                 compute_target = compute_target)
+
+# Create the HyperDrive configuration
+hyperdrive_run_config = hyperdrive_config(
+                                   hyperparameter_sampling = param_sampling,
+                                   primary_metric_name = 'accuracy',
+                                   primary_metric_goal = goal,
+                                   max_total_runs = 100,
+                                   max_concurrent_runs = 4,
+                                   policy = early_termination_policy,
+                                   estimator = est)
+
+# Submit the HyperDrive experiment
+exp &lt;- experiment(ws, name = 'myexperiment')
+run = submit_experiment(exp, hyperdrive_run_config)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

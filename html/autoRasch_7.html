@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_score</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the In-plus-out-of-questionnaire log likelihood (with DIF) (IPOQ-LL(-DIF))</h2>
+
+<h3>Description</h3>
+
+<p><code>compute_score</code> computes the the IPOQ-LL/IPOQ-LL-DIF score of an instrument (included set) of the given initial survey.
+While <code>compute_scores</code> computes the IPOQ-LL/IPOQ-LL-DIF score of many (more than one) instruments (included sets) of
+the given initial survey simultanously.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_score(
+  X,
+  incl_set,
+  type = c("ipoqll", "ipoqlldif"),
+  groups_map = c(),
+  init_par_iq = c(),
+  init_par_oq = c(),
+  setting_par_iq = c(),
+  setting_par_oq = c(),
+  method = c("fast", "novel")
+)
+
+compute_scores(
+  X,
+  incl_sets,
+  type = c("ipoqll", "ipoqlldif"),
+  step_direct = c("fixed", "forward", "backward"),
+  groups_map = c(),
+  init_par_iq = c(),
+  init_par_oq = c(),
+  setting_par_iq = c(),
+  setting_par_oq = c(),
+  cores = NULL,
+  method = c("fast", "novel"),
+  timeLimit = 3600
+)
+
+## S3 method for class 'score'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A matrix or data.frame of the observed responses (ordinal or binary response).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>incl_set</code></td>
+<td>
+<p>A vector of the items (columns) number in the data.frame X that are included in the included set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of the score. <code>ipoqll</code> if we ignore the presence of the DIF and <code>ipoqlldif</code> if we want to consider the DIF effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups_map</code></td>
+<td>
+<p>Matrix to map the respondents to the DIF groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_par_iq</code></td>
+<td>
+<p>Initial values of the parameters in the included set before the estimation begin.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_par_oq</code></td>
+<td>
+<p>Initial values of the parameters in the excluded set before the estimation begin.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setting_par_iq</code></td>
+<td>
+<p>The coordinate descent optimisation setting of the included set. See <code>autoRasch::autoRaschOptions()</code> <code>cd_control</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setting_par_oq</code></td>
+<td>
+<p>The coordinate descent optimisation setting of the excluded set. See <code>autoRasch::autoRaschOptions()</code> <code>cd_control</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The implementation option of log likelihood function. <code>fast</code> using a <code>c++</code> implementation and <code>novel</code> using an <code>R</code> implementation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>incl_sets</code></td>
+<td>
+<p>A matrix as a results of a <code>rbind</code> of <code>incl_set</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_direct</code></td>
+<td>
+<p>How will you compute the criterion score. <code>fixed</code> for the given itemset,
+<code>forward</code> computes all the scores of the possible combination of items if an item is added to the given set,
+<code>backward</code>  computes all the scores of the possible combination of items if an item is removed to the given set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>Number of cores that is used in the paralellization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeLimit</code></td>
+<td>
+<p>To limit the execution time of scores' computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The object from the class <code>score</code>. The result of the score computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further argument passed or from other method.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>compute_score</code> will return a vector which contains in-questionnaire log likelihood (IQ-LL(-DIF)), out-of-questionnaire log likelihood(OQ-LL(-DIF)),
+IPOQ-LL(-DIF), included set's items' number in the given initial survey, the estimated theta parameters, the estimated items' parameters in the included set,
+and the estimated items' parameters in the excluded set, sequentially.
+</p>
+<p><code>compute_scores</code> will return a matrix as a result of the <code>rbind</code> operation of the <code>compute_score</code>'s result.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ipoqll_score &lt;- compute_score(shortDIF,incl_set = c(1:3),type = "ipoqll")
+summary(ipoqll_score)
+
+## Not run: 
+ipoqll_scores &lt;- compute_scores(shortDIF,incl_set = rbind(c(1:3),c(2:4)),
+                                type = "ipoqll", cores = 2)
+View(ipoqll_scores)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

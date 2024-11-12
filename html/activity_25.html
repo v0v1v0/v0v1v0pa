@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transtime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transforms clock time to solar times.</h2>
+
+<h3>Description</h3>
+
+<p>Transforms time expressed relative to either the time of a single solar event (anchor times - Nouvellet et al. 2012), or two solar events (such as sun rise and sun set - Vazquez et al. in press).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transtime(
+  dat,
+  anchor,
+  mnanchor = NULL,
+  type = c("average", "equinoctial", "single")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A vector of radian event clock times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anchor</code></td>
+<td>
+<p>A vector or matrix matched with <code>dat</code> containing radian anchor times on the day of each event (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mnanchor</code></td>
+<td>
+<p>A scalar or two-element vector of numeric radian mean anchor times (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of transformation to use (see Details).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If double anchoring is requested (i.e. <code>type</code> is equinoctial
+or average), the <code>anchor</code> argument requires a two-column matrix,
+otherwise a vector. The argument <code>mnanchor</code> can usually be left at
+its default <code>NULL</code> value. In this case, the mean anchors are set to
+<code>c(pi/2, pi*3/2)</code> when <code>type</code>=="equinoctial", otherwise the
+<code>anchor</code> mean(s).
+</p>
+<p>Although the anchors for transformation are usually likely to be solar
+events (e.g. sun rise and/or sunset), they could be other celestial
+(e.g. lunar) or human-related (e.g. timing of artificial lighting) events.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of radian transformed times.
+</p>
+
+
+<h3>References</h3>
+
+<p>Vazquez, C., Rowcliffe, J.M., Spoelstra, K. and Jansen, P.A. in press. Comparing diel activity patterns of wildlife across latitudes and seasons: time transformation using day length. Methods in Ecology and Evolution.
+</p>
+<p>Nouvellet, P., Rasmussen, G.S.A., Macdonald, D.W. and Courchamp, F. 2012. Noisy clocks and silent sunrises: measurement methods of daily activity pattern. Journal of Zoology 286: 179-184.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(BCItime)
+subdat &lt;- subset(BCItime, species=="ocelot")
+suntimes &lt;- pi/12 * get_suntimes(subdat$date, 9.156335, -79.847682, -5)[, -3]
+rawtimes &lt;- subdat$time*2*pi
+avgtimes &lt;- transtime(rawtimes, suntimes)
+eqntimes &lt;- transtime(rawtimes, suntimes, type="equinoctial")
+sngtimes &lt;- transtime(rawtimes, suntimes[,1], type="single")
+rawAct &lt;- fitact(rawtimes)
+avgAct &lt;- fitact(avgtimes)
+eqnAct &lt;- fitact(eqntimes)
+sngAct &lt;- fitact(sngtimes)
+plot(rawAct)
+plot(avgAct, add=TRUE, data="n", tline=list(col="magenta"))
+plot(eqnAct, add=TRUE, data="n", tline=list(col="orange"))
+plot(sngAct, add=TRUE, data="n", tline=list(col="cyan"))
+</code></pre>
+
+
+</div>

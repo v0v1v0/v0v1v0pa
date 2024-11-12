@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>saABC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Summary statistic construction by semi-automatic ABC
+</h2>
+
+<h3>Description</h3>
+
+<p><code>saABC</code> fits parameter estimators based on simulated data to be
+used as summary statistics within ABC.  Fitting is by linear
+regression.  Some simple diagnostics are provided for assistance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">saABC(theta, X, plot = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+
+<p>A n x d matrix or data frame of simulated parameter values.
+<code>theta[i,j]</code> is the ith simulated value of parameter j.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>A n x p matrix or data frame of simulated data and/or associated
+transformations.  <code>X[i,]</code> is a vector of the data for parameter
+values <code>theta[i,]</code>.  A constant term should not be included.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>When <code>plot==TRUE</code>, a plot of parameter values against fitted
+values is produced for each parameter as a side-effect.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The semi-automatic ABC method of Fearnhead and Prangle (2012) is as
+follows:
+</p>
+<p>1) Simulate parameter vectors <code class="reqn">\theta_i</code> and corresponding data sets <code class="reqn">x_i</code> for i=1,2,...,N.
+</p>
+<p>2) Use the simulations to fit an estimator of each parameter as a
+linear combination of f(x), where f(x) is a vector of
+transformations of x (including a constant term).
+</p>
+<p>3) Run ABC using these simulations.
+</p>
+<p>The <code>saABC</code> function automates step 2 of this process.  The user
+must supply simulated parameter values <code>theta</code> and corresponding
+f(x) values <code>x</code> (n.b. excluding the constant term).  The function
+returns weights for the linear combinations which can easily be used
+for step 3.  In particular, fitted weights are returned as a matrix
+of weights for the columns of <code>x</code> and a vector of constants.  The
+vector can usually be discarded, as it is not needed to find
+differences between summary statistics.
+</p>
+<p>The function also returns BIC values for each parameter so that the
+user can judge the quality of the fits, and compare different choices
+of f(x).  Diagnostic plots of supplied parameter values against fitted
+values are also optionally provided.  These are useful for exploratory
+purposes when there are a small number of parameters, but provide less
+protection from overfitting than BIC values.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>B0 </code></td>
+<td>
+<p>Vector of constant terms from fitted regressions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B </code></td>
+<td>
+<p>Matrix of weights from fitted regressions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BICs </code></td>
+<td>
+<p>Vector of BIC values for each fitted regression.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Dennis Prangle
+</p>
+
+
+<h3>References</h3>
+
+<p>Blum, M. G. B, Nunes, M. A., Prangle, D. and Sisson, S. A. (2013) A
+comparative review of dimension reduction methods in approximate
+Bayesian computation. <em>Stat. Sci.</em> <b>28</b>, Issue 2, 189–208.<br><br>
+Fearnhead, P. and Prangle, D. (2012) Constructing summary statistics for approximate Bayesian computation: 
+semi-automatic approximate Bayesian
+computation. <em>J. R. Stat. Soc. B</em> <b>74</b>, Part 3, 1–28.<br><br>
+Nunes, M. A. and Prangle, D. (2016) abctools: an R package for tuning
+approximate Bayesian computation analyses. <em>The R Journal</em>
+<b>7</b>, Issue 2, 189–205.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+theta &lt;- matrix(runif(2E3),ncol=2)
+colnames(theta) &lt;- c("Mean", "Variance")
+
+X &lt;- replicate(5, rnorm(1E3, theta[,1], theta[,2]))
+
+saABC(theta, X)$BICs
+saABC(theta, cbind(X, X^2))$BICs ##Variance parameter estimated better 
+</code></pre>
+
+
+</div>

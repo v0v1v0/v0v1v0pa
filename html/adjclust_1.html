@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adjClust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjacency-constrained Clustering</h2>
+
+<h3>Description</h3>
+
+<p>Adjacency-constrained hierarchical agglomerative clustering
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adjClust(
+  mat,
+  type = c("similarity", "dissimilarity"),
+  h = ncol(mat) - 1,
+  strictCheck = TRUE,
+  nthreads = 1L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>A similarity matrix or a dist object. Most sparse formats from
+<code>sparseMatrix</code> are allowed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of matrix : similarity or dissimilarity. Defaults to
+<code>"similarity"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>band width. It is assumed that the similarity between two items is 0
+when these items are at a distance of more than band width h. Default value
+is <code>ncol(mat)-1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strictCheck</code></td>
+<td>
+<p>Logical (default to <code>TRUE</code>) to systematically check
+default of positivity in input similarities. Can be disabled to avoid
+computationally expensive checks when the number of features is large.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nthreads</code></td>
+<td>
+<p>Integer (default to <code>1L</code>). Number of threads use for
+matrix precomputations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Adjacency-constrained hierarchical agglomerative clustering (HAC) is HAC in
+which each observation is associated to a position, and the clustering is
+constrained so as only adjacent clusters are merged. These methods are useful
+in various application fields, including ecology (Quaternary data) and
+bioinformatics (e.g., in Genome-Wide Association Studies (GWAS)).
+</p>
+<p>This function is a fast implementation of the method that takes advantage of
+sparse similarity matrices (i.e., that have 0 entries outside of a diagonal
+band of width <code>h</code>). The method is fully described in (Dehman, 2015) and
+based on a kernel version of the algorithm. The different options for the
+implementation are available in the package vignette entitled 
+<a href="https://pneuvial.github.io/adjclust/articles/notesCHAC.html">"Notes on CHAC implementation in adjclust"</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>chac</code> which describes the tree
+produced by the clustering process. The object is a list with the same
+elements as an object of class <code>hclust</code> (<code>merge</code>,
+<code>height</code>, <code>order</code>, <code>labels</code>, <code>call</code>, <code>method</code>,
+<code>dist.method</code>), and two extra elements: 
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>: (the data on which the clustering has been performed, 
+possibly after the pre-transformations described in the vignette entitled
+<a href="https://pneuvial.github.io/adjclust/articles/notesCHAC.html#notes-on-relations-between-similarity-and-dissimilarity-implementation">"Notes on CHAC implementation in adjclust"</a></p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>: the value of the correction for non positive
+definite similarity matrices (also described in the same vignette). If
+<code>correction == 0</code>, it means that the initial data were not 
+pre-transformed.</p>
+</td>
+</tr></table>
+<h3>Note</h3>
+
+<p>When performed on a distance matrix <code class="reqn">d</code> with the option 
+<code>type = "dissimilarity"</code>, <code>adjclust</code> is identical to using the 
+option <code>"ward.D"</code> on <code class="reqn">d^2</code> in the function 
+<code>hclust</code> when the ordering of the (unconstrained) 
+clustering (in <code>hclust</code>) is compatible with the natural 
+ordering of objects used as a constraint. It is also equivalent (under the
+same assumption or orderings) to the option <code>"ward.D2"</code> performed on the
+distance matrix <code class="reqn">d</code> itself, except for the final heights of the merges 
+that are equal to the square of the heights obtained with <code>"ward.D2"</code> in
+<code>hclust</code>. See the 
+<a href="https://pneuvial.github.io/adjclust/articles/notesCHAC.html#relations-with-hclust-and-rioja">vignette on implementation</a> 
+and (Murtagh and Legendre, 2014) for further details.
+</p>
+
+
+<h3>References</h3>
+
+<p>Murtagh F., and Legendre P. (2014). Ward's hierarchical
+agglomerative clustering method: which algorithms implement Ward's 
+criterion? <em>Journal of Classification</em>, <strong>31</strong>, 274-295. 
+DOI: <a href="https://doi.org/10.1007/s00357-014-9161-z">doi:10.1007/s00357-014-9161-z</a>.
+</p>
+<p>Dehman A. (2015). <em>Spatial Clustering of Linkage
+Disequilibrium Blocks for Genome-Wide Association Studies</em>, PhD thesis,
+Universite Paris Saclay, France.
+</p>
+<p>Ambroise C., Dehman A., Neuvial P., Rigaill G., and Vialaneix N
+(2019). Adjacency-constrained hierarchical clustering of a band similarity 
+matrix with application to genomics. <em>Algorithms for Molecular
+Biology</em>, <strong>14</strong>(22).
+DOI: <a href="https://doi.org/10.1007/s11222-018-9806-6">doi:10.1007/s11222-018-9806-6</a>.
+</p>
+<p>Randriamihamison N., Vialaneix N., and Neuvial P. (2020).
+Applicability and interpretability of Ward's hierarchical agglomerative
+clustering with or without contiguity constraints. <em>Journal of 
+Classification</em>, <strong>38</strong>, 1-27.
+DOI: <a href="https://doi.org/10.1007/s00357-020-09377-y">doi:10.1007/s00357-020-09377-y</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>snpClust</code> to cluster SNPs based on linkage
+disequilibrium
+</p>
+<p><code>hicClust</code> to cluster Hi-C data
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">sim &lt;- matrix(
+  c(1.0, 0.1, 0.2, 0.3,
+    0.1, 1.0 ,0.4 ,0.5,
+    0.2, 0.4, 1.0, 0.6,
+    0.3, 0.5, 0.6, 1.0), 
+ nrow = 4)
+
+## similarity, full width
+fit1 &lt;- adjClust(sim, "similarity")
+plot(fit1)
+
+## similarity, h &lt; p-1
+fit2 &lt;- adjClust(sim, "similarity", h = 2)
+plot(fit2)
+
+## dissimilarity
+dist &lt;- as.dist(sqrt(2-(2*sim)))
+
+## dissimilarity, full width
+fit3 &lt;- adjClust(dist, "dissimilarity")
+plot(fit3)
+
+## dissimilarity, h &lt; p-1
+fit4 &lt;- adjClust(dist, "dissimilarity", h = 2)
+plot(fit4)
+
+</code></pre>
+
+
+</div>

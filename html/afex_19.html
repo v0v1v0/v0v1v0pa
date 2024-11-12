@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>residuals.afex_aov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract Residuals and Fitted Values from <code>afex_aov</code> objects</h2>
+
+<h3>Description</h3>
+
+<p>Extract Residuals and Fitted Values from <code>afex_aov</code> objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'afex_aov'
+residuals(object, append = FALSE, colname_residuals = ".residuals", ...)
+
+## S3 method for class 'afex_aov'
+fitted(object, append = FALSE, colname_fitted = ".fitted", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code>afex_aov</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append</code></td>
+<td>
+<p>If set to <code>TRUE</code> returns the residuals/fitted values
+appended as an additional column to the long data. Recommended when data
+was aggregated across within conditions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colname_residuals, colname_fitted</code></td>
+<td>
+<p>Name of the appended column when
+<code>append = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to
+<code>residuals.lm</code>/<code>fitted.lm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of residuals/fitted values corresponding to the data in
+<code>object$data$long</code>, or if <code>append = TRUE</code> a data frame with an
+additional column of residuals/fitted values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mattan S. Ben-Shachar
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Setup ANOVAs
+data(obk.long, package = "afex")
+between &lt;- aov_car(value ~ treatment*gender + Error(id), data = obk.long)
+within &lt;- aov_car(value ~ 1 + Error(id/(phase*hour)), data = obk.long)
+mixed &lt;- aov_car(value ~ treatment * gender + Error(id/(phase*hour)), data = obk.long)
+
+# All residuals call produce the message that the data was changed during calculation.
+residuals(within)
+residuals(mixed)
+residuals(between)
+
+## Get residuals plus data used for fitting: 
+residuals(within, append = TRUE)
+residuals(mixed, append = TRUE)
+residuals(between, append = TRUE)
+
+### in case data is correctly ordered before fitting, this message is not shown
+
+## between data:
+obk2 &lt;- aggregate(value ~ gender + treatment + id , data = obk.long, FUN = mean)
+between2 &lt;- aov_car(value ~ treatment*gender + Error(id), data = obk2)
+
+residuals(between2) ## no message
+all.equal(obk2, between2$data$long[,colnames(obk2)]) ## TRUE
+
+# Therefore okay:
+obk2$residuals &lt;- residuals(between2)
+
+## within data
+obk3 &lt;- obk.long[with(obk.long, order(id, phase, hour)), ]
+within2 &lt;- aov_car(value ~ 1 + Error(id/(phase*hour)), data = obk3)
+residuals(within2) ## no message, because order is correct
+# Therefore okay:
+obk3$residuals &lt;- residuals(within2)
+
+## Same for fitted values:
+# (show message)
+fitted(within)
+fitted(mixed)
+fitted(between)
+
+## Get fitted values plus data used for fitting: 
+fitted(within, append = TRUE)
+fitted(mixed, append = TRUE)
+fitted(between, append = TRUE)
+
+## No message:
+fitted(between2)
+fitted(within2)
+
+#### residuals() and fitted() methods can be used for plotting
+### requires package ggResidpanel
+if (require("ggResidpanel")) {
+  resid_auxpanel(residuals = residuals(mixed), predicted = fitted(mixed))
+  
+  ## Not run: 
+  ## suppress Messages:
+  suppressMessages(
+    resid_auxpanel(residuals = residuals(mixed), predicted = fitted(mixed))
+  )
+  
+## End(Not run)
+}
+</code></pre>
+
+
+</div>

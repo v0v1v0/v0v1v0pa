@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prevSeSp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate prevalence with confidence interval accounting for sensitivity and specificity</h2>
+
+<h3>Description</h3>
+
+<p>Using the method of Lang and Reiczigel (2014), estimate prevalence and get a confidence interval 
+adjusting for the sensitivity and specificity (including accounting for the variability of the sensitivity and specificity estimates).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prevSeSp(AP, nP, Se, nSe, Sp, nSp, conf.level = 0.95, neg.to.zero=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AP</code></td>
+<td>
+
+<p>apparent prevalence (proportion positive by test)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nP</code></td>
+<td>
+
+<p>number tested for AP
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Se</code></td>
+<td>
+
+<p>estimated sensitivity (true positive rate)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nSe</code></td>
+<td>
+
+<p>number of positive controls used to estimate sensitivity
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sp</code></td>
+<td>
+
+<p>estimated specificity (1- false positive rate)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nSp</code></td>
+<td>
+
+<p>number of negative controls used to estimate specificity
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+
+<p>confidence level
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neg.to.zero</code></td>
+<td>
+
+<p>logical, should negative prevalence estimates and lower confidence limits be set to zero?
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When measuring the prevalence of some disease in a population, it is useful to adjust for the fact that the test for the disease may not be perfect. 
+We adjust the apparent prevalence (the proportion of people tested positive) for the sensitivity (true positive rate: proportion of the population that
+has the disease that tests positive) and the specificity (1-false positive rate: proportion of the  population that do not have the disease that tests negative).
+So if the true prevalence is <code class="reqn">\theta</code> and the true sensitivity and specificity are <code class="reqn">Se</code> and <code class="reqn">Sp</code>, then the expected value of the apparent prevalence is 
+the sum of the expected proportion of true positive results and the expected proportion of false positive results:  
+</p>
+<p style="text-align: center;"><code class="reqn">AP = \theta Se + (1-Sp) (1-\theta).</code>
+</p>
+<p> Plugging in the estimates (and using the same notation for the estimates as the true values) 
+and solving for <code class="reqn">\theta</code> we get the estimate of prevalence of 
+</p>
+<p style="text-align: center;"><code class="reqn">\theta = \frac{AP - (1-Sp)}{Se -(1-Sp)}.</code>
+</p>
+
+<p>Lang and Reiczigel (2014) developed an approximate confidence interval for the prevalence that not only adjusts for the sensitivity and specificity, but also 
+adjusts for the fact that the sensitivity is estimated from a sample of true positive individuals (<code>nSe</code>) and
+the specificity is estimate from a sample of true negative individuals (<code>nSp</code>).
+</p>
+<p>If the estimated false positive rate (1-specificity) is larger than the apparent prevalence, the prevalence estimate will be negative. This occurs because we observe
+a smaller proportion of positive results than we would expect from a population known not to have the disease. The lower confidence limit can also be negative because of the variability in the specificity estimate. The default with <code>neg.to.zero=TRUE</code> sets those negative estimates and lower confidence limits to zero. 
+</p>
+<p>The Lang-Reiczigel method uses an idea discussed in Agresti and Coull (1998) to get approximate confidence intervals. 
+For 95% confidence intervals, the idea is similar to adding 2 positive and 2 negative individuals to the apparent prevalence results, 
+and adding 1 positive and 1 negative individual to the sensitivity and specificity test results, then using asymptotic normality. Simulations 
+in Lang and Reiczigel (2014) show the method works well for true sensitivity and specificity each in ranges from 70% to over 90%.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class <code>"htest"</code> containing the following components:
+
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>the adjusted prevalence estimate, adjusted for sensitivity and specificity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>the estimated sensitivity given by <code>Se</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>the estimated specificity given by <code>Sp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p>a confidence interval for the prevalence.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the character string describing the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>a character string giving the unadjusted prevalence value and the sample size used to estimate it (nP).</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>There is a typo in equation 4 of Lang and Reiczigel (2014), the <code class="reqn">(1+\hat{P})^2</code> should be <code class="reqn">(1-\hat{P})^2</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael P. Fay
+</p>
+
+
+<h3>References</h3>
+
+<p>Agresti, A., Coull, B.A., 1998. Approximate is better than 'exact'for interval estimation of binomial proportions. Am. Stat. 52,119-126.
+</p>
+<p>Lang, Z. and Reiczigel, J., 2014. Confidence limits for prevalence of disease adjusted for estimated sensitivity and specificity. Preventive veterinary medicine, 113(1), pp.13-22.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>truePrev</code> in package <a href="https://CRAN.R-project.org/package=prevalence"><span class="pkg">prevalence</span></a> for Bayesian methods for this problem (but this requires JAGS (Just Another Gibbs Sampler), a separate software that can be called from R if it is installed on the user's system.)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1 of Lang and Reiczigel, 2014
+# 95% CI should be 0.349, 0.372
+prevSeSp(AP=4060/11284,nP=11284,Se=178/179,nSe=179,Sp=358/359, nSp=359)
+
+# Example 2 of Lang and Reiczigel, 2014
+# 95% CI should be  0, 0.053
+prevSeSp(AP=51/2971,nP=2971,Se=32/33,nSe=33,Sp=20/20, nSp=20)
+
+# Example 3 of Lang and Reiczigel, 2014
+# 95% CI should be 0 and 0.147
+prevSeSp(AP=0.06,nP=11862,Se=0.80,nSe=10,Sp=1, nSp=12)
+
+# Example 4 of Lang and Reiczigel, 2014
+# 95% CI should be 0.58 to 0.87
+prevSeSp(AP=259/509,nP=509,Se=84/127,nSe=127,Sp=96/109, nSp=109)
+# 95% CI should be 0.037 to 0.195
+prevSeSp(AP=51/509,nP=509,Se=23/41,nSe=41,Sp=187/195, nSp=195)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RMSEP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Root mean square error of prediction</h2>
+
+<h3>Description</h3>
+
+<p>Calculates or extracts the RMSEP from transfer function models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RMSEP(object, ...)
+
+## S3 method for class 'mat'
+RMSEP(object, k, weighted = FALSE,
+          ...)
+
+## S3 method for class 'bootstrap.mat'
+RMSEP(object, type = c("birks1990", "standard"),
+          ...)
+
+## S3 method for class 'bootstrap.wa'
+RMSEP(object, type = c("birks1990", "standard"),
+          ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; the number of analogues to use in calculating the
+RMSEP. May be missing. If missing, <code>k</code> is extracted from the
+model using <code>getK</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; Return the RMSEP for the weighted or
+unweighted model? The default is for an unweighted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of RMSEP to return/calculate. See Details,
+below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are two forms of RMSEP in common usage. Within palaeoecology,
+the RMSEP of Birks et al. (1990) is most familiar:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{RMSEP} = \sqrt{s_1^2 + s_2^2}</code>
+</p>
+
+<p>where where <code class="reqn">s_1</code> is the standard deviation of the
+out-of-bag (OOB) residuals and <code class="reqn">s_2</code> is the mean bias or the
+mean of the OOB residuals.
+</p>
+<p>In the wider statistical literature, the following form of RMSEP is
+more commonly used:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{RMSEP} = \sqrt{\frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{n}}</code>
+</p>
+
+<p>where <code class="reqn">y_i</code> are the observed values and <code class="reqn">\hat{y}_i</code> the
+transfer function predictions/fitted values.
+</p>
+<p>The first form of RMSEP is returned by default or if <code>type =
+    "birks1990"</code> is supplied. The latter form is returned if <code>type
+    = "standard"</code> is supplied.
+</p>
+<p>The RMSEP for objects of class <code>"mat"</code> is a leave-one-out
+cross-validated RMSEP, and is calculated as for <code>type =
+    "standard"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector of length 1 that is the RMSEP of <code>object</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Birks, H.J.B., Line, J.M., Juggins, S., Stevenson, A.C. and ter Braak,
+C.J.F. (1990). Diatoms and pH reconstruction. <em>Philosophical
+Transactions of the Royal Society of London; Series B</em>, <strong>327</strong>;
+263–278.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mat</code>, <code>bootstrap</code>, <code>wa</code>,
+<code>bootstrap.wa</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Imbrie and Kipp example
+## load the example data
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training and test set on columns
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+V12.122 &lt;- dat[[2]] / 100
+
+## fit the MAT model using the squared chord distance measure
+(ik.mat &lt;- mat(ImbrieKipp, SumSST, method = "chord"))
+
+## Leave-one-out RMSEP for the MAT model
+RMSEP(ik.mat)
+
+## bootstrap training set
+(ik.boot &lt;- bootstrap(ik.mat, n.boot = 100))
+
+## extract the Birks et al (1990) RMSEP
+RMSEP(ik.boot)
+
+## Calculate the alternative formulation
+RMSEP(ik.boot, type = "standard")
+
+</code></pre>
+
+
+</div>

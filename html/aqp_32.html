@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ca630</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Soil Data from the Central Sierra Nevada Region of California</h2>
+
+<h3>Description</h3>
+
+<p>Site and laboratory data from soils sampled in the central Sierra Nevada
+Region of California.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(ca630)
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>List containing:
+</p>
+<p>$site : A data frame containing site information.  </p>
+
+<dl>
+<dt>user_site_id</dt>
+<dd>
+<p>national user site id</p>
+</dd> <dt>mlra</dt>
+<dd>
+<p>the
+MLRA</p>
+</dd> <dt>county</dt>
+<dd>
+<p>the county</p>
+</dd> <dt>ssa</dt>
+<dd>
+<p>soil survey area</p>
+</dd>
+<dt>lon</dt>
+<dd>
+<p>longitude, WGS84</p>
+</dd> <dt>lat</dt>
+<dd>
+<p>latitude, WGS84</p>
+</dd>
+<dt>pedon_key</dt>
+<dd>
+<p>national soil profile id</p>
+</dd>
+<dt>user_pedon_id</dt>
+<dd>
+<p>local soil profile id</p>
+</dd>
+<dt>cntrl_depth_to_top</dt>
+<dd>
+<p>control section top depth (cm)</p>
+</dd>
+<dt>cntrl_depth_to_bot</dt>
+<dd>
+<p>control section bottom depth (cm)</p>
+</dd>
+<dt>sampled_taxon_name</dt>
+<dd>
+<p>soil series name</p>
+</dd> </dl>
+<p>$lab : A data frame containing horizon information.  </p>
+
+<dl>
+<dt>pedon_key</dt>
+<dd>
+<p>national soil profile id</p>
+</dd>
+<dt>layer_key</dt>
+<dd>
+<p>national horizon id</p>
+</dd>
+<dt>layer_sequence</dt>
+<dd>
+<p>horizon sequence number</p>
+</dd>
+<dt>hzn_top</dt>
+<dd>
+<p>horizon top (cm)</p>
+</dd> <dt>hzn_bot</dt>
+<dd>
+<p>horizon
+bottom (cm)</p>
+</dd> <dt>hzn_desgn</dt>
+<dd>
+<p>horizon name</p>
+</dd>
+<dt>texture_description</dt>
+<dd>
+<p>USDA soil texture</p>
+</dd>
+<dt>nh4_sum_bases</dt>
+<dd>
+<p>sum of bases extracted by ammonium acetate (pH
+7)</p>
+</dd> <dt>ex_acid</dt>
+<dd>
+<p>exchangeable acidity [method ?]</p>
+</dd>
+<dt>CEC8.2</dt>
+<dd>
+<p>cation exchange capacity by sum of cations method (pH
+8.2)</p>
+</dd> <dt>CEC7</dt>
+<dd>
+<p>cation exchange capacity by ammonium acetate (pH
+7)</p>
+</dd> <dt>bs_8.2</dt>
+<dd>
+<p>base saturation by sum of cations method (pH 8.2)</p>
+</dd>
+<dt>bs_7</dt>
+<dd>
+<p>base saturation by ammonium acetate (pH 7)</p>
+</dd> </dl>
+<h3>Details</h3>
+
+<p>These data were extracted from the NSSL database. <code>ca630</code> is a list composed
+of site and lab data, each stored as <code>data.frame</code> objects. These data are modeled by a
+1:many (site:lab) relation, with the <code>pedon_id</code> acting as the primary key in
+the <code>site</code> table and as the foreign key in the <code>lab</code> table.
+</p>
+
+
+<h3>Note</h3>
+
+<p>These data are out of date. Pending some new data + documentation. Use
+with caution
+</p>
+
+
+<h3>Source</h3>
+
+<p><a href="https://ncsslabdatamart.sc.egov.usda.gov/">https://ncsslabdatamart.sc.egov.usda.gov/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+library(tactile)
+library(lattice)
+library(Hmisc)
+library(sp)
+
+# check the data out:
+data(ca630)
+str(ca630)
+
+# note that pedon_key is the link between the two tables
+
+# make a copy of the horizon data
+ca &lt;- ca630$lab
+
+# promote to a SoilProfileCollection class object
+depths(ca) &lt;- pedon_key ~ hzn_top + hzn_bot
+
+# add site data, based on pedon_key
+site(ca) &lt;- ca630$site
+
+# ID data missing coordinates: '|' is a logical OR
+(missing.coords.idx &lt;- which(is.na(ca$lat) | is.na(ca$lon)))
+
+# remove missing coordinates by safely subsetting
+if(length(missing.coords.idx) &gt; 0)
+	ca &lt;- ca[-missing.coords.idx, ]
+
+# register spatial data
+initSpatial(ca) &lt;- ~ lon + lat
+
+# assign a coordinate reference system
+prj(ca) &lt;- 'EPSG:4269'
+
+# check the result
+print(ca)
+
+# aggregate %BS 7 for all profiles into 1 cm slices
+a &lt;- slab(ca, fm= ~ bs_7)
+
+# plot median &amp; IQR by 1 cm slice
+xyplot(
+top ~ p.q50, 
+data = a, 
+lower=a$p.q25, 
+upper=a$p.q75,
+alpha=0.5,
+ylim=c(160,-5), 
+scales = list(alternating = 1, y = list(tick.num = 7)),
+panel = panel.depth_function, 
+prepanel = prepanel.depth_function,
+ylab='Depth (cm)', xlab='Base Saturation at pH 7',
+par.settings = tactile.theme(superpose.line = list(col = 'black', lwd = 2))
+)
+
+# aggregate %BS at pH 8.2 for all profiles by MLRA, along 1 cm slices
+# note that mlra is stored in @site
+a &lt;- slab(ca, mlra ~ bs_8.2)
+
+# keep only MLRA 18 and 22
+a &lt;- subset(a, subset=mlra %in% c('18', '22'))
+
+# plot median &amp; IQR by 1 cm slice, using different colors for each MLRA
+xyplot(
+top ~ p.q50, 
+groups = factor(mlra), 
+data = a,
+lower=a$p.q25, 
+upper=a$p.q75,
+alpha=0.25,
+sync.colors = TRUE,
+ylim=c(160,-5), 
+scales = list(alternating = 1, y = list(tick.num = 7)),
+panel = panel.depth_function, 
+prepanel = prepanel.depth_function,
+ylab='Depth (cm)', xlab='Base Saturation at pH 7',
+par.settings = tactile.theme(superpose.line = list(lwd = 2)),
+auto.key = list(lines = TRUE, points = FALSE, columns = 2)
+)
+
+
+
+# Extract the 2nd horizon from all profiles as SPDF
+ca.2 &lt;- ca[, 2]
+
+# subset profiles 1 through 10
+ca.1.to.10 &lt;- ca[1:10, ]
+
+# basic plot method: profile plot
+par(mar = c(0, 0, 3, 1))
+plotSPC(ca.1.to.10, name='hzn_desgn', color = 'CEC7')
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

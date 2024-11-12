@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>user_config</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Resource configuration functions for a virtual machine deployment</h2>
+
+<h3>Description</h3>
+
+<p>Resource configuration functions for a virtual machine deployment
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">user_config(username, sshkey = NULL, password = NULL)
+
+datadisk_config(size, name = "datadisk", create = "empty",
+  type = c("StandardSSD_LRS", "Premium_LRS", "Standard_LRS", "UltraSSD_LRS"),
+  write_accelerator = FALSE)
+
+image_config(publisher = NULL, offer = NULL, sku = NULL,
+  version = "latest", id = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>For <code>user_config</code>, the name for the admin user account.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sshkey</code></td>
+<td>
+<p>For <code>user_config</code>, the SSH public key. This can be supplied in a number of ways: as a string with the key itself; the name of the public key file; or an <code>AzureRMR::az_resource</code> object pointing to an SSH public key resource (of type "Microsoft.Compute/sshPublicKeys"). See the examples below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>For <code>user_config</code>, the admin password. Supply either <code>sshkey</code> or <code>password</code>, but not both; also, note that Windows does not support SSH logins.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>For <code>datadisk_config</code>, the size of the data disk in GB. St this to NULL for a disk that will be created from an image.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>For <code>datadisk_config</code>, the disk name. Duplicate names will automatically be disambiguated prior to VM deployment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>create</code></td>
+<td>
+<p>For <code>datadisk_config</code>, the creation method. Can be "empty" (the default) to create a blank disk, or "fromImage" to use an image.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>For <code>datadisk_config</code>, the disk type (SKU). Can be "Standard_LRS", "StandardSSD_LRS" (the default), "Premium_LRS" or "UltraSSD_LRS". Of these, "Standard_LRS" uses hard disks and the others use SSDs as the underlying hardware.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>write_accelerator</code></td>
+<td>
+<p>For <code>datadisk_config</code>, whether the disk should have write acceleration enabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>publisher, offer, sku, version</code></td>
+<td>
+<p>For <code>image_config</code>, the details for a marketplace image.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>For <code>image_config</code>, the resource ID for a disk to use as a custom image.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+## user_config: SSH public key resource in Azure
+# create the resource
+keyres &lt;- rg$create_resource(type="Microsoft.Compute/sshPublicKeys", name="mysshkey")
+
+# generate the public and private keys
+keys &lt;- keyres$do_operation("generateKeyPair", http_verb="POST")
+keyres$sync_fields()
+
+# save the private key (IMPORTANT)
+writeBin(keys$privateKey, "mysshkey.pem")
+
+# create a new VM using the public key resource for authentication
+# you can then login to the VM with ssh -i mysshkey.pem &lt;username@vmaddress&gt;
+rg$create_vm("myvm", user_config("username", sshkey=keyres), config="ubuntu_20.04")
+
+
+## user_config: SSH public key as a file
+rg$create_vm("myvm", user_config("username", sshkey="mysshkey.pub"), config="ubuntu_20.04")
+
+
+## user_config: SSH public key as a string (read from a file)
+pubkey &lt;- readLines("mysshkey.pub")
+rg$create_vm("myvm", user_config("username", sshkey=pubkey), config="ubuntu_20.04")
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

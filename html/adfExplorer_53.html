@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get.adf.file</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get a file from an amigaDisk object</h2>
+
+<h3>Description</h3>
+
+<p>Get files stored on virtual <code>amigaDisk</code>s as raw data
+or copy as file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'amigaDisk,character,missing'
+get.adf.file(x, source, destination)
+
+## S4 method for signature 'amigaDisk,character,character'
+get.adf.file(x, source, destination)
+
+## S4 method for signature 'amigaDisk,character,ANY'
+get.adf.file(x, source, destination)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>amigaDisk</code> object from which a file
+needs to be extracted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Specify the source file's path on the
+<code>amigaDisk</code> object, conform Amiga specs. See
+<code>current.adf.dir</code> for details on these specs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>destination</code></td>
+<td>
+<p>either a file name or a file connection, that
+allows writing binary data (see e.g., <code>file</code> or
+<code>url</code>). When the destination is missing, the
+file content is returned as <code>raw</code> data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Amiga DOS formatted disks can store any kind of file (as long
+as the disk's capacity allows it). Use this method to extract
+such files embedded in an Amiga Disk File (ADF) as raw data or
+copy to a file on your system.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>vector</code> of <code>raw</code> data when the
+argument <code>destination</code> is missing. Otherwise returns nothing.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pepijn de Vries
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(adf.example)
+
+## Not run: 
+## get the file "Startup-Sequence" from the virtual
+## example disk and save as a text file in the
+## current working directory:
+get.adf.file(adf.example, "DF0:S/Startup-Sequence", "startup.txt")
+
+## End(Not run)
+
+## get the same file as raw data
+## by omitting the destination:
+startup &lt;- get.adf.file(adf.example, "DF0:S/Startup-Sequence")
+
+## Look, it's a text file:
+startup |&gt; rawToChar() |&gt; iconv(from = "ISO-8859-1", to = "UTF-8")
+
+if (requireNamespace("ProTrackR", quietly = TRUE)) {
+  ## look there is a typical ProTracker module on
+  ## the example disk. You can load it like this:
+  
+  ## get the file from the virtual disk
+  ## as raw data
+  mod.raw &lt;- get.adf.file(adf.example, "DF0:mods/mod.intro")
+
+  ## open a raw connection with the
+  ## newly imported raw data
+  con &lt;- rawConnection(mod.raw, "rb")
+
+  ## and read it as a ProTracker module
+  mod &lt;- ProTrackR::read.module(con)
+  close(con)
+  
+  ## plot the first sample from the module:
+  plot(ProTrackR::waveform(ProTrackR::PTSample(mod, 1)),
+       type = "l", ylab = "amplitude")
+} else {
+  cat("You need to install and load the\nProTrackR package for this part of the example.")
+}
+</code></pre>
+
+
+</div>

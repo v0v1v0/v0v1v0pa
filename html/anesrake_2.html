@@ -1,0 +1,276 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anesrake</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Function to perform full ANES variable selection and weighting.
+</h2>
+
+<h3>Description</h3>
+
+<p><code>anesrake</code> takes a list of variables and target values and determines how they should be weighted to match the procedures outlined in DeBell and Krosnick, 2009.  It then performs raking to develop weights for the variables selected such that they match the targets provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anesrake(inputter, dataframe, caseid, weightvec = NULL,
+cap = 5, verbose = FALSE, maxit = 1000, type = "pctlim",
+pctlim = 5, nlim = 5, filter = 1, choosemethod = "total",
+iterate = TRUE, convcrit = 0.01, force1=TRUE, center.baseweights=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>inputter</code></td>
+<td>
+
+<p>The <code>inputter</code> object should contain a list of all target values for the raking procedure.  Each list element in <code>inputter</code>  should be a vector corresponding to the weighting targets for a single variable.  Hence, the vector enumerating the weighting targets for a variable with 2 levels should be of length 2, while a vector enumerating the weighting targets for a variable with 5 levels should be of length 5.  List elements in inputter should be named according to the variable that they will match in the corresponding dataset.  Hence, a list element enumerating the proportion of the sample that should be of each gender should be labeled "female" if the variable in <code>dataframe</code> is also titled "female."
+</p>
+<p><code>inputter</code> elements must be vectors and can be of class numeric, or factor and must match the class of the corresponding variable in <code>dataframe</code>.  Logical variables in <code>dataframe</code> can be matched to a numeric vector of length 2 and ordered with the <code>TRUE</code> target as the first element and the <code>FALSE</code> target as the second element.  Targets for factors must be labeled to match every level present in the dataframe (e.g. a variable with 2 age groups "under40" and "over40" should have elements named "under40" and "over40" respectively).  <code>anesrake</code> attempts to conform any unrecognized types of vectors to <code>class(numeric)</code>. Weighting targets can be entered either as an N to be reached or as a percent for any given variable.  Targets can be either proportions (ideal) or the number of individuals in the population in each target category (N).  Totals of greater than 1.5 for any given list element are treated as Ns, while values of less than 1.5 are treated as percentages.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataframe</code></td>
+<td>
+
+<p>The <code>dataframe</code> command identifies a <code>data.frame</code> object of the data to be weighted.  The data.frame must contain all of the variables that will be used in the weighting process and those variables must have the same names as are present in the <code>inputter</code> list element.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseid</code></td>
+<td>
+
+<p>The <code>caseid</code> command identifies a unique case identifier for each individual in the dataset.  If filters are to be used, the resulting list of weights will be a different length from the overall <code>dataframe</code>.  <code>caseid</code> is included in the output so that weights can be matched to the dataset of relevance.  <code>caseid</code> must be of a length matching the number of cases in <code>dataframe</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightvec</code></td>
+<td>
+
+<p><code>weightvec</code> is an optional input if some kind of base weights, stratification correction, or other sampling probability of note that should be accounted for before weighting is conducted.  If defined, <code>weightvec</code> must be of a length equivalent to the number of cases in the <code>dataframe</code>.  If undefined, <code>weightvec</code> will be automatically seeded with a vector of 1s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cap</code></td>
+<td>
+
+<p><code>cap</code> defines the maximum weight to be used.  <code>cap</code> can be defined by the user with the command <code>cap=x</code>, where <code>x</code> is any value above 1 at which the algorithm will cap weights.  If <code>cap</code> is set below 1, the function will return an error.  If <code>cap</code> is set between 1 and 1.5, the function will return a warning that the low cap may substantially increase the amount of time required for weighting.  In the absence of a user-defined cap, the algorithm defaults to a starting value of 5 in line with DeBell and Krosnick, 2009.  For no cap, <code>cap</code> simply needs to be set to an arbitrarily high number. (Note: Capping using the <code>cap</code> command caps at each iteration.)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>Users interested in seeing the progress of the algorithm can set <code>verbose</code> to equal <code>TRUE</code>.  The algorithm will then inform the user of the progress of each raking and capping iteration.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>Users can set a maximum number of iterations for the function should it fail to converge using <code>maxit=X</code>, where <code>X</code> is the maximum number of iterations.  The default is set to 1000.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p><code>type</code> identifies which manner of variable identification should be used to select weighting variables.  Five options are available: <code>type=c("nolim", "pctlim", "nlim", "nmin", "nmax")</code>.  If <code>type="nolim"</code>, all variables specified in <code>inputter</code> will be included in the weighting procedure.  If <code>type="pctlim"</code> (DEFAULT), the variable selection algorithm will assess which variables have distributions that deviate from their targets by more than the amount specified by the <code>pctlim</code> command using the method <code>choosemethod</code>.  If <code>type="nlim"</code>, the variable selection algorithm will use the number of varibles specified by <code>nlim</code>, choosing the most discrepant variables as identified by the <code>choosemethod</code> command.  If <code>type="nmin"</code>, the variable selection algorithm will use at least <code>nlim</code> variables, but will include more if additional variables are off by more than <code>pctmin</code> (all identified using <code>choosemethod</code>).  If <code>type="nmax"</code>, the variable selection algorithm will use no more than <code>nlim</code> variables, but will only use that many variables if at least that many are off by more than <code>pctlim</code> (all identified using <code>choosemethod</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pctlim</code></td>
+<td>
+
+<p><code>pctlim</code> is the discrepancy limit for selection.  Variable selection will only select variables that are discrepant by more than the amount specified. <code>pctlim</code> can be specified either in percentage points (5 is 5 percent) or as a decimal (.05 is 5 percent).  The algorithm assumes that a decimal is being used if <code>pctlim&lt;1</code>.  Hence researchers interested in a discrepancy limit of half a percent would need to use <code>pctlim=.005</code>.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlim</code></td>
+<td>
+
+<p><code>nlim</code> is the number of variables to be chosen via the variable selection method chosen in <code>choosemethod</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+
+<p><code>filter</code> is a vector of 1 for cases to be included in weighting and 0 for cases that should not be included.  The <code>filter</code> vector must have the same number of cases as the <code>dataframe</code>.  In the absence of a user-defined <code>filter</code>, the algorithm defaults to a starting value of 1 (inclusion) for all individuals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>choosemethod</code></td>
+<td>
+
+<p><code>choosemethod</code> is the method for choosing most discrepant variables.  Six options are available: <code>choosemethod=c("total", "max", "average", "totalsquared", "maxsquared", "averagesquared")</code>.
+If <code>choosemethod="total"</code>, variable choice is determined by the sum of the differences between actual and target values for each prospective weighting variable.  If <code>choosemethod="max"</code>, variable choice is determined by the largest individual difference between actual and target values for each prospective weighting variable.  If <code>choosemethod="average"</code>, variable choice is determined by the mean of the differences between actual and target values for each prospective weighting variable.  If <code>choosemethod="totalsquared"</code>, variable choice is determined by the sum of the squared differences between actual and target values for each prospective weighting variable.  If  <code>choosemethod="maxsquared"</code>, variable choice is determined by the largest squared difference between actual and target values for each prospective weighting variable (note that this is identical to  <code>choosemethod="max"</code> if the selection type is <code>nlim</code>).  If  <code>choosemethod="averagesquared"</code>, variable choice is determined by the mean of the squared differences between actual and target values for each prospective weighting variable.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterate</code></td>
+<td>
+
+<p><code>iterate</code> is a logical variable for how raking should proceed if  <code>type=c("pctlim", "nmin", "nmax")</code> conditions.  If <code>iterate=TRUE</code>, <code>anesrake</code> will check whether any variables that were not used in raking deviate from their targets by more than <code>pctlim</code> percent.  When this is the case, raking will be rerun using the raked weights as seeds (<code>weightvec</code>) with additional varibles that meet this qualification after raking included as well.  For the <code>type="nmax"</code> condition, this will only occur if <code>nlim</code> has not been met.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convcrit</code></td>
+<td>
+
+<p><code>convcrit</code> is the criterion for convergence.  The raking algorithm is determined to have converged when the most recent iteration represents less than a <code>convcrit</code> percentage improvement over the prior iteration.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force1</code></td>
+<td>
+
+<p><code>force1</code> ensures that the categories of each raking variable sum to 1.  To do so, the target in inputter for each variable is divided by the sum of the targets for that category.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center.baseweights</code></td>
+<td>
+
+<p><code>center.baseweights</code> forces the initial baseweight to mean to 1 if true (the default setting).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list object of <code>anesrake</code> has the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>weightvec</code></td>
+<td>
+<p>Vector of weights From raking algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of variable selection used (identical to specified <code>type</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caseid</code></td>
+<td>
+<p>Case IDs for final weights – helpful for matching <code>weightvec</code> to cases if a filter is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varsused</code></td>
+<td>
+<p>List of variables selected for weighting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>choosemethod</code></td>
+<td>
+<p>Method for choosing variables for weighting (identical to specified <code>choosemethod</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converge</code></td>
+<td>
+<p>Notes whether full convergence was achieved, algorithm failed to converge because convergence was not possible, or maximum iterations were reached</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonconvergence</code></td>
+<td>
+<p>Measure of remaining discrepancy from benchmarks if convergence was not achieved</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targets</code></td>
+<td>
+<p><code>inputter</code> from above, a list of the targets used for weighting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataframe</code></td>
+<td>
+<p>Copy of the original <code>dataframe</code> used for weighting (<code>filter</code> variable applied if specified)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>Number of iterations required for convergence (or non-convergence) of final model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterate</code></td>
+<td>
+<p>Copy of <code>iterate</code> from above</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Josh Pasek, Assistant Professor of Communication Studies at the University of Michigan (www.joshpasek.com).
+</p>
+
+
+<h3>References</h3>
+
+<p>DeBell, M. and J.A. Krosnick. (2009). Computing Weights for American National Election Study Survey Data, ANES Technical Report Series, No. nes012427. Available from:  ftp://ftp.electionstudies.org/ftp/nes/bibliography/documents/nes012427.pdf
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("anes04")
+
+anes04$caseid &lt;- 1:length(anes04$age)
+
+anes04$agecats &lt;- cut(anes04$age, c(0, 25,35,45,55,65,99))
+levels(anes04$agecats) &lt;- c("age1824", "age2534", "age3544",
+          "age4554", "age5564", "age6599")
+
+marriedtarget &lt;- c(.4, .6)
+
+agetarg &lt;- c(.10, .15, .17, .23, .22, .13)
+names(agetarg) &lt;- c("age1824", "age2534", "age3544",
+          "age4554", "age5564", "age6599")
+
+targets &lt;- list(marriedtarget, agetarg)
+
+names(targets) &lt;- c("married", "agecats")
+
+outsave &lt;- anesrake(targets, anes04, caseid=anes04$caseid,
+          verbose=TRUE)
+
+caseweights &lt;- data.frame(cases=outsave$caseid, weights=outsave$weightvec)
+
+summary(caseweights)
+
+summary(outsave)
+</code></pre>
+
+
+</div>

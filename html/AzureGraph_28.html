@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ms_graph</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Microsoft Graph</h2>
+
+<h3>Description</h3>
+
+<p>Base class for interacting with Microsoft Graph API.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>ms_graph</code>.
+</p>
+
+
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(tenant, app, ...)</code>: Initialize a new Microsoft Graph connection with the given credentials. See 'Authentication' for more details.
+</p>
+</li>
+<li> <p><code>create_app(name, ..., add_password=TRUE, password_name=NULL, password_duration=2, certificate=NULL, create_service_principal=TRUE)</code>: Creates a new app registration in Azure Active Directory. See 'App creation' below.
+</p>
+</li>
+<li> <p><code>get_app(app_id, object_id)</code>: Retrieves an existing app registration, via either its app ID or object ID.
+</p>
+</li>
+<li> <p><code>list_apps(filter=NULL, n=Inf)</code>: Lists the app registrations in the current tenant.
+</p>
+</li>
+<li> <p><code>delete_app(app_id, object_id, confirm=TRUE)</code>: Deletes an existing app registration. Any associated service principal will also be deleted.
+</p>
+</li>
+<li> <p><code>create_service_principal(app_id, ...)</code>: Creates a service principal for a app registration.
+</p>
+</li>
+<li> <p><code>get_service_principal()</code>: Retrieves an existing service principal.
+</p>
+</li>
+<li> <p><code>list_service_principals(filter=NULL, n=Inf)</code>: Lists the service principals in the current tenant.
+</p>
+</li>
+<li> <p><code>delete_service_principal()</code>: Deletes an existing service principal.
+</p>
+</li>
+<li> <p><code>create_user(name, email, enabled=TRUE, ..., password=NULL, force_password_change=TRUE)</code>: Creates a new user account. By default this will be a work account (not social or local) in the current tenant, and will have a randomly generated password that must be changed at next login.
+</p>
+</li>
+<li> <p><code>get_user(user_id, email, name)</code>: Retrieves an existing user account. You can supply either the user ID, email address, or display name. The default is to return the logged-in user.
+</p>
+</li>
+<li> <p><code>list_users(filter=NULL, n=Inf)</code>: Lists the users in the current tenant.
+</p>
+</li>
+<li> <p><code>delete_user(user_id, email, name, confirm=TRUE)</code>: Deletes a user account.
+</p>
+</li>
+<li> <p><code>create_group(name, email, ...)</code>: Creates a new group. Note that only security groups can be created via the Microsoft Graph API.
+</p>
+</li>
+<li> <p><code>get_group(group_id, name)</code>: Retrieves an existing group.
+</p>
+</li>
+<li> <p><code>list_groups(filter=NULL, n=Inf)</code>: Lists the groups in the current tenant.
+</p>
+</li>
+<li> <p><code>delete_group(group_id, name, confirm=TRUE)</code>: Deletes a group.
+</p>
+</li>
+<li> <p><code>call_graph_endpoint(op="", ...)</code>: Calls the Microsoft Graph API using this object's token and tenant as authentication arguments. See call_graph_endpoint.
+</p>
+</li>
+<li> <p><code>call_batch_endpoint(requests=list(), ...)</code>: Calls the batch endpoint with a list of individual requests. See call_batch_endpoint.
+</p>
+</li>
+<li> <p><code>get_aad_object(id)</code>: Retrieves an arbitrary Azure Active Directory object by ID.
+</p>
+</li>
+</ul>
+<h3>Authentication</h3>
+
+<p>The recommended way to authenticate with Microsoft Graph is via the create_graph_login function, which creates a new instance of this class.
+</p>
+<p>To authenticate with the <code>ms_graph</code> class directly, provide the following arguments to the <code>new</code> method:
+</p>
+
+<ul>
+<li> <p><code>tenant</code>: Your tenant ID. This can be a name ("myaadtenant"), a fully qualified domain name ("myaadtenant.onmicrosoft.com" or "mycompanyname.com"), or a GUID.
+</p>
+</li>
+<li> <p><code>app</code>: The client/app ID to use to authenticate with Azure Active Directory. The default is to login interactively using the Azure CLI cross-platform app, but it's recommended to supply your own app credentials if possible.
+</p>
+</li>
+<li> <p><code>password</code>: if <code>auth_type == "client_credentials"</code>, the app secret; if <code>auth_type == "resource_owner"</code>, your account password.
+</p>
+</li>
+<li> <p><code>username</code>: if <code>auth_type == "resource_owner"</code>, your username.
+</p>
+</li>
+<li> <p><code>certificate</code>: If 'auth_type == "client_credentials", a certificate to authenticate with. This is a more secure alternative to using an app secret.
+</p>
+</li>
+<li> <p><code>auth_type</code>: The OAuth authentication method to use, one of "client_credentials", "authorization_code", "device_code" or "resource_owner". See get_azure_token for how the default method is chosen, along with some caveats.
+</p>
+</li>
+<li> <p><code>version</code>: The Azure Active Directory (AAD) version to use for authenticating.
+</p>
+</li>
+<li> <p><code>host</code>: your Microsoft Graph host. Defaults to <code style="white-space: pre;">⁠https://graph.microsoft.com/⁠</code>.
+</p>
+</li>
+<li> <p><code>aad_host</code>: Azure Active Directory host for authentication. Defaults to <code style="white-space: pre;">⁠https://login.microsoftonline.com/⁠</code>. Change this if you are using a government or private cloud.
+</p>
+</li>
+<li> <p><code>scopes</code>: The Microsoft Graph scopes (permissions) to obtain for this Graph login. Only for <code>version=2</code>.
+</p>
+</li>
+<li> <p><code>token</code>: Optionally, an OAuth 2.0 token, of class AzureAuth::AzureToken. This allows you to reuse the authentication details for an existing session. If supplied, all other arguments will be ignored.
+</p>
+</li>
+</ul>
+<h3>App creation</h3>
+
+<p>The <code>create_app</code> method creates a new app registration. By default, a new app will have a randomly generated strong password with duration of 2 years. To skip assigning a password, set the <code>add_password</code> argument to FALSE.
+</p>
+<p>The <code>certificate</code> argument allows authenticating via a certificate instead of a password. This should be a character string containing the certificate public key (aka the CER file). Alternatively it can be an list, or an object of class <code>AzureKeyVault::stored_cert</code> representing a certificate stored in an Azure Key Vault. See the examples below.
+</p>
+<p>A new app will also have a service principal created for it by default. To disable this, set <code>create_service_principal=FALSE</code>.
+</p>
+
+
+<h3>List methods</h3>
+
+<p>All <code style="white-space: pre;">⁠list_*⁠</code> methods have <code>filter</code> and <code>n</code> arguments to limit the number of results. The former should be an <a href="https://learn.microsoft.com/en-us/graph/query-parameters#filter-parameter">OData expression</a> as a string to filter the result set on. The latter should be a number setting the maximum number of (filtered) results to return. The default values are <code>filter=NULL</code> and <code>n=Inf</code>. If <code>n=NULL</code>, the <code>ms_graph_pager</code> iterator object is returned instead to allow manual iteration over the results.
+</p>
+<p>Support in the underlying Graph API for OData queries is patchy. Not all endpoints that return lists of objects support filtering, and if they do, they may not allow all of the defined operators. If your filtering expression results in an error, you can carry out the operation without filtering and then filter the results on the client side.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>create_graph_login, get_graph_login
+</p>
+<p><a href="https://learn.microsoft.com/en-us/graph/overview">Microsoft Graph overview</a>,
+<a href="https://learn.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0">REST API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# start a new Graph session
+gr &lt;- ms_graph$new(tenant="myaadtenant.onmicrosoft.com")
+
+# authenticate with credentials in a file
+gr &lt;- ms_graph$new(config_file="creds.json")
+
+# authenticate with device code
+gr &lt;- ms_graph$new(tenant="myaadtenant.onmicrosoft.com", app="app_id", auth_type="device_code")
+
+# retrieve an app registration
+gr$get_app(app_id="myappid")
+
+# create a new app and associated service principal, set password duration to 10 years
+app &lt;- gr$create_app("mynewapp", password_duration=10)
+
+# delete the app
+gr$delete_app(app_id=app$properties$appId)
+# ... but better to call the object's delete method directly
+app$delete()
+
+# create an app with authentication via a certificate
+cert &lt;- readLines("mycert.cer")
+gr$create_app("mycertapp", password=FALSE, certificate=cert)
+
+# retrieving your own user details (assuming interactive authentication)
+gr$get_user()
+
+# retrieving another user's details
+gr$get_user("username@myaadtenant.onmicrosoft.com")
+gr$get_user(email="firstname.lastname@mycompany.com")
+gr$get_user(name="Hong Ooi")
+
+# get an AAD object (a group)
+id &lt;- gr$get_user()$list_group_memberships()[1]
+gr$get_aad_object(id)
+
+# list the users in the tenant
+gr$list_users()
+
+# list (guest) users with a 'gmail.com' email address
+gr$list_users(filter="endsWith(mail,'gmail.com')")
+
+# list Microsoft 365 groups
+gr$list_groups(filter="groupTypes/any(c:c eq 'Unified')")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

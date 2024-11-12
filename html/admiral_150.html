@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_summary_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Summary Records</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a>
+</p>
+<p>Development on <code>get_summary_records()</code> is complete, and for new code we recommend
+switching to using the <code>dataset_add</code> argument in <code>derive_summary_records()</code>.
+</p>
+<p>It is not uncommon to have an analysis need whereby one needs to derive an
+analysis value (<code>AVAL</code>) from multiple records. The ADaM basic dataset
+structure variable <code>DTYPE</code> is available to indicate when a new derived
+records has been added to a dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_summary_records(
+  dataset,
+  by_vars,
+  filter = NULL,
+  analysis_var,
+  summary_fun,
+  set_values_to = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>analysis_var</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>Variables to consider for generation of groupwise summary records.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Filter condition as logical expression to apply during
+summary calculation. By default, filtering expressions are computed within
+<code>by_vars</code> as this will help when an aggregating, lagging, or ranking
+function is involved.
+</p>
+<p>For example,
+</p>
+
+<ul>
+<li> <p><code>filter_rows = (AVAL &gt; mean(AVAL, na.rm = TRUE))</code> will filter all AVAL
+values greater than mean of AVAL with in <code>by_vars</code>.
+</p>
+</li>
+<li> <p><code>filter_rows = (dplyr::n() &gt; 2)</code> will filter n count of <code>by_vars</code> greater
+than 2.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Analysis variable.
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>set_values_to</code> instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary_fun</code></td>
+<td>
+<p>Function that takes as an input the <code>analysis_var</code> and
+performs the calculation.
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>set_values_to</code> instead.
+</p>
+<p>This can include built-in functions as well as user defined functions,
+for example <code>mean</code> or <code>function(x) mean(x, na.rm = TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations.
+</p>
+<p>Set a list of variables to some specified value for the new records
+</p>
+
+<ul>
+<li>
+<p> LHS refer to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value, an expression or NA. If summary functions are
+used, the values are summarized by the variables specified for <code>by_vars</code>.
+</p>
+</li>
+</ul>
+<p>For example:
+</p>
+<div class="sourceCode"><pre>  set_values_to = exprs(
+    AVAL = sum(AVAL),
+    PARAMCD = "TDOSE",
+    PARCAT1 = "OVERALL"
+  )
+</pre></div>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function only creates derived observations and does not append them
+to the original dataset observations. If you would like to this instead,
+see the <code>derive_summary_records()</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame of derived records.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>derive_summary_records()</code>, <code>derive_var_merged_summary()</code>
+</p>
+<p>Other superseded: 
+<code>date_source()</code>,
+<code>derive_param_extreme_record()</code>,
+<code>derive_var_dthcaus()</code>,
+<code>derive_var_extreme_dt()</code>,
+<code>derive_var_extreme_dtm()</code>,
+<code>dthcaus_source()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+adeg &lt;- tribble(
+  ~USUBJID,   ~EGSEQ, ~PARAM,             ~AVISIT,    ~EGDTC,             ~AVAL, ~TRTA,
+  "XYZ-1001", 1,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:50", 385,   NA_character_,
+  "XYZ-1001", 2,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:52", 399,   NA_character_,
+  "XYZ-1001", 3,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:56", 396,   NA_character_,
+  "XYZ-1001", 4,      "QTcF Int. (msec)", "Visit 2",  "2016-03-08T09:45", 384,   "Placebo",
+  "XYZ-1001", 5,      "QTcF Int. (msec)", "Visit 2",  "2016-03-08T09:48", 393,   "Placebo",
+  "XYZ-1001", 6,      "QTcF Int. (msec)", "Visit 2",  "2016-03-08T09:51", 388,   "Placebo",
+  "XYZ-1001", 7,      "QTcF Int. (msec)", "Visit 3",  "2016-03-22T10:45", 385,   "Placebo",
+  "XYZ-1001", 8,      "QTcF Int. (msec)", "Visit 3",  "2016-03-22T10:48", 394,   "Placebo",
+  "XYZ-1001", 9,      "QTcF Int. (msec)", "Visit 3",  "2016-03-22T10:51", 402,   "Placebo",
+  "XYZ-1002", 1,      "QTcF Int. (msec)", "Baseline", "2016-02-22T07:58", 399,   NA_character_,
+  "XYZ-1002", 2,      "QTcF Int. (msec)", "Baseline", "2016-02-22T07:58", 410,   NA_character_,
+  "XYZ-1002", 3,      "QTcF Int. (msec)", "Baseline", "2016-02-22T08:01", 392,   NA_character_,
+  "XYZ-1002", 4,      "QTcF Int. (msec)", "Visit 2",  "2016-03-06T09:50", 401,   "Active 20mg",
+  "XYZ-1002", 5,      "QTcF Int. (msec)", "Visit 2",  "2016-03-06T09:53", 407,   "Active 20mg",
+  "XYZ-1002", 6,      "QTcF Int. (msec)", "Visit 2",  "2016-03-06T09:56", 400,   "Active 20mg",
+  "XYZ-1002", 7,      "QTcF Int. (msec)", "Visit 3",  "2016-03-24T10:50", 412,   "Active 20mg",
+  "XYZ-1002", 8,      "QTcF Int. (msec)", "Visit 3",  "2016-03-24T10:53", 414,   "Active 20mg",
+  "XYZ-1002", 9,      "QTcF Int. (msec)", "Visit 3",  "2016-03-24T10:56", 402,   "Active 20mg"
+)
+
+# Summarize the average of the triplicate ECG interval values (AVAL)
+get_summary_records(
+  adeg,
+  by_vars = exprs(USUBJID, PARAM, AVISIT),
+  set_values_to = exprs(
+    AVAL = mean(AVAL, na.rm = TRUE),
+    DTYPE = "AVERAGE"
+  )
+)
+
+# Derive more than one summary variable
+get_summary_records(
+  adeg,
+  by_vars = exprs(USUBJID, PARAM, AVISIT),
+  set_values_to = exprs(
+    AVAL = mean(AVAL),
+    ASTDTM = min(convert_dtc_to_dtm(EGDTC)),
+    AENDTM = max(convert_dtc_to_dtm(EGDTC)),
+    DTYPE = "AVERAGE"
+  )
+)
+
+# Sample ADEG dataset with triplicate record for only AVISIT = 'Baseline'
+adeg &lt;- tribble(
+  ~USUBJID,   ~EGSEQ, ~PARAM,             ~AVISIT,    ~EGDTC,             ~AVAL, ~TRTA,
+  "XYZ-1001", 1,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:50", 385,   NA_character_,
+  "XYZ-1001", 2,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:52", 399,   NA_character_,
+  "XYZ-1001", 3,      "QTcF Int. (msec)", "Baseline", "2016-02-24T07:56", 396,   NA_character_,
+  "XYZ-1001", 4,      "QTcF Int. (msec)", "Visit 2",  "2016-03-08T09:48", 393,   "Placebo",
+  "XYZ-1001", 5,      "QTcF Int. (msec)", "Visit 2",  "2016-03-08T09:51", 388,   "Placebo",
+  "XYZ-1001", 6,      "QTcF Int. (msec)", "Visit 3",  "2016-03-22T10:48", 394,   "Placebo",
+  "XYZ-1001", 7,      "QTcF Int. (msec)", "Visit 3",  "2016-03-22T10:51", 402,   "Placebo",
+  "XYZ-1002", 1,      "QTcF Int. (msec)", "Baseline", "2016-02-22T07:58", 399,   NA_character_,
+  "XYZ-1002", 2,      "QTcF Int. (msec)", "Baseline", "2016-02-22T07:58", 410,   NA_character_,
+  "XYZ-1002", 3,      "QTcF Int. (msec)", "Baseline", "2016-02-22T08:01", 392,   NA_character_,
+  "XYZ-1002", 4,      "QTcF Int. (msec)", "Visit 2",  "2016-03-06T09:53", 407,   "Active 20mg",
+  "XYZ-1002", 5,      "QTcF Int. (msec)", "Visit 2",  "2016-03-06T09:56", 400,   "Active 20mg",
+  "XYZ-1002", 6,      "QTcF Int. (msec)", "Visit 3",  "2016-03-24T10:53", 414,   "Active 20mg",
+  "XYZ-1002", 7,      "QTcF Int. (msec)", "Visit 3",  "2016-03-24T10:56", 402,   "Active 20mg"
+)
+
+# Compute the average of AVAL only if there are more than 2 records within the
+# by group
+get_summary_records(
+  adeg,
+  by_vars = exprs(USUBJID, PARAM, AVISIT),
+  filter = n() &gt; 2,
+  set_values_to = exprs(
+    AVAL = mean(AVAL, na.rm = TRUE),
+    DTYPE = "AVERAGE"
+  )
+)
+</code></pre>
+
+
+</div>

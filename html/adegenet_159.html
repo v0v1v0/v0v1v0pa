@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fasta2genlight</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Extract Single Nucleotide Polymorphism (SNPs) from alignments</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>fasta2genlight</code> reads alignments with the fasta
+format (extensions ".fasta", ".fas", or ".fa"), extracts the binary
+SNPs, and converts the output into a genlight object. 
+</p>
+<p>The function reads data by chunks of a few genomes (minimum 1, no
+maximum) at a time, which allows one to read massive datasets with
+negligible RAM requirements (albeit at a cost of computational
+time). The argument <code>chunkSize</code> indicates the number of genomes
+read at a time. Increasing this value decreases the computational time
+required to read data in, while increasing memory requirements.
+</p>
+<p>Multiple cores can be used to decrease the overall computational time
+on parallel architectures (needs the package <code>parallel</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fasta2genlight(file, quiet = FALSE, chunkSize = 1000, saveNbAlleles = FALSE,
+               parallel = FALSE, n.cores = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p> a character string giving the path to the file to
+convert, with the extension ".fa", ".fas", or ".fasta".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p> logical stating whether a conversion messages should be
+printed (FALSE,default) or not (TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunkSize</code></td>
+<td>
+<p>an integer indicating the number of genomes to be
+read at a time; larger values require more RAM but decrease the time
+needed to read the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>saveNbAlleles</code></td>
+<td>
+<p>a logical indicating whether the number of
+alleles for each loci in the original alignment should be saved in the
+<code>other</code> slot (TRUE), or not (FALSE, default). In large genomes,
+this takes some space but allows for tracking SNPs with more than 2
+alleles, lost during the conversion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>a logical indicating whether multiple cores -if
+available- should be used for the computations (TRUE, default), or
+not (FALSE); requires the package <code>parallel</code> to be installed
+(see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>if <code>parallel</code> is TRUE, the number of cores to be
+used in the computations; if NULL, then the maximum number of cores
+available on the computer is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments to be passed to other functions -
+currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>=== Using multiple cores ===
+</p>
+<p>Most recent machines have one or several processors with multiple
+cores. R processes usually use one single core. The package
+<code>parallel</code> allows for parallelizing some computations on
+multiple cores, which decreases drastically computational time.
+</p>
+<p>To use this functionality, you need to have the last version of the
+<code>parallel</code> package installed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of the class genlight</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a> </p>
+
+
+<h3>See Also</h3>
+
+<p>- <code>?genlight</code> for a description of the class genlight.
+</p>
+<p>- <code>read.snp</code>: read SNPs in adegenet's '.snp' format.
+</p>
+<p>- <code>read.PLINK</code>: read SNPs in PLINK's '.raw' format.
+</p>
+<p>- <code>df2genind</code>: convert any multiallelic markers into
+adegenet genind.
+</p>
+<p>- <code>import2genind</code>: read multiallelic markers from various
+software into adegenet.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## show the example file ##
+## this is the path to the file:
+myPath &lt;- system.file("files/usflu.fasta",package="adegenet")
+myPath
+
+## read the file
+obj &lt;- fasta2genlight(myPath, chunk=10) # process 10 sequences at a time
+obj
+
+## look at extracted information
+position(obj)
+alleles(obj)
+locNames(obj)
+
+## plot positions of polymorphic sites
+temp &lt;- density(position(obj), bw=10)
+plot(temp, xlab="Position in the alignment", lwd=2, main="Location of the SNPs")
+points(position(obj), rep(0, nLoc(obj)), pch="|", col="red")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

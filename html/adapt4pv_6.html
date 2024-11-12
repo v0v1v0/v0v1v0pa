@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cisl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Class Imbalanced Subsampling Lasso</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of CISL and the stability selection according to subsampling options.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cisl(
+  x,
+  y,
+  r = 4,
+  nB = 100,
+  dfmax = 50,
+  nlambda = 250,
+  nMin = 0,
+  replace = TRUE,
+  betaPos = TRUE,
+  ncore = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix, of dimension nobs x nvars. Each row is an
+observation vector. Can be in sparse matrix format (inherit from class
+<code>"sparseMatrix"</code> as in package <code>Matrix</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Binary response variable, numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Number of control in the CISL sampling. Default is 4.
+See details below for other implementations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nB</code></td>
+<td>
+<p>Number of sub-samples. Default is 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfmax</code></td>
+<td>
+<p>Corresponds to the maximum size of the models visited with the
+lasso (E in the paper). Default is 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>Number of lambda values as is <code>glmnet</code> documentation.
+Default is 250.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nMin</code></td>
+<td>
+<p>Minimum number of events for a covariate to be considered.
+Default is 0, all the covariates from <code>x</code> are considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace</code></td>
+<td>
+<p>Should sampling be with replacement? Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaPos</code></td>
+<td>
+<p>If <code>betaPos=TRUE</code>, variable selection is based on positive
+regression coefficient.
+Else, variable selection is based on non-zero regression coefficient.
+Default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncore</code></td>
+<td>
+<p>The number of calcul units used for parallel computing.
+This has to be set to 1 if the <code>parallel</code> package is not available.
+Default is 1.
+WARNING: parallel computing is not supported for windows machines!</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>CISL is a variation of the stability method adapted to characteristics of pharmacovigilance databases.
+Tunning <code>r = 4</code> and <code>replace = TRUE</code> are used to implement our CISL sampling.
+For instance, <code>r = NULL</code> and <code>replace = FALSE</code> can be used to
+implement the <code class="reqn">n \over 2</code> sampling in Stability Selection.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"cisl"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>Matrix of dimension nvars x <code>nB</code>.
+Quantity compute by CISL for each covariate, for each subsample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q05</code></td>
+<td>
+<p>5 <code class="reqn">\%</code> quantile of the CISL quantity for each covariates.
+Numeric, length equal to nvars.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q10</code></td>
+<td>
+<p>10 <code class="reqn">\%</code> quantile of the CISL quantity for each covariates.
+Numeric, length equal to nvars.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q15</code></td>
+<td>
+<p>15 <code class="reqn">\%</code> quantile of the CISL quantity for each covariates.
+Numeric, length equal to nvars.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q20</code></td>
+<td>
+<p>20 <code class="reqn">\%</code> quantile of the CISL quantity for each covariates.
+Numeric, length equal to nvars.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ismail Ahmed
+</p>
+
+
+<h3>References</h3>
+
+<p>Ahmed, I., Pariente, A., &amp; Tubert-Bitter, P. (2018). "Class-imbalanced subsampling lasso algorithm for discovering adverse drug reactions".
+<em>Statistical Methods in Medical Research</em>. 27(3), 785–797, <a href="https://doi.org/10.1177/0962280216643116">doi:10.1177/0962280216643116</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(15)
+drugs &lt;- matrix(rbinom(100*20, 1, 0.2), nrow = 100, ncol = 20)
+colnames(drugs) &lt;- paste0("drugs",1:ncol(drugs))
+ae &lt;- rbinom(100, 1, 0.3)
+lcisl &lt;- cisl(x = drugs, y = ae, nB = 50)
+
+</code></pre>
+
+
+</div>

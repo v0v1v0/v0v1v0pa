@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>normalize_logpost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Normalize the joint posterior using AGHQ</h2>
+
+<h3>Description</h3>
+
+<p>This function takes in the optimization results from <code>aghq::optimize_theta()</code>
+and returns a list with the quadrature points, weights, and normalization
+information. Like <code>aghq::optimize_theta()</code>, this is designed for use only within
+<code>aghq::aghq</code>, but is exported for debugging and documented in case you want to
+modify it somehow, or something.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">normalize_logpost(
+  optresults,
+  k,
+  whichfirst = 1,
+  basegrid = NULL,
+  ndConstruction = "product",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>optresults</code></td>
+<td>
+<p>The results of calling <code>aghq::optimize_theta()</code>: see return value of that function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer, the number of quadrature points to use. I suggest at least 3. k = 1 corresponds to a Laplace
+approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>whichfirst</code></td>
+<td>
+<p>Integer between 1 and the dimension of the parameter space, default 1.
+The user shouldn't have to worry about this: it's used internally to re-order the parameter vector
+before doing the quadrature, which is useful when calculating marginal posteriors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basegrid</code></td>
+<td>
+<p>Optional. Provide an object of class <code>NIGrid</code> from the <code>mvQuad</code>
+package, representing the base quadrature rule that will be adapted. This is only
+for users who want more complete control over the quadrature, and is not necessary
+if you are fine with the default option which basically corresponds to
+<code>mvQuad::createNIGrid(length(theta),'GHe',k,'product')</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndConstruction</code></td>
+<td>
+<p>Create a multivariate grid using a product or sparse construction?
+Passed directly to <code>mvQuad::createNIGrid()</code>, see that function for further details. Note
+that the use of sparse grids within <code>aghq</code> is currently <strong>experimental</strong> and not supported
+by tests. In particular, calculation of marginal posteriors is known to fail currently.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>optresults$ff</code>, see <code>?optimize_theta</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If k &gt; 1, a list with elements:
+</p>
+
+<ul>
+<li>
+<p><code>nodesandweights</code>: a dataframe containing the nodes and weights for the adaptive quadrature rule, with the un-normalized and normalized log posterior evaluated at the nodes.
+</p>
+</li>
+<li>
+<p><code>thegrid</code>: a <code>NIGrid</code> object from the <code>mvQuad</code> package, see <code>?mvQuad::createNIGrid</code>.
+</p>
+</li>
+<li>
+<p><code>lognormconst</code>: the actual result of the quadrature: the log of the normalizing constant of the posterior.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other quadrature: 
+<code>aghq()</code>,
+<code>get_hessian()</code>,
+<code>get_log_normconst()</code>,
+<code>get_mode()</code>,
+<code>get_nodesandweights()</code>,
+<code>get_numquadpoints()</code>,
+<code>get_opt_results()</code>,
+<code>get_param_dim()</code>,
+<code>laplace_approximation()</code>,
+<code>marginal_laplace_tmb()</code>,
+<code>marginal_laplace()</code>,
+<code>nested_quadrature()</code>,
+<code>optimize_theta()</code>,
+<code>plot.aghq()</code>,
+<code>print.aghqsummary()</code>,
+<code>print.aghq()</code>,
+<code>print.laplacesummary()</code>,
+<code>print.laplace()</code>,
+<code>print.marginallaplacesummary()</code>,
+<code>summary.aghq()</code>,
+<code>summary.laplace()</code>,
+<code>summary.marginallaplace()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Same setup as optimize_theta
+logfteta &lt;- function(eta,y) {
+  sum(y) * eta - (length(y) + 1) * exp(eta) - sum(lgamma(y+1)) + eta
+}
+set.seed(84343124)
+y &lt;- rpois(10,5) # Mode should be sum(y) / (10 + 1)
+truemode &lt;- log((sum(y) + 1)/(length(y) + 1))
+objfunc &lt;- function(x) logfteta(x,y)
+funlist &lt;- list(
+  fn = objfunc,
+  gr = function(x) numDeriv::grad(objfunc,x),
+  he = function(x) numDeriv::hessian(objfunc,x)
+)
+opt_sparsetrust &lt;- optimize_theta(funlist,1.5)
+opt_trust &lt;- optimize_theta(funlist,1.5,control = default_control(method = "trust"))
+opt_bfgs &lt;- optimize_theta(funlist,1.5,control = default_control(method = "BFGS"))
+
+# Quadrature with 3, 5, and 7 points using sparse trust region optimization:
+norm_sparse_3 &lt;- normalize_logpost(opt_sparsetrust,3,1)
+norm_sparse_5 &lt;- normalize_logpost(opt_sparsetrust,5,1)
+norm_sparse_7 &lt;- normalize_logpost(opt_sparsetrust,7,1)
+
+# Quadrature with 3, 5, and 7 points using dense trust region optimization:
+norm_trust_3 &lt;- normalize_logpost(opt_trust,3,1)
+norm_trust_5 &lt;- normalize_logpost(opt_trust,5,1)
+norm_trust_7 &lt;- normalize_logpost(opt_trust,7,1)
+
+# Quadrature with 3, 5, and 7 points using BFGS optimization:
+norm_bfgs_3 &lt;- normalize_logpost(opt_bfgs,3,1)
+norm_bfgs_5 &lt;- normalize_logpost(opt_bfgs,5,1)
+norm_bfgs_7 &lt;- normalize_logpost(opt_bfgs,7,1)
+
+</code></pre>
+
+
+</div>

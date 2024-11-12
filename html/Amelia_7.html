@@ -1,0 +1,577 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amelia</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AMELIA: Multiple Imputation of Incomplete Multivariate Data</h2>
+
+<h3>Description</h3>
+
+<p>Runs the bootstrap EM algorithm on incomplete data and creates
+imputed datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">amelia(x, ...)
+
+## S3 method for class 'amelia'
+amelia(x, m = 5, p2s = 1, frontend = FALSE, ...)
+
+## S3 method for class 'molist'
+amelia(x, ...)
+
+## Default S3 method:
+amelia(
+  x,
+  m = 5,
+  p2s = 1,
+  frontend = FALSE,
+  idvars = NULL,
+  ts = NULL,
+  cs = NULL,
+  polytime = NULL,
+  splinetime = NULL,
+  intercs = FALSE,
+  lags = NULL,
+  leads = NULL,
+  startvals = 0,
+  tolerance = 1e-04,
+  logs = NULL,
+  sqrts = NULL,
+  lgstc = NULL,
+  noms = NULL,
+  ords = NULL,
+  incheck = TRUE,
+  collect = FALSE,
+  arglist = NULL,
+  empri = NULL,
+  priors = NULL,
+  autopri = 0.05,
+  emburn = c(0, 0),
+  bounds = NULL,
+  max.resample = 100,
+  overimp = NULL,
+  boot.type = "ordinary",
+  parallel = c("no", "multicore", "snow"),
+  ncpus = getOption("amelia.ncpus", 1L),
+  cl = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>either a matrix, data.frame, a object of class
+"amelia", or an object of class "molist". The first two will call the
+default S3 method. The third a convenient way to perform more imputations
+with the same parameters. The fourth will impute based on the settings from
+<code>moPrep</code> and any additional arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the number of imputed datasets to create.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p2s</code></td>
+<td>
+<p>an integer value taking either 0 for no screen output,
+1 for normal screen printing of iteration numbers, and 2 for detailed
+screen output.  See "Details" for specifics on output when p2s=2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frontend</code></td>
+<td>
+<p>a logical value used internally for the GUI.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idvars</code></td>
+<td>
+<p>a vector of column numbers or column names that indicates
+identification variables.  These will be dropped from the analysis but
+copied into the imputed datasets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ts</code></td>
+<td>
+<p>column number or variable name indicating the variable identifying time
+in time series data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cs</code></td>
+<td>
+<p>column number or variable name indicating the cross section variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>polytime</code></td>
+<td>
+<p>integer between 0 and 3 indicating what
+power of polynomial should be included in the imputation model
+to account for the effects of time.  A setting of 0 would
+indicate constant levels, 1 would indicate linear time
+effects, 2 would indicate squared effects, and 3 would
+indicate cubic time effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splinetime</code></td>
+<td>
+<p>interger value of 0 or greater to control cubic
+smoothing splines of time. Values between 0 and 3 create a simple
+polynomial of time (identical to the polytime argument). Values <code>k</code> greater
+than 3 create a spline with an additional <code>k-3</code>
+knotpoints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercs</code></td>
+<td>
+<p>a logical variable indicating if the
+time effects of <code>polytime</code> should vary across the
+cross-section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lags</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the data
+that should have their lags included in the imputation model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leads</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the data
+that should have their leads (future values) included in the imputation
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startvals</code></td>
+<td>
+<p>starting values, 0 for the parameter matrix from
+listwise deletion, 1 for an identity matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>the convergence threshold for the EM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logs</code></td>
+<td>
+<p>a vector of column numbers or column names that refer
+to variables that require log-linear transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrts</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the data
+that should be transformed by a sqaure root function.  Data in this
+column cannot be less than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lgstc</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the data
+that should be transformed by a logistic function for proportional data.
+Data in this column must be between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noms</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the data
+that are nominal variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ords</code></td>
+<td>
+<p>a vector of numbers or names indicating columns in the
+data that should be treated as ordinal variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>incheck</code></td>
+<td>
+<p>a logical indicating whether or not the inputs to the
+function should be checked before running <code>amelia</code>.  This should
+only be set to <code>FALSE</code> if you are extremely confident that your
+settings are non-problematic and you are trying to save computational
+time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collect</code></td>
+<td>
+<p>a logical value indicating whether or
+not the garbage collection frequency should be increased during the
+imputation model.  Only set this to <code>TRUE</code> if you are experiencing memory
+issues as it can significantly slow down the imputation
+process</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arglist</code></td>
+<td>
+<p>an object of class "ameliaArgs" from a previous run of
+Amelia. Including this object will use the arguments from that run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empri</code></td>
+<td>
+<p>number indicating level of the empirical (or ridge) prior.
+This prior shrinks the covariances of the data, but keeps the means
+and variances the same for problems of high missingness, small N's or
+large correlations among the variables.  Should be kept small,
+perhaps 0.5 to 1 percent of the rows of the data; a
+reasonable upper bound is around 10 percent of the rows of the
+data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p>a four or five column matrix containing the priors for
+either individual missing observations or variable-wide missing
+values.  See "Details" for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>autopri</code></td>
+<td>
+<p>allows the EM chain to increase the empirical prior if
+the path strays into an nonpositive definite covariance matrix, up
+to a maximum empirical prior of the value of this argument times
+<code>n</code>, the number of observations.  Must be between 0 and 1, and at
+zero this turns off this feature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emburn</code></td>
+<td>
+<p>a numeric vector of length 2, where <code>emburn[1]</code> is
+a the minimum EM chain length and <code>emburn[2]</code> is the
+maximum EM chain length. These are ignored if they are less than 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>a three column matrix to hold logical bounds on the
+imputations. Each row of the matrix should be of the form
+<code>c(column.number, lower.bound,upper.bound)</code> See Details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.resample</code></td>
+<td>
+<p>an integer that specifies how many times Amelia
+should redraw the imputed values when trying to meet the logical
+constraints of <code>bounds</code>. After this value, imputed values are
+set to the bounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overimp</code></td>
+<td>
+<p>a two-column matrix describing which cells are to be
+overimputed. Each row of the matrix should be a <code>c(row,column)</code> pair.
+Each of these cells will be treated as missing and
+replaced with draws from the imputation model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.type</code></td>
+<td>
+<p>choice of bootstrap, currently restricted to either
+<code>"ordinary"</code> for the usual non-parametric bootstrap and
+<code>"none"</code> for no bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>the type of parallel operation to be used (if any). If
+missing, the default is taken from the option
+<code>"amelia.parallel"</code> (and if that is not set, <code>"no"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p>integer: the number of processes to be used in parallel
+operation: typically one would choose the number of available CPUs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>an optional <span class="pkg">parallel</span> or <span class="pkg">snow</span> cluster for use if
+<code>parallel = "snow"</code>. If not supplied, a cluster on the local
+machine is created for the duration of the <code>amelia</code> call.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multiple imputation is a method for analyzing incomplete
+multivariate data. This function will take an incomplete dataset in
+either data frame or matrix form and return <code>m</code> imputed datatsets
+with no missing values. The algorithm first creates a bootstrapped
+version of the original data, estimates the sufficient statistics
+(with priors if specified) by EM on this bootstrapped sample, and
+then imputes the missing values of the original data using the
+estimated sufficient statistics. It repeats this process <code>m</code>
+times to produce the <code>m</code> complete datasets where the
+observed values are the same and the unobserved values are drawn
+from their posterior distributions.
+</p>
+<p>The function will start a "fresh" run of the algorithm if <code>x</code> is
+either a incomplete matrix or data.frame. In this method, all of the
+options will be user-defined or set to their default. If <code>x</code>
+is  the output of a previous Amelia run (that is, an object of
+class "amelia"), then Amelia will run with the options used in
+that previous run. This is a convenient way to run more
+imputations of the same model.
+</p>
+<p>You can provide Amelia with informational priors about the missing
+observations in your data.  To specify priors, pass a four or five
+column matrix to the <code>priors</code> argument with each row specifying a
+different priors as such:
+</p>
+<p><code> one.prior &lt;- c(row, column, mean,standard deviation)</code>
+</p>
+<p>or,
+</p>
+<p><code> one.prior &lt;- c(row, column, minimum, maximum, confidence)</code>.
+</p>
+<p>So, in the first and second column of the priors matrix should be the
+row and column number of the prior being set.  In the other columns
+should either be the mean and standard deviation of the prior, or a
+minimum, maximum and confidence level for the prior. You must specify
+your priors all as distributions or all as confidence ranges.  Note
+that ranges are converted to distributions, so setting a confidence of
+1 will generate an error.
+</p>
+<p>Setting a priors for the missing values of an entire variable is done
+in the same manner as above, but inputing a <code>0</code> for the row
+instead of the row number.  If priors are set for both the entire
+variable and an individual observation, the individual prior takes
+precedence.
+</p>
+<p>In addition to priors, Amelia allows for logical bounds on
+variables. The <code>bounds</code> argument should be a matrix with 3
+columns, with each row referring to a logical bound on a variable. The
+first column should be the column number of the variable to be
+bounded, the second column should be the lower bounds for that
+variable, and the third column should be the upper bound for that
+variable. As Amelia enacts these bounds by resampling, particularly
+poor bounds will end up resampling forever. Amelia will stop
+resampling after <code>max.resample</code> attempts and simply set the
+imputation to the relevant bound.
+</p>
+<p>If each imputation is taking a long time to converge, you can increase
+the empirical prior, <code>empri</code>.  This value has the effect of smoothing
+out the likelihood surface so that the EM algorithm can more easily find
+the maximum.  It should be kept as low as possible and only used if needed.
+</p>
+<p>Amelia assumes the data is distributed multivariate normal.  There are a
+number of variables that can break this assumption.  Usually, though, a
+transformation can make any variable roughly continuous and unbounded.
+We have included a number of commonly needed transformations for data.
+Note that the data will not be transformed in the output datasets and the
+transformation is simply useful for climbing the likelihood.
+</p>
+<p>Amelia can run its imputations in parallel using the methods of the
+<span class="pkg">parallel</span> package. The <code>parallel</code> argument names the
+parallel backend that Amelia should use. Users on Windows systems must
+use the <code>"snow"</code> option and users on Unix-like systems should use
+<code>"multicore"</code>.  The <code>multicore</code> backend sets itself up
+automatically, but the <code>snow</code> backend requires more setup. You
+can pass a predefined cluster from the
+<code>parallel::makePSOCKcluster</code> function to the <code>cl</code>
+argument. Without this cluster, Amelia will attempt to create a
+reasonable default cluster and stop it once computation is
+complete. When using the parallel backend, users can set the number of
+CPUs to use with the <code>ncpus</code> argument. The defaults for these two
+arguments can be set with the options <code>"amelia.parallel"</code> and
+<code>"amelia.ncpus"</code>.
+</p>
+<p>Please refer to the Amelia manual for more information on the function
+or the options.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An instance of S3 class "amelia" with the following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>imputations</code></td>
+<td>
+<p>a list of length <code>m</code> with an imputed dataset in
+each entry. The class (matrix or data.frame) of these entries will
+match <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>an integer indicating the number of imputations run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missMatrix</code></td>
+<td>
+<p>a matrix identical in size to the original dataset
+with 1 indicating a missing observation and a 0 indicating an observed
+observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>An array with dimensions <code class="reqn">(p+1)</code> by <code class="reqn">(p+1)</code> by <code class="reqn">m</code>  (where
+<code class="reqn">p</code> is the number of variables in the imputations model) holding
+the converged parameters for each of the <code>m</code> EM chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>A <code class="reqn">p</code> by <code class="reqn">m</code> matrix of of the posterior modes for the
+complete-data means in each of the EM chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covMatrices</code></td>
+<td>
+<p>An array with dimensions <code class="reqn">(p)</code> by <code class="reqn">(p)</code> by
+<code class="reqn">m</code> where the first two dimensions hold the posterior modes of the
+covariance matrix of the complete data for each of the EM chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>a integer indicating the exit code of the Amelia run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>an exit message for the Amelia run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterHist</code></td>
+<td>
+<p>a list of iteration histories for each EM chain. See
+documentation for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arguments</code></td>
+<td>
+<p>a instance of the class "ameliaArgs" which holds the
+arguments used in the Amelia run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overvalues</code></td>
+<td>
+<p>a vector of values removed for overimputation. Used to
+reformulate the original data from the imputations. </p>
+</td>
+</tr>
+</table>
+<p>Note that the <code>theta</code>, <code>mu</code> and <code>covMatrcies</code> objects
+refers to the data as seen by the EM algorithm and is thusly centered,
+scaled, stacked, tranformed and rearranged. See the manual for details
+and how to access this information.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>amelia(amelia)</code>: Run additional imputations for Amelia output
+</p>
+</li>
+<li> <p><code>amelia(molist)</code>: Perform multiple overimputation from moPrep
+</p>
+</li>
+<li> <p><code>amelia(default)</code>: Run core Amelia algorithm
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>James Honaker
+</p>
+<p>Gary King
+</p>
+<p>Matt Blackwell
+</p>
+
+
+<h3>References</h3>
+
+<p>Honaker, J., King, G., Blackwell, M. (2011).
+Amelia II: A Program for Missing Data.
+<em>Journal of Statistical Software</em>, <b>45(7)</b>, 1–47.
+<a href="https://doi.org/10.18637/jss.v045.i07">doi:10.18637/jss.v045.i07</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For imputation diagnostics, <code>missmap</code>,
+<code>compare.density</code>,
+<code>overimpute</code> and <code>disperse</code>. For time series
+plots, <code>tscsPlot</code>. Also: <code>plot.amelia</code>,
+<code>write.amelia</code>, and <code>ameliabind</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(africa)
+a.out &lt;- amelia(x = africa, cs = "country", ts = "year", logs = "gdp_pc")
+summary(a.out)
+plot(a.out)
+
+</code></pre>
+
+
+</div>

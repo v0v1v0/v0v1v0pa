@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AS.select</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Summary statistics selection using approximate sufficiency.
+</h2>
+
+<h3>Description</h3>
+
+<p>This function uses approximate sufficiency to assess subsets of summary statistics for ABC inference.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AS.select(obs, param, sumstats, obspar=NULL, abcmethod=abc, 
+grid=10, inturn=TRUE, limit=ncol(sumstats), allow.none=FALSE, 
+do.err=FALSE, final.dens=FALSE, errfn=rsse, trace=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>(matrix of) observed summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>matrix of simulated model parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstats</code></td>
+<td>
+<p>matrix of simulated summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obspar</code></td>
+<td>
+<p>optional observed parameters (for use to assess simulation performance).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abcmethod</code></td>
+<td>
+<p>a function to perform ABC inference, e.g. the <code>abc</code> function from package <em>abc</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>the number of bins into which to divide the posterior sample for the approximate sufficiency calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inturn</code></td>
+<td>
+<p>a boolean value indicating whether "bad" statistics should be dropped and tested sequentially (<code>inturn=TRUE</code>) or all at the end (<code>inturn=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>an optional integer indicating whether to limit summary selection to subsets of a maximum size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.none</code></td>
+<td>
+<p>a boolean values indicating whether an empty subset of statistics is considered in the selection procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.err</code></td>
+<td>
+<p>a boolean value indicating whether the simulation error should be returned.  Note: if <code>do.err=TRUE</code>, <code>obspar</code> must be supplied.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>final.dens</code></td>
+<td>
+<p>a boolean value indicating whether the posterior sample should be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errfn</code></td>
+<td>
+<p>an error function to assess ABC inference performance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>whether to show progress messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>any other optional arguments to the ABC inference procedure (e.g. arguments to the <code>abc</code> function).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The summary selection procedure works by sequentially testing randomly chosen statistics for inclusion, using the ratio of ABC posterior samples to determine whether a statistic is added.  Since adding a statistic may result in a suboptimal subset of summaries, the included statistics are then individually dropped and retested, to determine whether a smaller subset of statistics is equally / more informative than the accepted set of statistics.</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>the final subset of included statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err</code></td>
+<td>
+<p>simulation error (if <code>obspar</code> is supplied and <code>do.err=TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.sample</code></td>
+<td>
+<p>an array of dimension <code>nacc x npar x ndatasets</code> giving the posterior sample for each observed dataset.  Not returned if <code>final.dens=FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The approximate sufficiency techniques described here are only suitable for single parameters only.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matt Nunes</p>
+
+
+<h3>References</h3>
+
+<p>Blum, M. G. B, Nunes, M. A., Prangle, D. and Sisson, S. A. (2013) A
+comparative review of dimension reduction methods in approximate
+Bayesian computation. <em>Stat. Sci.</em> <b>28</b>, Issue 2, 189–208.<br><br>
+Joyce, P. and P. Marjoram (2008) Approximately sufficient statistics and
+Bayesian computation. <em>Stat. Appl. Gen. Mol. Biol.</em> <b>7</b>
+Article 26.<br><br>
+Nunes, M. A. and Prangle, D. (2016) abctools: an R package for tuning
+approximate Bayesian computation analyses. <em>The R Journal</em>
+<b>7</b>, Issue 2, 189–205.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AS.test</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# load example data:
+
+data(coal)
+data(coalobs)
+
+param&lt;-coal[,2]
+simstats&lt;-coal[,4:6]
+
+# use matrix below just in case to preserve dimensions.
+
+obsstats&lt;-matrix(coalobs[1,4:6],nrow=1)
+
+# example of AS.select:
+
+## Not run: 
+tmp &lt;-AS.select(obsstats, param, simstats, tol=.1, method="neuralnet",
+nument=5, allow.none=FALSE, inturn=TRUE)
+
+tmp$best
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

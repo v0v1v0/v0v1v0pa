@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>call_cognitive_endpoint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Call a Cognitive Service REST endpoint</h2>
+
+<h3>Description</h3>
+
+<p>Call a Cognitive Service REST endpoint
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">call_cognitive_endpoint(endpoint, ...)
+
+## S3 method for class 'cognitive_endpoint'
+call_cognitive_endpoint(endpoint, operation,
+  options = list(), headers = list(), body = NULL, encode = NULL, ...,
+  http_verb = c("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"),
+  http_status_handler = c("stop", "warn", "message", "pass"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>endpoint</code></td>
+<td>
+<p>An object of class <code>cognitive_endpoint</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to lower-level functions. For the default method, these are passed to <code>httr::content</code>; in particular, you can convert a structured JSON response into a data frame by specifying <code>simplifyDataFrame=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operation</code></td>
+<td>
+<p>The operation to perform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>Any query parameters that the operation takes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>headers</code></td>
+<td>
+<p>Any optional HTTP headers to include in the REST call. Note that <code>call_cognitive_endpoint</code> will handle authentication details automatically, so don't include them here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>The body of the HTTP request for the REST call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>encode</code></td>
+<td>
+<p>The encoding (really content-type) for the body. See the <code>encode</code> argument for <code>httr::POST</code>. The default value of NULL will use <code>raw</code> encoding if the body is a raw vector, and <code>json</code> encoding for anything else.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_verb</code></td>
+<td>
+<p>The HTTP verb for the REST call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_status_handler</code></td>
+<td>
+<p>How to handle a failed REST call. <code>stop</code>, <code>warn</code> and <code>message</code> will call the corresponding <code style="white-space: pre;">⁠*_for_status⁠</code> handler in the httr package; <code>pass</code> will return the raw response object unchanged. The last one is mostly intended for debugging purposes.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function does the low-level work of constructing a HTTP request and then calling the REST endpoint. It is meant to be used by other packages that provide higher-level views of the service functionality.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For a successful REST call, the contents of the response. This will usually be a list, obtained by translating the raw JSON body into R. If the call returns a non-success HTTP status code, based on the <code>http_status_handler</code> argument.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>cognitive_endpoint, create_cognitive_service, get_cognitive_service
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- cognitive_endpoint("https://myvisionservice.api.cognitive.azure.com",
+    service_type="Computervision", key="key")
+
+# analyze an online image
+img_link &lt;- "https://news.microsoft.com/uploads/2014/09/billg1_print.jpg"
+call_cognitive_endpoint(endp,
+    operation="analyze",
+    body=list(url=img_link),
+    options=list(details="celebrities"),
+    http_verb="POST")
+
+# analyze an image on the local machine
+img_raw &lt;- readBin("image.jpg", "raw", file.info("image.jpg")$size)
+call_cognitive_endpoint(endp,
+    operation="analyze",
+    body=img_raw,
+    encode="raw",
+    http_verb="POST")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

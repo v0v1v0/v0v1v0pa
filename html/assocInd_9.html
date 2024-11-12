@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ceSimErrorsUnequalCECI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate CECI under combined group and individual location errors with unequal observation probabilities
+</h2>
+
+<h3>Description</h3>
+
+<p>Generate an estimated combined error correction index under conditions where both group and individual location errors are present, but where individual location errors are not equal for all individuals
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ceSimErrorsUnequalCECI(aAB, w, psi, Emean, Esd, n)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>aAB</code></td>
+<td>
+
+<p>The real association rate between individuals A and B
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+
+<p>The group location error term
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+
+<p>The relative importance of the group location error to the individual location error
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Emean</code></td>
+<td>
+
+<p>The mean probability of missing one individual given that it is not with the other
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Esd</code></td>
+<td>
+
+<p>The standard deviation of the individual location error distribution
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>The number of sampling periods
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A simple function that simulates data for a given probability of missing groups and real association strength. The w term represents the likelihood of failing to observe a group containing a and b compared to failing to observe both groups containing a and b if the two individuals are apart. E (Epsilon) is probability of missing one individual given that it is not with the other. psi represents the relative importance of the group location error to the individual identification error. The function allows a distribution of individual location error probabilities to be given using Emean and Esd. The function returns the simulated combined error correction index and whether the value lies within the 95 percent confidence intervals of the combined error correction index given the number of samples and under the assumption of no error.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns two values: the simulated combined error correction index and whether or not it falls within the 95 percent confidence intervals (1 = yes, 0 = no)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>William Hoppitt &lt;W.J.E.Hoppitt@leeds.ac.uk&gt;
+Damien Farine &lt;dfarine@orn.mpg.de&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Hoppitt, W. &amp; Farine, D.R. (in prep) Association indices for quantifying social relationships: how to deal with missing observations of individuals or groups.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+	# Set a real association index
+	aAB &lt;- 0.5
+	
+	# Set w range
+	w &lt;- seq(-1,1,0.1)
+
+	# Set errors parameters
+	psi &lt;- 0.5
+	Emean &lt;- 0.5
+	Esd &lt;- 0.05
+	
+	# Replicate N times
+	replicates &lt;- 100  # small number used to save computation time
+	
+	# Create a blank storage matrices
+	assocStrength &lt;- matrix(NA,nrow=replicates,ncol=length(w))
+	inCIs &lt;- matrix(NA,nrow=replicates,ncol=length(w))
+	
+	# Loop through repeating N times for each error value
+	for (i in 1:length(w)) { 
+		for (j in 1:replicates) {
+			out &lt;- ceSimErrorsUnequalCECI(aAB,w[i],psi,Emean,Esd,20)
+			assocStrength[j,i] &lt;- out[1]
+			inCIs[j,i] &lt;- out[2]
+		}
+	}
+	
+	# Plot the results
+	par(mfrow=c(1,2))
+	plot(w,colMeans(assocStrength, na.rm=TRUE), pch=20, ylim=c(0,1), ylab="Simulated CECI")
+	CIs &lt;- apply(assocStrength,2,quantile,c(0.025,0.975),na.rm=TRUE)
+	arrows(w,CIs[1,],w,CIs[2,],len=0.1,code=3,angle=90)
+	abline(h=0.5,col="red")
+	
+	plot(w,colMeans(inCIs, na.rm=TRUE), pch=20, ylim=c(0,1), ylab="Percent of times in CIs")
+	abline(h=0.95, col="red")
+
+</code></pre>
+
+
+</div>

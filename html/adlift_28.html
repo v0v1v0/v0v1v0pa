@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>heterovar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>heterovar</h2>
+
+<h3>Description</h3>
+
+<p>Estimates individual wavelet coefficient variances using a sliding window approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">heterovar(y, detail, al)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a vector of the gridpoints of <span class="env">removelist</span> after executing the forward transform, in the order of the gridpoint vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail</code></td>
+<td>
+<p>the vector of detail coefficients after the forward transform has been performed, in the order of the gridpoint vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>al</code></td>
+<td>
+<p>The list of indices into <span class="env">removelist</span> divided into artificial levels.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function works out the interval endpoints for each gridpoint in <span class="env">removelist</span>, based on an initial window length of one fifth of the range of <span class="env">y</span>, and then adjusts them so that they lie within the range of <span class="env">y</span>. The indices of the <span class="env">removelist</span> points inside these intervals are then compared against the indices of the first artificial level for the data. These new indices are then used to compute the individual coefficient variances, based on the detail values of the new indices. If any of the window indices list entries contains less than four values, then the initial window length is increased by 5% and the process redone, until each window contains at least four coefficients. 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ep1</code></td>
+<td>
+<p>a two-column matrix with the (true) endpoints of the windows from which to calculate the coefficient variances (according to the specified window length). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ep2</code></td>
+<td>
+<p>a two-column matrix with the endpoints of the windows from which to calculate the coefficient variances (adjusted to be of the window length and within the range of <span class="env">y</span>). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idlist</code></td>
+<td>
+<p>a list of indices into <span class="env">y</span> showing the points each interval contains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newidlist</code></td>
+<td>
+<p>a list of indices into <span class="env">y</span> showing the points each interval contains, which are also in the first artificial level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dlist</code></td>
+<td>
+<p>a list of detail coefficients which correspond to the indices in <span class="env">newidlist</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varvec</code></td>
+<td>
+<p>a vector of median absolute deviation values (from the median) for the coefficients in <span class="env">dlist</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varvec1</code></td>
+<td>
+<p>a vector of median absolute deviation values (from the median), centered at zero, for the coefficients in <span class="env">dlist</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varvec2</code></td>
+<td>
+<p>a vector of median absolute deviation values (from the median), centered at zero, for the coefficients in <span class="env">dlist</span>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>denoisehetero</code>     </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x1&lt;-runif(256)
+#
+y1&lt;-make.signal2("doppler",x=x1)
+#
+fwd&lt;-fwtnp(x1,y1,LocalPred=AdaptNeigh,neighbours=2)
+#
+y&lt;-fwd$lengthsremove
+rem&lt;-fwd$removelist
+al&lt;-artlev(y,rem)
+#
+yrem&lt;-x1[sort(rem)]
+detail&lt;-fwd$coeff[sort(rem)]
+#
+h&lt;-heterovar(yrem,detail,al)
+#
+h$varvec[1:10]
+#
+#the first ten coefficient variances to be used in the normalisation of the detail 
+#coefficients
+</code></pre>
+
+
+</div>

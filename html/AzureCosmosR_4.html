@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bulk_import</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Import a set of documents to an Azure Cosmos DB container</h2>
+
+<h3>Description</h3>
+
+<p>Import a set of documents to an Azure Cosmos DB container
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bulk_import(container, ...)
+
+## S3 method for class 'cosmos_container'
+bulk_import(
+  container,
+  data,
+  init_chunksize = 1000,
+  verbose = TRUE,
+  procname = "_AzureCosmosR_bulkImport",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>container</code></td>
+<td>
+<p>A Cosmos DB container object, as obtained by <code>get_cosmos_container</code> or <code>create_cosmos_container</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional arguments passed to lower-level functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data to import. Can be a data frame, or a string containing JSON text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_chunksize</code></td>
+<td>
+<p>The number of rows to import per chunk. <code>bulk_import</code> can adjust this number dynamically based on observed performance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether to print updates to the console as the import progresses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>procname</code></td>
+<td>
+<p>The stored procedure name to use for the server-side import code. Change this if, for some reason, the default name is taken.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a convenience function to import a dataset into a container. It works by creating a stored procedure and then calling it in a loop, passing the to-be-imported data in chunks. The dataset must include a column for the container's partition key or an error will result.
+</p>
+<p>Note that this function is not meant for production use. In particular, if the import fails midway through, it will not clean up after itself: you should call <code>bulk_delete</code> to remove the remnants of a failed import.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the number of rows imported, for each value of the partition key.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>bulk_delete, cosmos_container
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+db &lt;- get_cosmos_database(endp, "mydatabase")
+cont &lt;- create_cosmos_container(db, "mycontainer", partition_key="sex")
+
+# importing the Star Wars data from dplyr
+# notice that rows with sex=NA are not imported
+bulk_import(cont, dplyr::starwars)
+
+# importing from a JSON file
+writeLines(jsonlite::toJSON(dplyr::starwars), "starwars.json")
+bulk_import(cont, "starwars.json")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

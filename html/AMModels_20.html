@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>insertAMModelLib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Insert Model Of Class <code>amModel</code> Or Dataset Of Class <code>amData</code> Into An <code>amModelLib</code> Object</h2>
+
+<h3>Description</h3>
+
+<p>Inserts a model into the model slot of an <code>amModelLib</code> object, or inserts a dataset into the data slot of an <code>amModelLib</code> object. If the <code>amModelLib</code> is not specified, the function will create an info-less and description-less lib – or specify these components in the ... argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">insertAMModelLib(models, data, amml, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>A named list of <code>amModel</code> objects, each composed of a fitted model object and metadata.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An object of class <code>amData</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amml</code></td>
+<td>
+<p>The name of the object that of class <code>amModelLib</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to the function <code>amModelLib</code> to be included in the <code>amModelLib</code> if one is created.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the argument amml is NULL, the function will call <code>amModelLib</code> to create the object.  The argument info can be passed to this function via the ... argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>amModelLib</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other amModelLib: <code>AMModels</code>,
+<code>amData</code>, <code>amModelLib</code>,
+<code>amModel</code>, <code>getters</code>,
+<code>grepAMModelLib</code>, <code>lsModels</code>,
+<code>rmModel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create dataset from lm helpfile
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+lm.D9 &lt;- lm(weight ~ group)
+lm.D90 &lt;- lm(weight ~ group - 1) # omitting intercept
+
+# create an amData object that includes metadata
+plant.data &lt;- data.frame(group = group, weight = weight)
+plant.data &lt;- amData(data = plant.data, comment = 'Dataset from lm helpfile.')
+
+# create an amModel object with metadata and a soft link to the data
+full.model &lt;- amModel(
+    model = lm.D9, 
+    comment = 'full model', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+
+# create an amModelLib that contains the amModel object and the amData object
+# the model and data must be supplied as named lists
+mymodels &lt;- amModelLib(
+    description = "An example amModelLib.",
+    models = list(full.model = full.model), 
+    data = list(plant.data = plant.data)
+)
+ 
+# create second amModel object with metadata and a soft link to the same data
+no.int.model &lt;- amModel(
+    model = lm.D90, 
+    comment = 'model without intercept', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+# create a second amData object 
+log.plant.data &lt;- data.frame(group, log.weight=log(weight))
+log.plant.data &lt;- amData(
+    data = log.plant.data, 
+    comment = 'data to fit log model', 
+    source = 'lm helpfile (R).'
+)
+
+# insert the second model and second dataset to the amModelLib
+mymodels &lt;- insertAMModelLib(
+    mymodels, 
+    models = list(no.int.model = no.int.model),
+    data = list(log.plant.data = log.plant.data)
+)
+
+</code></pre>
+
+
+</div>

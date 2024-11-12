@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>linterpLH13</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Piecewise linear interpolation of stratigraphic series using the approach of Laepple and Huybers (2013)</h2>
+
+<h3>Description</h3>
+
+<p>Linearly interpolate stratigraphic series using the approach of Laepple and Huybers (2013), including anti-alias filtering.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">linterpLH13(dat,dt=NULL,start=NULL,dtMin=NULL,thresh=0.7,beta=1,tbw=20,smooth=0.05,
+            logF=F, antialias=T,roll=10^10,nsim=1,ncores=2,output=T,maxF=NULL,pl=1,
+            genplot=T,verbose=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Stratigraphic series for piecewise linear interpolation. First column should be location (e.g., depth), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>New optimal sampling interval. If dt is not specified, it will be estimated using the approach of Laepple and Huybers (2013).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Start interpolating at what time/depth/height value? By default, the first value of the stratigraphic series will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtMin</code></td>
+<td>
+<p>Very fine sampling interval for noise generation. If dt is not specified, the finest sample spacing of dat is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>Threshold value for R2 (see details). Default value is 0.7 as in Laepple and Huybers (2013)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Power law coefficient for stochastic surrogates, &gt;=0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbw</code></td>
+<td>
+<p>MTM time-bandwidth product.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth</code></td>
+<td>
+<p>Smoothing parameter for spectral ratio R (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logF</code></td>
+<td>
+<p>Smooth ratio R using log10 transformed frequency? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>antialias</code></td>
+<td>
+<p>Apply anti-alias filter? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll</code></td>
+<td>
+<p>Taner filter roll-off rate for anti-alias filter, in dB/octave.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Number of Monte Carlo simulations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>Number of cores to use for parallel processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxF</code></td>
+<td>
+<p>Maximum frequency for spectrum plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pl</code></td>
+<td>
+<p>Plot logarithm of spectral power (1) or linear spectral power (2)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Return interpolated series as new data frame? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (0=none, 1=some reporting, 2=extensive reporting)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function seeks to estimate the optimal sampling interval for piecewise linear interpolation of an unevenly sampled stratigraphic series ("D"), so as to reduce bias when
+reconstructing the spectral background.  The algorithm is slightly modified from Laepple and Huybers (2013), and consists of the following steps:
+</p>
+<p>(1) Generate a 1/f stochastic noise signal, N. A sampling interval equivalent to the finest step of data set D is used for the noise model if dtMin is NULL.
+</p>
+<p>(2) Subsample the 1/f noise (N) on the actual data set D sampling grid, yielding N2.
+</p>
+<p>(3) Interpolate the subsampled 1/f noise (N2) to dtMin, yielding N3.
+</p>
+<p>(4) Calculate the MTM power spectra for N (Spec_N) and N3 (Spec_N3), using a low resolution spectrum to provide a relatively smooth estimate of the continuum.
+</p>
+<p>(5) Divide the resampled power spectrum (Spec_N3) by unresampled spectrum (Spec_N), yielding the ratio R.
+</p>
+<p>(6) Smooth the ratio R using a Gaussian kernel, yielding R2. 
+</p>
+<p>(7) Estimate the highest reliable frequency (F) as the lowest frequency at which the ratio R2 &lt; 0.7 (or specified thresh value).
+</p>
+<p>(8) Calculate the optimal interpolation resolution, dt, as 0.5/F.
+</p>
+<p>If anti-alias filtering is selected:
+</p>
+<p>(9) Interpolate the data set D to 0.1*dt, yielding D2.
+</p>
+<p>(10) Filter D2 using a Taner lowpass (anti-alias) filter with a cutoff frequency of 1.2/dt, yielding D3.
+</p>
+<p>(11) Resample D3 at the optimal resolution dt, yielding D4.
+</p>
+<p>If anti-alias filtering is not selected, instead of steps 9-11, resample D at the optimal resolution dt.
+</p>
+<p>When anti-alias filtering is applied, the first and last value of the interpolated series (D4) 
+have a tendency to be strongly biased if they closely align with the original sampling grid of D. 
+To address this issue, the first and last interpolated points are removed if they are 
+within 0.5*dt (the optimal interpolation interval) of the first or last sampling location of D.
+</p>
+<p>NOTE: A finer (smaller increment) interpolation interval than the 'optimal' one proposed by linterpLH13 
+may be appropriate for astronomical signal detection, although the magnitude of the observed astronomical 
+variability may be substantially underestimated. 
+</p>
+
+
+<h3>References</h3>
+
+<p>T. Laepple and P. Huybers, 2013,
+<em>Reconciling discrepancies between Uk37 and Mg/Ca reconstructions of Holocene marine temperature variability</em>: Earth and Planetary Science Letters, v. 375, p. 418-429.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# generate example series from ar1 noise, 5 kyr sampling interval
+ex = ar1(npts=501,dt=10)
+
+# jitter sampling times
+ex[1]=ex[1]+rnorm(501,sd=1)
+# sort
+ex = ex[order(ex[,1],na.last=NA,decreasing=FALSE),]
+
+# view sampling statistics
+strats(ex)
+
+# run linterpLH13
+linterpLH13(ex,output=FALSE)
+
+# run linterpLH13 with multiple simulations
+linterpLH13(ex,nsim=500,output=FALSE)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,232 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>list_azure_files</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Operations on a file share</h2>
+
+<h3>Description</h3>
+
+<p>Upload, download, or delete a file; list files in a directory; create or delete directories; check file existence.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">list_azure_files(share, dir = "/", info = c("all", "name"),
+  prefix = NULL, recursive = FALSE)
+
+upload_azure_file(share, src, dest = basename(src), create_dir = FALSE,
+  blocksize = 2^22, put_md5 = FALSE, use_azcopy = FALSE)
+
+multiupload_azure_file(share, src, dest, recursive = FALSE,
+  create_dir = recursive, blocksize = 2^22, put_md5 = FALSE,
+  use_azcopy = FALSE, max_concurrent_transfers = 10)
+
+download_azure_file(share, src, dest = basename(src), blocksize = 2^22,
+  overwrite = FALSE, check_md5 = FALSE, use_azcopy = FALSE)
+
+multidownload_azure_file(share, src, dest, recursive = FALSE,
+  blocksize = 2^22, overwrite = FALSE, check_md5 = FALSE,
+  use_azcopy = FALSE, max_concurrent_transfers = 10)
+
+delete_azure_file(share, file, confirm = TRUE)
+
+create_azure_dir(share, dir, recursive = FALSE)
+
+delete_azure_dir(share, dir, recursive = FALSE, confirm = TRUE)
+
+azure_file_exists(share, file)
+
+azure_dir_exists(share, dir)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>share</code></td>
+<td>
+<p>A file share object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir, file</code></td>
+<td>
+<p>A string naming a directory or file respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>Whether to return names only, or all information in a directory listing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>For <code>list_azure_files</code>, filters the result to return only files and directories whose name begins with this prefix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>For the multiupload/download functions, whether to recursively transfer files in subdirectories. For <code>list_azure_dir</code>, whether to include the contents of any subdirectories in the listing. For <code>create_azure_dir</code>, whether to recursively create each component of a nested directory path. For <code>delete_azure_dir</code>, whether to delete a subdirectory's contents first. Note that in all cases this can be slow, so try to use a non-recursive solution if possible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src, dest</code></td>
+<td>
+<p>The source and destination files for uploading and downloading. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>create_dir</code></td>
+<td>
+<p>For the uploading functions, whether to create the destination directory if it doesn't exist. Again for the file storage API this can be slow, hence is optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocksize</code></td>
+<td>
+<p>The number of bytes to upload/download per HTTP(S) request.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>put_md5</code></td>
+<td>
+<p>For uploading, whether to compute the MD5 hash of the file(s). This will be stored as part of the file's properties.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_azcopy</code></td>
+<td>
+<p>Whether to use the AzCopy utility from Microsoft to do the transfer, rather than doing it in R.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_concurrent_transfers</code></td>
+<td>
+<p>For <code>multiupload_azure_file</code> and <code>multidownload_azure_file</code>, the maximum number of concurrent file transfers. Each concurrent file transfer requires a separate R process, so limit this if you are low on memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>When downloading, whether to overwrite an existing destination file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_md5</code></td>
+<td>
+<p>For downloading, whether to verify the MD5 hash of the downloaded file(s). This requires that the file's <code>Content-MD5</code> property is set. If this is TRUE and the <code>Content-MD5</code> property is missing, a warning is generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>Whether to ask for confirmation on deleting a file or directory.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>upload_azure_file</code> and <code>download_azure_file</code> are the workhorse file transfer functions for file storage. They each take as inputs a <em>single</em> filename as the source for uploading/downloading, and a single filename as the destination. Alternatively, for uploading, <code>src</code> can be a textConnection or rawConnection object; and for downloading, <code>dest</code> can be NULL or a <code>rawConnection</code> object. If <code>dest</code> is NULL, the downloaded data is returned as a raw vector, and if a raw connection, it will be placed into the connection. See the examples below.
+</p>
+<p><code>multiupload_azure_file</code> and <code>multidownload_azure_file</code> are functions for uploading and downloading <em>multiple</em> files at once. They parallelise file transfers by using the background process pool provided by AzureRMR, which can lead to significant efficiency gains when transferring many small files. There are two ways to specify the source and destination for these functions:
+</p>
+
+<ul>
+<li>
+<p> Both <code>src</code> and <code>dest</code> can be vectors naming the individual source and destination pathnames.
+</p>
+</li>
+<li>
+<p> The <code>src</code> argument can be a wildcard pattern expanding to one or more files, with <code>dest</code> naming a destination directory. In this case, if <code>recursive</code> is true, the file transfer will replicate the source directory structure at the destination.
+</p>
+</li>
+</ul>
+<p><code>upload_azure_file</code> and <code>download_azure_file</code> can display a progress bar to track the file transfer. You can control whether to display this with <code>options(azure_storage_progress_bar=TRUE|FALSE)</code>; the default is TRUE.
+</p>
+<p><code>azure_file_exists</code> and <code>azure_dir_exists</code> test for the existence of a file and directory, respectively.
+</p>
+
+
+<h4>AzCopy</h4>
+
+<p><code>upload_azure_file</code> and <code>download_azure_file</code> have the ability to use the AzCopy commandline utility to transfer files, instead of native R code. This can be useful if you want to take advantage of AzCopy's logging and recovery features; it may also be faster in the case of transferring a very large number of small files. To enable this, set the <code>use_azcopy</code> argument to TRUE.
+</p>
+<p>Note that AzCopy only supports SAS and AAD (OAuth) token as authentication methods. AzCopy also expects a single filename or wildcard spec as its source/destination argument, not a vector of filenames or a connection.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>For <code>list_azure_files</code>, if <code>info="name"</code>, a vector of file/directory names. If <code>info="all"</code>, a data frame giving the file size and whether each object is a file or directory.
+</p>
+<p>For <code>download_azure_file</code>, if <code>dest=NULL</code>, the contents of the downloaded file as a raw vector.
+</p>
+<p>For <code>azure_file_exists</code>, either TRUE or FALSE.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>file_share, az_storage, storage_download, call_azcopy
+</p>
+<p><a href="https://github.com/Azure/azure-storage-azcopy">AzCopy version 10 on GitHub</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+share &lt;- file_share("https://mystorage.file.core.windows.net/myshare", key="access_key")
+
+list_azure_files(share, "/")
+list_azure_files(share, "/", recursive=TRUE)
+
+create_azure_dir(share, "/newdir")
+
+upload_azure_file(share, "~/bigfile.zip", dest="/newdir/bigfile.zip")
+download_azure_file(share, "/newdir/bigfile.zip", dest="~/bigfile_downloaded.zip")
+
+delete_azure_file(share, "/newdir/bigfile.zip")
+delete_azure_dir(share, "/newdir")
+
+# uploading/downloading multiple files at once
+multiupload_azure_file(share, "/data/logfiles/*.zip")
+multidownload_azure_file(share, "/monthly/jan*.*", "/data/january")
+
+# you can also pass a vector of file/pathnames as the source and destination
+src &lt;- c("file1.csv", "file2.csv", "file3.csv")
+dest &lt;- paste0("uploaded_", src)
+multiupload_azure_file(share, src, dest)
+
+# uploading serialized R objects via connections
+json &lt;- jsonlite::toJSON(iris, pretty=TRUE, auto_unbox=TRUE)
+con &lt;- textConnection(json)
+upload_azure_file(share, con, "iris.json")
+
+rds &lt;- serialize(iris, NULL)
+con &lt;- rawConnection(rds)
+upload_azure_file(share, con, "iris.rds")
+
+# downloading files into memory: as a raw vector, and via a connection
+rawvec &lt;- download_azure_file(share, "iris.json", NULL)
+rawToChar(rawvec)
+
+con &lt;- rawConnection(raw(0), "r+")
+download_azure_file(share, "iris.rds", con)
+unserialize(con)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

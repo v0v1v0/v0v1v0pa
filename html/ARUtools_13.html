@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clean_logs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract log data from BAR-LT log files</h2>
+
+<h3>Description</h3>
+
+<p>Process BAR-LT log files into a data frame reflecting metadata, schedule
+information, and events. Events are time-stamped logs of either GPS fixes
+(<code>lat</code> and <code>lon</code>) or recordings (<code>rec_file</code>, <code>rec_size</code>, <code>rec_end</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clean_logs(log_files, return = "all", progress = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>log_files</code></td>
+<td>
+<p>Character vector of log files to process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return</code></td>
+<td>
+<p>Character. What kind of data to return, GPS fixes (<code>"gps"</code>),
+recording events (<code>"recordings"</code>) or <code>"all"</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Logical. Whether to use <code>purrr::map()</code> progress bars (default
+<code>TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that log files can have glitches. If there is no start time for a
+recording (generally when there is a problem and no recording is made), the
+<code>date_time</code> value for that recording will be the same as the <code>rec_end</code> time.
+</p>
+<p>Because the BAR-LT units adjust their time according to the GPS locations,
+all times are in "local" to that area.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Data frame containing
+</p>
+
+<ul>
+<li> <p><code>file_name</code>s and <code>path</code>s of the log files
+</p>
+</li>
+<li> <p><code>event</code>s and their <code>date_time</code>s
+</p>
+</li>
+<li> <p><code>lat</code> and <code>lon</code> for "gps" events
+</p>
+</li>
+<li> <p><code>rec_file</code>, <code>rec_size</code> and <code>rec_end</code> for "recording" events
+(recording start is the <code>date_time</code> of the event)
+</p>
+</li>
+<li> <p><code>schedule</code> information such as <code>schedule_date</code>, <code>schedule_name</code>,
+<code>schedule_lat</code>, <code>schedule_lon</code>, <code>schedule_sr</code> (sunrise),
+and <code>schedule_ss</code> (sunset)
+</p>
+</li>
+<li> <p><code>meta</code>data information such as <code>meta_serial</code> and <code>meta_firmware</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Replace "my_project_folder" with your directory containing your recordings and logfiles
+log_files &lt;- fs::dir_ls("my_project_folder", recurse = TRUE, glob = "*logfile*")
+log_files
+logs &lt;- clean_logs(log_files)
+
+log_files &lt;- "../ARUtools - Extra/aru_log_files/P028/1A_BARLT10962/logfile_00010962_SD1.txt"
+
+clean_logs(log_files)
+clean_logs(log_files, return = "gps")
+clean_logs(log_files, return = "recordings")
+
+log_files &lt;- fs::dir_ls("../ARUtools - Extra/aru_log_files/", recurse = TRUE, glob = "*logfile*")
+
+l &lt;- clean_logs(log_files)
+
+</code></pre>
+
+
+</div>

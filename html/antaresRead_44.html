@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readInputTS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read Input time series</h2>
+
+<h3>Description</h3>
+
+<p><img src="../help/figures/badge_api_ok.svg" alt="Antares API OK"></p>
+<p><code>readInputTS</code> is a function that reads time series from an antares
+project. But contrary to <code>readAntares</code>, it only reads time series
+stored in the input folder, so it can work in "input" mode.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readInputTS(
+  load = NULL,
+  thermalAvailabilities = NULL,
+  ror = NULL,
+  mingen = NULL,
+  hydroStorage = NULL,
+  hydroStorageMaxPower = NULL,
+  wind = NULL,
+  solar = NULL,
+  misc = NULL,
+  reserve = NULL,
+  linkCapacity = NULL,
+  resProduction = NULL,
+  st_storage = NULL,
+  opts = simOptions(),
+  timeStep = c("hourly", "daily", "weekly", "monthly", "annual"),
+  simplify = TRUE,
+  parallel = FALSE,
+  showProgress = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>load</code></td>
+<td>
+<p>vector of areas names for which load time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thermalAvailabilities</code></td>
+<td>
+<p>vector of areas names for which thermal availabilities of clusters must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ror</code></td>
+<td>
+<p>vector of areas names for which run of river time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mingen</code></td>
+<td>
+<p>vector of areas names for which Hydro Pmin time series must be read.
+(only for Antares version &gt;= 860)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hydroStorage</code></td>
+<td>
+<p>vector of areas names for which hydrolic storage time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hydroStorageMaxPower</code></td>
+<td>
+<p>vector of areas names for which hydrolic storage maximum power time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wind</code></td>
+<td>
+<p>vector of areas names for which wind time series must be read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solar</code></td>
+<td>
+<p>vector of areas names for which solar time series must be read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>misc</code></td>
+<td>
+<p>vector of areas names for which misc time series must be read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reserve</code></td>
+<td>
+<p>vector of areas names for which reserve time series must be read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linkCapacity</code></td>
+<td>
+<p>vector of links names for which links characteristics time series must be read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resProduction</code></td>
+<td>
+<p>vector of areas names for which renewables clusters production time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st_storage</code></td>
+<td>
+<p>vector of areas names for which st-storage clusters production time series must be read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>list of simulation parameters returned by the function
+<code>setSimulationPath</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeStep</code></td>
+<td>
+<p>Resolution of the data to import: hourly (default), daily,
+weekly, monthly or annual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>If TRUE and only one type of output is imported then a
+data.table is returned. If FALSE, the result will always be a list of class
+"antaresData".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Should the importation be parallelized ? (See details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+<p>If TRUE the function displays information about the progress of the
+importation.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>simplify = TRUE</code> and only one type of input is imported
+then the result is a data.table with class "antaresDataTable".
+</p>
+<p>Else an object of class "antaresDataList" is returned. It is a list of
+data.tables, each element representing one type of element (load, wind,
+solar, etc.).
+</p>
+
+
+<h3>Note</h3>
+
+<p>All parameters expecting a vector of areas or links names also accept the
+special value "all". It indicates the function to read the desired time
+series for all areas or links.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>setSimulationPath</code>, <code>readAntares</code>,
+<code>getAreas</code>, <code>getLinks</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Set an antares study in "input" mode. This is useful when one want to
+# inspect input time series before running a simulation.
+# Note that readAntares do not function in input mode, but readInputTS
+# works with any mode.
+
+setSimulationPath("path_to_the_study", "input")
+
+# Read load time series
+readInputTS(load = "all")
+
+# Read hydrolic storage and maximum power in the same call:
+readInputTS(hydroStorage = "all", hydroStorageMaxPower = "all")
+
+# Use a different time step
+myArea &lt;- readInputTS(load= "myArea", timeStep = "monthly")
+
+# Quick plot to visualize the variability of the series
+matplot(myArea[, - (1:2), with = FALSE], type = "l")
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

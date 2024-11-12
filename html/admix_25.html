@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IBM_tabul_stochasticInteg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Distribution of the contrast in the Inversion - Best Matching (IBM) method</h2>
+
+<h3>Description</h3>
+
+<p>Tabulate the distribution related to the inner convergence part of the contrast, by simulating trajectories of gaussian
+processes and applying some transformations. Useful to perform the test hypothesis then, by retrieving the (1-alpha)-quantile
+of interest. See 'Details' below and the cited paper therein for further information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IBM_tabul_stochasticInteg(
+  n.sim = 200,
+  n.varCovMat = 100,
+  sample1 = NULL,
+  sample2 = NULL,
+  min_size = NULL,
+  comp.dist = NULL,
+  comp.param = NULL,
+  parallel = FALSE,
+  n_cpu = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n.sim</code></td>
+<td>
+<p>Number of trajectories of simulated gaussian processes (number of random draws for tabulation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.varCovMat</code></td>
+<td>
+<p>Number of time points on which gaussian processes are simulated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample1</code></td>
+<td>
+<p>Observations of the first sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample2</code></td>
+<td>
+<p>Observations of the second sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_size</code></td>
+<td>
+<p>(default to NULL) In the k-sample case, useful to provide the minimal size among all samples. Otherwise, useless.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.dist</code></td>
+<td>
+<p>A list with four elements corresponding to the component distributions (specified with R native names for these distributions)
+involved in the two admixture models. The two first elements refer to the unknown and known components of the 1st admixture model,
+and the last two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.dist' could be specified as follows: list(f1=NULL, g1='norm', f2=NULL, g2='norm').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.param</code></td>
+<td>
+<p>A list with four elements corresponding to the parameters of the component distributions, each element being a list
+itself. The names used in this list must correspond to the native R argument names for these distributions.
+The two first elements refer to the parameters of unknown and known components of the 1st admixture model, and the last
+two ones to those of the second admixture model. If there are unknown elements, they must be specified as 'NULL' objects.
+For instance, 'comp.param' could be specified as follows: : list(f1=NULL, g1=list(mean=0,sd=1), f2=NULL, g2=list(mean=3,sd=1.1)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>(default to FALSE) Boolean to indicate whether parallel computations are performed (speed-up the tabulation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cpu</code></td>
+<td>
+<p>(default to 2) Number of cores used for computations when parallelizing.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the paper presenting the IBM approach at the following HAL weblink: https://hal.science/hal-03201760
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with four elements, containing: 1) random draws of the quantity 'sample size times the empirical contrast',
+as defined in the IBM approach (see 'Details' above); 2) the estimated unknown component weights for the two admixture
+models; 3) the value of the quantity 'sample size times the empirical contrast'; 4) the sequence of points in the
+support that were used to evaluate the variance-covariance matrix of empirical processes.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Milhaud <a href="mailto:xavier.milhaud.research@gmail.com">xavier.milhaud.research@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Simulate data:
+list.comp &lt;- list(f1 = 'norm', g1 = 'norm',
+                  f2 = 'norm', g2 = 'norm')
+list.param &lt;- list(f1 = list(mean = 1, sd = 1), g1 = list(mean = 2, sd = 0.7),
+                   f2 = list(mean = 1, sd = 1), g2 = list(mean = 3, sd = 1.2))
+X.sim &lt;- rsimmix(n=1000, unknownComp_weight=0.7, comp.dist = list(list.comp$f1,list.comp$g1),
+                 comp.param = list(list.param$f1, list.param$g1))$mixt.data
+Y.sim &lt;- rsimmix(n=1200, unknownComp_weight=0.6, comp.dist = list(list.comp$f2,list.comp$g2),
+                 comp.param = list(list.param$f2, list.param$g2))$mixt.data
+## Tabulate 1st term of stochastic integral (inner convergence) in a real-life setting:
+list.comp &lt;- list(f1 = NULL, g1 = 'norm',
+                  f2 = NULL, g2 = 'norm')
+list.param &lt;- list(f1 = NULL, g1 = list(mean = 2, sd = 0.7),
+                   f2 = NULL, g2 = list(mean = 3, sd = 1.2))
+U &lt;- IBM_tabul_stochasticInteg(n.sim = 2, n.varCovMat = 20, sample1 = X.sim, sample2 = Y.sim,
+                               min_size = NULL, comp.dist = list.comp, comp.param = list.param,
+                               parallel = FALSE, n_cpu = 2)
+
+
+</code></pre>
+
+
+</div>

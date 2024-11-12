@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>covbalance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Check covariate balance of a design.
+</h2>
+
+<h3>Description</h3>
+
+<p>For a given match, this function evaluates the balance of variables before and
+after matching. Balance is evaluated using standardized differences.  
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">covbalance(.data, grouplabel, matches, vars, details)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+
+<p>A data frame or matrix containing the informations on the <code>vars</code> for 
+which balance will be checked.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grouplabel</code></td>
+<td>
+
+<p>Argument describing the group structure. See the description in the 
+documentation of <code>kwaymatching</code> function of this package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matches</code></td>
+<td>
+
+<p>A character matrix describing the strata structure of the design. Standard
+use is the output of <code>tripletmatching</code> or <code>kwaytmatching</code> function.
+</p>
+<p>Each row of the matrix corresponds to a strata and each entry corresponds to 
+rowname of <code>.data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+
+<p>A character vector of the names of the variables for which balance should 
+be checked. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+
+<p>Optional argument. This argument can be used to get other details on the 
+<code>vars</code> before and after matching. A character vector of names of functions
+which summarizes a vector, e.g. mean. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Standardized difference of the covariates between two groups is computed as 
+difference of the means of the variable over the squared root of the average
+variance of the variable in the groups. 
+</p>
+<p>For better understanding of the matching, <code>details</code> can be used. This 
+argument can be used to get summaries of the variables before and after matching.
+For example, details = c(mean = 'mean', median = 'function(x) quantile(x, probs=.5)') 
+given the mean and median of the variables. Only functions that give a single 
+number summary can be used! 
+</p>
+<p>Currently, this function cannot be immediately used for a design with different
+strata sizes. One way to get around would be to fill in the smaller stratum 
+with false units and making all the strata of equal size.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list consisting of the following elements.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>std_diff</code></td>
+<td>
+<p> Standardized differences of the specified variables before and 
+after matching for every pair of groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+<p> Only if <code>details</code> is provided. A list of summaries of the 
+variables before and after matching using the functions specified by <code>details</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>See <code>kwaymatching</code> for usage.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bikram Karmakar 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tripletmatching</code>, <code>kwaymatching</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	
+	data(Dodgeram)
+	
+	## An example strata structure
+	matches = as.matrix(sample(rownames(Dodgeram), 500), ncol = 5)
+	
+	vars = c("AGE", "SEX.2", "IMPACT3.3", "DR_DRINK")
+	details = c('std_diff', 'mean', 'function(x) diff(range(x))', 
+	                         'function(x) quantile(x, probs = .9)')
+	names(details) &lt;- c('std_diff', 'mean', 'range', '90perc')
+	
+	covbalance(.data=Dodgeram, grouplabel=c("NOSAB", "optSAB", "WITHSABS"), 
+	                 matches = matches, vars = vars, details)
+					 
+</code></pre>
+
+
+</div>

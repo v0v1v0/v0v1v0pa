@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsdea</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Feature Selection in Data Envelopment Analysis with Mathematical Programming</h2>
+
+<h3>Description</h3>
+
+<p>Data Envelopment Analysis (DEA) calculates a relative efficiency score for a set of Decision Making Units (DMUs) by comparing one unit with others.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsdea(
+  input,
+  output,
+  orientation = c("input", "output"),
+  name = "",
+  ninputs = ncol(input),
+  noutputs = ncol(output),
+  nvariables = ncol(input) + ncol(output),
+  solver = "auto"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>A matrix or a data frame containing the inputs of the units to be evaluated, with one row for each DMU and one column for each input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>A matrix or a data frame containing the outputs of the units to be evaluated, with one row for each DMU and one column for each output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orientation</code></td>
+<td>
+<p>Use "input" for input orientation or "output" for output orientation in DEA model.
+The default is "input".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>An optional descriptive name for the model.
+The default is an empty string. 
+This name will be displayed in printed and summarized results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ninputs</code></td>
+<td>
+<p>Number of input features (variables) to be selected.
+Default is the number of input variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noutputs</code></td>
+<td>
+<p>Number of output features (variables) to be selected.
+Default is the number of output variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvariables</code></td>
+<td>
+<p>Number of total features (variables) to be selected, only applicable when both ninputs and noutputs are omitted.
+Default is the number of input plus output variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>The solver to be used by ROI to solve the DEA optimization problem.
+The solver must be installed and capable of solving mixed integer linear programming problems.
+Default is "auto."
+Use 'ROI_installed_solvers()' to list available solvers.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Each DMU transforms inputs into outputs.
+The set of inputs and outputs is the same for all the DMUs, but not their quantities.
+</p>
+<p>One of the fundamental steps in the application of data envelopment analysis is the choice of variables to include in the model.
+One of the methods proposed for this is what is known as the feature selection method.
+This method constructs a linear programming problem to maximize some objective function related to the dmu efficiencies.
+This function implements the feature selection method in the article [Benitez-Pena, S., Bogetoft, P. and Romero Morales, D. *Feature Selection in Data Envelopment Analysis: A Mathematical Optimization approach* Omega, Elsevier BV, **2020**, Vol. 96, pp. 102068](http://www.sciencedirect.com/science/article/pii/S0305048318312131)
+</p>
+<p>This function, in the case of input orientation, maximize the sum of all efficiencies, while in the output orientation case, the goal is to minimize this sum. 
+Once the relevant variables are selected, the function calculates the relative efficiency scores for each Decision Making Unit (DMU) and determines the weights for all input and output variables within the model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function return a fsdea class object with the following named members:
+</p>
+
+<ul>
+<li>
+<p> orientation: DEA model orientation.
+</p>
+</li>
+<li>
+<p> name: A label of the model.
+</p>
+</li>
+<li>
+<p> ninputs: Number of inputs to be selected.
+</p>
+</li>
+<li>
+<p> noutputs: Number of outputs to be selected.
+</p>
+</li>
+<li>
+<p> nvariables: Number of total variables to be selected.
+</p>
+</li>
+<li>
+<p> inputnames: Names of input variables.
+</p>
+</li>
+<li>
+<p> outputnames: Names of output variables.
+</p>
+</li>
+<li>
+<p> eff: A vector with DMU scores.
+</p>
+</li>
+<li>
+<p> ux: A set of weights for input variables.
+</p>
+</li>
+<li>
+<p> vy: A set of weights for output variables.
+</p>
+</li>
+<li>
+<p> obj: Optimal value of the objective function in the optimization problem.
+</p>
+</li>
+<li>
+<p> iselected: A vector of zeros and ones indicating the selected input variables.
+</p>
+</li>
+<li>
+<p> oselected: A vector of zeros and ones indicating the selected output variables.
+</p>
+</li>
+<li>
+<p> niselected: Number of input selected variables.
+</p>
+</li>
+<li>
+<p> noselected: Number of output selected variables.
+</p>
+</li>
+<li>
+<p> nvselected: Number of selected variables.
+</p>
+</li>
+<li>
+<p> vinput: Standardized virtual input divided by the sum of the weights, see [Costa2006] in <code>adea-package</code>.
+</p>
+</li>
+<li>
+<p> voutput: Standardized virtual output divided by the sum of the weights, see [Costa2006] in <code>adea-package</code>.
+</p>
+</li>
+<li>
+<p> solver: The solver used for the resolution of the optimization problem.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>adea-package</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data('cardealers4')
+input &lt;- cardealers4[, c('Employees', 'Depreciation')]
+output &lt;- cardealers4[, c('CarsSold', 'WorkOrders')]
+
+# Compute DEA model selecting at most 1 output
+model1o &lt;- fsdea(input, output, noutputs = 1)
+model1o
+#   Dealer A  Dealer B  Dealer C  Dealer D  Dealer E  Dealer F 
+#  0.7875000 0.7500000 0.3000000 0.8653846 1.0000000 0.5400000 
+#  Selected inputs : Depreciation
+#  Selected outputs: CarsSold
+
+# Compute DEA model selecting at most 1 input
+model1i &lt;- fsdea(input, output, ninputs = 1)
+model1i
+# Dealer A  Dealer B  Dealer C  Dealer D  Dealer E  Dealer F
+# 0.9915929 1.0000000 0.8928571 0.8653846 1.0000000 0.6515044
+# Selected inputs : Depreciation
+# Selected outputs: CarsSold, WorkOrders
+
+# Compute DEA model selecting at most 3 variables
+model3v &lt;- fsdea(input, output, nvariables = 3)
+model3v
+# Dealer A  Dealer B  Dealer C  Dealer D  Dealer E  Dealer F
+# 0.9915929 1.0000000 0.8928571 0.8653846 1.0000000 0.6515044
+# Selected inputs : Depreciation
+# Selected outputs: CarsSold, WorkOrders
+
+</code></pre>
+
+
+</div>

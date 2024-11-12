@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>assertr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>assertr: Assertive programming for R analysis pipeline.</h2>
+
+<h3>Description</h3>
+
+<p>The assertr package supplies a suite of functions designed to verify
+assumptions about data early in an analysis pipeline.
+See the assertr vignette or the documentation for more information <br>
+&gt; <code>vignette("assertr")</code>
+</p>
+
+
+<h3>Details</h3>
+
+<p>You may also want to read the documentation for the functions that
+<code>assertr</code> provides:
+</p>
+
+<ul>
+<li> <p><code>assert</code>
+</p>
+</li>
+<li> <p><code>verify</code>
+</p>
+</li>
+<li> <p><code>insist</code>
+</p>
+</li>
+<li> <p><code>assert_rows</code>
+</p>
+</li>
+<li> <p><code>insist_rows</code>
+</p>
+</li>
+<li> <p><code>not_na</code>
+</p>
+</li>
+<li> <p><code>in_set</code>
+</p>
+</li>
+<li> <p><code>has_all_names</code>
+</p>
+</li>
+<li> <p><code>is_uniq</code>
+</p>
+</li>
+<li> <p><code>num_row_NAs</code>
+</p>
+</li>
+<li> <p><code>maha_dist</code>
+</p>
+</li>
+<li> <p><code>col_concat</code>
+</p>
+</li>
+<li> <p><code>within_bounds</code>
+</p>
+</li>
+<li> <p><code>within_n_sds</code>
+</p>
+</li>
+<li> <p><code>within_n_mads</code>
+</p>
+</li>
+<li> <p><code>success_and_error_functions</code>
+</p>
+</li>
+<li> <p><code>chaining_functions</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)     # for the piping operator
+library(dplyr)
+
+# this confirms that
+#   - that the dataset contains more than 10 observations
+#   - that the column for 'miles per gallon' (mpg) is a positive number
+#   - that the column for 'miles per gallon' (mpg) does not contain a datum
+#     that is outside 4 standard deviations from its mean, and
+#   - that the am and vs columns (automatic/manual and v/straight engine,
+#     respectively) contain 0s and 1s only
+#   - each row contains at most 2 NAs
+#   - each row's mahalanobis distance is within 10 median absolute deviations of
+#     all the distance (for outlier detection)
+
+mtcars %&gt;%
+  verify(nrow(.) &gt; 10) %&gt;%
+  verify(mpg &gt; 0) %&gt;%
+  insist(within_n_sds(4), mpg) %&gt;%
+  assert(in_set(0,1), am, vs) %&gt;%
+  assert_rows(num_row_NAs, within_bounds(0,2), everything()) %&gt;%
+  insist_rows(maha_dist, within_n_mads(10), everything()) %&gt;%
+  group_by(cyl) %&gt;%
+  summarise(avg.mpg=mean(mpg))
+
+
+</code></pre>
+
+
+</div>

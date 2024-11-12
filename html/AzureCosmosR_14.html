@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_stored_procedure</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Methods for working with Azure Cosmos DB stored procedures</h2>
+
+<h3>Description</h3>
+
+<p>Methods for working with Azure Cosmos DB stored procedures
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_stored_procedure(object, ...)
+
+## S3 method for class 'cosmos_container'
+get_stored_procedure(object, procname, ...)
+
+list_stored_procedures(object, ...)
+
+create_stored_procedure(object, ...)
+
+## S3 method for class 'cosmos_container'
+create_stored_procedure(object, procname, body, ...)
+
+exec_stored_procedure(object, ...)
+
+## S3 method for class 'cosmos_container'
+exec_stored_procedure(object, procname, parameters = list(), ...)
+
+## S3 method for class 'cosmos_stored_procedure'
+exec_stored_procedure(object, ...)
+
+replace_stored_procedure(object, ...)
+
+## S3 method for class 'cosmos_container'
+replace_stored_procedure(object, procname, body, ...)
+
+## S3 method for class 'cosmos_stored_procedure'
+replace_stored_procedure(object, body, ...)
+
+delete_stored_procedure(object, ...)
+
+## S3 method for class 'cosmos_container'
+delete_stored_procedure(object, procname, confirm = TRUE, ...)
+
+## S3 method for class 'cosmos_stored_procedure'
+delete_stored_procedure(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A Cosmos DB container object, as obtained by <code>get_cosmos_container</code> or <code>create_cosmos_container</code>, or for <code>delete_stored_procedure.cosmos_stored_procedure</code>, the stored procedure object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional arguments passed to lower-level functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>procname</code></td>
+<td>
+<p>The name of the stored procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>For <code>create_stored_procedure</code> and <code>replace_stored_procedure</code>, the body of the stored procedure. This can be either a character string containing the source code, or the name of a source file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>For <code>exec_stored_procedure</code>, a list of parameters to pass to the procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>For <code>delete_stored_procedure</code>, whether to ask for confirmation before deleting.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These are methods for working with stored procedures in Azure Cosmos DB using the core (SQL) API. In the Cosmos DB model, stored procedures are written in JavaScript and associated with a container.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>get_stored_procedure</code> and <code>create_stored_procedure</code>, an object of class <code>cosmos_stored_procedure</code>. For <code>list_stored_procedures</code>, a list of such objects.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>cosmos_container, get_udf
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+db &lt;- get_cosmos_database(endp, "mydatabase")
+cont &lt;- create_cosmos_container(db, "mycontainer", partition_key="sex")
+
+# a simple stored procedure
+src &lt;- 'function helloworld() {
+   var context = getContext();
+    var response = context.getResponse();
+    response.setBody("Hello, World");
+}'
+create_stored_procedure(cont, "helloworld", src)
+sproc &lt;- get_stored_procedure(cont, "helloworld")
+exec_stored_procedure(sproc)
+
+# more complex example: uploading data
+sproc2 &lt;- create_stored_procedure(cont, "myBulkUpload",
+    body=system.file("srcjs/bulkUpload.js", package="AzureCosmosR"))
+
+list_stored_procedures(cont)
+
+sw_male &lt;- dplyr::filter(dplyr::starwars, sex == "male")
+exec_stored_procedure(sproc2, parameters=list(sw_male))
+
+delete_stored_procedure(sproc)
+delete_stored_procedure(sproc2)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

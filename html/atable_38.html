@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>indent_data_frame</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Indents data.frames</h2>
+
+<h3>Description</h3>
+
+<p>Indents data.frames for printing them as tables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">indent_data_frame(
+  DD,
+  keys,
+  values = setdiff(colnames(DD), keys),
+  character_empty = "",
+  numeric_empty = NA,
+  indent_character = "\\quad",
+  colname_indent = "Group"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>DD</code></td>
+<td>
+<p>A data.frame. Should be sorted by <code>keys</code> with <code>keys[1]</code> varying slowest and <code>keys[length(keys)]</code> varying fastest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keys</code></td>
+<td>
+<p>A character. Subset of <code>colnames(DD)</code> with <code>length(keys)&gt;=2</code>. The combination of keys must be unique. <code>DD[keys]</code> must be class character or factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>A character. Subset of colnames(DD). DD[keys] must be class character, factor or numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>character_empty</code></td>
+<td>
+<p>A character. Default ”. This character will be put in the new lines in class character columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numeric_empty</code></td>
+<td>
+<p>A numeric. Default NA.  This character will be put in the new lines in class numeric columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indent_character</code></td>
+<td>
+<p>A character. character for one indent. Default is '\quad' (meant for latex). Can also be '   ' for Word.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colname_indent</code></td>
+<td>
+<p>A character. Default 'Group'. Name of the new column with the indented keys.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Squeeze multiple key-columns into one column and indents the values accordingly.
+Adds new lines with the indented keys to the data.frame.
+Meant for wide tables that need to be narrower and more 'readable'
+Meant for plotting with e.g. xtable::xtable or Hmisc::latex or officer::body_add_table.
+Look at the examples for a more precise description.
+Meant for left-aligned columns. Thats why the <code>indent_character</code> is inserted
+to the left of the original values.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame. Columns: <code>c(colname_indent, values)</code>.
+Column <code>colname_indent</code> contains all combination of <code>DD[keys]</code>, but now indented and squeezed in this column and casted to character.
+Columns <code>'values'</code> contain all values of <code>DD[values]</code> unchanged.
+Number of rows is <code>sum(cumprod(nlevels(DD[keys])))</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+DD &lt;- expand.grid(Arm = paste0('Arm ', c(1,2,4)),
+                Gender = c('Male', 'Female'),
+                Haircolor = c('Red', 'Green', 'Blue'),
+                Income = c('Low', 'Med', 'High'), stringsAsFactors = TRUE)
+
+DD &lt;- doBy::orderBy(~ Arm + Gender + Haircolor + Income, DD)
+
+DD$values1 &lt;- runif(dim(DD)[1])
+DD$values2 &lt;- 1
+DD$values3 &lt;- sample(letters[1:4], size = nrow(DD), replace = TRUE)
+
+keys = c('Arm', 'Gender', 'Haircolor', 'Income')
+values = c('values1', 'values2', 'values3')
+## Not run: 
+DDD &lt;- indent_data_frame(DD, keys, indent_character = '   ')
+
+# print both:
+
+Hmisc::latex(DD,
+      file = '',
+      longtable = TRUE,
+      caption = 'Original table',
+      rowname = NULL)
+
+Hmisc::latex(DDD,
+      file = '',
+      longtable = TRUE,
+      caption = 'Indented table',
+      rowname = NULL)
+      
+## End(Not run)
+</code></pre>
+
+
+</div>

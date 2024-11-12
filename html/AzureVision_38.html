@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>publish_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Publish, export and unpublish a Custom Vision model iteration</h2>
+
+<h3>Description</h3>
+
+<p>Publish, export and unpublish a Custom Vision model iteration
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">publish_model(model, name, prediction_resource)
+
+unpublish_model(model, confirm = TRUE)
+
+export_model(model, format, destfile = basename(httr::parse_url(dl_link)$path))
+
+list_model_exports(model)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A Custom Vision model iteration object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>For <code>publish_model</code>, the name to assign to the published model on the prediction endpoint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prediction_resource</code></td>
+<td>
+<p>For <code>publish_model</code>, the Custom Vision prediction resource to publish to. This can either be a string containing the Azure resource ID, or an AzureRMR resource object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>For <code>unpublish_model</code>, whether to ask for confirmation first.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>For <code>export_model</code>, the format to export to. See below for supported formats.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>destfile</code></td>
+<td>
+<p>For <code>export_model</code>, the destination file for downloading. Set this to NULL to skip downloading.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Publishing a model makes it available to clients as a predictive service. Exporting a model serialises it to a file of the given format in Azure storage, which can then be downloaded. Each iteration of the model can be published or exported separately.
+</p>
+<p>The <code>format</code> argument to <code>export_model</code> can be one of the following. Note that exporting a model requires that the project was created with support for it.
+</p>
+
+<ul>
+<li> <p><code>"onnx"</code>: ONNX 1.2
+</p>
+</li>
+<li> <p><code>"coreml"</code>: CoreML, for iOS 11 devices
+</p>
+</li>
+<li> <p><code>"tensorflow"</code>: TensorFlow
+</p>
+</li>
+<li> <p><code>"tensorflow lite"</code>: TensorFlow Lite for Android devices
+</p>
+</li>
+<li> <p><code>"linux docker"</code>, <code>"windows docker"</code>, <code>"arm docker"</code>: A Docker image for the given platform (Raspberry Pi 3 in the case of ARM)
+</p>
+</li>
+<li> <p><code>"vaidk"</code>: Vision AI Development Kit
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>export_model</code> returns the URL of the exported file, invisibly if it was downloaded.
+</p>
+<p><code>list_model_exports</code> returns a data frame detailing the formats the current model has been exported to, along with their download URLs.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>train_model</code>, <code>get_model</code>, <code>customvision_predictive_service</code>, <code>predict.classification_service</code>, <code>predict.object_detection_service</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- customvision_training_endpoint(url="endpoint_url", key="key")
+myproj &lt;- get_project(endp, "myproject")
+mod &lt;- get_model(myproj)
+
+export_model(mod, "tensorflow", download=FALSE)
+export_model(mod, "onnx", destfile="onnx.zip")
+
+rg &lt;- AzureRMR::get_azure_login("yourtenant")$
+    get_subscription("sub_id")$
+    get_resource_group("rgname")
+
+pred_res &lt;- rg$get_cognitive_service("mycustvis_prediction")
+publish_model(mod, "mypublishedmod", pred_res)
+
+unpublish_model(mod)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

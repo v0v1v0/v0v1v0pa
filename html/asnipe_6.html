@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_network</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculating Weighted Network
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a network from a group by individual matrix.  This function allows various levels of subsetting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_network(association_data, data_format = "GBI", 
+	association_index = "SRI", identities = NULL, 
+	which_identities = NULL, times = NULL, occurrences = NULL,
+	locations = NULL, which_locations = NULL, start_time = NULL, 
+	end_time = NULL, classes = NULL, which_classes = NULL,
+	enter_time = NULL, exit_time = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>association_data</code></td>
+<td>
+
+<p>a <code>K x N</code> matrix of K groups (observations, gathering events, etc.) and N individuals (all individuals that are present in at least one group) OR a <code>K x N x N</code> array of sampling periods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_format</code></td>
+<td>
+
+<p><code>"GBI"</code> expect a group by individual matrix, <code>"SP"</code> Expect a sampling periods array
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>association_index</code></td>
+<td>
+
+<p><code>"SRI"</code> Simple ratio index, <code>"HWI"</code> Half-weight index (more to come)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identities</code></td>
+<td>
+
+<p>N vector of identifiers for each individual (column) in the group by individual matrix
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_identities</code></td>
+<td>
+
+<p>vector of identities to include in the network (subset of identities)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>K vector of times defining the middle of each group/event
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occurrences</code></td>
+<td>
+
+<p>N x S matrix with the occurrence of each individual in each sampling period (see details) containing only 0s and 1s
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locations</code></td>
+<td>
+
+<p>K vector of locations defining the location of each group/event
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_locations</code></td>
+<td>
+
+<p>vector of locations to include in the network (subset of locations)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_time</code></td>
+<td>
+
+<p>element describing the starting time for inclusion in the network (useful for temporal analysis)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_time</code></td>
+<td>
+
+<p>element describing the ending time for inclusion in the network (useful for temporal analysis)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classes</code></td>
+<td>
+
+<p>N vector of types or class of each individual (column) in the group by individual matrix (for subsetting)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_classes</code></td>
+<td>
+
+<p>vector of class(es)/type(s) to include in the network (subset of classes)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>enter_time</code></td>
+<td>
+
+<p>N vector of times when each individual entered the population
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exit_time</code></td>
+<td>
+
+<p>N vector of times when each individual departed the population 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Provides the ability to generate networks from one group by individual matrix and subsetting within the function.  This is particularly useful for generating several networks with different characteristics from the same group by individual matrix (for example networks from a given location or set of locations, or of a particular sex).
+</p>
+<p>Including occurrence data is recommended when using sampling periods (not required for GBI data). If an individual is only observed alone in a sampling period, then it will not be included in the sampling period matrices (as these record only associations or interactions, not presence). Thus, a matrix containing N (for number of individuals) rows and S (for number of sampling periods) is required. See the get_sampling_periods function for help generating this matrix.
+</p>
+<p>In some situations it is useful to calculate the network based only on the period in which each dyad overlapped within the population. In such cases, the entry_time and/or the exit_time variables can be given. These must given in the same format as the times variable, and all need to be in a format capable of doing time or date comparisons using &gt; and &lt; operators. The easiest is YYYYMMDD, whereas MMDDYYYY or DDMMYYYY will not work properly.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>N x N</code> matrix of association weights for each dyad.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Damien R. Farine
+</p>
+
+
+<h3>References</h3>
+
+<p>Whitehead (2008) <em>Analyzing Animal Societies</em>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("group_by_individual")
+data("times")
+
+# subset GBI (to reduce run time of the example)
+gbi &lt;- gbi[,1:80]
+
+## define to 2 x N x N network to hold two association matrices
+networks &lt;- array(0, c(2, ncol(gbi), ncol(gbi)))
+
+## calculate network for first half of the time
+networks[1,,] &lt;- get_network(gbi, data_format="GBI",
+	association_index="SRI", times=times, start_time=0, 
+	end_time=max(times)/2)
+networks[2,,] &lt;- get_network(gbi, data_format="GBI",
+	association_index="SRI", times=times, 
+	start_time=max(times)/2, end_time=max(times))
+
+## test if one predicts the other via a mantel test (must be loaded externally)
+library(ape)
+mantel.test(networks[1,,],networks[2,,])
+
+## convert to igraph network and calculate degree of the first network
+## Not run: 
+library(igraph)
+net &lt;- graph.adjacency(networks[1,,], mode="undirected", diag=FALSE, weighted=TRUE)
+deg_weighted &lt;- graph.strength(net)
+detach(package:igraph)
+
+
+## alternatively package SNA can use matrix stacks directly
+library(sna)
+deg_weighted &lt;- degree(networks,gmode="graph", g=c(1,2), ignore.eval=FALSE)
+detach(package:sna)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vmask</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter locations for speed</h2>
+
+<h3>Description</h3>
+
+<p>This function filters location data obtained from Argos, using the 
+MacConnell al. (1992) algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vmask(lat, lon, dtime, vmax)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>a numeric vector of latitudes, in decimal degrees</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lon</code></td>
+<td>
+<p>a numeric vector of longitudes, in decimal degrees</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtime</code></td>
+<td>
+<p>a vector of class POSIXct with date and time for each location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmax</code></td>
+<td>
+<p>speed threshold, in m/s</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Locations are filtered using the algorithm described in MacConnell et al. (1992).
+Since this algorithm calculates for each location the root mean square (rms) of the speeds
+to the previous, 2nd previous, next and 2nd next location, high swimming speeds can be
+obtained for points that are adjacent to outlier locations. Therefore, when the algorithm is applied 
+to a set of locations, only the peaks in rms (that are above the maximum speed) are removed. 
+Other locations are not removed even if above the speed limit. rms is then recalculated n times
+until all locations are below the speed threshold.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a vector with the following elements: <code>"removed"</code> (location removed by the filter),
+<code>"not"</code> (location not removed) and <code>"end_location"</code> (location at the end
+of the track where the algorithm could not be applied).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carla Freitas</p>
+
+
+<h3>References</h3>
+
+<p>McConnell, B.J., Chambers, C. and Fedak, M.A. (1992) Foraging ecology of southern
+elephant seals in relation to the bathymetry and productivity of the Southern Ocean.
+<em>Antarctic Science</em> 4:393-398.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sdafilter</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(seal)
+lat&lt;-seal$lat
+lon&lt;-seal$lon
+dtime&lt;-seal$dtime
+lc&lt;-seal$lc
+
+# filter by speed
+mfilter&lt;-vmask(lat,lon,dtime,2)
+
+# plot unfiltered (grey) and filtered data (green)
+plot(lon,lat,col="lightgrey",type="l",xlim=c(5,18), 
+ylim=c(77.1,79.1),xlab="Longitude",ylab="Latitude")
+lines(lon[which(mfilter=="not")],lat[which(mfilter=="not")],col="darkgreen")
+</code></pre>
+
+
+</div>

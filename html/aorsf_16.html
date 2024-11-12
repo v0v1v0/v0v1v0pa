@@ -1,0 +1,532 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_pd_oob</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partial dependence</h2>
+
+<h3>Description</h3>
+
+<p>Compute partial dependence for an oblique random forest.
+Partial dependence (PD) shows the expected prediction from a model as a function of a single predictor or multiple predictors. The expectation is marginalized over the values of all other predictors, giving something like a multivariable adjusted estimate of the model's prediction.
+You can compute partial dependence three ways using a random forest:
+</p>
+
+<ul>
+<li>
+<p> using in-bag predictions for the training data
+</p>
+</li>
+<li>
+<p> using out-of-bag predictions for the training data
+</p>
+</li>
+<li>
+<p> using predictions for a new set of data
+</p>
+</li>
+</ul>
+<p>See examples for more details
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_pd_oob(
+  object,
+  pred_spec,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  expand_grid = TRUE,
+  prob_values = c(0.025, 0.5, 0.975),
+  prob_labels = c("lwr", "medn", "upr"),
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_pd_inb(
+  object,
+  pred_spec,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  expand_grid = TRUE,
+  prob_values = c(0.025, 0.5, 0.975),
+  prob_labels = c("lwr", "medn", "upr"),
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_pd_new(
+  object,
+  pred_spec,
+  new_data,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  na_action = "fail",
+  expand_grid = TRUE,
+  prob_values = c(0.025, 0.5, 0.975),
+  prob_labels = c("lwr", "medn", "upr"),
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) a trained oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_spec</code></td>
+<td>
+<p>(<em>named list</em>, <em>pspec_auto</em>, or <em>data.frame</em>).
+</p>
+
+<ul>
+<li>
+<p> If <code>pred_spec</code> is a named list,
+Each item in the list should be a vector of values that will be used as
+points in the partial dependence function. The name of each item in the
+list should indicate which variable will be modified to take the
+corresponding values.
+</p>
+</li>
+<li>
+<p> If <code>pred_spec</code> is created using <code>pred_spec_auto()</code>, all that is needed
+is the names of variables to use (see pred_spec_auto).
+</p>
+</li>
+<li>
+<p> If <code>pred_spec</code> is a <code>data.frame</code>, columns will
+indicate variable names, values will indicate variable values, and
+partial dependence will be computed using the inputs on each row.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_horizon</code></td>
+<td>
+<p>(<em>double</em>) Only relevent for survival forests.
+A value or vector indicating the time(s) that predictions will be
+calibrated to. E.g., if you were predicting risk of incident heart
+failure within the next 10 years, then <code>pred_horizon = 10</code>.
+<code>pred_horizon</code> can be <code>NULL</code> if <code>pred_type</code> is <code>'mort'</code>, since
+mortality predictions are aggregated over all event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_type</code></td>
+<td>
+<p>(<em>character</em>) the type of predictions to compute. Valid
+Valid options for survival are:
+</p>
+
+<ul>
+<li>
+<p> 'risk' : probability of having an event at or before <code>pred_horizon</code>.
+</p>
+</li>
+<li>
+<p> 'surv' : 1 - risk.
+</p>
+</li>
+<li>
+<p> 'chf': cumulative hazard function
+</p>
+</li>
+<li>
+<p> 'mort': mortality prediction
+</p>
+</li>
+<li>
+<p> 'time': survival time prediction
+</p>
+</li>
+</ul>
+<p>For classification:
+</p>
+
+<ul><li>
+<p> 'prob': probability for each class
+</p>
+</li></ul>
+<p>For regression:
+</p>
+
+<ul><li>
+<p> 'mean': predicted mean, i.e., the expected value
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand_grid</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, partial dependence will be
+computed at all possible combinations of inputs in <code>pred_spec</code>. If
+<code>FALSE</code>, partial dependence will be computed for each variable
+in <code>pred_spec</code>, separately.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob_values</code></td>
+<td>
+<p>(<em>numeric</em>) a vector of values between 0 and 1,
+indicating what quantiles will be used to summarize the partial
+dependence values at each set of inputs. <code>prob_values</code> should
+have the same length as <code>prob_labels</code>. The quantiles are calculated
+based on predictions from <code>object</code> at each set of values indicated
+by <code>pred_spec</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob_labels</code></td>
+<td>
+<p>(<em>character</em>) a vector of labels with the same length
+as <code>prob_values</code>, with each label indicating what the corresponding
+value in <code>prob_values</code> should be labelled as in summarized outputs.
+<code>prob_labels</code> should have the same length as <code>prob_values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary_checks</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, <code>pred_spec</code> will be checked
+to make sure the requested values are between the 10th and 90th
+percentile in the object's training data. If <code>FALSE</code>, these checks are
+skipped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_thread</code></td>
+<td>
+<p>(<em>integer</em>) number of threads to use while computing predictions. Default is 0, which allows a suitable number of threads to be used based on availability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress will be
+printed to console. If <code>FALSE</code> (the default), nothing will be
+printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>a data.frame, tibble, or data.table to compute predictions in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_action</code></td>
+<td>
+<p>(<em>character</em>) what should happen when <code>new_data</code> contains missing values (i.e., <code>NA</code> values). Valid options are:
+</p>
+
+<ul>
+<li>
+<p> 'fail' : an error is thrown if <code>new_data</code> contains <code>NA</code> values
+</p>
+</li>
+<li>
+<p> 'omit' : rows in <code>new_data</code> with incomplete data will be dropped
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Partial dependence has a number of <a href="https://christophm.github.io/interpretable-ml-book/pdp.html#disadvantages-5">known limitations and assumptions</a> that users should be aware of (see Hooker, 2021). In particular, partial dependence is less intuitive when &gt;2 predictors are examined jointly, and it is assumed that the feature(s) for which the partial dependence is computed are not correlated with other features (this is likely not true in many cases). Accumulated local effect plots can be used (see <a href="https://christophm.github.io/interpretable-ml-book/ale.html">here</a>) in the case where feature independence is not a valid assumption.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.table containing
+partial dependence values for the specified variable(s)
+and, if relevant, at the specified prediction horizon(s).
+</p>
+
+
+<h3>Examples</h3>
+
+<p>You can compute partial dependence and individual conditional
+expectations in three ways:
+</p>
+
+<ul>
+<li>
+<p> using in-bag predictions for the training data. In-bag partial
+dependence indicates relationships that the model has learned during
+training. This is helpful if your goal is to interpret the model.
+</p>
+</li>
+<li>
+<p> using out-of-bag predictions for the training data. Out-of-bag partial
+dependence indicates relationships that the model has learned during
+training but using the out-of-bag data simulates application of the
+model to new data. This is helpful if you want to test your model’s
+reliability or fairness in new data but you don’t have access to a
+large testing set.
+</p>
+</li>
+<li>
+<p> using predictions for a new set of data. New data partial dependence
+shows how the model predicts outcomes for observations it has not
+seen. This is helpful if you want to test your model’s reliability or
+fairness.
+</p>
+</li>
+</ul>
+<h4>Classification</h4>
+
+<p>Begin by fitting an oblique classification random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_clsf &lt;- orsf(data = penguins_orsf_train, 
+                 formula = species ~ .)
+</pre></div>
+<p>Compute partial dependence using out-of-bag data for
+<code>flipper_length_mm = c(190, 210)</code>.
+</p>
+<div class="sourceCode r"><pre>pred_spec &lt;- list(flipper_length_mm = c(190, 210))
+
+pd_oob &lt;- orsf_pd_oob(fit_clsf, pred_spec = pred_spec)
+
+pd_oob
+</pre></div>
+<div class="sourceCode"><pre>## Key: &lt;class&gt;
+##        class flipper_length_mm      mean         lwr       medn       upr
+##       &lt;fctr&gt;             &lt;num&gt;     &lt;num&gt;       &lt;num&gt;      &lt;num&gt;     &lt;num&gt;
+## 1:    Adelie               190 0.6176908 0.202278109 0.75856417 0.9810614
+## 2:    Adelie               210 0.4338528 0.019173811 0.56489202 0.8648110
+## 3: Chinstrap               190 0.2114979 0.017643385 0.15211271 0.7215181
+## 4: Chinstrap               210 0.1803019 0.020108201 0.09679464 0.7035053
+## 5:    Gentoo               190 0.1708113 0.001334861 0.02769695 0.5750201
+## 6:    Gentoo               210 0.3858453 0.068685035 0.20717073 0.9532853
+</pre></div>
+<p>Note that predicted probabilities are returned for each class and
+probabilities in the <code>mean</code> column sum to 1 if you take the sum over
+each class at a specific value of the <code>pred_spec</code> variables. For
+example,
+</p>
+<div class="sourceCode r"><pre>sum(pd_oob[flipper_length_mm == 190, mean])
+</pre></div>
+<div class="sourceCode"><pre>## [1] 1
+</pre></div>
+<p>But this isn’t the case for the median predicted probability!
+</p>
+<div class="sourceCode r"><pre>sum(pd_oob[flipper_length_mm == 190, medn])
+</pre></div>
+<div class="sourceCode"><pre>## [1] 0.9383738
+</pre></div>
+
+
+
+<h4>Regression</h4>
+
+<p>Begin by fitting an oblique regression random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_regr &lt;- orsf(data = penguins_orsf_train, 
+                 formula = bill_length_mm ~ .)
+</pre></div>
+<p>Compute partial dependence using new data for
+<code>flipper_length_mm = c(190, 210)</code>.
+</p>
+<div class="sourceCode r"><pre>pred_spec &lt;- list(flipper_length_mm = c(190, 210))
+
+pd_new &lt;- orsf_pd_new(fit_regr, 
+                      pred_spec = pred_spec,
+                      new_data = penguins_orsf_test)
+
+pd_new
+</pre></div>
+<div class="sourceCode"><pre>##    flipper_length_mm     mean      lwr     medn      upr
+##                &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+## 1:               190 42.96571 37.09805 43.69769 48.72301
+## 2:               210 45.66012 40.50693 46.31577 51.65163
+</pre></div>
+<p>You can also let <code>pred_spec_auto</code> pick reasonable values like so:
+</p>
+<div class="sourceCode r"><pre>pred_spec = pred_spec_auto(species, island, body_mass_g)
+
+pd_new &lt;- orsf_pd_new(fit_regr, 
+                      pred_spec = pred_spec,
+                      new_data = penguins_orsf_test)
+
+pd_new
+</pre></div>
+<div class="sourceCode"><pre>##       species    island body_mass_g     mean      lwr     medn      upr
+##        &lt;fctr&gt;    &lt;fctr&gt;       &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+##  1:    Adelie    Biscoe        3200 40.31374 37.24373 40.31967 44.22824
+##  2: Chinstrap    Biscoe        3200 45.10582 42.63342 45.10859 47.60119
+##  3:    Gentoo    Biscoe        3200 42.81649 40.19221 42.55664 46.84035
+##  4:    Adelie     Dream        3200 40.16219 36.95895 40.34633 43.90681
+##  5: Chinstrap     Dream        3200 46.21778 43.53954 45.90929 49.19173
+## ---                                                                    
+## 41: Chinstrap     Dream        5300 48.48139 46.36282 48.25679 51.02996
+## 42:    Gentoo     Dream        5300 45.91819 43.62832 45.54110 49.91622
+## 43:    Adelie Torgersen        5300 42.92879 40.66576 42.31072 46.76406
+## 44: Chinstrap Torgersen        5300 46.59576 44.80400 46.49196 49.03906
+## 45:    Gentoo Torgersen        5300 45.11384 42.95190 44.51289 49.27629
+</pre></div>
+<p>By default, all combinations of all variables are used. However, you can
+also look at the variables one by one, separately, like so:
+</p>
+<div class="sourceCode r"><pre>pd_new &lt;- orsf_pd_new(fit_regr, 
+                      expand_grid = FALSE,
+                      pred_spec = pred_spec,
+                      new_data = penguins_orsf_test)
+
+pd_new
+</pre></div>
+<div class="sourceCode"><pre>##        variable value     level     mean      lwr     medn      upr
+##          &lt;char&gt; &lt;num&gt;    &lt;char&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+##  1:     species    NA    Adelie 41.90271 37.10417 41.51723 48.51478
+##  2:     species    NA Chinstrap 47.11314 42.40419 46.96478 51.51392
+##  3:     species    NA    Gentoo 44.37038 39.87306 43.89889 51.21635
+##  4:      island    NA    Biscoe 44.21332 37.22711 45.27862 51.21635
+##  5:      island    NA     Dream 44.43354 37.01471 45.57261 51.51392
+##  6:      island    NA Torgersen 43.29539 37.01513 44.26924 49.84391
+##  7: body_mass_g  3200      &lt;NA&gt; 42.84625 37.03978 43.95991 49.19173
+##  8: body_mass_g  3550      &lt;NA&gt; 43.53326 37.56730 44.43756 50.47092
+##  9: body_mass_g  3975      &lt;NA&gt; 44.30431 38.31567 45.22089 51.50683
+## 10: body_mass_g  4700      &lt;NA&gt; 45.22559 39.88199 46.34680 51.18955
+## 11: body_mass_g  5300      &lt;NA&gt; 45.91412 40.84742 46.95327 51.48851
+</pre></div>
+<p>And you can also bypass all the bells and whistles by using your own
+<code>data.frame</code> for a <code>pred_spec</code>. (Just make sure you request values that
+exist in the training data.)
+</p>
+<div class="sourceCode r"><pre>custom_pred_spec &lt;- data.frame(species = 'Adelie', 
+                               island = 'Biscoe')
+
+pd_new &lt;- orsf_pd_new(fit_regr, 
+                      pred_spec = custom_pred_spec,
+                      new_data = penguins_orsf_test)
+
+pd_new
+</pre></div>
+<div class="sourceCode"><pre>##    species island     mean      lwr     medn      upr
+##     &lt;fctr&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+## 1:  Adelie Biscoe 41.98024 37.22711 41.65252 48.51478
+</pre></div>
+
+
+
+<h4>Survival</h4>
+
+<p>Begin by fitting an oblique survival random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(pbc_orsf), 150) 
+
+pbc_orsf_train &lt;- pbc_orsf[index_train, ]
+pbc_orsf_test &lt;- pbc_orsf[-index_train, ]
+
+fit_surv &lt;- orsf(data = pbc_orsf_train, 
+                 formula = Surv(time, status) ~ . - id,
+                 oobag_pred_horizon = 365.25 * 5)
+</pre></div>
+<p>Compute partial dependence using in-bag data for <code>bili = c(1,2,3,4,5)</code>:
+</p>
+<div class="sourceCode r"><pre>pd_train &lt;- orsf_pd_inb(fit_surv, pred_spec = list(bili = 1:5))
+pd_train
+</pre></div>
+<div class="sourceCode"><pre>##    pred_horizon  bili      mean        lwr      medn       upr
+##           &lt;num&gt; &lt;num&gt;     &lt;num&gt;      &lt;num&gt;     &lt;num&gt;     &lt;num&gt;
+## 1:      1826.25     1 0.2566200 0.02234786 0.1334170 0.8918909
+## 2:      1826.25     2 0.3121392 0.06853733 0.1896849 0.9204338
+## 3:      1826.25     3 0.3703242 0.11409793 0.2578505 0.9416791
+## 4:      1826.25     4 0.4240692 0.15645214 0.3331057 0.9591581
+## 5:      1826.25     5 0.4663670 0.20123406 0.3841700 0.9655296
+</pre></div>
+<p>If you don’t have specific values of a variable in mind, let
+<code>pred_spec_auto</code> pick for you:
+</p>
+<div class="sourceCode r"><pre>pd_train &lt;- orsf_pd_inb(fit_surv, pred_spec_auto(bili))
+pd_train
+</pre></div>
+<div class="sourceCode"><pre>##    pred_horizon  bili      mean        lwr      medn       upr
+##           &lt;num&gt; &lt;num&gt;     &lt;num&gt;      &lt;num&gt;     &lt;num&gt;     &lt;num&gt;
+## 1:      1826.25  0.55 0.2481444 0.02035041 0.1242215 0.8801444
+## 2:      1826.25  0.70 0.2502831 0.02045039 0.1271039 0.8836536
+## 3:      1826.25  1.50 0.2797763 0.03964900 0.1601715 0.9041584
+## 4:      1826.25  3.50 0.3959349 0.13431288 0.2920400 0.9501230
+## 5:      1826.25  7.25 0.5351935 0.28064629 0.4652185 0.9783000
+</pre></div>
+<p>Specify <code>pred_horizon</code> to get partial dependence at each value:
+</p>
+<div class="sourceCode r"><pre>pd_train &lt;- orsf_pd_inb(fit_surv, pred_spec_auto(bili),
+                        pred_horizon = seq(500, 3000, by = 500))
+pd_train
+</pre></div>
+<div class="sourceCode"><pre>##     pred_horizon  bili      mean         lwr       medn       upr
+##            &lt;num&gt; &lt;num&gt;     &lt;num&gt;       &lt;num&gt;      &lt;num&gt;     &lt;num&gt;
+##  1:          500  0.55 0.0617199 0.000443399 0.00865419 0.5907104
+##  2:         1000  0.55 0.1418501 0.005793742 0.05572853 0.7360749
+##  3:         1500  0.55 0.2082505 0.013609478 0.09174558 0.8556319
+##  4:         2000  0.55 0.2679017 0.023047689 0.14574169 0.8910549
+##  5:         2500  0.55 0.3179617 0.063797305 0.20254500 0.9017710
+## ---                                                              
+## 26:         1000  7.25 0.3264627 0.135343689 0.25956791 0.8884333
+## 27:         1500  7.25 0.4641265 0.218208755 0.38787435 0.9702903
+## 28:         2000  7.25 0.5511761 0.293367409 0.48427730 0.9812413
+## 29:         2500  7.25 0.6200238 0.371965247 0.56954399 0.9845058
+## 30:         3000  7.25 0.6803482 0.425128031 0.64642318 0.9888637
+</pre></div>
+<p>vector-valued <code>pred_horizon</code> input comes with minimal extra
+computational cost. Use a fine grid of time values and assess whether
+predictors have time-varying effects. (see partial dependence vignette
+for example)
+</p>
+
+
+
+<h3>References</h3>
+
+
+<ol><li>
+<p> Hooker, Giles, Mentch, Lucas, Zhou, Siyu (2021). "Unrestricted
+permutation forces extrapolation: variable importance requires at least
+one more model, or there is no free variable importance." <em>Statistics
+and Computing</em>, <em>31</em>, 1-16.
+</p>
+</li></ol>
+</div>

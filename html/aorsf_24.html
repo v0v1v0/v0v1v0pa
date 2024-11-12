@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_update</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update Forest Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Update Forest Parameters
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_update(object, ..., modify_in_place = FALSE, no_fit = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) an oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to plug into orsf that will be used to define the
+update. These arguments include:
+</p>
+
+<ul>
+<li> <p><code>data</code>
+</p>
+</li>
+<li> <p><code>formula</code>
+</p>
+</li>
+<li> <p><code>control</code>
+</p>
+</li>
+<li> <p><code>weights</code>
+</p>
+</li>
+<li> <p><code>n_tree</code>
+</p>
+</li>
+<li> <p><code>n_split</code>
+</p>
+</li>
+<li> <p><code>n_retry</code>
+</p>
+</li>
+<li> <p><code>n_thread</code>
+</p>
+</li>
+<li> <p><code>mtry</code>
+</p>
+</li>
+<li> <p><code>sample_with_replacement</code>
+</p>
+</li>
+<li> <p><code>sample_fraction</code>
+</p>
+</li>
+<li> <p><code>leaf_min_events</code>
+</p>
+</li>
+<li> <p><code>leaf_min_obs</code>
+</p>
+</li>
+<li> <p><code>split_rule</code>
+</p>
+</li>
+<li> <p><code>split_min_events</code>
+</p>
+</li>
+<li> <p><code>split_min_obs</code>
+</p>
+</li>
+<li> <p><code>split_min_stat</code>
+</p>
+</li>
+<li> <p><code>pred_type</code>
+</p>
+</li>
+<li> <p><code>oobag_pred_horizon</code>
+</p>
+</li>
+<li> <p><code>oobag_eval_every</code>
+</p>
+</li>
+<li> <p><code>oobag_fun</code>
+</p>
+</li>
+<li> <p><code>importance</code>
+</p>
+</li>
+<li> <p><code>importance_max_pvalue</code>
+</p>
+</li>
+<li> <p><code>group_factors</code>
+</p>
+</li>
+<li> <p><code>tree_seeds</code>
+</p>
+</li>
+<li> <p><code>na_action</code>
+</p>
+</li>
+<li> <p><code>verbose_progress</code>
+</p>
+</li>
+</ul>
+<p>Note that you can update <code>control</code>, but you cannot change the type
+of forest. For example, you can't go from classification to regression
+with <code>orsf_update</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modify_in_place</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, <code>object</code> will be modified
+by the inputs specified in <code>...</code>. Be cautious, as modification in place
+will overwrite existing data. If <code>FALSE</code> (the default), <code>object</code> will
+be copied and then the modifications will be applied to the copy,
+leaving the original <code>object</code> unmodified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no_fit</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, model fitting steps are defined and
+saved, but training is not initiated. The object returned can be
+directly submitted to <code>orsf_train()</code> so long as <code>attach_data</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are several dynamic inputs in <code>orsf</code> with default values of <code>NULL</code>.
+Specifically, these inputs are <code>control</code>, <code>weights</code>, <code>mtry</code>, <code>split_rule</code>,
+<code>split_min_stat</code>, <code>pred_type</code>, <code>pred_horizon</code>, <code>oobag_eval_function</code>,
+<code>tree_seeds</code>, and <code>oobag_eval_every</code>. If no explicit value is given for
+these inputs in the call, they <em>will be re-formed</em>. For example, if
+an initial forest includes 17 predictors, the default <code>mtry</code> is the
+smallest integer that is greater than or equal to the square root of 17,
+i.e., 5. Then, if you make an updated forest with 1 less predictor and
+you do not explicitly say <code>mtry = 5</code>, then <code>mtry</code> will be re-initialized
+in the update based on the available 16 predictors, and the resulting
+value of <code>mtry</code> will be 4. This is done to avoid many potential errors
+that would occur if the dynamic outputs were not re-initialized.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an <code>ObliqueForest</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+# initial fit has mtry of 5
+fit &lt;- orsf(pbc_orsf, time + status ~ . -id)
+
+# note that mtry is now 4 (see details)
+fit_new &lt;- orsf_update(fit, formula = . ~ . - edema, n_tree = 100)
+
+# prevent dynamic updates by specifying inputs you want to freeze.
+fit_newer &lt;- orsf_update(fit_new, mtry = 2)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

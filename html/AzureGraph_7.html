@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_user</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>User in Azure Active Directory</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an AAD user account.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>az_user</code>, inheriting from <code>az_object</code>.
+</p>
+
+
+<h3>Fields</h3>
+
+
+<ul>
+<li> <p><code>token</code>: The token used to authenticate with the Graph host.
+</p>
+</li>
+<li> <p><code>tenant</code>: The Azure Active Directory tenant for this user.
+</p>
+</li>
+<li> <p><code>type</code>: always "user" for a user object.
+</p>
+</li>
+<li> <p><code>properties</code>: The user properties.
+</p>
+</li>
+</ul>
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new user object. Do not call this directly; see 'Initialization' below.
+</p>
+</li>
+<li> <p><code>delete(confirm=TRUE)</code>: Delete a user account. By default, ask for confirmation first.
+</p>
+</li>
+<li> <p><code>update(...)</code>: Update the user information in Azure Active Directory.
+</p>
+</li>
+<li> <p><code>do_operation(...)</code>: Carry out an arbitrary operation on the user account.
+</p>
+</li>
+<li> <p><code>sync_fields()</code>: Synchronise the R object with the app data in Azure Active Directory.
+</p>
+</li>
+<li> <p><code>list_direct_memberships(filter=NULL, n=Inf)</code>: List the groups and directory roles this user is a direct member of.
+</p>
+</li>
+<li> <p><code>list_owned_objects(type=c("user", "group", "application", "servicePrincipal"), filter=NULL, n=Inf)</code>: List directory objects (groups/apps/service principals) owned by this user. Specify the <code>type</code> argument to limit the result to specific object type(s).
+</p>
+</li>
+<li> <p><code>list_created_objects(type=c("user", "group", "application", "servicePrincipal"), filter=NULL, n=Inf)</code>: List directory objects (groups/apps/service principals) created by this user. Specify the <code>type</code> argument to limit the result to specific object type(s).
+</p>
+</li>
+<li> <p><code>list_owned_devices(filter=NULL, n=Inf)</code>: List the devices owned by this user.
+</p>
+</li>
+<li> <p><code>list_registered_devices(filter=NULL, n=Inf)</code>: List the devices registered by this user.
+</p>
+</li>
+<li> <p><code>reset_password(password=NULL, force_password_change=TRUE)</code>: Resets a user password. By default the new password will be randomly generated, and must be changed at next login.
+</p>
+</li>
+</ul>
+<h3>Initialization</h3>
+
+<p>Creating new objects of this class should be done via the <code>create_user</code> and <code>get_user</code> methods of the ms_graph and az_app classes. Calling the <code>new()</code> method for this class only constructs the R object; it does not call the Microsoft Graph API to create the actual user account.
+</p>
+
+
+<h3>List methods</h3>
+
+<p>All <code style="white-space: pre;">⁠list_*⁠</code> methods have <code>filter</code> and <code>n</code> arguments to limit the number of results. The former should be an <a href="https://learn.microsoft.com/en-us/graph/query-parameters#filter-parameter">OData expression</a> as a string to filter the result set on. The latter should be a number setting the maximum number of (filtered) results to return. The default values are <code>filter=NULL</code> and <code>n=Inf</code>. If <code>n=NULL</code>, the <code>ms_graph_pager</code> iterator object is returned instead to allow manual iteration over the results.
+</p>
+<p>Support in the underlying Graph API for OData queries is patchy. Not all endpoints that return lists of objects support filtering, and if they do, they may not allow all of the defined operators. If your filtering expression results in an error, you can carry out the operation without filtering and then filter the results on the client side.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>ms_graph, az_app, az_group, az_device, az_object
+</p>
+<p><a href="https://learn.microsoft.com/en-us/graph/overview">Microsoft Graph overview</a>,
+<a href="https://learn.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0">REST API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+gr &lt;- get_graph_login()
+
+# my user account
+gr$get_user()
+
+# another user account
+usr &lt;- gr$get_user("myname@aadtenant.com")
+
+grps &lt;- usr$list_direct_memberships()
+head(grps)
+
+# owned objects
+usr$list_owned_objects()
+
+# owned apps and service principals
+usr$list_owned_objects(type=c("application", "servicePrincipal"))
+
+# first 5 objects
+usr$list_owned_objects(n=5)
+
+# get the pager object
+pager &lt;- usr$list_owned_objects(n=NULL)
+pager$value
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_subscription</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure subscription class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an Azure subscription.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>az_subscription</code>.
+</p>
+
+
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(token, id, ...)</code>: Initialize a subscription object.
+</p>
+</li>
+<li> <p><code>list_resource_groups(filter, top)</code>: Return a list of resource group objects for this subscription. <code>filter</code> and <code>top</code> are optional arguments to filter the results; see the <a href="https://learn.microsoft.com/en-us/rest/api/resources/resourcegroups/list">Azure documentation</a> for more details. If <code>top</code> is specified, the returned list will have a maximum of this many items.
+</p>
+</li>
+<li> <p><code>get_resource_group(name)</code>: Return an object representing an existing resource group.
+</p>
+</li>
+<li> <p><code>create_resource_group(name, location)</code>: Create a new resource group in the specified region/location, and return an object representing it. By default, AzureRMR will set the <code>createdBy</code> tag on a newly-created resource group to the value <code>AzureR/AzureRMR</code>.
+</p>
+</li>
+<li> <p><code>delete_resource_group(name, confirm=TRUE)</code>: Delete a resource group, after asking for confirmation.
+</p>
+</li>
+<li> <p><code>resource_group_exists(name)</code>: Check if a resource group exists.
+</p>
+</li>
+<li> <p><code>list_resources(filter, expand, top)</code>: List all resources deployed under this subscription. <code>filter</code>, <code>expand</code> and <code>top</code> are optional arguments to filter the results; see the <a href="https://learn.microsoft.com/en-us/rest/api/resources/resources/list">Azure documentation</a> for more details. If <code>top</code> is specified, the returned list will have a maximum of this many items.
+</p>
+</li>
+<li> <p><code>list_locations(info=c("partial", "all"))</code>: List locations available. The default <code>info="partial"</code> returns a subset of the information about each location; set <code>info="all"</code> to return everything.
+</p>
+</li>
+<li> <p><code>get_provider_api_version(provider, type, which=1, stable_only=TRUE)</code>: Get the current API version for the given resource provider and type. If no resource type is supplied, returns a vector of API versions, one for each resource type for the given provider. If neither provider nor type is supplied, returns the API versions for all resources and providers. Set <code>stable_only=FALSE</code> to allow preview APIs to be returned. Set <code>which</code> to a number &gt; 1 to return an API other than the most recent.
+</p>
+</li>
+<li> <p><code>do_operation(...)</code>: Carry out an operation. See 'Operations' for more details.
+</p>
+</li>
+<li> <p><code>create_lock(name, level)</code>: Create a management lock on this subscription (which will propagate to all resources within it).
+</p>
+</li>
+<li> <p><code>get_lock(name)</code>: Returns a management lock object.
+</p>
+</li>
+<li> <p><code>delete_lock(name)</code>: Deletes a management lock object.
+</p>
+</li>
+<li> <p><code>list_locks()</code>: List all locks that exist in this subscription.
+</p>
+</li>
+<li> <p><code>add_role_assignment(name, ...)</code>: Adds a new role assignment. See 'Role-based access control' below.
+</p>
+</li>
+<li> <p><code>get_role_assignment(id)</code>: Retrieves an existing role assignment.
+</p>
+</li>
+<li> <p><code>remove_role_assignment(id)</code>: Removes an existing role assignment.
+</p>
+</li>
+<li> <p><code>list_role_assignments()</code>: Lists role assignments.
+</p>
+</li>
+<li> <p><code>get_role_definition(id)</code>: Retrieves an existing role definition.
+</p>
+</li>
+<li> <p><code>list_role_definitions()</code> Lists role definitions.
+</p>
+</li>
+<li> <p><code>get_tags()</code> Get the tags on this subscription.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>Generally, the easiest way to create a subscription object is via the <code>get_subscription</code> or <code>list_subscriptions</code> methods of the az_rm class. To create a subscription object in isolation, call the <code>new()</code> method and supply an Oauth 2.0 token of class AzureToken, along with the ID of the subscription.
+</p>
+
+
+<h3>Operations</h3>
+
+<p>The <code>do_operation()</code> method allows you to carry out arbitrary operations on the subscription. It takes the following arguments:
+</p>
+
+<ul>
+<li> <p><code>op</code>: The operation in question, which will be appended to the URL path of the request.
+</p>
+</li>
+<li> <p><code>options</code>: A named list giving the URL query parameters.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments passed to call_azure_rm, and then to the appropriate call in httr. In particular, use <code>body</code> to supply the body of a PUT, POST or PATCH request, and <code>api_version</code> to set the API version.
+</p>
+</li>
+<li> <p><code>http_verb</code>: The HTTP verb as a string, one of <code>GET</code>, <code>PUT</code>, <code>POST</code>, <code>DELETE</code>, <code>HEAD</code> or <code>PATCH</code>.
+</p>
+</li>
+</ul>
+<p>Consult the Azure documentation for what operations are supported.
+</p>
+
+
+<h3>Role-based access control</h3>
+
+<p>AzureRMR implements a subset of the full RBAC functionality within Azure Active Directory. You can retrieve role definitions and add and remove role assignments, at the subscription, resource group and resource levels. See rbac for more information.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager overview</a>
+</p>
+<p>For role-based access control methods, see rbac
+</p>
+<p>For management locks, see lock
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# recommended way to retrieve a subscription object
+sub &lt;- get_azure_login("myaadtenant")$
+    get_subscription("subscription_id")
+
+# retrieve list of resource group objects under this subscription
+sub$list_resource_groups()
+
+# get a resource group
+sub$get_resource_group("rgname")
+
+# check if a resource group exists, and if not, create it
+rg_exists &lt;- sub$resource_group_exists("rgname")
+if(!rg_exists)
+    sub$create_resource_group("rgname", location="australiaeast")
+
+# delete a resource group
+sub$delete_resource_group("rgname")
+
+# get provider API versions for some resource types
+sub$get_provider_api_version("Microsoft.Compute", "virtualMachines")
+sub$get_provider_api_version("Microsoft.Storage", "storageAccounts")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

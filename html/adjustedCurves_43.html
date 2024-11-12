@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surv_matching</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Using Propensity-Score Matching to Calculate Adjusted Survival Curves
+</h2>
+
+<h3>Description</h3>
+
+<p>This page explains the details of estimating adjusted survival curves using propensity-score matching for single event time-to-event data (<code>method="matching"</code> in the <code>adjustedsurv</code> function). All regular arguments of the <code>adjustedsurv</code> function can be used. Additionally, the <code>treatment_model</code> argument has to be specified in the <code>adjustedsurv</code> call. Further arguments specific to this method are listed below.
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>treatment_model</code></td>
+<td>
+
+<p>[<strong>required</strong>] Must be either a model object with <code>variable</code> as response variable or a vector of previously estimated propensity scores.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gtol</code></td>
+<td>
+
+<p>Tolerance at which estimated treatment assignment probabilities are truncated. Every propensity score bigger than 1 - <code>gtol</code> is set to 1 - <code>gtol</code> and every propensity score smaller than <code>gtol</code> is set to <code>gtol</code>. Useful when there are extreme propensity scores close to 0 or 1. Defaults to 0.001.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments passed to the <code>Match</code> function of the <span class="pkg">Matching</span> Package.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p><strong>Type of Adjustment:</strong> Requires a model describing the treatment assignment mechanism. This must be either a <code>glm</code> object.
+</p>
+</li>
+<li>
+<p><strong>Doubly-Robust:</strong> Estimates are not Doubly-Robust.
+</p>
+</li>
+<li>
+<p><strong>Categorical groups:</strong> Only two groups in <code>variable</code> are allowed. Must be a factor variable with exactly two levels.
+</p>
+</li>
+<li>
+<p><strong>Approximate Variance:</strong> Calculations to approximate the variance and confidence intervals are currently not available. Bootstrap confidence intervals can however be calculated with all supported models. See <code>?adjustedsurv</code> for more information on bootstrapping.
+</p>
+</li>
+<li>
+<p><strong>Allowed Time Values:</strong> Allows both continuous and integer time.
+</p>
+</li>
+<li>
+<p><strong>Bounded Estimates:</strong> Estimates are guaranteed to be bounded in the 0 to 1 probability range.
+</p>
+</li>
+<li>
+<p><strong>Monotone Function:</strong> Estimates are guaranteed to be monotone.
+</p>
+</li>
+<li>
+<p><strong>Dependencies:</strong> This method relies on the <span class="pkg">Matching</span> package.
+</p>
+</li>
+</ul>
+<p>Using the estimated propensity score, the individual observations in the dataset are matched to each other creating a new dataset in which the covariate distributions are balanced in respect to the two groups defined by <code>variable</code>. A simple Kaplan-Meier estimator is then used to calculate the confounder-adjusted survival curves. This corresponds to the method described in Austin (2014). Details on the algorithm used for matching can be found in the documentation of the <span class="pkg">Matching</span> package.
+</p>
+<p>We choose not to implement other matching based estimators (see Winnett &amp; Sasieni (2002), Galimberti et al. (2002) and Austin (2020)) because of the wide range of matching algorithms and parameters. Trying to automate the matching process in a function like this would, in our opinion, disrupt the workflow of the user while also encouraging suboptimal practices. We however included this simple version of a matching estimator as a reference and to raise the awareness that using matching is a valid method to obtain adjusted survival curves.
+</p>
+<p>Simulation studies have shown that this particular method as implemented here is significantly less efficient than other methods included in this R-Package. While it does produce unbiased estimates, the variation in these estimates is very high. We suggest using one of the other available methods.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Adds the following additional objects to the output of the <code>adjustedsurv</code> function:
+</p>
+
+<ul>
+<li> <p><code>match_object</code>: The object creates using the <code>Match</code> function.
+</p>
+</li>
+<li> <p><code>survfit_object</code>: The <code>survfit</code> object fit on the matched data.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>Peter C. Austin (2014). "The Use of Propensity Score Methods with Survival or Time-To-Event Outcomes: Reporting Measures of Effect Similar to those Used in Randomized Experiments". In: Statistics in Medicine 33, pp. 1242-1258
+</p>
+<p>Angela Winnett and Peter Sasieni (2002). "Adjusted Nelson-Aalen Estimates with Retrospective Matching". In: Journal of the American Statistical Association 97.457, pp. 245-256
+</p>
+<p>Stefania Galimberti, Peter Sasieni, and Maria Grazia Valsecchi (2002). "A Weighted Kaplan-Meier Estimator for Matched Data with Application to the Comparison of Chemotherapy and Bone-Marrow Transplant in Leukaemia". In: Statistics in Medicine 21, pp. 3847-3864
+</p>
+<p>Peter C. Austin, Neal Thomas, and Donald B. Rubin (2020). "Covariate-Adjusted Survival Analyses in Propensity-Score Matched Samples: Imputing Potential Time- To-Event Outcomes". In: Statistical Methods in Medical Research 29.3, pp. 728-751
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Match</code>, <code>survfit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+
+if (requireNamespace("Matching")) {
+
+library(Matching)
+
+set.seed(42)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_surv(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# estimate treatment assignment model
+glm_mod &lt;- glm(group ~ x1 + x2 + x4 + x6, data=sim_dat, family="binomial")
+
+# calculate adjusted survival curves
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="matching",
+                        treatment_model=glm_mod)
+
+# Alternatively, supply the propensity score directly
+# Here we use the logistic regression to calculate it, so we get
+# exactly the same result. The propensity score can be calculated in
+# any other way in practice, allowing flexibility
+ps_score &lt;- glm_mod$fitted.values
+
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="matching",
+                        treatment_model=ps_score)
+
+# plot the curves
+plot(adjsurv)
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,322 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>postpr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimating posterior model probabilities
+</h2>
+
+<h3>Description</h3>
+
+<p>Model selection with Approximate Bayesian Computation (ABC).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">postpr(target, index, sumstat, tol, subset = NULL, method, corr=TRUE,
+kernel="epanechnikov", numnet = 10, sizenet = 5, lambda =
+c(0.0001,0.001,0.01), trace = TRUE, maxit = 500, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+
+<p>a vector of the observed summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+
+<p>a vector of model indices. It can be character or numeric and
+will be coerced to factor. It must have the same length as
+<code>sumstat</code> to indicate which row of <code>sumstat</code> belong to
+which model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstat</code></td>
+<td>
+
+<p>a vector, matrix or data frame of the simulated summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>numeric, the required proportion of points nearest the target
+values (tolerance), or a vector of the desired tolerance values. If
+a vector is given</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>a logical expression indicating elements or rows to keep. Missing
+values in <code>index</code> and/or <code>sumstat</code> are taken as <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string indicating the type of simulation required.
+Possible values are <code>"rejection"</code>, <code>"mnlogistic"</code>,
+<code>"neuralnet"</code>. See <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+
+<p>logical, if <code>TRUE</code> (default) posterior model probabilities are corrected
+for the number of simulations performed for each model. If equal
+number of simulations are available for all models, <code>corr</code> has
+no effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+
+<p>a character string specifying the kernel to be used when method is
+<code>"mnlogistic"</code> or <code>"neuralnet"</code>. Defaults to
+"epanechnikov". See <code>density</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numnet</code></td>
+<td>
+
+<p>the number of neural networks when method is <code>"neuralnet"</code>. It
+corresponds to the number of times the function <code>nnet</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizenet</code></td>
+<td>
+
+<p>the number of units in the hidden layer. Can be zero if there are
+no skip-layer units.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a numeric vector or a single value indicating the weight decay when
+method is <code>"neuralnet"</code>. By default, 0.0001, 0.001, or 0.01 is
+randomly chosen for the each of the networks. See <code>nnet</code>
+for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>logical, <code>TRUE</code> switches on tracing the
+optimization of <code>nnet</code> (applies when method is
+<code>"neuralnet"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>numeric, the maximum number of iterations. Defaults to 500. See also
+<code>nnet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other arguments passed on from <code>nnet</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes the posterior model probabilities.  Simulations
+have to be performed with at least two distinct models. When method is
+<code>"rejection"</code>, the posterior probability of a given model is
+approximated by the proportion of accepted simulations given this
+model. This approximation holds when the different models are a priori
+equally likely, and the same number of simulations is performed for
+each model. When method is <code>"mnlogistic"</code> the posterior model
+probabilities are estimated using a multinomial logistic regression as
+implemented in the function <code>multinom</code> from the package
+<code>nnet</code>. When method is <code>"neuralnet"</code>, neural networks
+are used to predict the probabilities of models based on the observed
+statistics using <code>nnet</code>. This method can be useful if many
+summary statistics are used.
+</p>
+<p>Names for the summary statistics are strongly recommended. Names can
+be supplied as colnames to <code>sumstat</code> (and target). If no names are
+supplied S1, S2, ... to summary statistics will be assigned to
+parameters and the user will be warned.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of <code>class</code> <code>"postpr"</code>, containing the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>a vector of model probabilities when method is
+<code>"mnlogistic"</code> or <code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>the vector of model indices in the accepted region using
+the rejection method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>vector of regression weights when method is
+<code>"mnlogistic"</code> or <code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ss</code></td>
+<td>
+<p>summary statistics in the accepted region.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the original call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a logical vector indicating the elements or rows that
+were excluded, including both <code>NA</code>/<code>NaN</code>'s and
+elements/rows selected by <code>subset</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string indicating the method used, i.e.
+<code>"rejection"</code>, <code>"mnlogistic"</code> or <code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>logical, if <code>TRUE</code> the posterior model probabilities
+are corrected for the number of simulations performed for each
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmodels</code></td>
+<td>
+<p>the number of simulations performed for each model a
+priori.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+
+<p>a character vector of model names (a priori).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numstat</code></td>
+<td>
+<p>the number of summary statistics used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names</code></td>
+<td>
+<p>a list of two elements: <code>model</code> contains the model names,
+and <code>statistics.names</code> the names of the summary statistics.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Katalin Csillery, Olivier Francois and Michael Blum with some
+initial code from Mark Beaumont.
+</p>
+
+
+<h3>References</h3>
+
+<p>Beaumont, M.A. (2008) Joint determination of topology, divergence
+time, and immigration in population trees. In <em>Simulation,
+Genetics, and Human Prehistory</em> (Matsumura, S., Forster, P. and
+Renfrew, C., eds) McDonald Institute for Archaeological Research
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.postpr</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## an artifical example
+ss &lt;- cbind(runif(1000),rt(1000,df=20))
+postpr(target=c(3), index=c(rep("norm",500),rep("t",500)),
+sumstat=ss[,1], tol=.1, method="rejection")
+
+## human demographic history
+require(abc.data)
+data(human)
+## five R objects are loaded. See ?human and vignette("abc") for details.
+
+## illustrate the informativeness of two summary statistics: mean and
+## variance of Tajima's D
+par(mfcol = c(1,3))
+boxplot(stat.3pops.sim[,"pi"]~models, main="Mean nucleotide diversity")
+boxplot(stat.3pops.sim[,"TajD.m"]~models, main="Mean Tajima's D")
+boxplot(stat.3pops.sim[,"TajD.v"]~models, main="Var in Tajima's D")
+
+## model selection with ABC for the European population
+
+
+modsel.it &lt;- postpr(stat.voight["italian",], models, stat.3pops.sim, tol=.05, method="mnlogistic")
+summary(modsel.it)
+
+## In Europe, the most supported model
+## is a population bottleneck 
+## Check that in Africa, population expansion is the most supported model, while in
+##  Asia, it is a population bottleneck
+##modsel.ha &lt;- postpr(stat.voight["hausa",], models, stat.3pops.sim, 
+##tol=.05, method="mnlogistic")
+##modsel.ch &lt;- postpr(stat.voight["chinese",], models, stat.3pops.sim,
+## tol=.05, method="mnlogistic")
+
+
+</code></pre>
+
+
+</div>

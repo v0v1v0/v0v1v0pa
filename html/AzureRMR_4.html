@@ -1,0 +1,266 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_resource_group</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure resource group class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an Azure resource group.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>az_resource_group</code>.
+</p>
+
+
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(token, subscription, id, ...)</code>: Initialize a resource group object. See 'Initialization' for more details.
+</p>
+</li>
+<li> <p><code>delete(confirm=TRUE)</code>: Delete this resource group, after a confirmation check. This is asynchronous: while the method returns immediately, the delete operation continues on the host in the background. For resource groups containing a large number of deployed resources, this may take some time to complete.
+</p>
+</li>
+<li> <p><code>sync_fields()</code>: Synchronise the R object with the resource group it represents in Azure.
+</p>
+</li>
+<li> <p><code>list_templates(filter, top)</code>: List deployed templates in this resource group. <code>filter</code> and <code>top</code> are optional arguments to filter the results; see the <a href="https://learn.microsoft.com/en-us/rest/api/resources/deployments/listbyresourcegroup">Azure documentation</a> for more details. If <code>top</code> is specified, the returned list will have a maximum of this many items.
+</p>
+</li>
+<li> <p><code>get_template(name)</code>: Return an object representing an existing template.
+</p>
+</li>
+<li> <p><code>deploy_template(...)</code>: Deploy a new template. See 'Templates' for more details. By default, AzureRMR will set the <code>createdBy</code> tag on a newly-deployed template to the value <code>AzureR/AzureRMR</code>.
+</p>
+</li>
+<li> <p><code>delete_template(name, confirm=TRUE, free_resources=FALSE)</code>: Delete a deployed template, and optionally free any resources that were created.
+</p>
+</li>
+<li> <p><code>get_resource(...)</code>: Return an object representing an existing resource. See 'Resources' for more details.
+</p>
+</li>
+<li> <p><code>create_resource(...)</code>: Create a new resource. By default, AzureRMR will set the <code>createdBy</code> tag on a newly-created resource to the value <code>AzureR/AzureRMR</code>.
+</p>
+</li>
+<li> <p><code>delete_resource(..., confirm=TRUE, wait=FALSE)</code>: Delete an existing resource. Optionally wait for the delete to finish.
+</p>
+</li>
+<li> <p><code>resource_exists(...)</code>: Check if a resource exists.
+</p>
+</li>
+<li> <p><code>list_resources(filter, expand, top)</code>: Return a list of resource group objects for this subscription. <code>filter</code>, <code>expand</code> and <code>top</code> are optional arguments to filter the results; see the <a href="https://learn.microsoft.com/en-us/rest/api/resources/resources/list">Azure documentation</a> for more details. If <code>top</code> is specified, the returned list will have a maximum of this many items.
+</p>
+</li>
+<li> <p><code>do_operation(...)</code>: Carry out an operation. See 'Operations' for more details.
+</p>
+</li>
+<li> <p><code>set_tags(..., keep_existing=TRUE)</code>: Set the tags on this resource group. The tags can be either names or name-value pairs. To delete a tag, set it to <code>NULL</code>.
+</p>
+</li>
+<li> <p><code>get_tags()</code>: Get the tags on this resource group.
+</p>
+</li>
+<li> <p><code>create_lock(name, level)</code>: Create a management lock on this resource group (which will propagate to all resources within it).
+</p>
+</li>
+<li> <p><code>get_lock(name)</code>: Returns a management lock object.
+</p>
+</li>
+<li> <p><code>delete_lock(name)</code>: Deletes a management lock object.
+</p>
+</li>
+<li> <p><code>list_locks()</code>: List all locks that apply to this resource group. Note this includes locks created at the subscription level, and for any resources within the resource group.
+</p>
+</li>
+<li> <p><code>add_role_assignment(name, ...)</code>: Adds a new role assignment. See 'Role-based access control' below.
+</p>
+</li>
+<li> <p><code>get_role_assignment(id)</code>: Retrieves an existing role assignment.
+</p>
+</li>
+<li> <p><code>remove_role_assignment(id)</code>: Removes an existing role assignment.
+</p>
+</li>
+<li> <p><code>list_role_assignments()</code>: Lists role assignments.
+</p>
+</li>
+<li> <p><code>get_role_definition(id)</code>: Retrieves an existing role definition.
+</p>
+</li>
+<li> <p><code>list_role_definitions()</code> Lists role definitions.
+</p>
+</li>
+</ul>
+<h3>Initialization</h3>
+
+<p>Initializing a new object of this class can either retrieve an existing resource group, or create a new resource group on the host. Generally, the easiest way to create a resource group object is via the <code>get_resource_group</code>, <code>create_resource_group</code> or <code>list_resource_groups</code> methods of the az_subscription class, which handle this automatically.
+</p>
+<p>To create a resource group object in isolation, supply (at least) an Oauth 2.0 token of class AzureToken, the subscription ID, and the resource group name. If this object refers to a <em>new</em> resource group, supply the location as well (use the <code>list_locations</code> method of the <code style="white-space: pre;">⁠az_subscription class⁠</code> for possible locations). You can also pass any optional parameters for the resource group as named arguments to <code>new()</code>.
+</p>
+
+
+<h3>Templates</h3>
+
+<p>To deploy a new template, pass the following arguments to <code>deploy_template()</code>:
+</p>
+
+<ul>
+<li> <p><code>name</code>: The name of the deployment.
+</p>
+</li>
+<li> <p><code>template</code>: The template to deploy. This can be provided in a number of ways:
+</p>
+
+<ol>
+<li>
+<p> A nested list of name-value pairs representing the parsed JSON
+</p>
+</li>
+<li>
+<p> The name of a template file
+</p>
+</li>
+<li>
+<p> A vector of strings containing unparsed JSON
+</p>
+</li>
+<li>
+<p> A URL from which the template can be downloaded
+</p>
+</li>
+</ol>
+</li>
+<li> <p><code>parameters</code>: The parameters for the template. This can be provided using any of the same methods as the <code>template</code> argument.
+</p>
+</li>
+<li> <p><code>wait</code>: Optionally, whether or not to wait until the deployment is complete before returning. Defaults to <code>FALSE</code>.
+</p>
+</li>
+</ul>
+<p>Retrieving or deleting a deployed template requires only the name of the deployment.
+</p>
+
+
+<h3>Resources</h3>
+
+<p>There are a number of arguments to <code>get_resource()</code>, <code>create_resource()</code> and <code>delete_resource()</code> that serve to identify the specific resource in question:
+</p>
+
+<ul>
+<li> <p><code>id</code>: The full ID of the resource, including subscription ID and resource group.
+</p>
+</li>
+<li> <p><code>provider</code>: The provider of the resource, eg <code>Microsoft.Compute</code>.
+</p>
+</li>
+<li> <p><code>path</code>: The full path to the resource, eg <code>virtualMachines</code>.
+</p>
+</li>
+<li> <p><code>type</code>: The combination of provider and path, eg <code>Microsoft.Compute/virtualMachines</code>.
+</p>
+</li>
+<li> <p><code>name</code>: The name of the resource instance, eg <code>myWindowsVM</code>.
+</p>
+</li>
+</ul>
+<p>Providing the <code>id</code> argument will fill in the values for all the other arguments. Similarly, providing the <code>type</code> argument will fill in the values for <code>provider</code> and <code>path</code>. Unless you provide <code>id</code>, you must also provide <code>name</code>.
+</p>
+<p>To create/deploy a new resource, specify any extra parameters that the provider needs as named arguments to <code>create_resource()</code>. Like <code>deploy_template()</code>, <code>create_resource()</code> also takes an optional <code>wait</code> argument that specifies whether to wait until resource creation is complete before returning.
+</p>
+
+
+<h3>Operations</h3>
+
+<p>The <code>do_operation()</code> method allows you to carry out arbitrary operations on the resource group. It takes the following arguments:
+</p>
+
+<ul>
+<li> <p><code>op</code>: The operation in question, which will be appended to the URL path of the request.
+</p>
+</li>
+<li> <p><code>options</code>: A named list giving the URL query parameters.
+</p>
+</li>
+<li> <p><code>...</code>: Other named arguments passed to call_azure_rm, and then to the appropriate call in httr. In particular, use <code>body</code> to supply the body of a PUT, POST or PATCH request, and <code>api_version</code> to set the API version.
+</p>
+</li>
+<li> <p><code>http_verb</code>: The HTTP verb as a string, one of <code>GET</code>, <code>PUT</code>, <code>POST</code>, <code>DELETE</code>, <code>HEAD</code> or <code>PATCH</code>.
+</p>
+</li>
+</ul>
+<p>Consult the Azure documentation for what operations are supported.
+</p>
+
+
+<h3>Role-based access control</h3>
+
+<p>AzureRMR implements a subset of the full RBAC functionality within Azure Active Directory. You can retrieve role definitions and add and remove role assignments, at the subscription, resource group and resource levels. See rbac for more information.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>az_subscription, az_template, az_resource,
+<a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups">Azure resource group overview</a>,
+<a href="https://learn.microsoft.com/en-us/rest/api/resources/resources">Resources API reference</a>,
+<a href="https://learn.microsoft.com/en-us/rest/api/resources/deployments">Template API reference</a>
+</p>
+<p>For role-based access control methods, see rbac
+</p>
+<p>For management locks, see lock
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# recommended way to retrieve a resource group object
+rg &lt;- get_azure_login("myaadtenant")$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+# list resources &amp; templates in this resource group
+rg$list_resources()
+rg$list_templates()
+
+# get a resource (virtual machine)
+rg$get_resource(type="Microsoft.Compute/virtualMachines", name="myvm")
+
+# create a resource (storage account)
+rg$create_resource(type="Microsoft.Storage/storageAccounts", name="mystorage",
+    kind="StorageV2",
+    sku=list(name="Standard_LRS"))
+
+# delete a resource
+rg$delete_resource(type="Microsoft.Storage/storageAccounts", name="mystorage")
+
+# deploy a template
+rg$deploy_template("tplname",
+    template="template.json",
+    parameters="parameters.json")
+
+# deploy a template with parameters inline
+rg$deploy_template("mydeployment",
+    template="template.json",
+    parameters=list(parm1="foo", parm2="bar"))
+
+# delete a template and free resources
+rg$delete_template("tplname", free_resources=TRUE)
+
+# delete the resource group itself
+rg$delete()
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

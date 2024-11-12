@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aphylo_mle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model estimation using Maximum Likelihood Estimation</h2>
+
+<h3>Description</h3>
+
+<p>The function is a wrapper of <code>stats::optim()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aphylo_mle(
+  model,
+  params,
+  method = "L-BFGS-B",
+  priors = function(p) 1,
+  control = list(),
+  lower = 1e-05,
+  upper = 1 - 1e-05,
+  check_informative = getOption("aphylo_informative", FALSE),
+  reduced_pseq = getOption("aphylo_reduce_pseq", TRUE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A model as specified in aphylo-model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>A vector of length 7 with initial parameters. In particular
+<code>psi[1]</code>, <code>psi[2]</code>, <code>mu[1]</code>, <code>mu[2]</code>, <code>eta[1]</code>, <code>eta[2]</code> and <code>Pi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method, control, lower, upper</code></td>
+<td>
+<p>Arguments passed to <code>stats::optim()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p>A function to be used as prior for the model (see bprior).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_informative</code></td>
+<td>
+<p>Logical scalar. When <code>TRUE</code> the algorithm
+stops with an error when the annotations are uninformative (either 0s or 1s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduced_pseq</code></td>
+<td>
+<p>Logical. When <code>TRUE</code> it will use a reduced peeling sequence
+in which it drops unannotated leafs. If the model includes <code>eta</code> this is set
+to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default starting parameters are described in APHYLO_PARAM_DEFAULT.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class aphylo_estimates.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other parameter estimation: 
+<code>APHYLO_DEFAULT_MCMC_CONTROL</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Using simulated data ------------------------------------------------------
+set.seed(19)
+dat &lt;- raphylo(100)
+dat &lt;- rdrop_annotations(dat, .4)
+
+# Computing Estimating the parameters 
+ans  &lt;- aphylo_mle(dat ~ psi + mu_d + eta + Pi)
+ans
+
+# Plotting the path
+plot(ans)
+
+# Computing Estimating the parameters Using Priors for all the parameters
+mypriors &lt;- function(params) {
+    dbeta(params, c(2, 2, 2, 2, 1, 10, 2), rep(10, 7))
+}
+
+ans_dbeta &lt;- aphylo_mle(dat ~ psi + mu_d + eta + Pi, priors = mypriors)
+ans_dbeta
+</code></pre>
+
+
+</div>

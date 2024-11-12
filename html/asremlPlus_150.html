@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rmboundary.asrtests</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Removes any boundary or singular variance components from the fit stored in 
+<code>asrtests.obj</code> and records their removal in an <code>asrtests.object</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Any terms specified in the random model that are 
+estimated on the boundary or are singular and can be removed are removed from the fit 
+stored in the <code>asreml</code> object stored in the <code>asrtests.object</code>. 
+Terms that specify multiple parameters in the random model cannot be removed 
+(e.g. terms specified using the <code>at</code> function with more than one level of the 
+factor) and terms in <code>residual</code> model are not removed. Terms that can be removed 
+are selected for removal in the following order based on whether they involve:  
+(i) a <code>dev</code> function, (ii) only factors, (iii) an <code>spl</code> function, 
+(iv) a <code>pol</code> function and (v) a <code>lin</code> function or a variable that
+is an <code>integer</code> or a <code>numeric</code>. It should be noted that this order of removal 
+presumes that random deviation terms are specified via the <code>dev</code> function 
+rather than via a random factor. Once the earliest of the above classes 
+with a boundary term is identified, a term within this class is selected for 
+removal. For all classes, except for factor-only terms, the smallest term 
+with the largest number of  variables/factors is removed. 
+Amongst factor-only terms, the smallest term with the smallest number of 
+variables/factors is removed. After each 
+variance component is removed, a row for it is added to the 
+<code>test.summary</code> <code>data.frame</code> and the model refitted. If there are further 
+boundary or singular terms, one is removed using the above strategy. 
+This process continues until there are no further boundary or singular 
+variance components that are removable. Other types of boundary or singular terms, 
+which cannot be removed, are reported in warning messages.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asrtests'
+rmboundary(asrtests.obj, checkboundaryonly = FALSE, 
+           IClikelihood = "none", trace = FALSE, update = TRUE,
+           set.terms = NULL, ignore.suffices = TRUE, 
+           bounds = "P", initial.values = NA, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asrtests.obj</code></td>
+<td>
+<p>an <code>asrtests.object</code> containing the components (i) <code>asreml.obj</code>, 
+(ii) <code>wald.tab</code>, and (iii) <code>test.summary</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkboundaryonly</code></td>
+<td>
+<p>If <code>TRUE</code> then boundary and singular terms are not removed by 
+<code>rmboundary.asrtests</code>; a warning is issued instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IClikelihood</code></td>
+<td>
+<p>A <code>character</code> that controls both the occurrence and the type 
+of likelihood for information criterion in the <code>test.summary</code> 
+of the new <code>asrtests.object</code>. If <code>none</code>, none are 
+included. Otherwise, if <code>REML</code>, then the AIC and BIC based 
+on the Restricted Maximum Likelihood are included; if <code>full</code>, 
+then the AIC and BIC based on the full likelihood, evaluated using
+REML estimates, are included. 
+(See also <code>infoCriteria.asreml</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If <code>TRUE</code> then partial iteration details are displayed when ASReml-R 
+functions are invoked; if FALSE then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE</code>, and <code>set.terms</code> is <code>NULL</code>, then 
+<code>newfit.asreml</code> is called to fit the model with any boundary 
+terms removed and using the values of the variance parameters stored in 
+the <code>asreml.object</code>, that is stored in <code>asrtests.obj</code>, as starting values. 
+If <code>FALSE</code> or <code>set.terms</code> is not <code>NULL</code>, then 
+<code>newfit.asreml</code> will not use the stored variance parameter 
+values as starting values when fitting the model without the boundary 
+terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set.terms</code></td>
+<td>
+<p>A character vector specifying the terms that are to have 
+bounds and/or initial values set prior to fitting.
+The names must match those in the <code>vparameters</code> component of the 
+<code>asreml.obj</code> component in the <code>asrtests.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.suffices</code></td>
+<td>
+<p>A logical vector specifying whether the suffices of the 
+<code>asreml</code>-assigned names of the variance terms (i.e. the 
+information to the right of an "!", other than "R!") is to 
+be ignored in matching elements of <code>terms</code>. 
+If <code>TRUE</code> for an element of <code>terms</code>, the suffices 
+are stripped from the <code>asreml</code>-assigned names. 
+If <code>FALSE</code> for an element of <code>terms</code>, the element 
+must exactly match an <code>asreml</code>-assigned name for a 
+variance term. This vector must be of length one or the 
+same length as <code>terms</code>. If it is of length one then 
+the same action is applied to the <code>asreml</code>-assigned 
+suffices for all the terms in <code>terms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>A <code>character</code> vector specifying the bounds to be applied 
+to the terms specified in <code>set.terms</code>. This vector 
+must be of length one or the same length as <code>set.terms</code>. 
+If it is of length one then the same constraint is 
+applied to all the terms in <code>set.terms</code>. 
+If any of the bounds are equal to NA then they are 
+left unchanged for those terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.values</code></td>
+<td>
+<p>A character vector specifying the initial values for  
+the terms specified in <code>terms</code>. This vector 
+must be of length one or the same length as <code>terms</code>. 
+If it is of length one then the same initial value is 
+applied to all the terms in <code>terms</code>. 
+If any of the initial.values are equal to NA then they are 
+left unchanged for those terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments, including <code>asreml</code> arguments, passed to <code>newfit.asreml</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>asrtests.object</code> containing the components (i) <code>asreml.obj</code>,
+(ii) <code>wald.tab</code>, and (iii) <code>test.summary</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.asrtests</code>, <code>changeTerms.asrtests</code>, 
+<code>testranfix.asrtests</code>, <code>testresidual.asrtests</code>,  <br><code>newfit.asreml</code>, <code>reparamSigDevn.asrtests</code>, 
+<code>chooseModel.asrtests</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+current.asrt &lt;- rmboundary(current.asrt)
+
+## End(Not run)</code></pre>
+
+
+</div>

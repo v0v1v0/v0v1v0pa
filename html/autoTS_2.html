@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getBestModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determine best algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Implement selected algorithms, train them without the last n observed data points
+(or n_test number of points), and compares the results to reality to determine the best algorithm
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getBestModel(
+  dates,
+  values,
+  freq,
+  complete = 0,
+  n_test = NA,
+  graph = TRUE,
+  algos = list("my.prophet", "my.ets", "my.sarima", "my.tbats", "my.bats", "my.stlm",
+    "my.shortterm"),
+  bagged = "auto",
+  metric.error = my.rmse
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>A vector of dates that can be parsed by lubridate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>A vector of same size as <code>dates</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq</code></td>
+<td>
+<p>A chacracter string that indicates the frequency of the time series ("week", "month", "quarter", "day").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete</code></td>
+<td>
+<p>A numerical value (or NA) to fill the missing data points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_test</code></td>
+<td>
+<p>number of data points to keep aside for the test (default : one year)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p>A boolean, if TRUE, comparison of algorithms is plotted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algos</code></td>
+<td>
+<p>A list containing the algorithms (strings, with prefix "my.") to be tested</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bagged</code></td>
+<td>
+<p>A string. "auto" will use all available algoriths, skipping algos parameter. Else, specified algos  of the 'algo' parameter will be used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric.error</code></td>
+<td>
+<p>a function to compute the error the each models. available functions : my.rmse and my.mae</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list contraining a character string with the name of the best method,
+a gg object with the comparison between algorithms and a dataframe with predictions of all tried algorithms,
+a dtaframe containing the errors of each algorithms, the preparedTS object and the list of algorithms tested
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(autoTS)
+dates &lt;- seq(lubridate::as_date("2005-01-01"),lubridate::as_date("2010-12-31"),"quarter")
+values &lt;- 10+ 1:length(dates)/10 + rnorm(length(dates),mean = 0,sd = 10)
+
+which.model &lt;- getBestModel(dates,values,freq = "quarter",n_test = 4)
+
+### Custom set of algorithm (including for bagged estimator)
+which.model &lt;- getBestModel(dates,values,freq = "quarter",n_test = 4,
+                            algos = list("my.prophet","my.ets"),bagged = "custom")
+### Use MAE instead of RMSE
+
+which.model &lt;- getBestModel(dates,values,freq = "quarter",n_test = 3,
+                            algos = list("my.prophet","my.ets"),
+                            bagged = "custom",metric.error = my.mae)
+
+</code></pre>
+
+
+</div>

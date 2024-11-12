@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>isst</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Interval Singular Spectrum Trendlines</h2>
+
+<h3>Description</h3>
+
+<p>Computes the trendline estimation for interval time series data using singular
+spectrum analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">isst(y, l= 'automatic' , m = 'automatic')
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>itsmframe</code> data corresponding to univariate interval time series data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>window length; the string <code>'automatic'</code> sets the
+default option <br><code>l = ceiling(y$n + 1) / 2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>number of leading eigentriples; the string <code>"automatic"</code>
+yields an automatic criterion for choosing m based on the cumulative periodogram of the
+residuals; see details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Singular spectrum analysis decompose time series data (<code>y</code>)
+into principal components, and a cumulative periodogram-based
+criterion learn about elementary reconstructed components
+(<code>erc</code>) that contribute to the signal. The trendline results
+from adding principal components selected by a cumulative
+periodogram-based criteria; see de Carvalho and Martos (2018,
+Section 4.1). The <code>plot</code> method yields the resulting trendlines
+along with the data; <code>options</code> for the plot method are give by
+a list including the strings <code>"trendline"</code>,
+<code>"components"</code>, <code>"cpgram"</code>, and <code>"screeplot"</code>,
+along with a set of values (<code>ncomp</code>) indicating the components
+on which these diagnostics are to be depicted (e.g. <code>plot(fit,
+  options = list(type = "components", ncomp = 1:3))</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trendline</code></td>
+<td>
+<p>itsframe object with interval trendline estimation from
+targeted grouping based on a cumulative periodogram criterion (or
+according to the number of components specified in <code>m</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>window length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>number of leading eigentriples. An automatic
+criterion based on the cumulative periodogram of the residuals is
+provided by default by using the string <code>"automatic"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>itsframe object with the residuals from targeted
+grouping based on a cumulative periodogram criterion (or according
+to the number of components specified in <code>m</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svd</code></td>
+<td>
+<p>Singular value decomposition corresponding to the trajectory matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>erc</code></td>
+<td>
+<p>elementary reconstructed components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observations</code></td>
+<td>
+<p>itsframe object with the raw data.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>de Carvalho, M. and Martos, G. (2020). Modeling Interval Trendlines: Symbolic Singular Spectrum Analysis for Interval Time Series. Submitted (available on arXiv).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>misst</code> for a version of the routine for multivariate
+interval value time series.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Merval data example:
+data(merval)
+id.data &lt;-  rev(which(merval[,1]&gt;'2015-12-31' &amp; merval[,1]&lt;'2020-10-01') ) 
+y &lt;-  itsframe(date=merval[id.data,1], a=merval[id.data,2], b=merval[id.data,3]); 
+
+isst_output &lt;- isst(y ,l = 'automatic', m = 'automatic')
+print(isst_output)
+
+# Estimated trendlines 
+plot(isst_output)
+
+## Scree-plot
+plot(isst_output, options = list(type = "screeplot", ncomp = 1:10),
+     type = "b", pch = 20, lwd = 2)
+
+# Elementary reconstructed components
+plot(isst_output, options=list(type='components',ncomp=1:3),
+     xlab='Time')
+
+# cpgram's ('a=low' and 'b=high')
+plot(isst_output, options = list(type='cpgram'))
+# Setting m = 'automatic' (default option) to obtain cpgrams inside the bandwiths.
+
+##################################
+###  Forecasting with isst     ###
+##################################
+pred &lt;- predict(isst_output, p = 5)
+head(pred$forecast,3) # Forecasted interval data.
+
+attributes(pred)
+pred$coefficients[1:5] # linear recurrence parameters.
+# End
+</code></pre>
+
+
+</div>

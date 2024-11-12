@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apc.forecast.ap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecast for Poisson response model with AP structure.</h2>
+
+<h3>Description</h3>
+
+<p>Computes forecasts for a model with AP structure.
+The data can have any form allowed in, see <code>apc.data.list</code>. These are all special cases of
+generalised trapezoids. If the "lower triangle" with the
+largest (age,coh) values are not observed, they can be forecast using this function.
+The function extrapolates the AP model to the lower triangle where
+<code>per.zero+per.max &lt; per &lt;= age.max+coh.max-1</code>.
+The estimates of the age parameters can be used for the lower triangle.
+The estimates of the period parameters need to be extrapolated for the lower triangle.
+Thus, the function extrapolates
+<code>per.forecast.J=age.max+coh.max-1-per.zero-per.max</code>
+period values. 
+The extrapolation method has to chosen so as not to introduce an identification problem, see
+Kuang, Nielsen and Nielsen (2008b,2011).
+Two such extrapolation methods are implemented in this function: "I0" and "I1".
+The default is to report the linear predictor.
+</p>
+<p>If the <code>model.family="binominal.dose.response"</code>, that is a logistic model,
+then forecasts of dose, response and survival probability are given for lower triangle.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apc.forecast.ap(apc.fit,extrapolation.type="I0",suppress.warning=TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apc.fit</code></td>
+<td>
+<p>List. Output from <code>apc.fit.model</code>.
+Note: apc.fit.model should be run with AP structure so that 
+<code>apc.fit$model.design=="AP"</code>.
+Only point forecasts of the linear predictor are provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extrapolation.type</code></td>
+<td>
+<p>Character.  Choices for extrapolating the differenced period parameter ("Delta.beta_per").
+Default is "I0".
+</p>
+
+<dl>
+<dt>"I0"</dt>
+<dd>
+<p>extrapolates the first out-of-sample differenced period parameter by the average of
+cumulated sums of the in-sample estimated differenced period parameters.
+The subsequent out-of-sample differenced period parameters are zero.</p>
+</dd>
+<dt>"I1"</dt>
+<dd>
+<p>extrapolates all out-of-sample differenced period parameters by zero.</p>
+</dd>
+</dl>
+<p>Both methods are invariant to ad hoc identification of the implied period time effect, by
+following the ideas put forward in
+Kuang, Nielsen and Nielsen (2008b).
+Internally, the extrapolation is done as follows.
+The estimated differenced period parameters are found from
+"apc.fit$coefficients.canonical" using
+<code>apc.identify</code> with <code>type="dif"</code>.
+These imply period time effects by ad hoc identification:
+choose an arbitrary value for the first period time effect
+and add partial sums of the differenced period parameter. Fit a time series model:
+an intercept model with "I0" and a random walk model for "I1".
+Then extrapolate and take differences.  These extrapolation methods are invariant to the
+actual choice of the arbitrary value for the first period time effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warning</code></td>
+<td>
+<p>Logical. If true, suppresses warnings from <code>apc.data.list.subset</code>, which is called internally. Default is "TRUE".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When <code>model.family=binomial.dose.response</code> forecasts are made by the component method, see Cox (1976).
+It is intended to be used for a population analysis situation where the response equals cohort-decrease of dose. 
+For cell in forecast array with index <code>(age,cohort)</code> then:
+Survival probability is <code>survival=1/(1+exp(predictor_(a,c)))</code>.
+Dose is <code>dose_(a,c)=max(0,dose_(a-1,c)-response_(a-1,c))</code>.
+Response is <code>response_(a,c)=dose_(a,c)*(1-survival_(a,c))</code>.	
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trap.predictors.forecast</code></td>
+<td>
+<p>Matrix. Includes estimates and point forecasts of linear predictor. That is design*coefficient.
+Same as the <code>glm.fit</code> value <code>linear.predictors</code> when there is no offset.
+Forecasts in lower right triangle. Trapezoid format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.trap.J</code></td>
+<td>
+<p>Matrix. age-coh coordinates for forecast area. Similar structure to
+<code>index.trap</code> in <code>apc.index</code>, see <code>apc.get.index</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D.xi.per.extrapolated</code></td>
+<td>
+<p>Matrix.  Extrapolated parameters.  Dimension <code>per.forecast.J=age.max+coh.max-1-per.zero-per.max</code> rows, 1 column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trap.dose.forecast</code></td>
+<td>
+<p>Matrix. Includes data and point forecasts. Forecasts in lower right triangle.        
+Dose in cell age,coh equal to dose in cell age-1,coh minus response in cell age-1,coh.
+Only implemented for <code>model.family="binomial.dose.response"</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trap.response.forecast</code></td>
+<td>
+<p>Matrix. Includes data and point forecasts. Forecasts in lower right triangle.      
+Response in cell age,coh equal to dose in cell age,coh times 1 minus probability of surviving in that cell.
+Only implemented for <code>model.family="binomial.dose.response"</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trap.survival.forecast</code></td>
+<td>
+<p>Matrix. Point forecasts. Forecasts in lower right triangle 
+Probability of surviving computed from <code>trap.predictors.forecast</code> using logistic link function.
+Only implemented for <code>model.family="binomial.dose.response"</code>. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bent Nielsen &lt;bent.nielsen@nuffield.ox.ac.uk&gt; 2 May 2016 (2 Mar 2016)</p>
+
+
+<h3>References</h3>
+
+<p>Cox, P.R. (1976) Demography. 5th Edition. Cambridge: Cambridge University Press. (page 324).
+</p>
+<p>Kuang, D., Nielsen, B. and Nielsen, J.P. (2008b) Forecasting with the age-period-cohort model and the extended chain-ladder model. Biometrika 95, 987-991. <em>Download</em>: <a href="https://doi.org/10.1093/biomet/asn038">Article</a>; Earlier version <a href="http://www.nuffield.ox.ac.uk/economics/papers/2008/w9/KuangNielsenNielsen_Forecast.pdf">Nuffield DP</a>.
+</p>
+<p>Kuang, D., Nielsen B. and Nielsen J.P. (2011) Forecasting in an extended chain-ladder-type model. Journal of Risk and Insurance 78, 345-359. <em>Download</em>: <a href="http://dx.doi.org/10.1111/j.1539-6975.2010.01395.x">Article</a>; Earlier version: <a href="http://www.nuffield.ox.ac.uk/economics/papers/2010/w5/Forecast24jun10.pdf">Nuffield DP</a>. 
+</p>
+
+
+</div>

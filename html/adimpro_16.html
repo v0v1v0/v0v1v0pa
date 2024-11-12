@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adimpro</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> I/O Functions </h2>
+
+<h3>Description</h3>
+
+<p>Create image objects of class "adimpro" from arrays, RAW-format files
+and other image formats.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read.raw(filename, type="PPM",
+         wb="CAMERA",cspace="Adobe",interp="Bilinear",maxrange=TRUE,
+         rm.ppm=TRUE, compress=TRUE)
+read.image(filename, compress=TRUE)
+make.image(x,compress=TRUE, gammatype="None", whitep = "D65", 
+         cspace="Adobe", scale="Original",xmode="RGB")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p> file name </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> Array or matrix containing RGB or greyscale values in the
+range (0,1) or (0,65535). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p> option settings for dcraw. default "PPM". <code>type="png"</code> allows to read greyvalue png images as RAW-data (used as internal solution to
+store RAW information) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wb</code></td>
+<td>
+<p> white balance. default "CAMERA"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cspace</code></td>
+<td>
+<p> defines the output color space, default "sRGB" (sRGB D65), alternatives are 
+"RAW" (Camera specific), "Adobe"
+(Adobe 1998 D65), "wGamut" (Wide Gamut  D65), "kodak" (Kodak ProPhoto D65)
+and "XYZ", see manpages of dcraw.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interp</code></td>
+<td>
+<p> defines the interpolation method, default "Bilinear", Alternatives are
+"VNG", "AHD", "FourC" (Four color interpolation) and "Halfsize", see manpages of dcraw. 
+"VNG" seems to provide the smallest spatial correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxrange</code></td>
+<td>
+<p>If TRUE increase range of values to maximum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm.ppm</code></td>
+<td>
+<p> remove intermediate tmp file? default <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gammatype</code></td>
+<td>
+<p> character, determines the type of gamma correction within the image.
+"ITU" stands for ITU-R BT.709-3 as e.g. used by <code>dcraw</code>. Alternatives recognized
+within the package are "None", "sRGB" and "CIE" (CIE L*). Please specify if you know
+that your image is not gamma corrected using ITU-R BT.709-3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>whitep</code></td>
+<td>
+<p>White point in <code>xyY</code> space. Can be given as one of (character)
+<code>c("A","B","C","E","D50","D55","D65","D75","F2","F7","F11")</code> or as a two element numeric
+vector of chromatic <code>xy</code> coordinates. <code>"D65"</code> corresponds to the default white point of <code>"sRGB"</code> and <code>"Adobe"</code> RGB-spaces. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p> logical, determines if image data are stored in raw-format. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p><code>"Original"</code> scales to <code>(0,max(img$img))</code> if 
+<code>min(img$img)&lt;0</code>, otherwise keeps the original scale.
+<code>"Maxcontrast"</code> scales each channel to maximum contrast</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmode</code></td>
+<td>
+<p><code>xmode</code> determines how to interpret the values in <code>x</code> if <code>length(dim(x))==3</code>.
+Implemented are <code>xmode="RGB"</code> (default) and <code>xmode="HSI"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If ImageMagick is available on the system, <code>read.image</code> reads any of
+the following image file formats: c("tif", "tiff", "pgm", "ppm",
+"png", "pnm", "gif", "jpg", "jpeg") converts it into a temporary "pgm" or
+"ppm" file. This file is removed after reading the image.  
+If ImageMagick is not available  only "pgm", "ppm" and "pnm" formats
+can be processed.
+</p>
+<p>If dcraw is available on the system, <code>read.raw</code> reads many RAW
+formats. <code>type</code> sets options to dcraw: "PPM" sets "-4", "RAW" sets "-4
+-d", "HALFSIZE" sets "-h", "INFO" sets "-i -v". <code>wb</code> indicates,
+which white balance should be used: "NONE", "AUTO", "CAMERA".
+</p>
+<p>Functions <code>read.raw(file,type="RAW")</code> and <code>read.image(file)</code> provide identical results on png-mages. If the result is a color, greyvalued
+or RAW image depends on the contend of the comment associated with the png-image.
+</p>
+<p><code>make.image</code> converts an appropriate 2 or 3 dimensional array to
+an image object of class "adimpro".
+</p>
+
+
+<h3>Value</h3>
+
+<p>object of class "adimpro" containing the image. The object has the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>img</code></td>
+<td>
+<p> array containing the color values in the color space specified by <code>value$type</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p> the color space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depth</code></td>
+<td>
+<p> color depth, here "16bit".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+<p> vector of length 2 containing the number of pixel in horizontal and vertival direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p> the argument <code>file</code> identifying the image.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cspace</code></td>
+<td>
+<p> the type of rgb space used, as specified by <code>cspace</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interp</code></td>
+<td>
+<p> interpolation applied by dcraw, as specified by <code>interp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p> has a gamma correction been applied, here FALSE for <code>read.raw</code> and TRUE for <code>read.image</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gammatype</code></td>
+<td>
+<p> type of gamma correction <code>read.image.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wb</code></td>
+<td>
+<p> type of white balance, as specified by <code>wb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compressed</code></td>
+<td>
+<p> image data are stored as raw-vector (TRUE) or array of integers (FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p> The function <code>read.raw</code> requires dcraw to be installed.</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a> and Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a> </p>
+
+
+<h3>See Also</h3>
+
+ <p><code>read.image</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: demo(io)
+</code></pre>
+
+
+</div>

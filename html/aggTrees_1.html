@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>avg_characteristics_rpart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Leaves Average Characteristics</h2>
+
+<h3>Description</h3>
+
+<p>Computes the average characteristics of units in each leaf of an <code>rpart</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">avg_characteristics_rpart(tree, X)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>An <code>rpart</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Covariate matrix (no intercept).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>avg_characteristics_rpart</code> regresses each covariate on a set of dummies denoting leaf membership.
+This way, we get the average characteristics of units in each leaf, together with a standard error.<br></p>
+<p>Leaves are ordered in increasing order of their predictions (from most negative to most positive).<br></p>
+<p>Standard errors are estimated via the Eicker-Huber-White estimator.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list storing each regression as an <code>lm_robust</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Riccardo Di Francesco
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p> Di Francesco, R. (2022). Aggregation Trees. CEIS Research Paper, 546. <a href="https://doi.org/10.2139/ssrn.4304256">doi:10.2139/ssrn.4304256</a>.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>causal_ols_rpart</code>, <code>estimate_rpart</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate data.
+set.seed(1986)
+
+n &lt;- 1000
+k &lt;- 3
+
+X &lt;- matrix(rnorm(n * k), ncol = k)
+colnames(X) &lt;- paste0("x", seq_len(k))
+D &lt;- rbinom(n, size = 1, prob = 0.5)
+mu0 &lt;- 0.5 * X[, 1]
+mu1 &lt;- 0.5 * X[, 1] + X[, 2]
+Y &lt;- mu0 + D * (mu1 - mu0) + rnorm(n)
+
+## Construct a tree.
+library(rpart)
+tree &lt;- rpart(Y ~ ., data = data.frame("Y" = Y, X), maxdepth = 2)
+
+## Compute average characteristics in each leaf.
+results &lt;- avg_characteristics_rpart(tree, X)
+results
+
+</code></pre>
+
+
+</div>

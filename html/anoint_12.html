@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>data.anoint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a clinical trial data set under a specified multiple interaction model</h2>
+
+<h3>Description</h3>
+
+<p>Returns a simulated equal-allocation, parallel-group clinical trial with possibly multiple interactions among prognostic factors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data.anoint(alpha, beta, gamma, mean, vcov, n=100, event=.8,
+type = c("binomial","survival"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>vector specifying control and treatment group intercept</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>vector specifying prognostic factor main effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>vector specifying modification of prognostic effects in the presence of treatment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>vector of covariate mean to be supplied to <code>mvrnorm</code> of the <code>MASS</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>matrix of variance-covariance matrix of prognostic covariates to be supplied to <code>mvrnorm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of subjects in each treatment arm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>proportion of observed events when <code>type</code> is "survival"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>string indicating type of response variable</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When <code>type</code> is "survival", the parameters specify the log-rate for an exponentially distributed random variable. Censored times are non-informatively right-censored. When <code>type</code> is "binomial", the parameters specify a log-odds model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Data frame with <code>y</code>, <code>trt</code>, and <code>V1</code>,...,<code>VK</code> prognostic factors. The data frame also has <code>event</code> with a time-to-event reponse, which is an indicator for an observed event.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>S. Kovalchik <a href="mailto:s.a.kovalchik@gmail.com">s.a.kovalchik@gmail.com</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.2/.8),log(.2*.75/(1-.2*.75))),
+                             beta = c(1.5,2),
+                             gamma = rep(1,2),
+                             mean = c(0,0),
+                             vcov = diag(2),
+                             type="binomial"
+                             )
+
+fit &lt;- glm(y~(.)*trt,data=null.interaction,family="binomial")
+
+summary(fit)
+
+
+null.interaction &lt;- data.anoint(
+                             alpha = c(log(.5),log(.5*.75)),
+                             beta = c(1.5,2),
+                             gamma = rep(1,2),
+                             mean = c(0,0),
+                             vcov = diag(2),
+                             type="survival",
+                             event = .7
+                             )
+
+fit &lt;- coxph(Surv(y, event)~(.)*trt,data=null.interaction)
+
+summary(fit)
+</code></pre>
+
+
+</div>

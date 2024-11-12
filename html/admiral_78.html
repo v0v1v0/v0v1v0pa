@@ -1,0 +1,437 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_tte</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive a Time-to-Event Parameter</h2>
+
+<h3>Description</h3>
+
+<p>Add a time-to-event parameter to the input dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_tte(
+  dataset = NULL,
+  dataset_adsl,
+  source_datasets,
+  by_vars = NULL,
+  start_date = TRTSDT,
+  event_conditions,
+  censor_conditions,
+  create_datetime = FALSE,
+  set_values_to,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+<code>PARAMCD</code> is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_adsl</code></td>
+<td>
+<p>ADSL input dataset
+</p>
+<p>The variables specified for <code>start_date</code>, and
+<code>subject_keys</code> are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source datasets
+</p>
+<p>A named list of datasets is expected. The <code>dataset_name</code> field of
+<code>tte_source()</code> refers to the dataset provided in the list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>By variables
+</p>
+<p>If the parameter is specified, separate time to event parameters are
+derived for each by group.
+</p>
+<p>The by variables must be in at least one of the source datasets. Each
+source dataset must contain either all by variables or none of the by
+variables.
+</p>
+<p>The by variables are not included in the output dataset.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Time to event origin date
+</p>
+<p>The variable <code>STARTDT</code> is set to the specified date. The value is taken
+from the ADSL dataset.
+</p>
+<p>If the event or censoring date is before the origin date, <code>ADT</code> is set to
+the origin date.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event_conditions</code></td>
+<td>
+<p>Sources and conditions defining events
+</p>
+<p>A list of <code>event_source()</code> objects is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor_conditions</code></td>
+<td>
+<p>Sources and conditions defining censorings
+</p>
+<p>A list of <code>censor_source()</code> objects is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>create_datetime</code></td>
+<td>
+<p>Create datetime variables?
+</p>
+<p>If set to <code>TRUE</code>, variables <code>ADTM</code> and <code>STARTDTM</code> are created. Otherwise,
+variables <code>ADT</code> and <code>STARTDT</code> are created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the variables to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "OS", PARAM = "Overall Survival")</code> is
+expected. The values must be symbols, character strings, numeric values,
+expressions, or <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of symbols created using <code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following steps are performed to create the observations of the
+new parameter:
+</p>
+<p><strong>Deriving the events:</strong>
+</p>
+ <ol>
+<li>
+<p> For each event source dataset the observations as
+specified by the <code>filter</code> element are selected. Then for each patient the
+first observation (with respect to <code>date</code>) is selected.
+</p>
+</li>
+<li>
+<p> The <code>ADT</code> variable is set to the variable specified by the
+<code>date</code> element. If the date variable is a datetime variable, only
+the datepart is copied.
+</p>
+</li>
+<li>
+<p> The <code>CNSR</code> variable is added and set to the <code>censor</code> element.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> element are
+added.
+</p>
+</li>
+<li>
+<p> The selected observations of all event source datasets are combined into a
+single dataset.
+</p>
+</li>
+<li>
+<p> For each patient the first observation (with respect to the <code>ADT</code>
+variable) from the single dataset is selected. </p>
+</li>
+</ol>
+<p><strong>Deriving the censoring observations:</strong>
+</p>
+ <ol>
+<li>
+<p> For each censoring source dataset the observations as
+specified by the <code>filter</code> element are selected. Then for each patient the
+last observation (with respect to <code>date</code>) is selected.
+</p>
+</li>
+<li>
+<p> The <code>ADT</code> variable is set to the variable specified by the
+<code>date</code> element. If the date variable is a datetime variable, only
+the datepart is copied.
+</p>
+</li>
+<li>
+<p> The <code>CNSR</code> variable is added and set to the <code>censor</code> element.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> element are
+added.
+</p>
+</li>
+<li>
+<p> The selected observations of all censoring source datasets are
+combined into a single dataset.
+</p>
+</li>
+<li>
+<p> For each patient the last observation (with respect to the <code>ADT</code>
+variable) from the single dataset is selected. </p>
+</li>
+</ol>
+<p>For each subject (as defined by the <code>subject_keys</code> parameter) an
+observation is selected. If an event is available, the event observation is
+selected. Otherwise the censoring observation is selected.
+</p>
+<p>Finally:
+</p>
+
+<ol>
+<li>
+<p> The variable specified for <code>start_date</code> is joined from the
+ADSL dataset. Only subjects in both datasets are kept,
+i.e., subjects with both an event or censoring and an observation in
+<code>dataset_adsl</code>.
+</p>
+</li>
+<li>
+<p> The variables as defined by the <code>set_values_to</code> parameter are added.
+</p>
+</li>
+<li>
+<p> The <code>ADT</code>/<code>ADTM</code> variable is set to the maximum of <code>ADT</code>/<code>ADTM</code> and
+<code>STARTDT</code>/<code>STARTDTM</code> (depending on the <code>create_datetime</code> parameter).
+</p>
+</li>
+<li>
+<p> The new observations are added to the output dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the new parameter added
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>event_source()</code>, <code>censor_source()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(lubridate)
+data("admiral_adsl")
+
+adsl &lt;- admiral_adsl
+
+# derive overall survival parameter
+death &lt;- event_source(
+  dataset_name = "adsl",
+  filter = DTHFL == "Y",
+  date = DTHDT,
+  set_values_to = exprs(
+    EVNTDESC = "DEATH",
+    SRCDOM = "ADSL",
+    SRCVAR = "DTHDT"
+  )
+)
+
+last_alive_dt &lt;- censor_source(
+  dataset_name = "adsl",
+  date = LSTALVDT,
+  set_values_to = exprs(
+    EVNTDESC = "LAST DATE KNOWN ALIVE",
+    SRCDOM = "ADSL",
+    SRCVAR = "LSTALVDT"
+  )
+)
+
+derive_param_tte(
+  dataset_adsl = adsl,
+  event_conditions = list(death),
+  censor_conditions = list(last_alive_dt),
+  source_datasets = list(adsl = adsl),
+  set_values_to = exprs(
+    PARAMCD = "OS",
+    PARAM = "Overall Survival"
+  )
+) %&gt;%
+  select(-STUDYID) %&gt;%
+  filter(row_number() %in% 20:30)
+
+# derive duration of response
+# only observations for subjects in dataset_adsl are created
+adsl &lt;- tribble(
+  ~USUBJID, ~DTHFL, ~DTHDT,            ~RSPDT,
+  "01",     "Y",    ymd("2021-06-12"), ymd("2021-03-04"),
+  "02",     "N",    NA,                NA,
+  "03",     "Y",    ymd("2021-08-21"), NA,
+  "04",     "N",    NA,                ymd("2021-04-14")
+) %&gt;%
+  mutate(STUDYID = "AB42")
+
+adrs &lt;- tribble(
+  ~USUBJID, ~AVALC, ~ADT,              ~ASEQ,
+  "01",     "SD",   ymd("2021-01-03"), 1,
+  "01",     "PR",   ymd("2021-03-04"), 2,
+  "01",     "PD",   ymd("2021-05-05"), 3,
+  "02",     "PD",   ymd("2021-02-03"), 1,
+  "04",     "SD",   ymd("2021-02-13"), 1,
+  "04",     "PR",   ymd("2021-04-14"), 2,
+  "04",     "CR",   ymd("2021-05-15"), 3
+) %&gt;%
+  mutate(STUDYID = "AB42", PARAMCD = "OVR")
+
+pd &lt;- event_source(
+  dataset_name = "adrs",
+  filter = AVALC == "PD",
+  date = ADT,
+  set_values_to = exprs(
+    EVENTDESC = "PD",
+    SRCDOM = "ADRS",
+    SRCVAR = "ADTM",
+    SRCSEQ = ASEQ
+  )
+)
+
+death &lt;- event_source(
+  dataset_name = "adsl",
+  filter = DTHFL == "Y",
+  date = DTHDT,
+  set_values_to = exprs(
+    EVENTDESC = "DEATH",
+    SRCDOM = "ADSL",
+    SRCVAR = "DTHDT"
+  )
+)
+
+lastvisit &lt;- censor_source(
+  dataset_name = "adrs",
+  date = ADT,
+  censor = 1,
+  set_values_to = exprs(
+    EVENTDESC = "LAST TUMOR ASSESSMENT",
+    SRCDOM = "ADRS",
+    SRCVAR = "ADTM",
+    SRCSEQ = ASEQ
+  )
+)
+
+first_response &lt;- censor_source(
+  dataset_name = "adsl",
+  date = RSPDT,
+  censor = 1,
+  set_values_to = exprs(
+    EVENTDESC = "FIRST RESPONSE",
+    SRCDOM = "ADSL",
+    SRCVAR = "RSPDT"
+  )
+)
+
+derive_param_tte(
+  dataset_adsl = filter(adsl, !is.na(RSPDT)),
+  start_date = RSPDT,
+  event_conditions = list(pd, death),
+  censor_conditions = list(lastvisit, first_response),
+  source_datasets = list(adsl = adsl, adrs = adrs),
+  set_values_to = exprs(
+    PARAMCD = "DURRSP",
+    PARAM = "Duration of Response"
+  )
+)
+
+# derive time to adverse event for each preferred term
+adsl &lt;- tribble(
+  ~USUBJID, ~TRTSDT,           ~EOSDT,
+  "01",     ymd("2020-12-06"), ymd("2021-03-06"),
+  "02",     ymd("2021-01-16"), ymd("2021-02-03")
+) %&gt;%
+  mutate(STUDYID = "AB42")
+
+ae &lt;- tribble(
+  ~USUBJID, ~AESTDTC,           ~AESEQ, ~AEDECOD,
+  "01",     "2021-01-03T10:56", 1,      "Flu",
+  "01",     "2021-03-04",       2,      "Cough",
+  "01",     "2021",             3,      "Flu"
+) %&gt;%
+  mutate(STUDYID = "AB42")
+
+ae_ext &lt;- derive_vars_dt(
+  ae,
+  dtc = AESTDTC,
+  new_vars_prefix = "AEST",
+  highest_imputation = "M",
+  flag_imputation = "none"
+)
+
+ttae &lt;- event_source(
+  dataset_name = "ae",
+  date = AESTDT,
+  set_values_to = exprs(
+    EVNTDESC = "AE",
+    SRCDOM = "AE",
+    SRCVAR = "AESTDTC",
+    SRCSEQ = AESEQ
+  )
+)
+
+eos &lt;- censor_source(
+  dataset_name = "adsl",
+  date = EOSDT,
+  set_values_to = exprs(
+    EVNTDESC = "END OF STUDY",
+    SRCDOM = "ADSL",
+    SRCVAR = "EOSDT"
+  )
+)
+
+derive_param_tte(
+  dataset_adsl = adsl,
+  by_vars = exprs(AEDECOD),
+  start_date = TRTSDT,
+  event_conditions = list(ttae),
+  censor_conditions = list(eos),
+  source_datasets = list(adsl = adsl, ae = ae_ext),
+  set_values_to = exprs(
+    PARAMCD = paste0("TTAE", as.numeric(as.factor(AEDECOD))),
+    PARAM = paste("Time to First", AEDECOD, "Adverse Event"),
+    PARCAT1 = "TTAE",
+    PARCAT2 = AEDECOD
+  )
+) %&gt;%
+  select(USUBJID, STARTDT, PARAMCD, PARAM, ADT, CNSR, SRCSEQ)
+</code></pre>
+
+
+</div>

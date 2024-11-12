@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>docker_registry</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a new Docker registry object</h2>
+
+<h3>Description</h3>
+
+<p>Create a new Docker registry object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">docker_registry(server, tenant = "common", username = NULL,
+  password = NULL, app = .az_cli_app_id, ..., domain = "azurecr.io",
+  token = NULL, login = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>server</code></td>
+<td>
+<p>The registry server. This can be a URL ("https://myregistry.azurecr.io") or a domain name label ("myregistry"); if the latter, the value of the <code>domain</code> argument is appended to obtain the full hostname.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tenant, username, password, app, ...</code></td>
+<td>
+<p>Authentication arguments to AzureAuth::get_azure_token. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+<p>The default domain for the registry server.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>An OAuth token, of class AzureAuth::AzureToken. If supplied, the authentication details for the registry will be inferred from this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>login</code></td>
+<td>
+<p>Whether to perform a local login (requires that you have Docker installed). This is necessary if you want to push or pull images.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are two ways to authenticate with an Azure Docker registry: via Azure Active Directory (AAD), or with a username and password. The latter is simpler, while the former is more complex but also more flexible and secure.
+</p>
+<p>The default method of authenticating is via AAD. Without any arguments, <code>docker_registry</code> will authenticate using the AAD credentials of the currently logged-in user. You can change this by supplying the appropriate arguments to <code>docker_registry</code>, which will be passed to <code>AzureAuth::get_azure_token</code>; alternatively, you can provide an existing token object.
+</p>
+<p>To authenticate via the admin user account, set <code>app=NULL</code> and supply the admin username and password in the corresponding arguments. Note that for this to work, the registry must have been created with the admin account enabled.
+</p>
+<p>Authenticating with a service principal can be done either indirectly via AAD, or via a username and password. See the examples below. The latter method is recommended, as it is both faster and allows easier interoperability with AKS and ACI.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An R6 object of class <code>DockerRegistry</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>DockerRegistry for methods available for interacting with the registry, call_docker
+</p>
+<p>kubernetes_cluster for the corresponding function to create a Kubernetes cluster object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# connect to the Docker registry 'myregistry.azurecr.io', authenticating as the current user
+docker_registry("myregistry")
+
+# same, but providing a full URL
+docker_registry("https://myregistry.azurecr.io")
+
+# authenticating via the admin account
+docker_registry("myregistry", username="admin", password="password", app=NULL)
+
+# authenticating with a service principal, method 1: recommended
+docker_registry("myregistry", username="app_id", password="client_creds", app=NULL)
+
+# authenticating with a service principal, method 2
+docker_registry("myregistry", app="app_id", password="client_creds")
+
+# authenticating from a managed service identity (MSI)
+token &lt;- AzureAuth::get_managed_token("https://management.azure.com/")
+docker_registry("myregistry", token=token)
+
+# you can also interact with a registry outside Azure
+# note that some registry methods, and AAD authentication, may not work in this case
+docker_registry("https://hub.docker.com", username="mydockerid", password="password", app=NULL)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

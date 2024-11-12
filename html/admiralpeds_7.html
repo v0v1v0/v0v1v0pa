@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_interp_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive interpolated rows for the CDC charts (&gt;=2 yrs old)</h2>
+
+<h3>Description</h3>
+
+<p>Derive a linear interpolation of rows for the CDC charts (&gt;=2 yrs old) by age in days
+for the following parameters: HEIGHT, WEIGHT and BMI
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_interp_records(dataset, by_vars = NULL, parameter)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input metadataset
+</p>
+<p>The variables <code>AGE</code>, <code>AGEU</code>, <code>SEX</code>, <code>L</code>, <code>M</code>, <code>S</code> are expected to be in the dataset
+</p>
+<p>For BMI the additional variables <code>P95</code> and <code>Sigma</code> are expected to be in the dataset
+</p>
+<p>Note that <code>AGE</code> must be in days so that <code>AGEU</code> is equal to <code>"DAYS"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The variable from <code>dataset</code> which identifies the group of observations
+to interpolate separately.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>CDC/WHO metadata parameter
+</p>
+<p><em>Permitted Values</em>: <code>"WEIGHT"</code>, <code>"HEIGHT"</code> or <code>"BMI"</code> only - Must not be <code>NULL</code>
+e.g. <code>parameter = "WEIGHT"</code>, <code>parameter = "HEIGHT"</code>, or   <code>parameter = "BMI"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input dataset plus additional interpolated records: a record for
+each day from the minimum age to the maximum age.
+</p>
+<p>If any variables in addition to the expected ones are in the input dataset,
+LOCF (Last Observation Carried Forward) is applied to populate them for the
+new records.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Metadata
+<code>cdc_bmiage</code>,
+<code>cdc_htage</code>,
+<code>cdc_wtage</code>,
+<code>who_bmi_for_age_boys</code>,
+<code>who_bmi_for_age_girls</code>,
+<code>who_hc_for_age_boys</code>,
+<code>who_hc_for_age_girls</code>,
+<code>who_lgth_ht_for_age_boys</code>,
+<code>who_lgth_ht_for_age_girls</code>,
+<code>who_wt_for_age_boys</code>,
+<code>who_wt_for_age_girls</code>,
+<code>who_wt_for_lgth_boys</code>,
+<code>who_wt_for_lgth_girls</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+library(rlang, warn.conflicts = FALSE)
+
+cdc_htage &lt;- admiralpeds::cdc_htage %&gt;%
+  mutate(
+    SEX = case_when(
+      SEX == 1 ~ "M",
+      SEX == 2 ~ "F",
+      TRUE ~ NA_character_
+    ),
+    # Ensure first that Age unit is "DAYS"
+    AGE = round(AGE * 30.4375),
+    AGEU = "DAYS"
+  )
+
+# Interpolate the AGE by SEX
+derive_interp_records(
+  dataset = cdc_htage,
+  by_vars = exprs(SEX),
+  parameter = "HEIGHT"
+)
+</code></pre>
+
+
+</div>

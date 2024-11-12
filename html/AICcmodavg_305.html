@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>evidence</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute Evidence Ratio Between Two Models
+</h2>
+
+<h3>Description</h3>
+
+<p>This function compares two models of a candidate model set based on
+their evidence ratio (i.e., ratio of model weights).  The default
+computes the evidence ratio of the model weights between the top-ranked
+model and the second-ranked model.  You must supply a model selection
+table of class <code>aictab</code>, <code>bictab</code>, <code>boot.wt</code>,
+<code>dictab</code>, <code>ictab</code> as the first argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">evidence(aic.table, model.high = "top", model.low = "second.ranked")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>aic.table</code></td>
+<td>
+
+<p>a model selection table of class <code>aictab</code> such as that produced by 
+<code>aictab</code> or of classes <code>bictab</code>, <code>boot.wt</code>,
+<code>dictab</code>, or <code>ictab</code>.  The table may be sorted or not, as the
+function sorts the table internally.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.high</code></td>
+<td>
+
+<p>the top-ranked model (default), or alternatively, the name of another
+model as it appears in the model selection table.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.low</code></td>
+<td>
+
+<p>the second-ranked model (default), or alternatively, the name of a
+lower-ranked model such as it appears in the model selection table.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default compares the model weights of the top-ranked model to
+the second-ranked model in the candidate model set.  The evidence ratio
+can be interpreted as the number of times a given model is more
+parsimonious than a lower-ranked model.  If one desires an evidence
+ratio that does not involve a comparison with the top-ranking model, the 
+label of the required model must be specified in the <code>model.high</code>
+argument as it appears in the model selection table.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>evidence</code> produces an object of class <code>evidence</code> with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Model.high</code></td>
+<td>
+  
+<p>the model specified in <code>model.high</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Model.low</code></td>
+<td>
+
+<p>the model specified in <code>model.low</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ev.ratio</code></td>
+<td>
+
+<p>the evidence ratio between the two models compared.    
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AICc</code>, <code>aictab</code>, <code>bictab</code>,
+<code>c_hat</code>, <code>confset</code>, <code>importance</code>,
+<code>modavg</code>, <code>modavgShrink</code>,
+<code>modavgPred</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##run example from Burnham and Anderson (2002, p. 183) with two
+##non-nested models
+data(pine)
+Cand.set &lt;- list( )
+Cand.set[[1]] &lt;- lm(y ~ x, data = pine)
+Cand.set[[2]] &lt;- lm(y ~ z, data = pine)
+
+##assign model names
+Modnames &lt;- c("raw density", "density corrected for resin content")
+
+##compute model selection table
+aicctable.out &lt;- aictab(cand.set = Cand.set, modnames = Modnames)
+
+##compute evidence ratio
+evidence(aic.table = aicctable.out, model.low = "raw density")
+evidence(aic.table = aicctable.out) #gives the same answer
+##round to 4 digits after decimal point
+print(evidence(aic.table = aicctable.out, model.low = "raw density"),
+      digits = 4)
+
+
+##example with bictab
+## Not run: 
+##compute model selection table
+bictable.out &lt;- bictab(cand.set = Cand.set, modnames = Modnames)
+##compute evidence ratio
+evidence(bictable.out, model.low = "raw density")
+
+## End(Not run)
+
+
+##run models for the Orthodont data set in nlme package
+## Not run: 
+require(nlme)
+
+##set up candidate model list
+Cand.models &lt;- list()
+Cand.models[[1]] &lt;- lme(distance ~ age, data = Orthodont, method = "ML")
+##random is ~ age | Subject
+Cand.models[[2]] &lt;- lme(distance ~ age + Sex, data = Orthodont,
+                        random = ~ 1, method = "ML")
+Cand.models[[3]] &lt;- lme(distance ~ 1, data = Orthodont, random = ~ 1,
+                        method = "ML")
+
+##create a vector of model names
+Modnames &lt;- paste("mod", 1:length(Cand.models), sep = " ")
+
+##compute AICc table
+aic.table.1 &lt;- aictab(cand.set = Cand.models, modnames = Modnames,
+                      second.ord = TRUE)
+
+##compute evidence ratio between best model and second-ranked model
+evidence(aic.table = aic.table.1)
+
+##compute the same value but from an unsorted model selection table
+evidence(aic.table = aictab(cand.set = Cand.models,
+           modnames = Modnames, second.ord = TRUE, sort = FALSE))
+
+##compute evidence ratio between second-best model and third-ranked
+##model  
+evidence(aic.table = aic.table.1, model.high = "mod1",
+         model.low = "mod3")
+detach(package:nlme)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

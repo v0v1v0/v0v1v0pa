@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autotune</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find the best alpha, beta, and bandwidth values with k-fold cross-validation</h2>
+
+<h3>Description</h3>
+
+<p>Find the best alpha, beta, and bandwidth values with k-fold cross-validation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autotune(
+  response,
+  data,
+  locations,
+  k = 8,
+  control = NULL,
+  customGroups = NULL,
+  alphaVals = NULL,
+  betaVals = NULL,
+  bandwidthVals = NULL,
+  outputProgress = FALSE,
+  useSpatialNodes = FALSE,
+  spatialNodesMethod = "idw",
+  spatialNodesDistPower = 2,
+  spatialNodesDistPowerRange = c(0, 2),
+  spatialNodesModelByResidual = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>The vector of response values to test on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data frame of predictor variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locations</code></td>
+<td>
+<p>The n by 2 matrix of coordinate information for the known observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of folds to create in k-fold cross-validation for tuning</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>An optional control function to send to the autocart creation function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>customGroups</code></td>
+<td>
+<p>Here, you may supply custom groups for cross-validation. This parameter must be supplied as a factor and labeled from 1:numLevels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphaVals</code></td>
+<td>
+<p>Override the alpha values that are expanded in the grid in this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaVals</code></td>
+<td>
+<p>Override the beta values that are expanded in the grid in this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidthVals</code></td>
+<td>
+<p>Override the bandwidth values that are expanded in the grid in this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputProgress</code></td>
+<td>
+<p>Print the result of the cross-validations as you are going. This is useful when the cross-validation will be very long and you do not wish to wait.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useSpatialNodes</code></td>
+<td>
+<p>Use an interpolative process at the terminal nodes of the autocart tree for the prediction process</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialNodesMethod</code></td>
+<td>
+<p>The type of interpolation to use at the terminal nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialNodesDistPower</code></td>
+<td>
+<p>The power parameter to use in inverse distance weighting at terminal nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialNodesDistPowerRange</code></td>
+<td>
+<p>The ranged power parameter p1, p2 to use for a varying power parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialNodesModelByResidual</code></td>
+<td>
+<p>Do the interpolative process on the residuals of the prediction formed by response average at terminal nodes</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the labeled optimal parameters that were chosen for the best predictive accuracy on cross-validation.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load some data for an autotune example
+# (Note that a low sample size is used here for quick example computation.
+#  In a practical application this function can be quite computationally
+#  demanding due to the grid-search nature of the function.)
+snow &lt;- na.omit(read.csv(system.file("extdata", "ut2017_snow.csv", package = "autocart")))
+y &lt;- snow$yr50[1:35]
+X &lt;- data.frame(snow$ELEVATION, snow$MCMT, snow$PPTWT)[1:35, ]
+locations &lt;- as.matrix(cbind(snow$LONGITUDE, snow$LATITUDE))[1:35, ]
+
+# Find optimal parameters via cross-validation. We'll search through the
+# following alpha/beta/bandwidth values:
+alphaVec &lt;- c(0.0, 0.5)
+betaVec &lt;- c(0.0, 0.2)
+bandwidthVec &lt;- c(1.0)
+
+# We'll find the optimal values with 3-fold cross validation:
+# (Due to the large number of cross-validations and trainings that occur,
+# this can take a few minutes.)
+myTune &lt;- autotune(y, X, locations, k = 3, alphaVals = alphaVec,
+                   betaVals = betaVec, bandwidthVals = bandwidthVec)
+# Inspect the results
+myTune
+
+</code></pre>
+
+
+</div>

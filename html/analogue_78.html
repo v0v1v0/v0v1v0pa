@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>join</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge species data sets on common columns (species)</h2>
+
+<h3>Description</h3>
+
+<p>Merges any number of species matrices on their common columns to
+create a new data set with number of columns equal to the number of
+unqiue columns across all data frames. Needed for analysis of fossil
+data sets with respect to training set samples. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">join(..., verbose = FALSE, na.replace = TRUE, split = TRUE, value = 0,
+     type = c("outer", "left", "inner"))
+
+## S3 method for class 'join'
+head(x, ...)
+
+## S3 method for class 'join'
+tail(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>for <code>join</code>, data frames containing the data sets to
+be merged. For the <code>head</code> and <code>tail</code>
+methods, additional arguments to <code>head</code> and
+<code>tail</code>, in particular <code>"n"</code> to control the
+number of rows of each <code>join</code>ed data set to display.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, the function prints out the
+dimensions of the data frames in <code>"\dots"</code>, as well as those of
+the returned, merged data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.replace</code></td>
+<td>
+<p>logical; samples where a column in one data frame
+that have no matching column in the other will contain missing
+values (<code>NA</code>). If <code>na.replace</code> is <code>TRUE</code>, these
+missing values are replaced with zeros. This is standard practice in
+ecology and palaeoecology. If you want to replace with another
+value, then set <code>na.replace</code> to <code>FALSE</code> and do the
+replacement later.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split</code></td>
+<td>
+<p>logical; should the merged data sets samples be split
+back into individual data frames, but now with common columns
+(i.e. species)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>numeric; value to replace <code>NA</code> with if
+<code>na.replace</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>logical; type of join to perform. <code>"outer"</code> returns
+the <em>union</em> of the variables in data frames to be merged, such
+that the resulting objects have columns for all variables found
+across all the data frames to be merged. <code>"left"</code> returns the
+left outer (or the left) join, such that the merged data frames
+contain the set of variables found in the first supplied data
+frame. <code>"inner"</code> returns the inner join, such that the merged
+data frame contain the intersection of the variables in the supplied
+data frames. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"join"</code>, usually the result of a
+call to <code>join</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When merging multiple data frames the set of variables in the merged
+data can be determined via a number of routes. <code>join</code> provides
+for two (currently) join types; the <em>outer</em> join and the
+<em>left outer</em> (or simply the <em>left</em>) join. Which type of join
+is performed is determined by the argument <code>type</code>.
+</p>
+<p>The <em>outer</em> join returns the union of the set of variables found
+in the data frames to be merged. This means that the resulting data
+frame(s) contain columns for all the variable observed across all the
+data frames supplied for merging.
+</p>
+<p>With the <em>left outer</em> join the resulting data frame(s) contain
+only the set of variables found in the first data frame provided.
+</p>
+<p>The <em>inner</em> join returns the intersection of the set of variables
+found in the supplied data frames. The resulting data frame(s)
+contains the variables common to all supplied data frames.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>split = TRUE</code>, an object of class <code>"join"</code>, a list of
+data frames, with as many components as the number of data frames
+originally merged.
+</p>
+<p>Otherwise, an object of class <code>c("join", "data.frame")</code>, a data
+frame containing the merged data sets.
+</p>
+<p><code>head.join</code> and <code>tail.join</code> return a list, each component of
+which is the  result of a call to <code>head</code> or
+<code>tail</code> on each data set compont of the joined object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>See Also</h3>
+
+<p><code>merge</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load the example data
+data(swapdiat, swappH, rlgh)
+
+## merge training and test set on columns
+dat &lt;- join(swapdiat, rlgh, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+swapdiat &lt;- dat[[1]] / 100
+rlgh &lt;- dat[[2]] / 100
+
+## merge training and test set using left join
+head(join(swapdiat, rlgh, verbose = TRUE, type = "left"))
+
+## load the example data
+data(ImbrieKipp, SumSST, V12.122)
+
+## merge training and test set on columns
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+V12.122 &lt;- dat[[2]] / 100
+
+## show just the first few lines of each data set
+head(dat, n = 4)
+
+## show just the last few lines of each data set
+tail(dat, n = 4)
+
+## merge training and test set using inner join
+head(join(ImbrieKipp, V12.122, verbose = TRUE, type = "inner"))
+
+## merge training and test set using outer join and replace
+## NA with -99.9
+head(join(ImbrieKipp, V12.122, verbose = TRUE, value = -99.9))
+</code></pre>
+
+
+</div>

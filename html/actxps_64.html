@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>step_expose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create exposure records in a <code>recipes</code> step</h2>
+
+<h3>Description</h3>
+
+<p><code>step_expose()</code> creates a <em>specification</em> of a recipe step that will convert
+a data frame of census-level records to exposure-level records.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">step_expose(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  end_date,
+  start_date = as.Date("1900-01-01"),
+  target_status = NULL,
+  options = list(cal_expo = FALSE, expo_length = "year"),
+  drop_pol_num = TRUE,
+  skip = TRUE,
+  id = recipes::rand_id("expose")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>recipe</code></td>
+<td>
+<p>A recipe object. The step will be added to the
+sequence of operations for this recipe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>One or more selector functions to choose variables
+for this step. See <code>selections()</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>role</code></td>
+<td>
+<p>Not used by this step since no new variables are
+created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trained</code></td>
+<td>
+<p>A logical to indicate if the quantities for
+preprocessing have been estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>Experience study end date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Experience study start date. Default value = 1900-01-01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_status</code></td>
+<td>
+<p>Character vector of target status values. Default value
+= <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>A named list of additional arguments passed to <code>expose()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_pol_num</code></td>
+<td>
+<p>Whether the <code>pol_num</code> column produced by <code>expose()</code>
+should be dropped. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>A logical. Should the step be skipped when the
+recipe is baked by <code>bake()</code>? While all operations are baked
+when <code>prep()</code> is run, some operations may not be able to be
+conducted on new data (e.g. processing the outcome variable(s)).
+Care should be taken when using <code>skip = TRUE</code> as it may affect
+the computations for subsequent operations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>A character string that is unique to this step to identify it.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Policy year exposures are calculated as a default. To switch to calendar
+exposures or another exposure length, use pass the appropriate arguments to
+the <code>options</code> parameter.
+</p>
+<p>Policy numbers are dropped as a default whenever the recipe is baked. This
+is done to prevent unintentional errors when the model formula includes
+all variables (<code>y ~ .</code>). If policy numbers are required for any reason
+(mixed effect models, identification, etc.), set <code>drop_pol_num</code> to <code>FALSE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An updated version of <code>recipe</code> with the new expose step added to the
+sequence of any existing operations. For the <code>tidy</code> method, a <code>tibble</code> with
+the columns <code>exposure_type</code>, <code>target_status</code>, <code>start_date</code>, and <code>end_date</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>expose()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+expo_rec &lt;- recipes::recipe(status ~ ., toy_census) |&gt;
+  step_expose(end_date = "2022-12-31", target_status = "Surrender",
+              options = list(expo_length = "month")) |&gt;
+  prep()
+
+recipes::juice(expo_rec)
+
+</code></pre>
+
+
+</div>

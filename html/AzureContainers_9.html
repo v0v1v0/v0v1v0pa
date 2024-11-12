@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>acr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure Container Registry class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an Azure Container Registry (ACR) resource. For working with the registry endpoint itself, including uploading and downloading images etc, see docker_registry.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_resource class:
+</p>
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new ACR object. See 'Details'.
+</p>
+</li>
+<li> <p><code>add_role_assignment(principal, role, scope=NULL, ...)</code>: Adds a role for the specified principal. This is an override mainly to handle AKS objects, so that the Kubernetes cluster can be granted access to the registry. You can use the <code>...</code> arguments to supply authentication details for AzureGraph, which is used to retrieve the cluster service principal.
+</p>
+</li>
+<li> <p><code>list_credentials</code>: Return the username and passwords for this registry. Only valid if the Admin user for the registry has been enabled.
+</p>
+</li>
+<li> <p><code>list_policies</code>: Return the policies for this registry.
+</p>
+</li>
+<li> <p><code>list_usages</code>: Return the usage for this registry.
+</p>
+</li>
+<li> <p><code>get_docker_registry(username, password)</code>: Return an object representing the Docker registry endpoint.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>Initializing a new object of this class can either retrieve an existing registry resource, or create a new registry on the host. Generally, the best way to initialize an object is via the <code>get_acr</code>, <code>create_acr</code> or <code>list_acrs</code> methods of the az_resource_group class, which handle the details automatically.
+</p>
+<p>Note that this class is separate from the Docker registry itself. This class exposes methods for working with the Azure resource: listing credentials, updating resource tags, updating and deleting the resource, and so on.
+</p>
+<p>For working with the registry, including uploading and downloading images, updating tags, deleting layers and images etc, use the endpoint object generated with <code>get_docker_registry</code>. This method takes two optional arguments:
+</p>
+
+<ul>
+<li> <p><code>username</code>: The username that Docker will use to authenticate with the registry.
+</p>
+</li>
+<li> <p><code>password</code>: The password that Docker will use to authenticate with the registry.
+</p>
+</li>
+</ul>
+<p>By default, these arguments will be retrieved from the ACR resource. They will only exist if the resource was created with <code>admin_user_enabled=TRUE</code>. Currently AzureContainers does not support authentication methods other than a username/password combination.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>create_acr, get_acr, delete_acr, list_acrs
+</p>
+<p>docker_registry for interacting with the Docker registry endpoint
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/container-registry/">Azure Container Registry</a> and
+<a href="https://docs.microsoft.com/en-us/rest/api/containerregistry/registries">API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+rg &lt;- AzureRMR::get_azure_login()$
+    get_subscription("subscription_id")$
+    get_resource_group("rgname")
+
+myacr &lt;- rg$get_acr("myregistry")
+
+myacr$list_credentials()
+myacr$list_policies()
+
+# see who has push and pull access
+myacr$list_role_assignments()
+
+# grant a Kubernetes cluster pull access
+myaks &lt;- rg$get_aks("myaks")
+myacr$add_role_assignment(myaks, "Acrpull")
+
+# get the registry endpoint (for interactive use)
+myacr$get_docker_registry()
+
+# get the registry endpoint (admin user account)
+myacr$get_docker_registry(as_admin=TRUE)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

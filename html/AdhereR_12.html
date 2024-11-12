@@ -1,0 +1,605 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CMA_per_episode</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>CMA_per_episode constructor.</h2>
+
+<h3>Description</h3>
+
+<p>Applies a given CMA to each treatment episode and constructs a
+CMA_per_episode object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CMA_per_episode(
+  CMA.to.apply,
+  data,
+  treat.epi = NULL,
+  ID.colname = NA,
+  event.date.colname = NA,
+  event.duration.colname = NA,
+  event.daily.dose.colname = NA,
+  medication.class.colname = NA,
+  medication.groups = NULL,
+  flatten.medication.groups = FALSE,
+  medication.groups.colname = ".MED_GROUP_ID",
+  carry.only.for.same.medication = NA,
+  consider.dosage.change = NA,
+  medication.change.means.new.treatment.episode = TRUE,
+  dosage.change.means.new.treatment.episode = FALSE,
+  maximum.permissible.gap = 180,
+  maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
+  maximum.permissible.gap.append.to.episode = FALSE,
+  followup.window.start = 0,
+  followup.window.start.unit = c("days", "weeks", "months", "years")[1],
+  followup.window.start.per.medication.group = FALSE,
+  followup.window.duration = 365 * 2,
+  followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
+  observation.window.start = 0,
+  observation.window.start.unit = c("days", "weeks", "months", "years")[1],
+  observation.window.duration = 365 * 2,
+  observation.window.duration.unit = c("days", "weeks", "months", "years")[1],
+  return.inner.event.info = FALSE,
+  date.format = "%m/%d/%Y",
+  summary = "CMA per treatment episode",
+  event.interval.colname = "event.interval",
+  gap.days.colname = "gap.days",
+  force.NA.CMA.for.failed.patients = TRUE,
+  return.mapping.events.episodes = FALSE,
+  parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
+    "snow(NWS)")[1],
+  parallel.threads = "auto",
+  suppress.warnings = FALSE,
+  suppress.special.argument.checks = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>CMA.to.apply</code></td>
+<td>
+<p>A <em>string</em> giving the name of the CMA function (1 to
+9) that will be computed for each treatment episode.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> containing the events (prescribing or
+dispensing) used to compute the CMA. Must contain, at a minimum, the patient
+unique ID, the event date and duration, and might also contain the daily
+dosage and medication type (the actual column names are defined in the
+following four parameters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat.epi</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> containing the treatment episodes.
+Must contain the patient ID (as given in <code>ID.colname</code>), the episode unique ID
+(increasing sequentially, <code>episode.ID</code>), the episode start date
+(<code>episode.start</code>), the episode duration in days (<code>episode.duration</code>),
+and the episode end date (<code>episode.end</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>data</code>
+containing the unique patient ID; must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the start date of the event (in the format given in
+the <code>date.format</code> parameter); must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.duration.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the event duration (in days); must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.daily.dose.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the prescribed daily dose, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the medication type, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.groups</code></td>
+<td>
+<p>A <em>vector</em> of characters defining medication
+groups or the name of a column in <code>data</code> that defines such groups.
+The names of the vector are the medication group unique names, while
+the content defines them as logical expressions. While the names can be any
+string of characters except "}", it is recommended to stick to the rules for
+defining vector names in <code>R</code>. For example,
+<code>c("A"="CATEGORY == 'medA'", "AA"="{A} &amp; PERDAY &lt; 4"</code> defines two
+medication groups: <em>A</em> which selects all events of type "medA", and
+<em>B</em> which selects all events already defined by "A" but with a daily
+dose lower than 4. If <code>NULL</code>, no medication groups are defined. If
+medication groups are defined, there is one CMA estimate for each group;
+moreover, there is a special group <em>__ALL_OTHERS__</em> automatically defined
+containing all observations <em>not</em> covered by any of the explicitly defined
+groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flatten.medication.groups</code></td>
+<td>
+<p><em>Logical</em>, if <code>FALSE</code> (the default)
+then the <code>CMA</code> and <code>event.info</code> components of the object are lists
+with one medication group per element; otherwise, they are <code>data.frame</code>s
+with an extra column containing the medication group (its name is given by
+<code>medication.groups.colname</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.groups.colname</code></td>
+<td>
+<p>a <em>string</em> (defaults to ".MED_GROUP_ID")
+giving the name of the column storing the group name when
+<code>flatten.medication.groups</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>carry.only.for.same.medication</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code>, the
+carry-over applies only across medication of the same type; valid only for
+CMAs 5 to 9, in which case it is coupled (i.e., the same value is used for
+computing the treatment episodes and the CMA on each treatment episode).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consider.dosage.change</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code>, the carry-over
+is adjusted to also reflect changes in dosage; valid only for CMAs 5 to 9, in
+which case it is coupled (i.e., the same value is used for computing the
+treatment episodes and the CMA on each treatment episode).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.change.means.new.treatment.episode</code></td>
+<td>
+<p><em>Logical</em>, should a
+change in medication automatically start a new treatment episode?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dosage.change.means.new.treatment.episode</code></td>
+<td>
+<p><em>Logical</em>, should a
+change in dosage automatically start a new treatment episode?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum.permissible.gap</code></td>
+<td>
+<p>The <em>number</em> of units given by
+<code>maximum.permissible.gap.unit</code> representing the maximum duration of
+permissible gaps between treatment episodes (can also be a percent, see
+<code>maximum.permissible.gap.unit</code> for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum.permissible.gap.unit</code></td>
+<td>
+<p>can be either <em>"days"</em>,
+<em>"weeks"</em>, <em>"months"</em>, <em>"years"</em> or <em>"percent"</em>, and
+represents the time units that <code>maximum.permissible.gap</code> refers to;
+if <em>percent</em>, then  <code>maximum.permissible.gap</code> is interpreted as a
+percent (can be greater than 100%) of the duration of the current
+prescription.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum.permissible.gap.append.to.episode</code></td>
+<td>
+<p>a <em>logical</em> value
+specifying of the <code>maximum.permissible.gap</code> should be append at the
+end of an episode with a gap larger than the <code>maximum.permissible.gap</code>;
+<code>FALSE</code> (the default) mean no addition, while <code>TRUE</code> mean that the
+full <code>maximum.permissible.gap</code> is added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start</code></td>
+<td>
+<p>If a <em><code>Date</code></em> object, it represents
+the actual start date of the follow-up window; if a <em>string</em> it is the
+name of the column in <code>data</code> containing the start date of the follow-up
+window either as the numbers of <code>followup.window.start.unit</code> units after
+the first event (the column must be of type <code>numeric</code>) or as actual
+dates (in which case the column must be of type <code>Date</code> or a string
+that conforms to the format specified in <code>date.format</code>); if a
+<em>number</em> it is the number of time units defined in the
+<code>followup.window.start.unit</code> parameter after the begin of the
+participant's first event; or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start.unit</code></td>
+<td>
+<p>can be either <em>"days"</em>,
+<em>"weeks"</em>, <em>"months"</em> or <em>"years"</em>, and represents the time
+units that <code>followup.window.start</code> refers to (when a number), or
+<code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start.per.medication.group</code></td>
+<td>
+<p>a <em>logical</em>: if there are
+medication groups defined and this is <code>TRUE</code>, then the first event
+considered for the follow-up window start is relative to each medication group
+separately, otherwise (the default) it is relative to the patient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.duration</code></td>
+<td>
+<p>either a <em>number</em> representing the
+duration of the follow-up window in the time units given in
+<code>followup.window.duration.unit</code>, or a <em>string</em> giving the column
+containing these numbers. Should represent a period for which relevant
+medication events are recorded accurately (e.g. not extend after end of
+relevant treatment, loss-to-follow-up or change to a health care provider
+not covered by the database).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.duration.unit</code></td>
+<td>
+<p>can be either <em>"days"</em>,
+<em>"weeks"</em>, <em>"months"</em> or <em>"years"</em>, and represents the time
+units that <code>followup.window.duration</code> refers to, or <code>NA</code> if not
+defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observation.window.start, observation.window.start.unit, observation.window.duration, observation.window.duration.unit</code></td>
+<td>
+<p>the definition of the observation window
+(see the follow-up window parameters above for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.inner.event.info</code></td>
+<td>
+<p><em>Logical</em> specifying if the function
+should also return the event.info for all the individual events in each
+sliding window; by default it is <code>FALSE</code> as this information is useful
+only in very specific cases (e.g., plotting the event intervals) and adds a
+small but non-negligible computational overhead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in the
+<code>data</code> and the other parameters; see the <code>format</code> parameters of the
+<code>as.Date</code> function for details (NB, this concerns only the
+dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary</code></td>
+<td>
+<p>Metadata as a <em>string</em>, briefly describing this CMA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.interval.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of a newly-created
+column storing the number of days between the start of the current event and
+the start of the next one; the default value "event.interval" should be
+changed only if there is a naming conflict with a pre-existing
+"event.interval" column in <code>event.info</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap.days.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of a newly-created column
+storing the number of days when medication was not available (i.e., the
+"gap days"); the default value "gap.days" should be changed only if there is
+a naming conflict with a pre-existing "gap.days" column in <code>event.info</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.NA.CMA.for.failed.patients</code></td>
+<td>
+<p><em>Logical</em> describing how the
+patients for which the CMA estimation fails are treated: if <code>TRUE</code>
+they are returned with an <code>NA</code> CMA estimate, while for
+<code>FALSE</code> they are omitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.mapping.events.episodes</code></td>
+<td>
+<p>A <em>Logical</em>, if <code>TRUE</code> then
+the mapping between events and episodes is returned as an extra component
+<code>mapping.episodes.to.events</code>, which is a <code>data.table</code> giving, for
+each episode, the events that belong to it (an event is given by its row
+number in the <code>data</code>). Please note that the episodes returned are
+specific to the particular simple CMA used, and should preferentially used
+over those returned by <code>compute.treatment.episodes()</code>. This component
+can also be accessed using the <code>getEventsToEpisodesMapping()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.backend</code></td>
+<td>
+<p>Can be "none" (the default) for single-threaded
+execution, "multicore"  (using <code>mclapply</code> in package <code>parallel</code>)
+for multicore processing (NB. not currently implemented on MS Windows and
+automatically falls back on "snow" on this platform),  or "snow",
+"snow(SOCK)" (equivalent to "snow"), "snow(MPI)" or "snow(NWS)" specifying
+various types of SNOW clusters (can be on the local machine or more complex
+setups – please see the documentation of package <code>snow</code> for details;
+the last two require packages <code>Rmpi</code> and <code>nws</code>, respectively, not
+automatically installed with <code>AdhereR</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.threads</code></td>
+<td>
+<p>Can be "auto" (for <code>parallel.backend</code> ==
+"multicore", defaults to the number of cores in the system as given by
+<code>options("cores")</code>, while for <code>parallel.backend</code> == "snow",
+defaults to 2), a strictly positive integer specifying the number of parallel
+threads, or a more complex specification of the SNOW cluster nodes for
+<code>parallel.backend</code> == "snow" (see the documentation of package
+<code>snow</code> for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any
+warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.special.argument.checks</code></td>
+<td>
+<p><em>Logical</em> parameter for internal
+use; if <code>FALSE</code> (default) check if the important columns in the <code>data</code>
+have some of the reserved names, if <code>TRUE</code> this check is not performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other possible parameters</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>CMA_per_episode</code> first identifies the treatment episodes for the whole
+follo-up window (using the <code>compute.treatment.episodes</code> function),
+and then computes the given "simple" CMA for each treatment episode that
+intersects with the observation window. NB: the CMA is computed for the
+period of the episode that is part of the observations window; thus, if an
+episode starts earlier or ends later than the observation window, CMA will
+be computed for a section of that episode.
+Thus, as opposed to the "simple" CMAs 1 to 9, it returns a set of CMAs, with
+possibly more than one element.
+</p>
+<p>It is highly similar to <code>CMA_sliding_window</code> which computes a CMA
+for a set of sliding windows.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>S3</code> object of class <code>CMA_per_episode</code> with the
+following fields:
+</p>
+
+<ul>
+<li> <p><code>data</code> The actual event data, as given by the <code>data</code>
+parameter.
+</p>
+</li>
+<li> <p><code>ID.colname</code> the name of the column in <code>data</code> containing the
+unique patient ID, as given by the <code>ID.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>event.date.colname</code> the name of the column in <code>data</code>
+containing the start date of the event (in the format given in the
+<code>date.format</code> parameter), as given by the <code>event.date.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>event.duration.colname</code> the name of the column in <code>data</code>
+containing the event duration (in days), as given by the
+<code>event.duration.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>event.daily.dose.colname</code> the name of the column in <code>data</code>
+containing the prescribed daily dose, as given by the
+<code>event.daily.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>medication.class.colname</code> the name of the column in <code>data</code>
+containing the classes/types/groups of medication, as given by the
+<code>medication.class.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>carry.only.for.same.medication</code> whether the carry-over applies
+only across medication of the same type, as given by the
+<code>carry.only.for.same.medication</code> parameter.
+</p>
+</li>
+<li> <p><code>consider.dosage.change</code> whether the carry-over is adjusted to
+reflect changes in dosage, as given by the <code>consider.dosage.change</code>
+parameter.
+</p>
+</li>
+<li> <p><code>followup.window.start</code> the beginning of the follow-up window, as
+given by the <code>followup.window.start</code> parameter.
+</p>
+</li>
+<li> <p><code>followup.window.start.unit</code> the time unit of the
+<code>followup.window.start</code>, as given by the
+<code>followup.window.start.unit</code> parameter.
+</p>
+</li>
+<li> <p><code>followup.window.duration</code> the duration of the follow-up window,
+as given by the <code>followup.window.duration</code> parameter.
+</p>
+</li>
+<li> <p><code>followup.window.duration.unit</code> the time unit of the
+<code>followup.window.duration</code>, as given by the
+<code>followup.window.duration.unit</code> parameter.
+</p>
+</li>
+<li> <p><code>observation.window.start</code> the beginning of the observation
+window, as given by the <code>observation.window.start</code> parameter.
+</p>
+</li>
+<li> <p><code>observation.window.start.unit</code> the time unit of the
+<code>observation.window.start</code>, as given by the
+<code>observation.window.start.unit</code> parameter.
+</p>
+</li>
+<li> <p><code>observation.window.duration</code> the duration of the observation
+window, as given by the <code>observation.window.duration</code> parameter.
+</p>
+</li>
+<li> <p><code>observation.window.duration.unit</code> the time unit of the
+<code>observation.window.duration</code>, as given by the
+<code>observation.window.duration.unit</code> parameter.
+</p>
+</li>
+<li> <p><code>date.format</code> the format of the dates, as given by the
+<code>date.format</code> parameter.
+</p>
+</li>
+<li> <p><code>summary</code> the metadata, as given by the <code>summary</code> parameter.
+</p>
+</li>
+<li> <p><code>event.info</code> the <code>data.frame</code> containing the event info
+(irrelevant for most users; see <code>compute.event.int.gaps</code> for
+details).
+</p>
+</li>
+<li> <p><code>computed.CMA</code> the class name of the computed CMA.
+</p>
+</li>
+<li> <p><code>CMA</code> the <code>data.frame</code> containing the actual <code>CMA</code>
+estimates for each participant (the <code>ID.colname</code> column) and treatment
+episode, with columns:
+</p>
+
+<ul>
+<li> <p><code>ID.colname</code> the patient ID as given by the <code>ID.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>episode.ID</code> the unique treatment episode ID (within
+patients).
+</p>
+</li>
+<li> <p><code>episode.start</code> the treatment episode's start date (as a
+<code>Date</code> object).
+</p>
+</li>
+<li> <p><code>end.episode.gap.days</code> the corresponding gap days of the last
+event in this episode.
+</p>
+</li>
+<li> <p><code>episode.duration</code> the treatment episode's duration in days.
+</p>
+</li>
+<li> <p><code>episode.end</code> the treatment episode's end date (as a
+<code>Date</code> object).
+</p>
+</li>
+<li> <p><code>CMA</code> the treatment episode's estimated CMA.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Please note that if <code>medication.groups</code> are defined, then the <code>CMA</code>
+and <code>event.info</code> are named lists, each element containing the CMA and
+event.info corresponding to a single medication group (the element's name).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CMA_sliding_window</code> is very similar, computing a
+"simple" CMA for each of a set of same-size sliding windows.
+The "simple" CMAs that can be computed comprise <code>CMA1</code>,
+<code>CMA2</code>, <code>CMA3</code>, <code>CMA4</code>,
+<code>CMA5</code>, <code>CMA6</code>, <code>CMA7</code>,
+<code>CMA8</code>, <code>CMA9</code>, as well as user-defined classes
+derived from <code>CMA0</code> that have a <code>CMA</code> component giving the
+estimated CMA per patient as a <code>data.frame</code>.
+If <code>return.mapping.events.episodes</code> is <code>TRUE</code>, then this also has a
+component <code>mapping.episodes.to.events</code> that gives the mapping between
+episodes and events as a <code>data.table</code> with the following columns:
+</p>
+
+<ul>
+<li> <p><code>patid</code> the patient ID.
+</p>
+</li>
+<li> <p><code>episode.ID</code> the episode unique ID (increasing sequentially).
+</p>
+</li>
+<li> <p><code>event.index.in.data</code> the event given by its row number in the <code>data</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+cmaE &lt;- CMA_per_episode(CMA="CMA1",
+                        data=med.events,
+                        ID.colname="PATIENT_ID",
+                        event.date.colname="DATE",
+                        event.duration.colname="DURATION",
+                        event.daily.dose.colname="PERDAY",
+                        medication.class.colname="CATEGORY",
+                        carry.only.for.same.medication=FALSE,
+                        consider.dosage.change=FALSE,
+                        followup.window.start=0,
+                        observation.window.start=0,
+                        observation.window.duration=365,
+                        date.format="%m/%d/%Y"
+                       );
+## End(Not run)
+</code></pre>
+
+
+</div>

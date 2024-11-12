@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PatraSen_est_mix_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate by Patra and Sen the unknown component weight as well as the unknown distribution in admixture models</h2>
+
+<h3>Description</h3>
+
+<p>Estimation of unknown elements (by Patra and Sen method) under the admixture model with probability density function l:
+l = p*f + (1-p)*g,
+where g is the known component of the two-component mixture, p is the unknown proportion of the unknown component distribution f.
+More information in 'Details' below concerning the estimation method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PatraSen_est_mix_model(
+  data,
+  method = c("lwr.bnd", "fixed", "cv"),
+  c.n = NULL,
+  folds = 10,
+  reps = 1,
+  cn.s = NULL,
+  cn.length = 100,
+  gridsize = 600
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Sample where the known component density of the admixture model has been transformed into a Uniform(0,1) distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either 'fixed' or 'cv', depending on whether compute the estimate based on the value of 'c.n' or
+use cross-validation for choosing 'c.n' (tuning parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.n</code></td>
+<td>
+<p>A positive number, with default value equal to 0.1 log(log(n)), where 'n' is the length of the observed sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Number of folds used for cross-validation, default is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+<p>Number of replications for cross-validation, default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cn.s</code></td>
+<td>
+<p>A sequence of 'c.n' to be used for cross-validation (vector of values). Default is equally
+spaced grid of 100 values between .001 x log(log(n)) and 0.2 x log(log(n)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cn.length</code></td>
+<td>
+<p>(default to 100) Number of equally spaced tuning parameter (between .001 x log(log(n)) and 0.2 x log(log(n))).
+Values to search from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridsize</code></td>
+<td>
+<p>(default to 600) Number of equally spaced points (between 0 and 1) to evaluate the distance function.
+Larger values are more computationally intensive but also lead to more accurate estimates.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Patra, R.K. and Sen, B. (2016); Estimation of a Two-component Mixture Model with Applications to Multiple Testing;
+JRSS Series B, 78, pp. 869–893.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing 'alp.hat' (estimate of the unknown component weight), 'Fs.hat' (list with elements 'x' and 'y' values for the function estimate
+of the unknown cumulative distribution function), 'dist.out' which is an object of the class 'dist.fun'
+using the complete data.gen, 'c.n' the value of the tuning parameter used to compute the final estimate,
+and finally 'cv.out' which is an object of class 'cv.mixmodel'. The object is NULL if method is "fixed".
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Milhaud <a href="mailto:xavier.milhaud.research@gmail.com">xavier.milhaud.research@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data:
+list.comp &lt;- list(f = 'norm', g = 'norm')
+list.param &lt;- list(f = list(mean = 3, sd = 0.5),
+                   g = list(mean = 0, sd = 1))
+data1 &lt;- rsimmix(n = 1500, unknownComp_weight = 0.8, list.comp, list.param)[['mixt.data']]
+## Transform the known component of the admixture model into a Uniform(O,1) distribution:
+list.comp &lt;- list(f = NULL, g = 'norm')
+list.param &lt;- list(f = NULL, g = list(mean = 0, sd = 1))
+data1_transfo &lt;- knownComp_to_uniform(data = data1, comp.dist=list.comp, comp.param=list.param)
+PatraSen_est_mix_model(data = data1_transfo, method = 'fixed',
+                       c.n = 0.1*log(log(length(data1_transfo))), gridsize = 1000)$alp.hat
+
+</code></pre>
+
+
+</div>

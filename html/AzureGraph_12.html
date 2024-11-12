@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_graph_login</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Login to Azure Active Directory Graph</h2>
+
+<h3>Description</h3>
+
+<p>Login to Azure Active Directory Graph
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_graph_login(tenant = "common", app = NULL, password = NULL,
+  username = NULL, certificate = NULL, auth_type = NULL, version = 2,
+  host = "https://graph.microsoft.com/",
+  aad_host = "https://login.microsoftonline.com/", scopes = ".default",
+  config_file = NULL, token = NULL, ...)
+
+get_graph_login(tenant = "common", selection = NULL, app = NULL,
+  scopes = NULL, auth_type = NULL, refresh = TRUE)
+
+delete_graph_login(tenant = "common", confirm = TRUE)
+
+list_graph_logins()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tenant</code></td>
+<td>
+<p>The Azure Active Directory tenant for which to obtain a login client. Can be a name ("myaadtenant"), a fully qualified domain name ("myaadtenant.onmicrosoft.com" or "mycompanyname.com"), or a GUID. The default is to login via the "common" tenant, which will infer your actual tenant from your credentials.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>app</code></td>
+<td>
+<p>The client/app ID to use to authenticate with Azure Active Directory. The default is to login interactively using the Azure CLI cross-platform app, but you can supply your own app credentials as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>If <code>auth_type == "client_credentials"</code>, the app secret; if <code>auth_type == "resource_owner"</code>, your account password.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>If <code>auth_type == "resource_owner"</code>, your username.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>certificate</code></td>
+<td>
+<p>If 'auth_type == "client_credentials", a certificate to authenticate with. This is a more secure alternative to using an app secret.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auth_type</code></td>
+<td>
+<p>The OAuth authentication method to use, one of "client_credentials", "authorization_code", "device_code" or "resource_owner". If <code>NULL</code>, this is chosen based on the presence of the <code>username</code> and <code>password</code> arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>The Azure Active Directory version to use for authenticating.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>host</code></td>
+<td>
+<p>Your Microsoft Graph host. Defaults to <code style="white-space: pre;">⁠https://graph.microsoft.com/⁠</code>. Change this if you are using a government or private cloud.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aad_host</code></td>
+<td>
+<p>Azure Active Directory host for authentication. Defaults to <code style="white-space: pre;">⁠https://login.microsoftonline.com/⁠</code>. Change this if you are using a government or private cloud.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scopes</code></td>
+<td>
+<p>The Microsoft Graph scopes (permissions) to obtain for this Graph login. For <code>create_graph_login</code>, this is used only for <code>version=2</code>. For <code>get_graph_login</code>, set this to NA to require an AAD v1.0 token.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>config_file</code></td>
+<td>
+<p>Optionally, a JSON file containing any of the arguments listed above. Arguments supplied in this file take priority over those supplied on the command line. You can also use the output from the Azure CLI <code style="white-space: pre;">⁠az ad sp create-for-rbac⁠</code> command.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>Optionally, an OAuth 2.0 token, of class AzureAuth::AzureToken. This allows you to reuse the authentication details for an existing session. If supplied, all other arguments to <code>create_graph_login</code> will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to <code>ms_graph$new()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>For <code>get_graph_login</code>, if you have multiple logins for a given tenant, which one to use. This can be a number, or the input MD5 hash of the token used for the login. If not supplied, <code>get_graph_login</code> will print a menu and ask you to choose a login.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refresh</code></td>
+<td>
+<p>For <code>get_graph_login</code>, whether to refresh the authentication token on loading the client.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>For <code>delete_graph_login</code>, whether to ask for confirmation before deleting.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>create_graph_login</code> creates a login client to authenticate with Microsoft Graph, using the supplied arguments. The authentication token is obtained using get_azure_token, which automatically caches and reuses tokens for subsequent sessions.
+</p>
+<p>For interactive use, you would normally <em>not</em> supply the <code>username</code> and <code>password</code> arguments. Omitting them will prompt <code>create_graph_login</code> to authenticate you with AAD using your browser, which is the recommended method. If you don't have a browser available to your R session, for example if you're using RStudio Server or Azure Databricks, you can specify <code style="white-space: pre;">⁠auth_type="device_code⁠</code>".
+</p>
+<p>For non-interactive use, for example if you're calling AzureGraph in a deployment pipeline, the recommended authentication method is via client credentials. For this method, you supply <em>only</em> the <code>password</code> argument, which should contain the client secret for your app registration. You must also specify your own app registration ID, in the <code>app</code> argument.
+</p>
+<p>The AzureAuth package has a <a href="https://cran.r-project.org/package=AzureAuth/vignettes/scenarios.html">vignette</a> that goes into more detail on these authentication scenarios.
+</p>
+<p><code>get_graph_login</code> returns a previously created login client. If there are multiple existing clients, you can specify which client to return via the <code>selection</code>, <code>app</code>, <code>scopes</code> and <code>auth_type</code> arguments. If you don't specify which one to return, it will pop up a menu and ask you to choose one.
+</p>
+<p>One difference between <code>create_graph_login</code> and <code>get_graph_login</code> is the former will delete any previously saved credentials that match the arguments it was given. You can use this to force AzureGraph to remove obsolete tokens that may be lying around.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>get_graph_login</code> and <code>create_graph_login</code>, an object of class <code>ms_graph</code>, representing the login client. For <code>list_graph_logins</code>, a (possibly nested) list of such objects.
+</p>
+<p>If the AzureR data directory for saving credentials does not exist, <code>get_graph_login</code> will throw an error.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>ms_graph, AzureAuth::get_azure_token for more details on authentication methods
+</p>
+<p><a href="https://cran.r-project.org/package=AzureAuth/vignettes/scenarios.html">AzureAuth vignette on authentication scenarios</a>
+</p>
+<p><a href="https://learn.microsoft.com/en-us/graph/overview">Microsoft Graph overview</a>,
+<a href="https://learn.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0">REST API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# without any arguments, this will create a client using your AAD organisational account
+az &lt;- create_graph_login()
+
+# retrieve the login in subsequent sessions
+az &lt;- get_graph_login()
+
+# this will create an Microsoft Graph client for the tenant 'mytenant.onmicrosoft.com',
+# using the client_credentials method
+az &lt;- create_graph_login("mytenant", app="{app_id}", password="{password}")
+
+# you can also login using credentials in a json file
+az &lt;- create_graph_login(config_file="~/creds.json")
+
+# creating and obtaining a login with specific scopes
+create_graph_login("mytenant", scopes=c("User.Read", "Files.ReadWrite.All"))
+get_graph_login("mytenant", scopes=c("User.Read", "Files.ReadWrite.All"))
+
+# to use your personal account, set the tenant to one of the following
+create_graph_login("9188040d-6c67-4c5b-b112-36a304b66dad")
+create_graph_login("consumers")  # requires AzureAuth 1.3.0
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

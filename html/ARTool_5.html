@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>artlm.con</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Per-Term Linear Model on Data Aligned-and-Ranked with ART-C</h2>
+
+<h3>Description</h3>
+
+<p>Given an <code>art</code> model, build a linear model from data aligned or
+aligned-and-ranked with ART-C alignment procedure by the specified term in
+the model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">artlm.con(m, term, response = "art", factor.contrasts = "contr.sum", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>An object of class <code>art</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term</code></td>
+<td>
+<p>A character vector indicating the effect term in
+the transformed data in <code>m</code> to use as the aligned or art response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>Which response to use: the aligned (with ART-C) response
+(<code>"aligned"</code>) or the aligned and ranked (with ART-C) response
+(<code>"art"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.contrasts</code></td>
+<td>
+<p>The name of the contrast-generating function to be
+applied by default to fixed effect factors. Sets the the first element of
+<code>options("contrasts")</code> for the duration of this function. The
+default is to use <code>"contr.sum"</code>, i.e. sum-to-zero contrasts, which is
+appropriate for Type III ANOVAs (the default ANOVA type for
+<code>anova.art</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>lm</code> or
+<code>lmer</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is used internally by <code>art.con</code> to construct
+linear models for contrasts using the ART-C procedure (Elkin et al. 2021).
+It is typically not necessary to use this function directly to conduct contrasts using
+the ART-C procedure, you can use <code>art.con</code> instead, which will
+ensure that the correct model and contrast test is run. However, should you
+wish to use the ART-C procedure with a different contrast test
+than provided by <code>art.con</code>, you may with to use this function.
+</p>
+<p>Internally, the ART-C procedure concatenates the variables specified
+in <code>term</code>, and then removes the originals. When specifying the effect
+terms on which to conduct contrasts, use the concatenation of the effects
+specified in <code>term</code> instead of the original variables. This is demonstrated
+in the example below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>lm</code> if <code>formula(m)</code> does not
+contain grouping or error terms, an object of class <code>merMod</code>
+(i.e. a model fit by <code>lmer</code>) if it does contain grouping terms, or
+an object of class <code>aovlist</code> (i.e. a model fit by <code>aov</code>)
+if it contains error terms.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Lisa A. Elkin
+</p>
+
+
+<h3>References</h3>
+
+<p>Elkin, L. A., Kay, M, Higgins, J. J., and Wobbrock, J. O.
+(2021). An aligned rank transform procedure for multifactor contrast tests.
+<em>Proceedings of the ACM Symposium on User Interface Software and
+Technology (UIST '21)</em>. Virtual Event (October 10–14, 2021). New York:
+ACM Press, pp. 754–768. doi: <a href="https://doi.org/10.1145/3472749.3474784">10.1145/3472749.3474784</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>art.con</code>, which makes use of this function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(Higgins1990Table5, package = "ARTool")
+
+## create an art model
+m &lt;- art(DryMatter ~ Moisture*Fertilizer + (1|Tray), data=Higgins1990Table5)
+
+## use emmeans to conduct pairwise contrasts on "Moisture"
+library(emmeans)
+contrast(emmeans(artlm.con(m, "Moisture"), pairwise ~ Moisture))
+
+## use emmeans to conduct pairwise contrasts on "Moisture:Fertilizer"
+## N.B. internally, artlm.con concatenates the factors Moisture and Fertilizer
+## to create MoistureFertilizer. If you try to use any of Moisture, Fertilizer,
+## Moisture:Fertilizer, or Moisture*Fertilizer in the RHS of the formula
+## passed to emmeans, you will get an error because the factors Moisture and Fertilizer
+## do not exist in the model returned by artlm.con.
+contrast(emmeans(artlm.con(m, "Moisture:Fertilizer"), pairwise ~ MoistureFertilizer))
+
+## Note: art.con uses emmeans internally, and the above examples are equivalent to
+## the following calls to art.con, which is the recommended approach as it will
+## ensure the model selected and the contrasts extracted from emmeans match.
+art.con(m, "Moisture")
+art.con(m, "Moisture:Fertilizer")
+
+
+
+</code></pre>
+
+
+</div>

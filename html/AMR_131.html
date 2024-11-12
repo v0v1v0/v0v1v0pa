@@ -1,0 +1,345 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_episode</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determine Clinical or Epidemic Episodes</h2>
+
+<h3>Description</h3>
+
+<p>These functions determine which items in a vector can be considered (the start of) a new episode. This can be used to determine clinical episodes for any epidemiological analysis. The <code>get_episode()</code> function returns the index number of the episode per group, while the <code>is_new_episode()</code> function returns <code>TRUE</code> for every new <code>get_episode()</code> index. Both absolute and relative episode determination are supported.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_episode(x, episode_days = NULL, case_free_days = NULL, ...)
+
+is_new_episode(x, episode_days = NULL, case_free_days = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of dates (class <code>Date</code> or <code>POSIXt</code>), will be sorted internally to determine episodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>episode_days</code></td>
+<td>
+<p>episode length in days to specify the time period after which a new episode begins, can also be less than a day or <code>Inf</code>, see <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>case_free_days</code></td>
+<td>
+<p>(inter-epidemic) interval length in days after which a new episode will start, can also be less than a day or <code>Inf</code>, see <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored, only in place to allow future extensions</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Episodes can be determined in two ways: absolute and relative.
+</p>
+
+<ol>
+<li>
+<p> Absolute
+</p>
+<p>This method uses <code>episode_days</code> to define an episode length in days, after which a new episode will start. A common use case in AMR data analysis is microbial epidemiology: episodes of <em>S. aureus</em> bacteraemia in ICU patients for example. The episode length could then be 30 days, so that new <em>S. aureus</em> isolates after an ICU episode of 30 days will be considered a different (or new) episode.
+</p>
+<p>Thus, this method counts <strong>since the start of the previous episode</strong>.
+</p>
+</li>
+<li>
+<p> Relative
+</p>
+<p>This method uses <code>case_free_days</code> to quantify the duration of case-free days (the inter-epidemic interval), after which a new episode will start. A common use case is infectious disease epidemiology: episodes of norovirus outbreaks in a hospital for example. The case-free period could then be 14 days, so that new norovirus cases after that time will be considered a different (or new) episode.
+</p>
+<p>Thus, this methods counts <strong>since the last case in the previous episode</strong>.
+</p>
+</li>
+</ol>
+<p>In a table:</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   Date </td>
+<td style="text-align: center;"> Using <code>episode_days = 7</code> </td>
+<td style="text-align: center;"> Using <code>case_free_days = 7</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-01-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 1 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-01-02 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 1 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-01-05 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> 1 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-01-08 </td>
+<td style="text-align: center;"> 2** </td>
+<td style="text-align: center;"> 1 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-02-21 </td>
+<td style="text-align: center;"> 3 </td>
+<td style="text-align: center;"> 2*** </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-02-22 </td>
+<td style="text-align: center;"> 3 </td>
+<td style="text-align: center;"> 2 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-02-23 </td>
+<td style="text-align: center;"> 3 </td>
+<td style="text-align: center;"> 2 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-02-24 </td>
+<td style="text-align: center;"> 3 </td>
+<td style="text-align: center;"> 2 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   2023-03-01 </td>
+<td style="text-align: center;"> 4 </td>
+<td style="text-align: center;"> 2 </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<p>** This marks the start of a new episode, because 8 January 2023 is more than 7 days since the start of the previous episode (1 January 2023). <br>
+*** This marks the start of a new episode, because 21 January 2023 is more than 7 days since the last case in the previous episode (8 January 2023).
+</p>
+<p>Either <code>episode_days</code> or <code>case_free_days</code> must be provided in the function.
+</p>
+
+
+<h4>Difference between <code>get_episode()</code> and <code>is_new_episode()</code>
+</h4>
+
+<p>The <code>get_episode()</code> function returns the index number of the episode, so all cases/patients/isolates in the first episode will have the number 1, all cases/patients/isolates in the second episode will have the number 2, etc.
+</p>
+<p>The <code>is_new_episode()</code> function on the other hand, returns <code>TRUE</code> for every new <code>get_episode()</code> index.
+</p>
+<p>To specify, when setting <code>episode_days = 365</code> (using method 1 as explained above), this is how the two functions differ:</p>
+
+<table>
+<tr>
+<td style="text-align: center;">
+   patient </td>
+<td style="text-align: center;"> date </td>
+<td style="text-align: center;"> <code>get_episode()</code> </td>
+<td style="text-align: center;"> <code>is_new_episode()</code> </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   A </td>
+<td style="text-align: center;"> 2019-01-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> TRUE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   A </td>
+<td style="text-align: center;"> 2019-03-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> FALSE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   A </td>
+<td style="text-align: center;"> 2021-01-01 </td>
+<td style="text-align: center;"> 2 </td>
+<td style="text-align: center;"> TRUE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   B </td>
+<td style="text-align: center;"> 2008-01-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> TRUE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   B </td>
+<td style="text-align: center;"> 2008-01-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> FALSE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+   C </td>
+<td style="text-align: center;"> 2020-01-01 </td>
+<td style="text-align: center;"> 1 </td>
+<td style="text-align: center;"> TRUE </td>
+</tr>
+<tr>
+<td style="text-align: center;">
+</td>
+</tr>
+</table>
+<h4>Other</h4>
+
+<p>The <code>first_isolate()</code> function is a wrapper around the <code>is_new_episode()</code> function, but is more efficient for data sets containing microorganism codes or names and allows for different isolate selection methods.
+</p>
+<p>The <code>dplyr</code> package is not required for these functions to work, but these episode functions do support variable grouping and work conveniently inside <code>dplyr</code> verbs such as <code>filter()</code>, <code>mutate()</code> and <code>summarise()</code>.
+</p>
+
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li> <p><code>get_episode()</code>: an integer vector
+</p>
+</li>
+<li> <p><code>is_new_episode()</code>: a logical vector
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>first_isolate()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># difference between absolute and relative determination of episodes:
+x &lt;- data.frame(dates = as.Date(c(
+  "2021-01-01",
+  "2021-01-02",
+  "2021-01-05",
+  "2021-01-08",
+  "2021-02-21",
+  "2021-02-22",
+  "2021-02-23",
+  "2021-02-24",
+  "2021-03-01",
+  "2021-03-01"
+)))
+x$absolute &lt;- get_episode(x$dates, episode_days = 7)
+x$relative &lt;- get_episode(x$dates, case_free_days = 7)
+x
+
+
+# `example_isolates` is a data set available in the AMR package.
+# See ?example_isolates
+df &lt;- example_isolates[sample(seq_len(2000), size = 100), ]
+
+get_episode(df$date, episode_days = 60) # indices
+is_new_episode(df$date, episode_days = 60) # TRUE/FALSE
+
+# filter on results from the third 60-day episode only, using base R
+df[which(get_episode(df$date, 60) == 3), ]
+
+# the functions also work for less than a day, e.g. to include one per hour:
+get_episode(
+  c(
+    Sys.time(),
+    Sys.time() + 60 * 60
+  ),
+  episode_days = 1 / 24
+)
+
+
+if (require("dplyr")) {
+  # is_new_episode() can also be used in dplyr verbs to determine patient
+  # episodes based on any (combination of) grouping variables:
+  df %&gt;%
+    mutate(condition = sample(
+      x = c("A", "B", "C"),
+      size = 100,
+      replace = TRUE
+    )) %&gt;%
+    group_by(patient, condition) %&gt;%
+    mutate(new_episode = is_new_episode(date, 365)) %&gt;%
+    select(patient, date, condition, new_episode) %&gt;%
+    arrange(patient, condition, date)
+}
+
+if (require("dplyr")) {
+  df %&gt;%
+    group_by(ward, patient) %&gt;%
+    transmute(date,
+      patient,
+      new_index = get_episode(date, 60),
+      new_logical = is_new_episode(date, 60)
+    ) %&gt;%
+    arrange(patient, ward, date)
+}
+
+if (require("dplyr")) {
+  df %&gt;%
+    group_by(ward) %&gt;%
+    summarise(
+      n_patients = n_distinct(patient),
+      n_episodes_365 = sum(is_new_episode(date, episode_days = 365)),
+      n_episodes_60 = sum(is_new_episode(date, episode_days = 60)),
+      n_episodes_30 = sum(is_new_episode(date, episode_days = 30))
+    )
+}
+
+# grouping on patients and microorganisms leads to the same
+# results as first_isolate() when using 'episode-based':
+if (require("dplyr")) {
+  x &lt;- df %&gt;%
+    filter_first_isolate(
+      include_unknown = TRUE,
+      method = "episode-based"
+    )
+
+  y &lt;- df %&gt;%
+    group_by(patient, mo) %&gt;%
+    filter(is_new_episode(date, 365)) %&gt;%
+    ungroup()
+
+  identical(x, y)
+}
+
+# but is_new_episode() has a lot more flexibility than first_isolate(),
+# since you can now group on anything that seems relevant:
+if (require("dplyr")) {
+  df %&gt;%
+    group_by(patient, mo, ward) %&gt;%
+    mutate(flag_episode = is_new_episode(date, 365)) %&gt;%
+    select(group_vars(.), flag_episode)
+}
+
+</code></pre>
+
+
+</div>

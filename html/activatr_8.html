@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parse_gpx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parses a GPX file into a <code>act_tbl</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>This parses a standard GPS Exchange Format XML (GPX) file into an
+data frame with class <code>act_tbl</code>. See <code>vignette("parsing")</code>
+for examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parse_gpx(filename, detail = c("basic", "latlon", "advanced"), every = NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>The GPX file to parse</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detail</code></td>
+<td>
+<p>How much detail to parse from the GPX.
+</p>
+
+<ul>
+<li>
+<p> If <code>basic</code> (the default), this will parse <code>lat</code> / <code>lon</code> /
+<code>ele</code> / <code>time</code> columns.
+</p>
+</li>
+<li>
+<p> If <code>latlon</code>, this will only parse <code>lat</code>/<code>lon</code>. This is particularly
+useful for GPX files exported without time information, such as from
+Strava.
+</p>
+</li>
+<li>
+<p> If <code>advanced</code>, it will load everything from basic, plus <code>hr</code> /
+<code>cad</code>. This is most useful for files that have heart rate and cadence
+information.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>every</code></td>
+<td>
+<p>Optional. If provided, determines how frequently points will
+be sampled from the file, so if 10 is provided, every tenth point will
+be selected. If omitted or set to 1, every point will be selected. Must
+be a positive integer.
+</p>
+<p>This is most useful to quickly analyze a large file, since parsing is much
+faster when skipping 90% of the data points.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>act_tbl</code> with one row for each trackpoint in the
+.  GPX (modified by <code>every</code>), and with the columns determined by <code>detail</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>Latitude, a double in degrees between -90 and 90.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lon</code></td>
+<td>
+<p>Longitude, a double in degrees between -180 and 180.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ele</code></td>
+<td>
+<p>Elevation, a double in meters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>A date-time representing the time of the point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hr</code></td>
+<td>
+<p>Heart rate, an int in beats per minute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cad</code></td>
+<td>
+<p>Cadence, an int in one-foot steps per minute.</p>
+</td>
+</tr>
+</table>
+<p>Additionally, attributes are set on the returned object containing top level
+data from the GPX. Each of these will be NA when not provided in the file.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>The filename this was parsed from, a string. This is always
+present, and is always the value of the <code>filename</code>
+parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>A date-time representing the time of the activity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>A string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>desc</code></td>
+<td>
+<p>A string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A string.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><a href="https://en.wikipedia.org/wiki/GPS_Exchange_Format">https://en.wikipedia.org/wiki/GPS_Exchange_Format</a>
+</p>
+<p><a href="https://www.topografix.com/gpx.asp">https://www.topografix.com/gpx.asp</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">example_gpx_file &lt;- system.file(
+  "extdata",
+  "running_example.gpx.gz",
+  package = "activatr"
+)
+act_tbl &lt;- parse_gpx(example_gpx_file)
+print(act_tbl, n = 5)
+attr(act_tbl, "title")
+
+nrow(parse_gpx(example_gpx_file))
+nrow(parse_gpx(example_gpx_file, every = 100))
+
+colnames(parse_gpx(example_gpx_file))
+colnames(parse_gpx(example_gpx_file, detail = "latlon"))
+colnames(parse_gpx(example_gpx_file, detail = "advanced"))
+</code></pre>
+
+
+</div>

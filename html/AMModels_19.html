@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>grepAMModelLib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Search For A Model In A Model List Using <code>grep</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Returns an abbreviated amModelLib object that contains models and data that meet search terms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">grepAMModelLib(pattern, amml, search = c("all", "model", "data"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>Search string or value, typically a model or data name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amml</code></td>
+<td>
+<p>An <code>amModelLib</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search</code></td>
+<td>
+<p>Length 1 <code>character</code> vector indicating whether to search and return models or data that meet the search criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to <code>grep</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>grep</code> is used to search both names, values (models/data), and metadata. An attempt is made to keep data with models if searching for models, or to keep models with data if searching for data, or to keep prior/posterior models together. The relational link between models their data relies on a case-agnostic 'data' element in the model metadata that names the linked data, and the same is true for models that use 'prior' to link to other models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>amModelLib</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other amModelLib: <code>AMModels</code>,
+<code>amData</code>, <code>amModelLib</code>,
+<code>amModel</code>, <code>getters</code>,
+<code>insertAMModelLib</code>, <code>lsModels</code>,
+<code>rmModel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create dataset from lm helpfile
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+lm.D9 &lt;- lm(weight ~ group)
+lm.D90 &lt;- lm(weight ~ group - 1) # omitting intercept
+
+
+# create two amModel objects with metadata and a soft link to the data
+full.model &lt;- amModel(
+    lm.D9, 
+    comment = 'full model', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+no.int.model &lt;- amModel(
+    lm.D90, 
+    comment = 'model without intercept', 
+    source = 'lm helpfile (R).', 
+    taxa = 'plants', 
+    data = 'plant.data'
+)
+
+
+# create an amData object that includes metadata
+plant.data &lt;- data.frame(group = group, weight = weight)
+plant.data &lt;- amData(
+    plant.data, 
+    comment = 'Dataset from lm helpfile.'
+)
+
+log.plant.data &lt;- data.frame(group, log.weight=log(weight))
+log.plant.data &lt;- amData(
+    log.plant.data, 
+    comment = 'data to fit log model', 
+    source = 'lm helpfile (R).'
+)
+
+# create an amModelLib that contains the two amModel objects and two amData objects
+# the models and data must be supplied as named lists
+mymodels &lt;- amModelLib(
+    models = list(
+        full.model = full.model, 
+        no.int.model = no.int.model
+    ), 
+    data=list(
+        plant.data = plant.data, 
+        log.plant.data = log.plant.data
+    )
+)
+
+
+# search the entire amModelLib for the word 'intercept'
+# the dataset associated with the model will be returned
+grepAMModelLib("intercept", amml = mymodels) 
+
+# the class of returned search is an amModelLib object
+class(grepAMModelLib("intercept", amml = mymodels))  
+ 
+# search for data containing the word 'log'
+grepAMModelLib("log", amml = mymodels, search = "data") 
+
+# search for models containing the word 'full'
+# Because 'full.model' is soft-linked to a dataset, 
+# the dataset information will be returned.
+grepAMModelLib("full", amml = mymodels, search = "model") 
+
+  
+</code></pre>
+
+
+</div>

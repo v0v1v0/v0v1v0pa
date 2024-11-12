@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_ownModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculates own model probabilities</h2>
+
+<h3>Description</h3>
+
+<p>Receives functions or expressions for each functionality so that a 
+user-defined model can interface with Apollo.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_ownModel(ownModel_settings, functionality)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ownModel_settings</code></td>
+<td>
+<p>List of arguments. Only likelihood is mandatory.
+</p>
+
+<ul>
+<li> <p><strong><code>likelihood</code></strong>: Function or
+expression used to calculate the likelihood
+of the model. Should evaluate to a vector, 
+matrix, or 3-dimensional array.
+</p>
+</li>
+<li> <p><strong><code>prediction</code></strong>: Function or
+expression used to calculate the prediction
+of the model. Should evaluate to a vector, 
+matrix, or 3-dimensional array.
+</p>
+</li>
+<li> <p><strong><code>zero_LL</code></strong>: Function or
+expression used to calculate the likelihood
+of the base model (e.g. equiprobable model).
+</p>
+</li>
+<li> <p><strong><code>shares_LL</code></strong>: Function or
+expression used to calculate the likelihood
+of the constants-only model.
+</p>
+</li>
+<li> <p><strong><code>gradient</code></strong>: Function or
+expression used to calculate the gradient
+of the likelihood. If not provided, Apollo 
+will attempt to calculate it automatically.
+</p>
+</li>
+<li> <p><strong><code>report</code></strong>: List of functions or
+expressions used to produce a text report 
+summarising the input and parameter 
+estimates of the model. Should contain two 
+elements: "data" (with a summary of the 
+input data), and "param" (with a summary of 
+the estimated parameters).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>functionality</code></td>
+<td>
+<p>Character. Setting instructing Apollo what processing to apply to the likelihood function. This is in general controlled by the functions that call <code>apollo_probabilities</code>, though the user can also call <code>apollo_probabilities</code> manually with a given functionality for testing/debugging. Possible values are:
+</p>
+
+<ul>
+<li> <p><strong><code>"components"</code></strong>: For further processing/debugging, produces likelihood for each model component (if multiple components are present), at the level of individual draws and observations.
+</p>
+</li>
+<li> <p><strong><code>"conditionals"</code></strong>: For conditionals, produces likelihood of the full model, at the level of individual inter-individual draws.
+</p>
+</li>
+<li> <p><strong><code>"estimate"</code></strong>: For model estimation, produces likelihood of the full model, at the level of individual decision-makers, after averaging across draws.
+</p>
+</li>
+<li> <p><strong><code>"gradient"</code></strong>: For model estimation, produces analytical gradients of the likelihood, where possible.
+</p>
+</li>
+<li> <p><strong><code>"output"</code></strong>: Prepares output for post-estimation reporting.
+</p>
+</li>
+<li> <p><strong><code>"prediction"</code></strong>: For model prediction, produces probabilities for individual alternatives and individual model components (if multiple components are present) at the level of an observation, after averaging across draws.
+</p>
+</li>
+<li> <p><strong><code>"preprocess"</code></strong>: Prepares likelihood functions for use in estimation.
+</p>
+</li>
+<li> <p><strong><code>"raw"</code></strong>: For debugging, produces probabilities of all alternatives and individual model components at the level of an observation, at the level of individual draws.
+</p>
+</li>
+<li> <p><strong><code>"report"</code></strong>: Prepares output summarising model and choiceset structure.
+</p>
+</li>
+<li> <p><strong><code>"shares_LL"</code></strong>: Produces overall model likelihood with constants only.
+</p>
+</li>
+<li> <p><strong><code>"validate"</code></strong>: Validates model specification, produces likelihood of the full model, at the level of individual decision-makers, after averaging across draws.
+</p>
+</li>
+<li> <p><strong><code>"zero_LL"</code></strong>: Produces overall model likelihood with all parameters at zero.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The returned object depends on the value of argument <code>functionality</code> as follows.
+</p>
+
+<ul>
+<li> <p><strong><code>"components"</code></strong>: Same as <code>"estimate"</code>
+</p>
+</li>
+<li> <p><strong><code>"conditionals"</code></strong>: Same as <code>"estimate"</code>
+</p>
+</li>
+<li> <p><strong><code>"estimate"</code></strong>: vector/matrix/array. Returns the probabilities for the chosen alternative for each observation.
+</p>
+</li>
+<li> <p><strong><code>"gradient"</code></strong>: List containing the likelihood and gradient of the model component.
+</p>
+</li>
+<li> <p><strong><code>"output"</code></strong>: Same as <code>"estimate"</code> but also writes summary of input data to internal Apollo log.
+</p>
+</li>
+<li> <p><strong><code>"prediction"</code></strong>: List of vectors/matrices/arrays. Returns a list with the probabilities for all alternatives, with an extra element for the probability of the chosen alternative.
+</p>
+</li>
+<li> <p><strong><code>"preprocess"</code></strong>: Returns a list with pre-processed inputs, based on <code>mnl_settings</code>.
+</p>
+</li>
+<li> <p><strong><code>"validate"</code></strong>: Same as <code>"estimate"</code>, but it also runs a set of tests to validate the function inputs.
+</p>
+</li>
+<li> <p><strong><code>"raw"</code></strong>: Same as <code>"prediction"</code>
+</p>
+</li>
+<li> <p><strong><code>"report"</code></strong>: Choice overview
+</p>
+</li>
+<li> <p><strong><code>"shares_LL"</code></strong>: vector/matrix/array. Returns the probability of the chosen alternative when only constants are estimated.
+</p>
+</li>
+<li> <p><strong><code>"validate"</code></strong>: Same as <code>"estimate"</code>
+</p>
+</li>
+<li> <p><strong><code>"zero_LL"</code></strong>: vector/matrix/array. Returns the probability of the chosen alternative when all parameters are zero.
+</p>
+</li>
+</ul>
+</div>

@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim_tree</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Random tree generation</h2>
+
+<h3>Description</h3>
+
+<p>An alternative to ape::rtree. This function was written in C++ and is
+significantly faster than <code>rtree</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim_tree(n, edge.length = stats::runif)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Integer scalar. Number of leaf nodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edge.length</code></td>
+<td>
+<p>A Function. Used to set the length of the edges.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm was implemented as follows
+</p>
+
+<ol>
+<li>
+<p> Initialize <code style="white-space: pre;">⁠N = {1, ..., n}⁠</code>, <code>E</code> to be empty,
+<code>k = 2*n - 1</code>
+</p>
+</li>
+<li>
+<p> While <code>length(N) != 1</code> do:
+</p>
+
+<ol>
+<li>
+<p> Randomly choose a pair <code style="white-space: pre;">⁠(i, j)⁠</code> from <code>N</code>
+</p>
+</li>
+<li>
+<p> Add the edges <code style="white-space: pre;">⁠E = E U {(k, i), (k, j)}⁠</code>,
+</p>
+</li>
+<li>
+<p> Redefine <code style="white-space: pre;">⁠N = (N \ {i, j}) U {k}⁠</code>
+</p>
+</li>
+<li>
+<p> Set <code>k = k - 1</code>
+</p>
+</li>
+<li>
+<p> next
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Use <code>edge.length(2*n - 1)</code> (simulating branch lengths).
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>An object of class ape::phylo with the edgelist as a postorderd,
+<code>node.label</code> and <code>edge.length</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A very simple example ----------------------------------------------------
+set.seed(1223)
+newtree &lt;- sim_tree(50)
+
+plot(newtree)
+
+
+# A performance benchmark with ape::rtree ----------------------------------
+## Not run: 
+library(ape)
+microbenchmark::microbenchmark(
+  ape = rtree(1e3),
+  phy = sim_tree(1e3),
+ unit = "relative"
+)
+# This is what you would get.
+# Unit: relative
+#   expr     min       lq     mean  median       uq      max neval
+#    ape 14.7598 14.30809 14.30013 16.7217 14.32843 4.754106   100
+#    phy  1.0000  1.00000  1.00000  1.0000  1.00000 1.000000   100
+
+## End(Not run)
+</code></pre>
+
+
+</div>

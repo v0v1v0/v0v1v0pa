@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cross_validation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross Validation for separate sampling adjusted for cost.</h2>
+
+<h3>Description</h3>
+
+<p>This function implements Cross Validation for separate sampling adjusted for cost.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cross_validation(
+  x,
+  y,
+  gamma = 1,
+  cost = c(0.5, 0.5),
+  nfolds = 10,
+  bias_correction = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix or data.frame of dimension <code>nobs x nvars</code>; each row is an feature vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector or factor of class labels. Factor should have either two levels or be
+a vector with two distinct values.
+If <code>y</code> is presented as a vector, it will be coerced into a factor.
+Length of <code>y</code> has to correspond to number of samples in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Regularization parameter <code class="reqn">\gamma</code> in the ABC-RLDA discriminant function given by:
+</p>
+<p style="text-align: center;"><code class="reqn">W_{ABC}^{RLDA} = \gamma (x-\frac{\bar{x}_0 +
+\bar{x}_1}{2})^T H (\bar{x}_0 - \bar{x}_1)
+- log(\frac{C_{01}}{C_{10}}) + \hat{\omega}_{opt}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">H = (I_p + \gamma \hat{\Sigma})^{-1}</code>
+</p>
+
+<p>Formulas and derivations for parameters used in above equation can be found in the article under reference section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost</code></td>
+<td>
+<p>Parameter that controls the overall misclassification costs.
+This is a vector of length 1 or 2 where the first value is <code class="reqn">C_{10}</code> (represents the cost of assigning label 1 when the true label is 0)
+and the second value, if provided, is <code class="reqn">C_{01}</code> (represents the cost of assigning label 0 when the true label is 1).
+The default setting is c(0.5, 0.5), so both classes have equal misclassification costs
+</p>
+<p>If a single value is provided, it should be normalized to lie between 0 and 1 (but not including 0 or 1).
+This value will be assigned to <code class="reqn">C_{10}</code> while
+<code class="reqn">C_{01}</code> will be equal to <code class="reqn">(1 - C_{10})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>Number of folds to use with cross-validation. Default is 10.
+In case of imbalanced data, <code>nfolds</code> should not be greater than the number of observations in
+smaller class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias_correction</code></td>
+<td>
+<p>Takes in a boolean value.
+If <code>bias_correction</code> is TRUE, then asymptotic bias correction will be performed.
+Otherwise, (if <code>bias_correction</code> is FALSE) asymptotic bias correction will not be performed and
+the ABCRLDA is the classical RLDA.
+The default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns list of parameters.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>risk_cross</code></td>
+<td>
+<p>Returns risk estimation where <code class="reqn">\Re = \varepsilon_0 * C_{10} + \varepsilon_1 * C_{01}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e_0</code></td>
+<td>
+<p>Error estimate for class 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e_1</code></td>
+<td>
+<p>Error estimate for class 1.</p>
+</td>
+</tr>
+</table>
+<h3>Reference</h3>
+
+<p>Braga-Neto, Ulisses &amp; Zollanvari, Amin &amp; Dougherty, Edward. (2014).
+Cross-Validation Under Separate Sampling: Strong Bias and How to Correct It.
+Bioinformatics (Oxford, England). 30. 10.1093/bioinformatics/btu527.
+URL: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4296143/pdf/btu527.pdf">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4296143/pdf/btu527.pdf</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other functions in the package: 
+<code>abcrlda()</code>,
+<code>da_risk_estimator()</code>,
+<code>grid_search()</code>,
+<code>predict.abcrlda()</code>,
+<code>risk_calculate()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iris)
+train_data &lt;- iris[which(iris[, ncol(iris)] == "virginica" |
+                         iris[, ncol(iris)] == "versicolor"), 1:4]
+train_label &lt;- factor(iris[which(iris[, ncol(iris)] == "virginica" |
+                                 iris[, ncol(iris)] == "versicolor"), 5])
+cross_validation(train_data, train_label, gamma = 10)
+</code></pre>
+
+
+</div>

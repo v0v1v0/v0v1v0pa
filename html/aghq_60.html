@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>marginal_laplace_tmb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AGHQ-normalized marginal Laplace approximation from a TMB function template</h2>
+
+<h3>Description</h3>
+
+<p>Implement the algorithm from <code>aghq::marginal_laplace()</code>, but making use of
+<code>TMB</code>'s automatic Laplace approximation. This function takes a function
+list from <code>TMB::MakeADFun()</code> with a non-empty set of <code>random</code> parameters,
+in which the <code>fn</code> and <code>gr</code> are the unnormalized marginal Laplace
+approximation and its gradient. It then calls <code>aghq::aghq()</code> and formats
+the resulting object so that its contents and class match the output of
+<code>aghq::marginal_laplace()</code> and are hence suitable for post-processing
+with <code>summary</code>, <code>aghq::sample_marginal()</code>, and so on.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">marginal_laplace_tmb(
+  ff,
+  k,
+  startingvalue,
+  transformation = default_transformation(),
+  optresults = NULL,
+  basegrid = NULL,
+  control = default_control_tmb(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ff</code></td>
+<td>
+<p>The output of calling <code>TMB::MakeADFun()</code> with <code>random</code> set
+to a non-empty subset of the parameters. <strong>VERY IMPORTANT</strong>: <code>TMB</code>'s
+automatic Laplace approximation requires you to write your template implementing
+the <strong>negated</strong> log-posterior. Therefore, this list that you input here
+will contain components <code>fn</code>, <code>gr</code> and <code>he</code> that implement the
+<strong>negated</strong> log-posterior and its derivatives. This is <strong>opposite</strong>
+to every other comparable function in the <code>aghq</code> package, and is done
+here to emphasize compatibility with <code>TMB</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer, the number of quadrature points to use. I suggest at least 3. k = 1 corresponds to a Laplace
+approximation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startingvalue</code></td>
+<td>
+<p>Value to start the optimization. <code>ff$fn(startingvalue)</code>,
+<code>ff$gr(startingvalue)</code>, and <code>ff$he(startingvalue)</code> must all return
+appropriate values without error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformation</code></td>
+<td>
+<p>Optional. Do the quadrature for parameter <code>theta</code>, but
+return summaries and plots for parameter <code>g(theta)</code>. This applies to the <code>theta</code>
+parameters only, not the <code>W</code> parameters.
+<code>transformation</code> is either: a) an <code>aghqtrans</code> object returned by <code>aghq::make_transformation</code>,
+or b) a list that will be passed to that function internally. See <code>?aghq::make_transformation</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optresults</code></td>
+<td>
+<p>Optional. A list of the results of the optimization of the log
+posterior, formatted according to the output of <code>aghq::optimize_theta</code>. The
+<code>aghq::aghq</code> function handles the optimization for you; passing this list
+overrides this, and is useful for when you know your optimization is too difficult to be
+handled by general-purpose software. See the software paper for several examples of this.
+If you're unsure whether this option is needed for your problem then it probably is not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basegrid</code></td>
+<td>
+<p>Optional. Provide an object of class <code>NIGrid</code> from the <code>mvQuad</code>
+package, representing the base quadrature rule that will be adapted. This is only
+for users who want more complete control over the quadrature, and is not necessary
+if you are fine with the default option which basically corresponds to
+<code>mvQuad::createNIGrid(length(theta),'GHe',k,'product')</code>. <strong>Note</strong>: the <code>mvQuad</code>
+functions used within <code>aghq</code> operate on grids in memory, so your <code>basegrid</code>
+object will be changed after you run <code>aghq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of control parameters. See <code>?default_control</code> for details. Valid options are:
+</p>
+
+<ul>
+<li>
+<p><code>method</code>: optimization method to use for the <code>theta</code> optimization:
+</p>
+
+<ul>
+<li>
+<p>'sparse_trust' (default): <code>trustOptim::trust.optim</code>
+</p>
+</li>
+<li>
+<p>'sparse': <code>trust::trust</code>
+</p>
+</li>
+<li>
+<p>'BFGS': <code>optim(...,method = "BFGS")</code>
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>inner_method</code>: optimization method to use for the <code>W</code> optimization; same
+options as for <code>method</code>. Default <code>inner_method</code> is 'sparse_trust' and default <code>method</code> is 'BFGS'.
+
+</p>
+</li>
+<li> <p><code>negate</code>: default <code>TRUE</code>. See <code>?default_control_tmb</code>. Assumes that your <code>TMB</code> function
+template computes the <strong>negated</strong> log-posterior, which it must if you're using <code>TMB</code>'s automatic
+Laplace approximation, which you must be if you're using this function!</p>
+</li>
+</ul>
+<p>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>ff$fn</code>, <code>ff$gr</code>, and <code>ff$he</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Because <code>TMB</code> does not yet have the Hessian of the log marginal Laplace
+approximation implemented, a numerically-differentiated jacobian of the gradient
+is used via <code>numDeriv::jacobian()</code>. You can turn this off (using <code>ff$he()</code> instead,
+which you'll have to modify yourself) using <code>default_control_tmb(numhessian = FALSE)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>k &gt; 1</code>, an object of class <code>marginallaplace</code>
+(and inheriting from class <code>aghq</code>) of the same
+structure as that returned by <code>aghq::marginal_laplace()</code>, with <code>plot</code>
+and <code>summary</code> methods, and suitable for input into <code>aghq::sample_marginal()</code>
+for drawing posterior samples.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other quadrature: 
+<code>aghq()</code>,
+<code>get_hessian()</code>,
+<code>get_log_normconst()</code>,
+<code>get_mode()</code>,
+<code>get_nodesandweights()</code>,
+<code>get_numquadpoints()</code>,
+<code>get_opt_results()</code>,
+<code>get_param_dim()</code>,
+<code>laplace_approximation()</code>,
+<code>marginal_laplace()</code>,
+<code>nested_quadrature()</code>,
+<code>normalize_logpost()</code>,
+<code>optimize_theta()</code>,
+<code>plot.aghq()</code>,
+<code>print.aghqsummary()</code>,
+<code>print.aghq()</code>,
+<code>print.laplacesummary()</code>,
+<code>print.laplace()</code>,
+<code>print.marginallaplacesummary()</code>,
+<code>summary.aghq()</code>,
+<code>summary.laplace()</code>,
+<code>summary.marginallaplace()</code>
+</p>
+
+
+</div>

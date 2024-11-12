@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>build_template_definition</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Build the JSON for a template and its parameters</h2>
+
+<h3>Description</h3>
+
+<p>Build the JSON for a template and its parameters
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">build_template_definition(...)
+
+## Default S3 method:
+build_template_definition(parameters = named_list(),
+  variables = named_list(), functions = list(), resources = list(),
+  outputs = named_list(), schema = "2019-04-01", version = "1.0.0.0",
+  api_profile = NULL, ...)
+
+build_template_parameters(...)
+
+## Default S3 method:
+build_template_parameters(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For <code>build_template_parameters</code>, named arguments giving the values of each template parameter. For <code>build_template_definition</code>, further arguments passed to class methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>For <code>build_template_definition</code>, the parameter names and types for the template. See 'Details' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>Internal variables used by the template.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>functions</code></td>
+<td>
+<p>User-defined functions used by the template.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resources</code></td>
+<td>
+<p>List of resources that the template should deploy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputs</code></td>
+<td>
+<p>The template outputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>schema, version, api_profile</code></td>
+<td>
+<p>Less commonly used arguments that can be used to customise the template. See the guide to template syntax on Microsoft Docs, linked below.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>build_template_definition</code> is used to generate a template from its components. The main arguments are <code>parameters</code>, <code>variables</code>, <code>functions</code>, <code>resources</code> and <code>outputs</code>. Each of these can be specified in various ways:
+</p>
+
+<ul>
+<li>
+<p> As character strings containing unparsed JSON text.
+</p>
+</li>
+<li>
+<p> As an R list of (nested) objects, which will be converted to JSON via <code>jsonlite::toJSON</code>.
+</p>
+</li>
+<li>
+<p> A connection pointing to a JSON file or object.
+</p>
+</li>
+<li>
+<p> For the <code>parameters</code> argument, this can also be a character vector containing the types of each parameter.
+</p>
+</li>
+</ul>
+<p><code>build_template_parameters</code> is for creating the list of parameters to be passed along with the template. Its arguments should all be named, and contain either the JSON text or an R list giving the parsed JSON.
+</p>
+<p>Both of these are generics and can be extended by other packages to handle specific deployment scenarios, eg virtual machines.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The JSON text for the template definition and its parameters.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>az_template, jsonlite::toJSON
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-syntax">Guide to template syntax</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># dummy example
+# note that 'resources' arg should be a _list_ of resources
+build_template_definition(resources=list(list(name="resource here")))
+
+# specifying parameters as a list
+build_template_definition(parameters=list(par1=list(type="string")),
+                          resources=list(list(name="resource here")))
+
+# specifying parameters as a vector
+build_template_definition(parameters=c(par1="string"),
+                          resources=list(list(name="resource here")))
+
+# a user-defined function
+build_template_definition(
+    parameters=c(name="string"),
+    functions=list(
+        list(
+            namespace="mynamespace",
+            members=list(
+                prefixedName=list(
+                    parameters=list(
+                        list(name="name", type="string")
+                    ),
+                    output=list(
+                        type="string",
+                        value="[concat('AzureR', parameters('name'))]"
+                    )
+                )
+            )
+        )
+    )
+)
+
+# realistic example: storage account
+build_template_definition(
+    parameters=c(
+        name="string",
+        location="string",
+        sku="string"
+    ),
+    variables=list(
+        id="[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+    ),
+    resources=list(
+        list(
+            name="[parameters('name')]",
+            location="[parameters('location')]",
+            type="Microsoft.Storage/storageAccounts",
+            apiVersion="2018-07-01",
+            sku=list(
+                name="[parameters('sku')]"
+            ),
+            kind="Storage"
+        )
+    ),
+    outputs=list(
+        storageId="[variables('id')]"
+    )
+)
+
+# providing JSON text as input
+build_template_definition(
+    parameters=c(name="string", location="string", sku="string"),
+    resources='[
+        {
+            "name": "[parameters(\'name\')]",
+            "location": "[parameters(\'location\')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-07-01",
+            "sku": {
+                "name": "[parameters(\'sku\')]"
+            },
+            "kind": "Storage"
+        }
+    ]'
+)
+
+# parameter values
+build_template_parameters(name="mystorageacct", location="westus", sku="Standard_LRS")
+
+build_template_parameters(
+    param='{
+        "name": "myname",
+        "properties": { "prop1": 42, "prop2": "hello" }
+    }'
+)
+
+param_json &lt;- '{
+        "name": "myname",
+        "properties": { "prop1": 42, "prop2": "hello" }
+    }'
+build_template_parameters(param=textConnection(param_json))
+
+## Not run: 
+# reading JSON definitions from files
+build_template_definition(
+    parameters=file("parameter_def.json"),
+    resources=file("resource_def.json")
+)
+
+build_template_parameters(name="myres_name", complex_type=file("myres_params.json"))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

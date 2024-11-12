@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gen_adapt_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>adapt_model Objects for M-steps</h2>
+
+<h3>Description</h3>
+
+<p><code>adapt_model</code> objects provide the functions and their arguments in computing the M-steps.
+Each object can be passed to <code>adapt</code> as a candidate model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gen_adapt_model(pifun = NULL, mufun = NULL, pifun_init = NULL,
+  mufun_init = NULL, piargs = list(), muargs = list(),
+  piargs_init = list(), muargs_init = list(), name = "")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pifun</code></td>
+<td>
+<p>a function to fit pi(x). See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mufun</code></td>
+<td>
+<p>a function to fit mu(x). See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pifun_init</code></td>
+<td>
+<p>a function to fit pi(x) at the initial step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mufun_init</code></td>
+<td>
+<p>a function to fit mu(x) at the initial step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piargs</code></td>
+<td>
+<p>a list. Arguments for "pifun". An empty list as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muargs</code></td>
+<td>
+<p>a list. Arguments for "mufun". An empty list as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piargs_init</code></td>
+<td>
+<p>a list. Arguments for piargs_init. An empty list as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muargs_init</code></td>
+<td>
+<p>a list. Arguments for muargs_init. An empty list as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>a string. An optional argument for the user-specified name of the model. An empty string as default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pifun</code> should be in the form of <code>pifun(formula, data, family, weights, ...)</code> or <code>pifun(x, y, family, ...)</code>.
+The former includes <code>glm</code> and <code>gam</code> and the latter includes <code>glmnet</code>.
+The outputs should be in the form of <code>list(fitv = , info = , ...)</code> where <code>fitv</code> gives the estimate of pi(x),
+as a vector with the same order of <code>x</code>, and <code>info</code> should at least contain a key <code>df</code> if model selection is used, i.e. <code>info = list(df = , ...)</code>
+</p>
+<p><code>mufun</code> should be in the form of <code>pifun(formula, data, family, weights, ...)</code> or <code>pifun(x, y, family, weights, ...)</code>.
+Note that <code>mufun</code> must take <code>weights</code> as an input. The outputs should be in the same form as <code>pifun</code> except that <code>fitv</code> should give the estimate of mu(x).
+</p>
+<p>When <code>pifun</code> / <code>mufun</code> takes the form of <code>(formula, family, ...)</code>, <code>piargs</code> / <code>muargs</code> should at least contain a key <code>formula</code>; when <code>pifun</code> / <code>mufun</code> takes the form of <code>(x, y, family, ...)</code>, <code>piargs</code> / <code>muargs</code> can be empty.
+</p>
+<p>For glm/gam/glmnet, one can use the shortcut by running <code>gen_adapt_model</code> with name = "glm" or "gam" or "glmnet" but without specifying <code>pifun</code>, <code>mufun</code>, <code>pifun_init</code> and <code>mufun_init</code>. See examples below.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>same as the input <code>name</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algo</code></td>
+<td>
+<p>a list recording <code>pifun</code>, <code>mufun</code>, <code>pifun_init</code> and <code>mufun_init</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>args</code></td>
+<td>
+<p>a list recording <code>piargs</code>, <code>muargs</code>, <code>piargs_init</code> and <code>muargs_init</code></p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Exemplary code to generate 'adapt_model' for logistic-Gamma glm  with naive initialization.
+# The real implementation in the package is much more complicated.
+
+# pifun as a logistic regression
+pifun &lt;- function(formula, data, weights, ...){
+  glm(formula, data, weights = weights, family = binomial(),  ...)
+}
+# pifun_init as a constant
+pifun_init &lt;- function(x, pvals, s, ...){
+  rep(0.1, length(pvals))
+}
+# mufun as a Gamma GLM
+mufun &lt;- function(formula, data, weights, ...){
+  glm(formula, data, weights = weights, family = Gamma(), ...)
+}
+# mufun_init as a constant
+mufun_init &lt;- function(x, pvals, s, ...){
+  rep(1.5, length(pvals))
+}
+
+library("splines") # for using ns() in the formula
+piargs &lt;- list(formula = "ns(x, df = 8)")
+muargs &lt;- list(formula = "ns(x, df = 8)")
+name &lt;- "glm"
+
+mod &lt;- gen_adapt_model(pifun, mufun, pifun_init, mufun_init,
+                       piargs, muargs, name = name)
+mod
+
+# Using shortcut for GLM. See the last paragraph of Details.
+mod2 &lt;- gen_adapt_model(name = "glm", piargs = piargs, muargs = muargs)
+mod2
+
+
+</code></pre>
+
+
+</div>

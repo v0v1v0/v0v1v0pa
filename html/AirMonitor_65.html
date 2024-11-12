@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monitor_timeseriesPlot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create timeseries plot</h2>
+
+<h3>Description</h3>
+
+<p>Creates a time series plot of data from a <em>mts_monitor</em> object.
+By default, points are plotted as semi-transparent squares. All data values
+are plotted from all monitors found in the <em>mts_monitor</em> object.
+</p>
+<p>Reasonable defaults are chosen for annotations and plot characteristics.
+Users can override any defaults by passing in parameters accepted by
+<code>graphics::plot.default</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monitor_timeseriesPlot(
+  monitor = NULL,
+  id = NULL,
+  shadedNight = FALSE,
+  add = FALSE,
+  addAQI = FALSE,
+  palette = c("EPA", "subdued", "deuteranopia"),
+  opacity = NULL,
+  NAAQS = c("PM2.5_2024", "PM2.5"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>monitor</code></td>
+<td>
+<p><em>mts_monitor</em> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p><code>deviceDeploymentID</code> used to limit plotting to a single time
+series found in <code>monitor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shadedNight</code></td>
+<td>
+<p>Logical specifying whether to add nighttime shading.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>Logical specifying whether to add to the current plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addAQI</code></td>
+<td>
+<p>Logical specifying whether to add visual AQI decorations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palette</code></td>
+<td>
+<p>Named color palette to use when adding AQI decorations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opacity</code></td>
+<td>
+<p>Opacity to use for points. By default, an opacity is chosen based
+on the number of points so that trends are highlighted while outliers diminish
+in visual importance as the number of points increases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NAAQS</code></td>
+<td>
+<p>Version of NAAQS levels to use. See Note.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>graphics::plot.default()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return value. This function is called to draw an air quality
+time series plot on the active graphics device.
+</p>
+
+
+<h3>Note</h3>
+
+<p>On February 7, 2024, EPA strengthened the National Ambient Air Quality
+Standards for Particulate Matter (PM NAAQS) to protect millions of Americans
+from harmful and costly health impacts, such as heart attacks and premature
+death. Particle or soot pollution is one of the most dangerous forms of air
+pollution, and an extensive body of science links it to a range of serious
+and sometimes deadly illnesses. EPA is setting the level of the primary
+(health-based) annual PM2.5 standard at 9.0 micrograms per cubic meter to
+provide increased public health protection, consistent with the available
+health science.
+See <a href="https://www.epa.gov/pm-pollution/final-reconsideration-national-ambient-air-quality-standards-particulate-matter-pm">PM NAAQS update</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AirMonitor)
+
+# Single monitor
+Carmel_Valley %&gt;%
+  monitor_timeseriesPlot()
+
+# Multiple monitors
+Camp_Fire %&gt;%
+  monitor_filter(countyName == "Alameda") %&gt;%
+  monitor_timeseriesPlot(main = "All Alameda County Monitors")
+
+# Standard extras
+Carmel_Valley %&gt;%
+  monitor_timeseriesPlot(
+    shadedNight = TRUE,
+    addAQI = TRUE
+  )
+addAQILegend()
+
+# Standard extras using the updated PM NAAQS
+Carmel_Valley %&gt;%
+  monitor_timeseriesPlot(
+    shadedNight = TRUE,
+    addAQI = TRUE,
+    NAAQS = "PM2.5_2024"
+  )
+addAQILegend(NAAQS = "PM2.5_2024")
+
+# Fancy plot based on pm2.5 values
+pm2.5 &lt;- Carmel_Valley$data[,2]
+Carmel_Valley %&gt;%
+  monitor_timeseriesPlot(
+    shadedNight = TRUE,
+    pch = 16,
+    cex = pmax(pm2.5 / 100, 0.5),
+    col = aqiColors(pm2.5),
+    opacity = 0.8
+  )
+addAQILegend(pch = 16, cex = 0.6, bg = "white")
+</code></pre>
+
+
+</div>

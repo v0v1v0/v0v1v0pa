@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>holiday-utilities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Holiday utility functions</h2>
+
+<h3>Description</h3>
+
+<p>These three functions allow you to tweak existing holidays created by
+<code>rholiday()</code> so that they more properly align with business calendars. The
+resulting holidays can then be added into an <code>rcalendar()</code>.
+</p>
+
+<ul>
+<li> <p><code>hol_observe()</code> adjusts a holiday based on when it is actually observed.
+For example, many holidays that occur on a Saturday are actually observed
+on the preceding Friday or following Monday.
+</p>
+</li>
+<li> <p><code>hol_offset()</code> creates a new holiday by <em>offsetting</em> it from an existing
+one. For example, Boxing Day is the day after Christmas, and the observance
+of Boxing Day may be dependent on the observance of Christmas (i.e. if
+Christmas is Sunday, it may be observed on Monday, so Boxing Day would be
+observed on Tuesday).
+</p>
+</li>
+<li> <p><code>hol_rename()</code> renames an existing holiday. This is typically useful after
+a call to <code>hol_offset()</code>, since it doesn't rename the holiday but you may
+want to give it a different name.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">hol_observe(x, adjust_on, adjustment)
+
+hol_offset(x, by)
+
+hol_rename(x, name)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[rholiday]⁠</code>
+</p>
+<p>An rholiday.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust_on</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[rschedule]⁠</code>
+</p>
+<p>An rschedule that determines when the <code>adjustment</code> is to be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjustment</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[function]⁠</code>
+</p>
+<p>An adjustment function to apply to problematic dates. Typically one
+of the pre-existing adjustment functions, like <code>adj_nearest()</code>.
+</p>
+<p>A custom adjustment function must have two arguments <code>x</code> and <code>rschedule</code>.
+<code>x</code> is the complete vector of dates that possibly need adjustment.
+<code>rschedule</code> is the rschedule who's event set determines when an
+adjustment needs to be applied. The function should adjust <code>x</code> as required
+and return the adjusted Date vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[integer(1)]⁠</code>
+</p>
+<p>A single integer to offset by.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character(1)]⁠</code>
+</p>
+<p>A new name for the holiday.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+on_weekends &lt;- weekly() %&gt;%
+  recur_on_weekends()
+
+# Christmas, adjusted to nearest Friday or Monday if it falls on a weekend
+on_christmas &lt;- hol_christmas() %&gt;%
+  hol_observe(on_weekends, adj_nearest)
+
+# Boxing Day is the day after Christmas.
+# If observed Christmas is a Friday, then observed Boxing Day should be Monday.
+# If observed Christmas is a Monday, then observed Boxing Day should be Tuesday.
+on_boxing_day &lt;- on_christmas %&gt;%
+  hol_offset(1) %&gt;%
+  hol_observe(on_weekends, adj_following) %&gt;%
+  hol_rename("Boxing Day")
+
+christmas_dates &lt;- alma_events(on_christmas, year = 2010:2015)
+boxing_day_dates &lt;- alma_events(on_boxing_day, year = 2010:2015)
+
+data.frame(
+  christmas = christmas_dates,
+  boxing_day = boxing_day_dates,
+  christmas_weekday = lubridate::wday(christmas_dates, label = TRUE),
+  boxing_day_weekday = lubridate::wday(boxing_day_dates, label = TRUE)
+)
+</code></pre>
+
+
+</div>

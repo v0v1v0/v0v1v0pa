@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahaz.adjust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjusted univariate association measures from ahaz</h2>
+
+<h3>Description</h3>
+
+<p>Fast calculation of univariate association measures  in the
+semiparametric additive risk model, adjusted for user-specified covariates</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahaz.adjust(surv, X, weights, idx, method=c("coef", "z", "crit"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censored
+and counting process format (left-truncation) is supported. Tied
+survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1
+for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>Vector specifying the indices of the covariates to adjust
+for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The type of adjusted association measure to calculate. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function is intended mainly for <strong>programming use</strong> and
+screening purposes, when a very large number of covariates are considered and direct application of
+<code>ahaz</code> is unfeasible.
+</p>
+<p>Running this function is equivalent to running <code>ahaz</code> with
+design matrix <code>cbind(X[,i],X[,idx])</code> for each column <code>X[,i]</code> in
+<code>X</code>. By utilizing basic matrix identities, <code>ahaz.adjust</code>
+runs many times faster.
+</p>
+<p>The following univariate association measures are currently implemented:
+</p>
+
+<ul>
+<li>  <p><code>method="z"</code>,  <code class="reqn">Z</code>-statistics, obtained from a
+fitted <code>ahaz</code> model.
+</p>
+</li>
+<li>  <p><code>method="coef"</code>, regression coefficients, obtained from a
+fitted <code>ahaz</code> model.
+</p>
+</li>
+<li> <p><code>method="crit"</code>, the increase in
+the natural loss function of the
+semiparametric additive hazards model when the covariate is included
+in the model.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>A copy of the argument <code>idx</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+<p>Adjusted association statistic, as specified by <code>method</code>. Entries with index in
+<code>idx</code> are set to <code>NA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>ahaz</code>, <code>ahaz.partial</code>, <code>ahazisis</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Adjust for first 10 covariates
+idx &lt;- 1:10
+a &lt;- ahaz.adjust(surv,X,idx=idx)
+
+# Compare with (slower) solution
+b &lt;- apply(X[,-idx],2,function(x){coef(ahaz(surv,cbind(x,X[,idx])))[1]})
+plot(b,a$adj[-idx])
+</code></pre>
+
+
+</div>

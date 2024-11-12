@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>harmonize,SoilProfileCollection-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Harmonize a property by profile-level denormalization for convenient visualization or analysis of ranges</h2>
+
+<h3>Description</h3>
+
+<p>It is sometimes convenient to be able to "denormalize" to a <code>SoilProfileCollection</code> with fewer attributes but more profiles. This is helpful wherever calculations are made on a profile basis and ranges or repeated measures are depicted with multiple attributes per soil horizon.
+</p>
+<p><code>harmonize</code> is most commonly used for creating "comparison" soil profile sketches with <code>plotSPC</code>–where the thematic attribute is derived from multiple data sources or summary statistics (such as quantiles of a property for Low-RV-High). However, the method more generally applies wherever one wants to alias between multiple columns containing "similar" data as input to an algorithm.
+</p>
+<p>Data are "harmonized" to a common attribute names specified by the names of list elements in <code>x.names</code>. Profiles are essentially duplicated. In order to satisfy uniqueness constraints of the <code>SoilProfileCollection</code>, the label from the sub-elements of <code>x.names</code> are used to disambiguate profiles. A new column in the site table is calculated to reflect these groupings and facilitate filtering. See examples below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'SoilProfileCollection'
+harmonize(x, x.names, keep.cols = NULL, grp.name = "hgroup")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>SoilProfileCollection</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.names</code></td>
+<td>
+<p>a named list of character vectors specifying target names, profile ID suffixes and source attribute names for harmonization</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.cols</code></td>
+<td>
+<p>a character vector of column names to keep unaltered from the horizon data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp.name</code></td>
+<td>
+<p>a character vector with column name to store grouping variable in site table (default: "hgroup")</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If attributes reflecting the same or similar property within a soil layer have different names (e.g. <code>socQ05</code>, <code>socQ50</code>, <code>socQ95</code>) it is sometimes inconvenient to work with them as multiple attributes within the same profile. These similar attributes may need to be analyzed together, or in sequence by profile, displayed using the same name or using a common scale. It is also useful to be able to alias different data sources that have the same attributes with different names.
+</p>
+<p>Each list element in <code>x.names</code> specifies a single "harmonization," which is comprised of one or more mappings from new to old. Each named "sub-element" of <code>x.names</code> specifies the name and attribute to use for updating the profile ID and site table of  the duplicated profiles.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A (redundant) <code>SoilProfileCollection</code>, with one profile for each set of harmonizations specified by <code>x.names</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+### single source "harmonization" of single-profile with range -&gt; single attribute, multi-profile
+
+# make some test data
+spc &lt;- combine(lapply(1:10, random_profile, SPC = TRUE))
+
+# assume that p1, p2 and p3 are the low RV and high quantiles for a hypothetical property "foo"
+h1 &lt;- harmonize(spc, x.names = list(foo = c(q05 = "p1", q50 = "p2", q95 = "p3")))
+
+# inspect result
+plotSPC(h1, color = "foo")
+
+# filter with calculated "harmonized group" to get just RV profiles
+plotSPC(subset(h1, hgroup == "q50"), color="foo")
+
+### single source, two properties at once; with common labels: "method1" "method2"
+
+# assume that p1, p2 are measurements by two (!=) methods for a hypothetical property "foo"
+#             p3, p4 are measurements by same two methods for a hypothetical property "bar"
+h3 &lt;- harmonize(spc, x.names = list(foo = c(method1 = "p1", method2 = "p2"),
+                                    bar = c(method1 = "p3", method2 = "p4")))
+plotSPC(h3, color = "foo")
+plotSPC(h3, color = "bar")
+head(horizons(h3))
+
+# a slight modification, "method 1" onlyused for "foo" and "method 3" for "bar"
+h3 &lt;- harmonize(spc, x.names = list(foo = c(method1 = "p1", method2 = "p2"),
+                                    bar = c(method2 = "p3", method3 = "p4")))
+plotSPC(h3, color = "foo") # note the pattern of values missing for foo (*_method3)
+plotSPC(h3, color = "bar") #  likewise for bar (*_method1)
+
+#' the new labels need not match across harmonizations -- not sure how useful this is but it works
+h3 &lt;- harmonize(spc, x.names = list(foo = c(method1 = "p1", method2 = "p2"),
+                                    bar = c(method3 = "p3", method4 = "p4")))
+plotSPC(h3, color = "foo") # note the pattern of values missing for foo (*_method 3 + 4)
+plotSPC(h3, color = "bar") #  likewise for bar (*_method 1 + 2)
+
+### two-source harmonization
+
+# make test data
+spc1 &lt;- combine(lapply(LETTERS[1:5], random_profile, SPC = TRUE))
+spc2 &lt;- combine(lapply(letters[1:5], random_profile, SPC = TRUE))
+
+h4 &lt;- combine(list(harmonize(spc1, list(foo = c(transect1 = "p4"))),   # foo is p4 in dataset 1
+                      harmonize(spc2, list(foo = c(transect2 = "p2")))))  # foo is p2 in dataset 2
+
+# same property with different name in two different datasets
+plotSPC(h4, color = "foo")
+
+### many source harmonization
+
+# make test datasets (n=10); highly redundant IDs (1:3 repeated)
+spcs &lt;- lapply(1:10, function(x) pbindlist(lapply(1:3, random_profile, SPC = TRUE)))
+
+# randomly varying column name for demo (in each dataset, foo could could be p1 thru p5)
+rcolname &lt;- paste0("p", round(runif(10, 0.5, 5.5)))
+
+# iterate over data sources
+bigspc &lt;- combine(lapply(1:length(spcs), function(i) {
+
+  # assume each data source has a unique name for the property "foo"
+  xn &lt;- rcolname[i]
+
+  # set names attribute to be equal to index i [creating unique profile IDs]
+  #   i.e. 2_10 will be profile ID 2 from 10th dataset
+  names(xn) &lt;- i
+
+  # harmonize each data source, using unique column name and target name "foo"
+  harmonize(spcs[[i]], x.names = list(foo = xn))
+}))
+
+# inspect a subset
+plotSPC(bigspc[1:30,], color = "foo")
+
+</code></pre>
+
+
+</div>

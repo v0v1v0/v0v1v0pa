@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>key_vault</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Azure Key Vault client</h2>
+
+<h3>Description</h3>
+
+<p>Azure Key Vault client
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">key_vault(
+  url,
+  tenant = "common",
+  app = .az_cli_app_id,
+  ...,
+  domain = "vault.azure.net",
+  as_managed_identity = FALSE,
+  token = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>url</code></td>
+<td>
+<p>The location of the vault. This can be a full URL, or the vault name alone; in the latter case, the <code>domain</code> argument is appended to obtain the URL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tenant, app, </code></td>
+<td>
+<p>Authentication arguments that will be passed to <code>AzureAuth::get_azure_token</code>. The default is to authenticate interactively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments that will be passed to either <code>get_azure_token</code> or <code>AzureAuth::get_managed_token</code>, depending on whether <code>as_managed_identity</code> is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+<p>The domain of the vault; for the public Azure cloud, this is <code>vault.azure.net</code>. Also the resource for OAuth authentication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as_managed_identity</code></td>
+<td>
+<p>Whether to authenticate as a managed identity. Use this if your R session is taking place inside an Azure VM or container that has a system- or user-assigned managed identity assigned to it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>An OAuth token obtained via <code>get_azure_token</code> or <code>get_managed_token</code>. If provided, this overrides the other authentication arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function creates a new Key Vault client object. It includes the following component objects for working with data in the vault:
+</p>
+
+<ul>
+<li> <p><code>keys</code>: A sub-object for working with encryption keys stored in the vault. See keys.
+</p>
+</li>
+<li> <p><code>secrets</code>: A sub-object for working with secrets stored in the vault. See secrets.
+</p>
+</li>
+<li> <p><code>certificates</code>: A sub-object for working with certificates stored in the vault. See certificates.
+</p>
+</li>
+<li> <p><code>storage</code>: A sub-object for working with storage accounts managed by the vault. See storage.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>keys</code>, <code>secrets</code>, <code>certificates</code>, <code>storage</code>
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+key_vault("mykeyvault")
+key_vault("https://mykeyvault.vault.azure.net")
+
+# authenticating as a service principal
+key_vault("mykeyvault", tenant="myaadtenant", app="app_id", password="password")
+
+# authenticating with an existing token
+token &lt;- AzureAuth::get_azure_token("https://vault.azure.net", "myaadtenant",
+                                    app="app_id", password="password")
+key_vault("mykeyvault", token=token)
+
+# authenticating with a system-assigned managed identity
+key_vault("mykeyvault", as_managed_identity=TRUE)
+
+# authenticating with a user-assigned managed identity:
+# - supply one of the identity's object ID, client ID or resource ID
+key_vault("mykeyvault", as_managed_identity=TRUE,
+    token_args=list(mi_res_id="/subscriptions/xxxx/resourceGroups/resgrpname/..."))
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

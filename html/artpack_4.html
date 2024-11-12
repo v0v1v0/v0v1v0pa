@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>circle_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data Generation for Circles</h2>
+
+<h3>Description</h3>
+
+<p>A tool for creating a data frame of values that create a circle with a specified radius
+when plotted.
+</p>
+<p>The <code>geom_path</code> and <code>geom_polygon</code> geoms are recommended with this data for use in <code>ggplot2</code> for generative art.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">circle_data(
+  x,
+  y,
+  radius,
+  color = NULL,
+  fill = NULL,
+  n_points = 100,
+  group_var = FALSE,
+  group_prefix = "circle_"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Numeric value of length 1 - The center <code>x</code> coordinate value of the circle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Numeric value of length 1 - The center <code>y</code> coordinate value of the circle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>Numeric value of length 1 that must be greater than 0 - The radius of the circle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>Character value of length 1 - The color of the square's border. A valid <code>R</code> color from <code>colors()</code> or a standard 6 digit hexadecimal webcolor like "#000000"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>Character value of length 1 - The color of the square. A valid <code>R</code> color from <code>colors()</code> or a standard 6 digit hexadecimal webcolor like "#000000"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_points</code></td>
+<td>
+<p>Numeric value. Default is 100. This determines how many points the square will have. This option can come in handy when using jitter options or other texture/illusion methods. Must be of length 1 and at least a value of 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_var</code></td>
+<td>
+<p>Logical. Default is <code>FALSE</code>. If <code>TRUE</code>, a <code>group</code> variable will be added to the dataframe. Useful in iterative data generation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_prefix</code></td>
+<td>
+<p>Character string of length 1 - The prefix used for the <code>group</code> variable. Default is "square_"</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A Tibble
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Creating one circle
+
+library(ggplot2)
+one_circle &lt;- circle_data(x = 0, y = 0, radius = 5)
+
+# Plot The Data
+one_circle |&gt;
+  ggplot(aes(x, y)) +
+  geom_path(color = "green") +
+  coord_equal()
+
+# To create multiple circles, use your preferred method of iteration:
+# Creating two circles
+
+library(purrr)
+library(dplyr)
+
+# Make your specs
+x_vals &lt;- c(0, 10)
+y_vals &lt;- c(0, 0)
+radi &lt;- c(1, 3)
+fills &lt;- c("purple", "yellow")
+circle_n &lt;- 1:2
+
+# Prep for your iteration
+lst_circle_specs &lt;-
+  list(
+    x_vals,
+    y_vals,
+    radi,
+    fills,
+    circle_n
+  )
+
+# Use `circle_data()` in your preferred iteration methods
+two_circles &lt;- pmap(lst_circle_specs, ~ circle_data(
+  x = ..1,
+  y = ..2,
+  radi = ..3,
+  fill = ..4,
+  color = "#000000",
+  group_var = TRUE
+) |&gt;
+  # circle_data adds a `group` variable if `group_var` = TRUE.
+  # For multiple circles, a unique identifier should be added/pasted in.
+  mutate(group = paste0(group, ..5))) |&gt;
+  list_rbind()
+
+# Plot the data
+
+two_circles |&gt;
+  ggplot(aes(x, y, group = group)) +
+  theme(legend.position = "none") +
+  geom_polygon(
+    color = two_circles$color,
+    fill = two_circles$fill
+  ) +
+  coord_equal() #Always use coord_equal() or coord_fixed for circles!
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>xwalk_ags</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Crosswalk Municipality or District Statistics</h2>
+
+<h3>Description</h3>
+
+<p>This function constructs time series of counts for Germany's municipalities
+(Gemeinden) and districts (Kreise).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">xwalk_ags(
+  data,
+  ags,
+  time,
+  xwalk,
+  variables = NULL,
+  strata = NULL,
+  weight = NULL,
+  fuzzy_time = FALSE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame or a data frame extension (e.g. a tibble).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ags</code></td>
+<td>
+<p>Name of the character variable (quoted) with municipality
+AGS (Gemeinden, 8 digits) or district AGS (Kreise, 5 digits).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Name of the variable (quoted) identifying the year
+(YYYY format). Values will be coerced to integers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xwalk</code></td>
+<td>
+<p>Name of the crosswalk. The following crosswalks are available:
+</p>
+
+<ul>
+<li> <p><code>xd19</code>, <code>xd20</code> for district-level data
+between 1990-2019/2020.
+</p>
+</li>
+<li> <p><code>xm19</code>, <code>xm20</code> for municipality-level
+data between 1990-2019/2020.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>Either a vector of names (quoted) for
+variables to interpolate or <code>NULL</code> to disable interpolation and
+return the data matched with the <code>xwalk</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>Vector of variable names (quoted) or <code>NULL</code>. See
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>Name of the interpolation weight or <code>NULL</code>.
+The following are available:
+</p>
+
+<ul>
+<li> <p><code>pop</code>: Population weights.
+</p>
+</li>
+<li> <p><code>size</code>: Area weights.
+</p>
+</li>
+<li> <p><code>emp</code>: Weights based on the number of employees (1998 onwards).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fuzzy_time</code></td>
+<td>
+<p>If <code>FALSE</code> the crosswalk and the <code>data</code>
+are matched exactly by <code>ags</code> and <code>time</code>. If <code>TRUE</code>
+they are matched exactly by <code>ags</code> and as best as possible on
+<code>time</code>. See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code> the function outputs information on
+the number of matched and unmatched rows.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function facilitates the use of crosswalks constructed by
+the BBSR for municipalities and districts in Germany (Milbert 2010).
+The crosswalks map one year's set of district/municipality
+identifiers to later year's identifiers and provide weights
+to perform area or population weighted interpolation.
+</p>
+<p>All data rows with <code>NA</code>s in either the <code>ags</code> or <code>time</code>
+variable are excluded. The same applies to all rows with a value in
+<code>ags</code> or <code>time</code> that never appears in the crosswalk.
+</p>
+<p>Fuzzy matching uses the absolute difference between the year reported
+in the data and a crosswalk year. If there is a tie, crosswalk years from
+before the year reported in the data are preferred.
+</p>
+<p>If area or population weighted interpolation is requested (i.e., when
+<code>variables</code> are supplied), the combination of the variables set
+in <code>ags</code>, <code>time</code> and <code>strata</code> need to uniquely
+identify a row in <code>data</code>.
+</p>
+<p>Caution: Data from <a href="https://www.regionalstatistik.de/">https://www.regionalstatistik.de/</a> <em>sometimes</em> includes
+annual values for merged units (e.g., Städteregion Aachen, 05334)) and
+for their former parts (Kreis Aachen, 05354 and Stadt Aachen, 05313).
+When such data is crosswalked with <code>fuzzy_time=TRUE</code> and
+interpolated, the final counts will be off by approximately factor 2.
+The reason is that the final output is the sum of the interpolated counts
+for the parts and the measured count of the merged unit.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If interpolation is requested, the crosswalked and interpolated
+data are returned. If interpolation is not requested, the <code>data</code> matched
+with the crosswalk are returned. The following variables are added:
+</p>
+
+<ul>
+<li> <p><code>row_id</code> row number of <code>data</code> before matching.
+</p>
+</li>
+<li> <p><code>ags[*]</code> the crosswalked AGS.
+</p>
+</li>
+<li> <p><code>year_xw</code> the matched year from the crosswalk.
+</p>
+</li>
+<li> <p><code>[*]_conv</code> the interpolation weight.
+</p>
+</li>
+<li> <p><code>diff</code> the absolute difference between <code>year_xw</code>
+and <code>time</code>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Milbert, Antonia. 2010.
+<a href="https://www.bbsr.bund.de/BBSR/DE/veroeffentlichungen/berichte-kompakt/2010/BK062010.html">
+"Gebietsreformen–politische Entscheidungen und Folgen für die Statistik."</a>
+BBSR-Berichte kompakt 6/2010. Bundesinsitut für Bau-, Stadt-und Raumfoschung.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(btw_sn)
+
+btw_sn_ags20 &lt;- xwalk_ags(
+    data = btw_sn,
+    ags = "district",
+    time = "year",
+    xwalk = "xd20",
+    variables = c("voters", "valid"),
+    weight = "pop"
+)
+
+head(btw_sn_ags20)
+
+</code></pre>
+
+
+</div>

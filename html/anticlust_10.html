@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate_partitions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate all partitions of same cardinality</h2>
+
+<h3>Description</h3>
+
+<p>Generate all partitions of same cardinality
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generate_partitions(N, K, generate_permutations = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The total N. <code>K</code> has to be dividble
+by <code>N</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>How many partitions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generate_permutations</code></td>
+<td>
+<p>If TRUE, all permutations are returned,
+resulting in duplicate partitions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In principle, anticlustering can be solved to optimality by
+generating all possible partitions of N items into K groups.
+The example code below illustrates how to do this.
+However, this approach only works for small N because the
+number of partitions grows exponentially with N.
+</p>
+<p>The partition c(1, 2, 2, 1)
+is the same as the partition c(2, 1, 1, 2) but they correspond
+to different permutations of the elements [1, 1, 2, 2]. If the argument
+<code>generate_permutations</code> is <code>TRUE</code>, all permutations are
+returned. To solve balanced anticlustering exactly, it is sufficient
+to inspect all partitions while ignoring duplicated permutations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of all partitions (or permutations if
+<code>generate_permutations</code> is <code>TRUE</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Papenberg <a href="mailto:martin.papenberg@hhu.de">martin.papenberg@hhu.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Papenberg, M., &amp; Klau, G. W. (2021). Using anticlustering to partition 
+data sets into equivalent parts. Psychological Methods, 26(2), 
+161–174. https://doi.org/10.1037/met0000301.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Generate all partitions to solve k-means anticlustering
+## to optimality.
+
+N &lt;- 14
+K &lt;- 2
+features &lt;- matrix(sample(N * 2, replace = TRUE), ncol = 2)
+partitions &lt;- generate_partitions(N, K)
+length(partitions) # number of possible partitions
+
+## Create an objective function that takes the partition
+## as first argument (then, we can use sapply to compute
+## the objective for each partition)
+var_obj &lt;- function(clusters, features) {
+  variance_objective(features, clusters)
+}
+
+all_objectives &lt;- sapply(
+  partitions,
+  FUN = var_obj,
+  features = features
+)
+
+## Check out distribution of the objective over all partitions:
+hist(all_objectives) # many large, few low objectives
+## Get best k-means anticlustering objective:
+best_obj &lt;- max(all_objectives)
+## It is possible that there are multiple best solutions:
+sum(all_objectives == best_obj)
+## Select one best partition:
+best_anticlustering &lt;- partitions[all_objectives == best_obj][[1]]
+## Look at mean for each partition:
+by(features, best_anticlustering, function(x) round(colMeans(x), 2))
+
+
+## Get best k-means clustering objective:
+min_obj &lt;- min(all_objectives)
+sum(all_objectives == min_obj)
+## Select one best partition:
+best_clustering &lt;- partitions[all_objectives == min_obj][[1]]
+
+## Plot minimum and maximum objectives:
+user_par &lt;- par("mfrow")
+par(mfrow = c(1, 2))
+plot_clusters(
+  features,
+  best_anticlustering,
+  illustrate_variance = TRUE,
+  main = "Maximum variance"
+)
+plot_clusters(
+  features,
+  best_clustering,
+  illustrate_variance = TRUE,
+  main = "Minimum variance"
+)
+par(mfrow = user_par)
+
+</code></pre>
+
+
+</div>

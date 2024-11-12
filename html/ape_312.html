@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>phymltest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fits a Bunch of Models with PhyML</h2>
+
+<h3>Description</h3>
+
+<p>This function calls PhyML and fits successively 28 models of DNA
+evolution. The results are saved on disk, as PhyML usually does, and
+returned in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> as a vector with the log-likelihood value of each model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">phymltest(seqfile, format = "interleaved", itree = NULL,
+          exclude = NULL, execname = NULL, append = TRUE)
+## S3 method for class 'phymltest'
+print(x, ...)
+## S3 method for class 'phymltest'
+summary(object, ...)
+## S3 method for class 'phymltest'
+plot(x, main = NULL, col = "blue", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>seqfile</code></td>
+<td>
+<p>a character string giving the name of the file that
+contains the DNA sequences to be analysed by PhyML.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>a character string specifying the format of the DNA
+sequences: either <code>"interleaved"</code> (the default), or
+<code>"sequential"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itree</code></td>
+<td>
+<p>a character string giving the name of a file with a tree
+in Newick format to be used as an initial tree by PhyML. If
+<code>NULL</code> (the default), PhyML uses a “BIONJ” tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+<p>a vector of mode character giving the models to be
+excluded from the analysis. These must be among those below, and
+follow the same syntax.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>execname</code></td>
+<td>
+<p>a character string specifying the name of the PhyML
+executable. This argument can be left as <code>NULL</code> if PhyML's
+default names are used: <code>"phyml_3.0_linux32"</code>,
+<code>"phyml_3.0_macintel"</code>, or <code>"phyml_3.0_win32.exe"</code>, under
+Linux, MacOS, or Windows respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append</code></td>
+<td>
+<p>a logical indicating whether to erase previous PhyML
+output files if present; the default is to not erase.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"phymltest"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"phymltest"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>a title for the plot; if left <code>NULL</code>, a title is made
+with the name of the object (use <code>main = ""</code> to have no
+title).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>a colour used for the segments showing the AIC values (blue
+by default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The present function requires version 3.0.1 of PhyML; it won't work with
+older versions.
+</p>
+<p>The user must take care to set correctly the three different paths
+involved here: the path to PhyML's binary, the path to the sequence
+file, and the path to R's working directory. The function should work
+if all three paths are different. Obviously, there should be no problem
+if they are all the same.
+</p>
+<p>The following syntax is used for the models:
+</p>
+<p>"X[Y][Z]00[+I][+G]"
+</p>
+<p>where "X" is the first letter of the author of the model, "Y" and "Z"
+are possibly other co-authors of the model, "00" is the year of the
+publication of the model, and "+I" and "+G" indicates whether the
+presence of invariant sites and/or a gamma distribution of
+substitution rates have been specified. Thus, Kimura's model is
+denoted "K80" and not "K2P". The exception to this rule is the general
+time-reversible model which is simply denoted "GTR" model.
+</p>
+<p>The seven substitution models used are: "JC69", "K80", "F81", "F84",
+"HKY85", "TN93", and "GTR". These models are then altered by adding
+the "+I" and/or "+G", resulting thus in four variants for each of them
+(e.g., "JC69", "JC69+I", "JC69+G", "JC69+I+G"). Some of these models
+are described in the help page of <code>dist.dna</code>.
+</p>
+<p>When a gamma distribution of substitution rates is specified, four
+categories are used (which is PhyML's default behaviour), and the
+“alpha” parameter is estimated from the data.
+</p>
+<p>For the models with a different substition rate for transitions and
+transversions, these rates are left free and estimated from the data
+(and not constrained with a ratio of 4 as in PhyML's default).
+</p>
+<p>The option <code>path2exec</code> has been removed in the present version:
+the path to PhyML's executable can be specified with the option
+<code>execname</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>phymltest</code> returns an object of class <code>"phymltest"</code>: a
+numeric vector with the models as names.
+</p>
+<p>The <code>print</code> method prints an object of class <code>"phymltest"</code>
+as matrix with the name of the models, the number of free parameters,
+the log-likelihood value, and the value of the Akaike information
+criterion (AIC = -2 * loglik + 2 * number of free parameters)
+</p>
+<p>The <code>summary</code> method prints all the possible likelihood ratio
+tests for an object of class <code>"phymltest"</code>.
+</p>
+<p>The <code>plot</code> method plots the values of AIC of an object of class
+<code>"phymltest"</code> on a vertical scale.
+</p>
+
+
+<h3>Note</h3>
+
+<p>It is important to note that the models fitted by this function is
+only a small fraction of the models possible with PhyML. For instance,
+it is possible to vary the number of categories in the (discretized)
+gamma distribution of substitution rates, and many parameters can be
+fixed by the user. The results from the present function should rather
+be taken as indicative of a best model.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Emmanuel Paradis</p>
+
+
+<h3>References</h3>
+
+<p>Posada, D. and Crandall, K. A. (2001) Selecting the best-fit model of
+nucleotide substitution. <em>Systematic Biology</em>, <b>50</b>,
+580–601.
+</p>
+<p>Guindon, S. and Gascuel, O. (2003) A simple, fast, and accurate
+algorithm to estimate large phylogenies by maximum likelihood.
+<em>Systematic Biology</em>, <b>52</b>, 696–704.
+<a href="http://www.atgc-montpellier.fr/phyml/">http://www.atgc-montpellier.fr/phyml/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>read.tree</code>, <code>write.tree</code>,
+<code>dist.dna</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### A `fake' example with random likelihood values: it does not
+### make sense, but does not need PhyML and gives you a flavour
+### of what the output looks like:
+x &lt;- runif(28, -100, -50)
+names(x) &lt;- ape:::.phymltest.model
+class(x) &lt;- "phymltest"
+x
+summary(x)
+plot(x)
+plot(x, main = "", col = "red")
+### This example needs PhyML, copy/paste or type the
+### following commands if you want to try them, eventually
+### changing setwd() and the options of phymltest()
+## Not run: 
+setwd("D:/phyml_v2.4/exe") # under Windows
+data(woodmouse)
+write.dna(woodmouse, "woodmouse.txt")
+X &lt;- phymltest("woodmouse.txt")
+X
+summary(X)
+plot(X)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

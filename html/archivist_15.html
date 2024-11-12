@@ -1,0 +1,211 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asearch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read Artifacts Given as a List of Tags</h2>
+
+<h3>Description</h3>
+
+<p><code>asearch</code> searches for artifacts that contain all specified Tags
+and reads all of them from a default or Remote Repository. It's a wrapper around 
+searchInLocalRepo and loadFromLocalRepo and their Remote versions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asearch(patterns, repo = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>patterns</code></td>
+<td>
+<p>A character vector of <code>Tags</code>. Only artifacts that 
+contain all Tags are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repo</code></td>
+<td>
+<p>One of following:
+</p>
+<p>A character with Remote user name and Remote repository name separated by '/'.
+</p>
+<p>NULL in this case search will be performed in the default repo, either local or Remote</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>asearch</code> reads all artifacts that contain given list of <code>Tags</code>
+from default or Remote Repository.
+It uses both loadFromLocalRepo and searchInLocalRepo functions (or their Remote versions)
+but has shorter name and different parameter's specification.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a list of artifacts (by their values).
+</p>
+
+
+<h3>Contact</h3>
+
+<p>Bug reports and feature requests can be sent to 
+<a href="https://github.com/pbiecek/archivist/issues">https://github.com/pbiecek/archivist/issues</a>
+</p>
+
+
+<h3>Note</h3>
+
+<p>Remember that if you want to use local repository you should set it to default.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Przemyslaw Biecek, <a href="mailto:przemyslaw.biecek@gmail.com">przemyslaw.biecek@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Biecek P and Kosinski M (2017). "archivist: An R Package for Managing,
+Recording and Restoring Data Analysis Results." _Journal of Statistical
+Software_, *82*(11), pp. 1-28. doi: 10.18637/jss.v082.i11 (URL:
+http://doi.org/10.18637/jss.v082.i11).
+URL https://github.com/pbiecek/archivist
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other archivist: 
+<code>Repository</code>,
+<code>Tags</code>,
+<code>%a%()</code>,
+<code>addHooksToPrint()</code>,
+<code>addTagsRepo()</code>,
+<code>aformat()</code>,
+<code>ahistory()</code>,
+<code>alink()</code>,
+<code>aoptions()</code>,
+<code>archivistPackage</code>,
+<code>aread()</code>,
+<code>areadLocal()</code>,
+<code>asearchLocal()</code>,
+<code>asession()</code>,
+<code>atrace()</code>,
+<code>cache()</code>,
+<code>copyLocalRepo()</code>,
+<code>createLocalRepo()</code>,
+<code>createMDGallery()</code>,
+<code>deleteLocalRepo()</code>,
+<code>getRemoteHook()</code>,
+<code>getTagsLocal()</code>,
+<code>loadFromLocalRepo()</code>,
+<code>md5hash</code>,
+<code>removeTagsRepo()</code>,
+<code>restoreLibs()</code>,
+<code>rmFromLocalRepo()</code>,
+<code>saveToLocalRepo()</code>,
+<code>searchInLocalRepo()</code>,
+<code>setLocalRepo()</code>,
+<code>shinySearchInLocalRepo()</code>,
+<code>showLocalRepo()</code>,
+<code>splitTagsLocal()</code>,
+<code>summaryLocalRepo()</code>,
+<code>zipLocalRepo()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+### default LOCAL version
+## objects preparation
+
+# data.frame object
+data(iris)
+
+# ggplot/gg object
+library(ggplot2)
+df &lt;- data.frame(gp = factor(rep(letters[1:3], each = 10)),y = rnorm(30))
+library(plyr)
+ds &lt;- ddply(df, .(gp), summarise, mean = mean(y), sd = sd(y))
+myplot123 &lt;- ggplot(df, aes(x = gp, y = y)) +
+  geom_point() +  geom_point(data = ds, aes(y = mean),
+                             colour = 'red', size = 3)
+
+# lm object
+model &lt;- lm(Sepal.Length~ Sepal.Width + Petal.Length + Petal.Width, data= iris)
+model2 &lt;- lm(Sepal.Length~ Sepal.Width + Petal.Width, data= iris)
+model3 &lt;- lm(Sepal.Length~ Sepal.Width, data= iris)
+
+## creating example default local repository
+exampleRepoDir &lt;- tempfile()
+createLocalRepo(repoDir = exampleRepoDir)
+## setting default local repository
+setLocalRepo( repoDir = exampleRepoDir )
+
+saveToLocalRepo(myplot123)
+saveToLocalRepo(iris)
+saveToLocalRepo(model)
+saveToLocalRepo(model2)
+saveToLocalRepo(model3)
+
+## Searching for objects of class:lm
+lm &lt;- asearch(patterns = "class:lm")
+
+## Searching for objects of class:lm with coefname:Petal.Width
+lm_c_PW &lt;- asearch(patterns = c("class:lm","coefname:Petal.Width"))
+
+# Note that we searched for objects. Then loaded them from repository by their value.
+
+
+## deleting example repository
+deleteLocalRepo(repoDir = exampleRepoDir, deleteRoot = TRUE)
+rm(exampleRepoDir)
+
+### default GitHub version
+## Setting default github repository
+setRemoteRepo( user = "pbiecek", repo = "archivist")
+
+showRemoteRepo(method = "tags")$tag
+searchInRemoteRepo(pattern = "class:lm")
+searchInRemoteRepo(pattern = "class:gg")
+getTagsRemote(md5hash = "cd6557c6163a6f9800f308f343e75e72", tag = "")
+
+## Searching for objects of class:lm
+asearch(patterns = c("class:lm"))
+## Searching for objects of class:gg
+ggplot_objects &lt;- asearch(patterns = c("class:gg"))
+# names(ggplot_objects)
+# To plot them remember to have ggplot2 in version 2.1.0
+# as this is stated in asession("pbiecek/archivist/13b2724139eb2c62578b4dab0d7b2cea") or
+asession("pbiecek/archivist/7f3453331910e3f321ef97d87adb5bad") .
+# The state of R libraries can be restored to the same state in
+# which those objects were created with the restoreLibs function.
+
+
+### Remote version 
+## Note that repo argument is passed in the following way to asearch:
+## repo = "GitHub user name/GitHub repository name"
+
+## Searching for objects of class:gg
+asearch("pbiecek/graphGallery", 
+        patterns = c("class:gg",
+                     "labelx:Sepal.Length")) -&gt; ggplots_objects_v2
+
+## End(Not run)
+</code></pre>
+
+
+</div>

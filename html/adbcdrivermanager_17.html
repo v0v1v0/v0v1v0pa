@@ -1,0 +1,78 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adbc_connection_join</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Join the lifecycle of a unique parent to its child</h2>
+
+<h3>Description</h3>
+
+<p>It is occasionally useful to return a connection, statement, or stream
+from a function that was created from a unique parent. These helpers
+tie the lifecycle of a unique parent object to its child such that the
+parent object is released predictably and immediately after the child.
+These functions will invalidate all references to the previous R object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adbc_connection_join(connection, database)
+
+adbc_statement_join(statement, connection)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>connection</code></td>
+<td>
+<p>A connection created with <code>adbc_connection_init()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>database</code></td>
+<td>
+<p>A database created with <code>adbc_database_init()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statement</code></td>
+<td>
+<p>A statement created with <code>adbc_statement_init()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input, invisibly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Use local_adbc to ensure prompt cleanup on error;
+# use join functions to return a single object that manages
+# the lifecycle of all three.
+stmt &lt;- local({
+  db &lt;- local_adbc(adbc_database_init(adbc_driver_log()))
+
+  con &lt;- local_adbc(adbc_connection_init(db))
+  adbc_connection_join(con, db)
+
+  stmt &lt;- local_adbc(adbc_statement_init(con))
+  adbc_statement_join(stmt, con)
+
+  adbc_xptr_move(stmt)
+})
+
+# Everything is released immediately when the last object is released
+adbc_statement_release(stmt)
+
+</code></pre>
+
+
+</div>

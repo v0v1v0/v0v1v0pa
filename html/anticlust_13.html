@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>matching</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Matching</h2>
+
+<h3>Description</h3>
+
+<p>Conduct K-partite or unrestricted (minimum distance) matching to
+find pairs or groups of similar elements. By default, finding
+matches is based on the Euclidean distance between data points, but
+a custom dissimilarity measure can also be employed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">matching(
+  x,
+  p = 2,
+  match_between = NULL,
+  match_within = NULL,
+  match_extreme_first = TRUE,
+  target_group = NULL,
+  sort_output = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The data input. Can be one of two structures: (1) A feature
+matrix where rows correspond to elements and columns correspond
+to variables (a single numeric variable can be passed as a
+vector). (2) An N x N matrix dissimilarity matrix; can be an
+object of class <code>dist</code> (e.g., returned by
+<code>dist</code> or <code>as.dist</code>) or a <code>matrix</code>
+where the entries of the upper and lower triangular matrix
+represent pairwise dissimilarities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The size of the groups; the default is 2, in which case
+the function returns pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match_between</code></td>
+<td>
+<p>An optional vector, <code>data.frame</code> or
+matrix representing one or several categorical constraints. If
+passed, the argument <code>p</code> is ignored and matches are sought
+between elements of different categories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match_within</code></td>
+<td>
+<p>An optional vector, <code>data.frame</code> or matrix
+representing one or several categorical constraints. If passed,
+matches are sought between elements of the same category.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match_extreme_first</code></td>
+<td>
+<p>Logical: Determines if matches are first
+sought for extreme elements first or for central
+elements. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_group</code></td>
+<td>
+<p>Currently, the options "none",
+smallest" and "diverse" are supported. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_output</code></td>
+<td>
+<p>Boolean. If <code>TRUE</code> (default), the output clusters 
+are sorted by similarity. See Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the data input <code>x</code> is a feature matrix, matching is based
+on the Euclidean distance between data points. If the argument
+<code>x</code> is a dissimilarity matrix, matching is based on the
+user-specified dissimilarities. To find matches, the algorithm
+proceeds by selecting a target element and then searching its
+nearest neighbours. Critical to the behaviour or the algorithm is
+the order in which target elements are selected. By default, the
+most extreme elements are selected first, i.e., elements with the
+highest distance to the centroid of the data set (see
+<code>balanced_clustering</code> that relies on the same
+algorithm). Set the argument <code>match_extreme_first</code> to
+<code>FALSE</code>, to enforce that elements close to the centroid are
+first selected as targets.
+</p>
+<p>If the argument <code>match_between</code> is passed and the groups
+specified via this argument are of different size, target elements
+are selected from the smallest group by default (because in this
+group, all elements can be matched). However, it is also possible
+to specify how matches are selected through the option
+<code>target_group</code>. When specifying <code>"none"</code>, matches are
+always selected from extreme elements, irregardless of the group
+sizes (or from central elements first if <code>match_extreme_first
+= FALSE</code>). With option <code>"smallest"</code>, matches are selected from
+the smallest group. With option <code>"diverse"</code>, matches are
+selected from the most heterogenous group according to the sum of
+pairwise distances within groups.
+</p>
+<p>The output is an integer vector encoding which elements have been
+matched. The grouping numbers are sorted by similarity. That is,
+elements with the grouping number »1« have the highest intra-group
+similarity, followed by 2 etc (groups having the same similarity
+index are still assigned a different grouping number,
+though). Similarity is measured as the sum of pairwise (Euclidean)
+distances within groups (see <code>diversity_objective</code>). To 
+prevent sorting by similarity (this is some extra computational burden),
+set <code>sort_output = FALSE</code>. Some unmatched elements may be <code>NA</code>. 
+This happens if it is not
+possible to evenly split the item pool evenly into groups of size
+<code>p</code> or if the categories described by the argument
+<code>match_between</code> are of different size.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An integer vector encoding the matches. See Details for
+more information.
+</p>
+
+
+<h3>Note</h3>
+
+<p>It is possible to specify grouping restrictions via
+<code>match_between</code> and <code>match_within</code> at the same time.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Papenberg <a href="mailto:martin.papenberg@hhu.de">martin.papenberg@hhu.de</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Find triplets
+N &lt;- 120
+lds &lt;- data.frame(f1 = rnorm(N), f2 = rnorm(N))
+triplets &lt;- matching(lds, p = 3)
+plot_clusters(
+  lds,
+  clusters = triplets,
+  within_connection = TRUE
+)
+
+# Bipartite matching with unequal-sized groups:
+# Only selects matches for some elements
+N &lt;- 100
+data &lt;- matrix(rnorm(N), ncol = 1)
+groups &lt;- sample(1:2, size = N, replace = TRUE, prob = c(0.8, 0.2))
+matched &lt;- matching(data[, 1], match_between = groups)
+plot_clusters(
+  cbind(groups, data), 
+  clusters = matched, 
+  within_connection = TRUE
+)
+
+# Match objects from the same category only
+matched &lt;- matching(
+  schaper2019[, 3:6], 
+  p = 3, 
+  match_within = schaper2019$room
+)
+head(table(matched, schaper2019$room))
+
+# Match between different plant species in the »iris« data set
+species &lt;- iris$Species != "versicolor"
+matched &lt;- matching(
+  iris[species, 1], 
+  match_between = iris[species, 5]
+)
+# Adjust `match_extreme_first` argument
+matched2 &lt;- matching(
+  iris[species, 1], 
+  match_between = iris[species, 5],
+  match_extreme_first = FALSE
+)
+# Plot the matching results
+user_par &lt;- par("mfrow")
+par(mfrow = c(1, 2))
+data &lt;- data.frame(
+  Species = as.numeric(iris[species, 5]),
+  Sepal.Length = iris[species, 1]
+)
+plot_clusters(
+  data,
+  clusters = matched,
+  within_connection = TRUE,
+  main = "Extreme elements matched first"
+)
+plot_clusters(
+  data,
+  clusters = matched2,
+  within_connection = TRUE,
+  main = "Central elements matched first"
+)
+par(mfrow = user_par)
+
+
+</code></pre>
+
+
+</div>

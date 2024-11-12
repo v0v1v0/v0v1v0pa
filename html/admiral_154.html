@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>impute_dtc_dtm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Impute Partial Date(-time) Portion of a <code>'--DTC'</code> Variable</h2>
+
+<h3>Description</h3>
+
+<p>Imputation partial date/time portion of a <code>'--DTC'</code> variable. based on user
+input.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">impute_dtc_dtm(
+  dtc,
+  highest_imputation = "h",
+  date_imputation = "first",
+  time_imputation = "first",
+  min_dates = NULL,
+  max_dates = NULL,
+  preserve = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dtc</code></td>
+<td>
+<p>The <code>'--DTC'</code> date to impute
+</p>
+<p>A character date is expected in a format like <code>yyyy-mm-dd</code> or
+<code>yyyy-mm-ddThh:mm:ss</code>. Trailing components can be omitted and <code>-</code> is a
+valid "missing" value for any component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>highest_imputation</code></td>
+<td>
+<p>Highest imputation level
+</p>
+<p>The <code>highest_imputation</code> argument controls which components of the DTC
+value are imputed if they are missing. All components up to the specified
+level are imputed.
+</p>
+<p>If a component at a higher level than the highest imputation level is
+missing, <code>NA_character_</code> is returned. For example, for <code>highest_imputation = "D"</code> <code>"2020"</code> results in <code>NA_character_</code> because the month is missing.
+</p>
+<p>If <code>"n"</code> is specified, no imputation is performed, i.e., if any component is
+missing, <code>NA_character_</code> is returned.
+</p>
+<p>If <code>"Y"</code> is specified, <code>date_imputation</code> should be <code>"first"</code> or <code>"last"</code>
+and <code>min_dates</code> or <code>max_dates</code> should be specified respectively. Otherwise,
+<code>NA_character_</code> is returned if the year component is missing.
+</p>
+<p><em>Permitted Values</em>: <code>"Y"</code> (year, highest level), <code>"M"</code> (month), <code>"D"</code>
+(day), <code>"h"</code> (hour), <code>"m"</code> (minute), <code>"s"</code> (second), <code>"n"</code> (none, lowest
+level)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_imputation</code></td>
+<td>
+<p>The value to impute the day/month when a datepart is
+missing.
+</p>
+<p>A character value is expected, either as a
+</p>
+
+<ul>
+<li>
+<p> format with month and day specified as <code>"mm-dd"</code>: e.g. <code>"06-15"</code> for the
+15th of June (The year can not be specified; for imputing the year
+<code>"first"</code> or <code>"last"</code> together with <code>min_dates</code> or <code>max_dates</code> argument can
+be used (see examples).),
+</p>
+</li>
+<li>
+<p> or as a keyword: <code>"first"</code>, <code>"mid"</code>, <code>"last"</code> to impute to the first/mid/last
+day/month. If <code>"mid"</code> is specified, missing components are imputed as the
+middle of the possible range:
+</p>
+
+<ul>
+<li>
+<p> If both month and day are missing, they are imputed as <code>"06-30"</code>
+(middle of the year).
+</p>
+</li>
+<li>
+<p> If only day is missing, it is imputed as <code>"15"</code> (middle of the month).
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>The argument is ignored if <code>highest_imputation</code> is less then <code>"D"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_imputation</code></td>
+<td>
+<p>The value to impute the time when a timepart is
+missing.
+</p>
+<p>A character value is expected, either as a
+</p>
+
+<ul>
+<li>
+<p> format with hour, min and sec specified as <code>"hh:mm:ss"</code>: e.g. <code>"00:00:00"</code>
+for the start of the day,
+</p>
+</li>
+<li>
+<p> or as a keyword: <code>"first"</code>,<code>"last"</code> to impute to the start/end of a day.
+</p>
+</li>
+</ul>
+<p>The argument is ignored if <code>highest_imputation = "n"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_dates</code></td>
+<td>
+<p>Minimum dates
+</p>
+<p>A list of dates is expected. It is ensured that the imputed date is not
+before any of the specified dates, e.g., that the imputed adverse event start
+date is not before the first treatment date. Only dates which are in the
+range of possible dates of the <code>dtc</code> value are considered. The possible dates
+are defined by the missing parts of the <code>dtc</code> date (see example below). This
+ensures that the non-missing parts of the <code>dtc</code> date are not changed.
+A date or date-time object is expected.
+For example
+</p>
+<div class="sourceCode r"><pre>impute_dtc_dtm(
+  "2020-11",
+  min_dates = list(
+   ymd_hms("2020-12-06T12:12:12"),
+   ymd_hms("2020-11-11T11:11:11")
+  ),
+  highest_imputation = "M"
+)
+</pre></div>
+<p>returns <code>"2020-11-11T11:11:11"</code> because the possible dates for <code>"2020-11"</code>
+range from <code>"2020-11-01T00:00:00"</code> to <code>"2020-11-30T23:59:59"</code>. Therefore
+<code>"2020-12-06T12:12:12"</code> is ignored. Returning <code>"2020-12-06T12:12:12"</code> would
+have changed the month although it is not missing (in the <code>dtc</code> date).
+</p>
+<p>For date variables (not datetime) in the list the time is imputed to
+<code>"00:00:00"</code>. Specifying date variables makes sense only if the date is
+imputed. If only time is imputed, date variables do not affect the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_dates</code></td>
+<td>
+<p>Maximum dates
+</p>
+<p>A list of dates is expected. It is ensured that the imputed date is not after
+any of the specified dates, e.g., that the imputed date is not after the data
+cut off date. Only dates which are in the range of possible dates are
+considered. A date or date-time object is expected.
+</p>
+<p>For date variables (not datetime) in the list the time is imputed to
+<code>"23:59:59"</code>. Specifying date variables makes sense only if the date is
+imputed. If only time is imputed, date variables do not affect the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preserve</code></td>
+<td>
+<p>Preserve lower level date/time part when higher order part
+is missing, e.g. preserve day if month is missing or
+preserve minute when hour is missing.
+</p>
+<p>For example <code>"2019---07"</code> would return <code style="white-space: pre;">⁠"2019-06-07⁠</code> if <code>preserve = TRUE</code>
+(and <code>date_imputation = "mid"</code>).
+</p>
+<p>Permitted Values: <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Usually this computation function can not be used with <code style="white-space: pre;">⁠%&gt;%⁠</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A character vector
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Date/Time Computation Functions that returns a vector: 
+<code>compute_age_years()</code>,
+<code>compute_dtf()</code>,
+<code>compute_duration()</code>,
+<code>compute_tmf()</code>,
+<code>convert_date_to_dtm()</code>,
+<code>convert_dtc_to_dt()</code>,
+<code>convert_dtc_to_dtm()</code>,
+<code>impute_dtc_dt()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lubridate)
+
+dates &lt;- c(
+  "2019-07-18T15:25:40",
+  "2019-07-18T15:25",
+  "2019-07-18T15",
+  "2019-07-18",
+  "2019-02",
+  "2019",
+  "2019",
+  "2019---07",
+  ""
+)
+
+# No date imputation (highest_imputation defaulted to "h")
+# Missing time part imputed with 00:00:00 portion by default
+impute_dtc_dtm(dtc = dates)
+
+# No date imputation (highest_imputation defaulted to "h")
+# Missing time part imputed with 23:59:59 portion
+impute_dtc_dtm(
+  dtc = dates,
+  time_imputation = "23:59:59"
+)
+
+# Same as above
+impute_dtc_dtm(
+  dtc = dates,
+  time_imputation = "last"
+)
+
+# Impute to first day/month if date is partial
+# Missing time part imputed with 00:00:00 portion by default
+impute_dtc_dtm(
+  dtc = dates,
+  highest_imputation = "M"
+)
+# same as above
+impute_dtc_dtm(
+  dtc = dates,
+  highest_imputation = "M",
+  date_imputation = "01-01"
+)
+
+# Impute to last day/month if date is partial
+# Missing time part imputed with 23:59:59 portion
+impute_dtc_dtm(
+  dtc = dates,
+  date_imputation = "last",
+  time_imputation = "last"
+)
+
+# Impute to mid day/month if date is partial
+# Missing time part imputed with 00:00:00 portion by default
+impute_dtc_dtm(
+  dtc = dates,
+  highest_imputation = "M",
+  date_imputation = "mid"
+)
+
+# Impute a date and ensure that the imputed date is not before a list of
+# minimum dates
+impute_dtc_dtm(
+  "2020-12",
+  min_dates = list(
+    ymd_hms("2020-12-06T12:12:12"),
+    ymd_hms("2020-11-11T11:11:11")
+  ),
+  highest_imputation = "M"
+)
+
+# Impute completely missing dates (only possible if min_dates or max_dates is specified)
+impute_dtc_dtm(
+  c("2020-12", NA_character_),
+  min_dates = list(
+    ymd_hms("2020-12-06T12:12:12", "2020-01-01T01:01:01"),
+    ymd_hms("2020-11-11T11:11:11", NA)
+  ),
+  highest_imputation = "Y"
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createApd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates an Affymetrix probe data (APD) file</h2>
+
+<h3>Description</h3>
+
+<p>Creates an Affymetrix probe data (APD) file.
+</p>
+<p>An Affymetrix probe data (APD) structure can hold a header and
+a numeric data vector.  Since the APD structure is kept on file
+all the time, the number of elements in the data vector is only
+limited by the file system and not the amount of system memory
+available.  For more details, see the <code>FileVector</code>
+class (and its superclass), which is used internally.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+createApd(filename, nbrOfCells, dataType=c("float", "double", "integer", "short",
+  "byte"), chipType=NULL, mapType=NULL, ..., verbose=FALSE, .checkArgs=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>The filename of the APD file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrOfCells</code></td>
+<td>
+<p>The number of cells (probes) data elements the
+APD file structure should hold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataType</code></td>
+<td>
+<p>The data type of the data elements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chipType</code></td>
+<td>
+<p>An (optional) <code>character</code> string specifying the
+chip type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapType</code></td>
+<td>
+<p>An (optional) <code>character</code> string specifying the
+probe-index map.  Use by <code>findApdMap</code>() to find read map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional named arguments added to the header of the
+APD file structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>See <code>Verbose</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.checkArgs</code></td>
+<td>
+<p>If <code>TRUE</code>, arguments are checked, otherwise not.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns (invisibly) the pathname of the file created.
+</p>
+
+
+<h3>Data type</h3>
+
+<p>Valid data types are: byte (1 byte), short (2 bytes), integer (4 bytes),
+float (4 bytes), and double (8 bytes).
+</p>
+<p>Note that in Affymetrix CEL files, the probe intensities as well as
+the standard deviations are stored as floats (4 bytes) and not doubles
+(8 bytes).  This is why, the default data type is <code>"float"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Henrik Bengtsson</p>
+
+
+<h3>See Also</h3>
+
+<p><code>updateApd</code>() and <code>readApd</code>().
+To find a map of a certain type, see <code>findApdMap</code>().
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Float precision
+.Machine$float.eps &lt;- (2^((8-4)*8)*.Machine$double.eps)
+tol &lt;- .Machine$float.eps ^ 0.5
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 1. Create an Affymetrix Probe Signal (APD) file for a
+#    'Mapping50K_Hind240' with 1600-by-1600 probes.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+chipType &lt;- "Mapping50K_Hind240"
+nbrOfCells &lt;- 1600^2
+
+pathname &lt;- paste(tempfile(), "apd", sep=".")
+createApd(pathname, nbrOfCells=nbrOfCells, chipType=chipType)
+
+# File size
+cat("File name:", pathname, "\n")
+cat("File size:", file.info(pathname)$size, "bytes\n")
+cat("APD header:\n")
+header &lt;- readApdHeader(pathname)
+print(header)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 2. Update the signals for a subset of probes
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+cells &lt;- c(1, 1100:1120, 220:201, 998300:999302)
+signals &lt;- log(cells+1, base=2)  # Fake signals
+updateApd(pathname, indices=cells, data=signals)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 3. Re-read the signals for a subset of probes
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+apd &lt;- readApd(pathname, indices=cells)
+
+# Signals in APD files are stored as floats (since this is
+# the precision in CEL files).
+stopifnot(all.equal(signals, apd$intensities, tolerance=tol))
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 4. Re-read the signals for a subset of probes
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if (require("affxparser") &amp;&amp; FALSE) {
+  cdfFile &lt;- findCdf(chipType)
+  if (length(cdfFile) &gt; 0) {
+ 
+    apd &lt;- readApdUnits(pathname, units=100:104)
+   
+    # Sample new data (with one decimal precision)
+    apd2 &lt;- lapply(apd, function(unit) {
+      lapply(unit, function(groups) {
+        n &lt;- length(groups$intensities)
+        values &lt;- as.integer(runif(n, max=655350))/10
+        list(intensities=values)
+      })
+    })
+   
+    # Update APD file with new data
+    updateApdUnits(pathname, units=100:104, data=apd2)
+   
+    # Re-read data to verify correctness
+    apd &lt;- readApdUnits(pathname, units=100:104)
+   
+    # Signals in APD files are stored as floats (since this is
+    # the precision in CEL files).
+    stopifnot(all.equal(apd2, apd, tolerance=tol))
+  } # if (length(cdfFile) &gt; 0 ...)
+} # if (require("affxparser"))
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# 4. Clean up
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+file.remove(pathname)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atime_grid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Asymptotic timing grid
+</h2>
+
+<h3>Description</h3>
+
+<p>Create expressions for asymptotic timing by substituting values into
+expressions. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atime_grid(
+  param.list = list(), 
+  ...,
+  name.value.sep="=",
+  expr.param.sep=" ",
+  collapse = ",", 
+  symbol.params=character())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>param.list</code></td>
+<td>
+
+<p>Named list of items to replace in ... expressions, default empty
+list means nothing to replace.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Named expressions which each must contain each name of
+<code>param.list</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.value.sep</code></td>
+<td>
+
+<p>string: separator between names and values from <code>param.list</code>,
+default <code>"="</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expr.param.sep</code></td>
+<td>
+
+<p>string: separator between expressions and parameters, default
+<code>" "</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse</code></td>
+<td>
+
+<p>string: separator between parameters, default <code>","</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symbol.params</code></td>
+<td>
+
+<p>character vector: these elements of <code>param.list</code> will be converted to symbols before substitution.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Named list of expressions which can be used as <code>expr.list</code>
+argument of <code>atime</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example 0: with no param.list, same as quote inside named list.
+atime::atime_grid(m=mean(data), s=sum(data))
+list(m=quote(mean(data)), s=quote(sum(data)))
+
+## Example 1: polynomial vs exponential time regex.
+(expr.list &lt;- atime::atime_grid(
+  list(PERL=c(TRUE, FALSE)),
+  expr.param.sep="\n",
+  regexpr=regexpr(pattern, subject, perl=PERL)))
+atime.list &lt;- atime::atime(
+  N=unique(as.integer(10^seq(0,3.5,l=20))),
+  setup={
+    subject &lt;- paste(rep("a", N), collapse="")
+    pattern &lt;- paste(rep(c("a?", "a"), each=N), collapse="")
+  },
+  expr.list=expr.list)
+plot(atime.list)
+
+## Example 2: symbol.params arg.
+sub.param.list &lt;- list(FUN=c("sub","gsub"), PERL=c(TRUE,FALSE))
+## with base R we can use as.symbol and substitute:
+sapply(sub.param.list$FUN,function(name)substitute(fun("a","",subject), list(fun=as.symbol(name))))
+## with atime_grid the analog is to use symbol.params argument:
+(sub.expr.list &lt;- atime::atime_grid(
+  sub.param.list,
+  replace=FUN("a","",subject,perl=PERL),
+  symbol.params="FUN"))
+sub.atime.list &lt;- atime::atime(
+  setup={
+    subject &lt;- paste(rep("a",N),collapse="")
+  }, 
+  expr.list=sub.expr.list)
+plot(sub.atime.list)
+
+</code></pre>
+
+
+</div>

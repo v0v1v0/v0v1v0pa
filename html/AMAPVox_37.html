@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ground</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract ground from voxel space.</h2>
+
+<h3>Description</h3>
+
+<p>Extract ground layer from <code>VoxelSpace</code> object.
+</p>
+
+
+<h4>Ground layer</h4>
+
+<p>The ground layer is the set of voxels that are just above ground level. The
+bottom facet of the voxel must be above ground
+<code>ground_distance(voxel_center) &gt;= dz/2</code> with dz the voxel size on z axis.
+Ground layer may be missing (the function returns an empty data.table) or
+incomplete (the function returns a data.table with
+<code>nrow(ground(vxsp)) &lt; prod(dim(vxsp)[1:2])</code>) for some voxel space.
+</p>
+
+
+
+<h4>Above/below ground</h4>
+
+<p>Function <code>aboveGround</code> returns voxel index above ground layer (included).
+Function <code>belowGround</code> returns voxel index below ground layer (excluded).
+</p>
+
+
+
+<h4>Ground energy</h4>
+
+<p>Function <code>groundEnergy</code> estimates fraction of light reaching the ground. It
+is computed as the ratio of entering beam section on potential beam section
+(beams that would have crossed a voxel if there were no vegetation in the
+scene). It requires variables <em>bsEntering</em> and <em>bsPotential</em>.
+</p>
+
+
+
+<h4>Ground elevation</h4>
+
+<p>Function <code>groundElevation</code> returns the elevation of the ground layer. It is
+provided as a check function, to make sure that AMAPVox
+<em>digital elevation model</em> is consistent with the one provided in input.
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ground(vxsp)
+
+belowGround(vxsp)
+
+aboveGround(vxsp)
+
+groundEnergy(vxsp)
+
+groundElevation(vxsp)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>vxsp</code></td>
+<td>
+<p>a <code>VoxelSpace</code> object.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p><code>data.table::data.table</code> object with voxel index either
+below ground, ground level or above ground.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+gr &lt;- ground(vxsp)
+ag &lt;- aboveGround(vxsp)
+bg &lt;- belowGround(vxsp) # empty in test case
+# ground layer included in above ground subset
+all(ag[gr, on=list(i, j, k)] == gr) # TRUE expected
+vxsp@data[ag, on=list(i, j, k)]
+
+</code></pre>
+
+
+</div>

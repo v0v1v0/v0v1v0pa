@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abouheif.moran</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Abouheif's test based on Moran's I</h2>
+
+<h3>Description</h3>
+
+<p>The test of Abouheif (1999) is designed to detect phylogenetic
+autocorrelation in a quantitative trait. Pavoine <em>et al.</em> (2008) have
+shown that this tests is in fact a Moran's I test using a particular
+phylogenetic proximity between tips (see details). The function
+<code>abouheif.moran</code> performs basically Abouheif's test for several traits
+at a time, but it can incorporate other phylogenetic proximities as well.<br></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abouheif.moran(
+  x,
+  W = NULL,
+  method = c("oriAbouheif", "patristic", "nNodes", "Abouheif", "sumDD"),
+  f = function(x) {
+     1/x
+ },
+  nrepet = 999,
+  alter = c("greater", "less", "two-sided")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a data frame with continuous variables, or a phylo4d
+object (i.e. containing both a tree, and tip data). In the latter case,
+<code>method</code> argument is used to determine which proximity should be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>a <em>n</em> by <em>n</em> matrix (<em>n</em> being the number rows in x)
+of phylogenetic proximities, as produced by <code>proxTips</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string (full or unambiguously abbreviated)
+specifying the type of proximity to be used. By default, the proximity used
+is that of the original Abouheif's test. See details in
+<code>proxTips</code> for information about other methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>a function to turn a distance into a proximity (see
+<code>proxTips</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrepet</code></td>
+<td>
+<p>number of random permutations of data for the randomization
+test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alter</code></td>
+<td>
+<p>a character string specifying the alternative hypothesis, must
+be one of "greater" (default), "less" or "two-sided"</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that the original Abouheif's proximity (Abouheif, 1999; Pavoine
+<em>et al.</em> 2008) unifies Moran's I and Geary'c tests (Thioulouse <em>et
+al.</em> 1995).<br></p>
+<p><code>abouheif.moran</code> can be used in two ways:<br> - providing a data.frame
+of traits (<code>x</code>) and a matrix of phylogenetic proximities (<code>W</code>)<br>
+- providing a phylo4d object (<code>x</code>) and specifying the
+type of proximity to be used (<code>method</code>).
+</p>
+<p><code>W</code> is a squared symmetric matrix whose terms are all positive or
+null.<br></p>
+<p><code>W</code> is firstly transformed in frequency matrix A by dividing it by the
+total sum of data matrix : </p>
+<p style="text-align: center;"><code class="reqn">a_{ij} =
+\frac{W_{ij}}{\sum_{i=1}^{n}\sum_{j=1}^{n}W_{ij}}</code>
+</p>
+<p> The neighbouring weights is defined by the matrix <code class="reqn">D =
+diag(d_1,d_2, \ldots)</code> where <code class="reqn">d_i = \sum_{j=1}^{n}W_{ij}</code>. For each vector x of the data frame x, the test is based on the Moran
+statistic <code class="reqn">x^{t}Ax</code> where x is D-centred.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>krandtest</code> (randomization tests
+from ade4), containing one Monte Carlo test for each trait.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Original code from ade4 (gearymoran function) by Sebastien Ollier<br>
+Adapted and maintained by Thibaut Jombart &lt;tjombart@imperial.ac.uk&gt;.
+</p>
+
+
+<h3>References</h3>
+
+<p>Thioulouse, J., Chessel, D. and Champely, S. (1995) Multivariate analysis of
+spatial patterns: a unified approach to local and global structures.
+<em>Environmental and Ecological Statistics</em>, <b>2</b>, 1–14.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>- <code>gearymoran</code> from the ade4 package<br> -
+<code>Moran.I</code> from the ape package for the classical Moran's I
+test. <br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+if(require(ade4)&amp;&amp; require(ape) &amp;&amp; require(phylobase)){
+## load data
+data(ungulates)
+tre &lt;- read.tree(text=ungulates$tre)
+x &lt;- phylo4d(tre, ungulates$tab)
+
+## Abouheif's tests for each trait
+myTests &lt;- abouheif.moran(x)
+myTests
+plot(myTests)
+
+## a variant using another proximity
+plot(abouheif.moran(x, method="nNodes") )
+
+## Another example
+
+data(maples)
+tre &lt;- read.tree(text=maples$tre)
+dom &lt;- maples$tab$Dom
+
+## Abouheif's tests for each trait (equivalent to Cmean)
+W1 &lt;- proxTips(tre,method="oriAbouheif")
+abouheif.moran(dom,W1)
+
+## Equivalence with moran.idx
+
+W2 &lt;- proxTips(tre,method="Abouheif")
+abouheif.moran(dom,W2)
+moran.idx(dom,W2) 
+}
+
+</code></pre>
+
+
+</div>

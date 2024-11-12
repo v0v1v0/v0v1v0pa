@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_computed</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds Variable(s) Computed from the Analysis Value of one or more Parameters</h2>
+
+<h3>Description</h3>
+
+<p>Adds Variable(s) computed from the analysis value of one or more parameters.
+It is expected that the value of the new variable is defined by an expression
+using the analysis values of other parameters. For example Body Mass Index at
+Baseline (<code>BMIBL</code>) in <code>ADSL</code> can be derived from of HEIGHT and WEIGHT
+parameters in <code>ADVS</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_computed(
+  dataset,
+  dataset_add,
+  by_vars,
+  parameters,
+  new_vars,
+  filter_add = NULL,
+  constant_by_vars = NULL,
+  constant_parameters = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>The variables specified by the <code>by_vars</code> parameter are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> parameter are expected.
+</p>
+<p>The variable specified by <code>by_vars</code> and <code>PARAMCD</code> must be a unique key of
+the additional dataset after restricting it by the filter condition
+(<code>filter_add</code> parameter) and to the parameters specified by <code>parameters</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>Grouping variables uniquely identifying a set of records for which
+<code>new_vars</code> are to be calculated.
+</p>
+<p><em>Permitted Values:</em> list of variables created by exprs()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>Required parameter codes
+</p>
+<p>It is expected that all parameter codes (<code>PARAMCD</code>) which are required to
+derive the new variable are specified for this parameter or the
+<code>constant_parameters</code> parameter.
+</p>
+<p>If observations should be considered which do not have a parameter code,
+e.g., if an SDTM dataset is used, temporary parameter codes can be derived
+by specifying a list of expressions. The name of the element defines the
+temporary parameter code and the expression defines the condition for
+selecting the records. For example,
+<code>parameters = exprs(HGHT = VSTESTCD == "HEIGHT")</code> selects the observations
+with <code>VSTESTCD == "HEIGHT"</code> from the input data (<code>dataset</code> and
+<code>dataset_add</code>), sets <code>PARAMCD = "HGHT"</code> for these observations, and adds
+them to the observations to consider.
+</p>
+<p>Unnamed elements in the list of expressions are considered as parameter
+codes. For example, <code>parameters = exprs(WEIGHT, HGHT = VSTESTCD == "HEIGHT")</code> uses the parameter code <code>"WEIGHT"</code> and creates a temporary
+parameter code <code>"HGHT"</code>.
+</p>
+<p><em>Permitted Values:</em> A character vector of <code>PARAMCD</code> values or a list of expressions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>Name of the newly created variables
+</p>
+<p>The specified variables are set to the specified values. The values of
+variables of the parameters specified by <code>parameters</code> can be accessed using
+<code style="white-space: pre;">⁠&lt;variable name&gt;.&lt;parameter code&gt;⁠</code>. For example
+</p>
+<div class="sourceCode"><pre>exprs(
+  BMIBL = (AVAL.WEIGHT / (AVAL.HEIGHT/100)^2)
+)
+</pre></div>
+<p>defines the value for the new variable.
+</p>
+<p>Variable names in the expression must not contain more than one dot.
+</p>
+<p><em>Permitted Values:</em> List of variable-value pairs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter condition of additional dataset
+</p>
+<p>The specified condition is applied to the additional dataset before
+deriving the new variable, i.e., only observations fulfilling the
+condition are taken into account.
+</p>
+<p><em>Permitted Values:</em> a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constant_by_vars</code></td>
+<td>
+<p>By variables for constant parameters
+</p>
+<p>The constant parameters (parameters that are measured only once) are merged
+to the other parameters using the specified variables.
+(Refer to the Example)
+</p>
+<p><em>Permitted Values:</em> list of variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constant_parameters</code></td>
+<td>
+<p>Required constant parameter codes
+</p>
+<p>It is expected that all the parameter codes (<code>PARAMCD</code>) which are required
+to derive the new variable and are measured only once are specified here.
+For example if BMI should be derived and height is measured only once while
+weight is measured at each visit. Height could be specified in the
+<code>constant_parameters</code> parameter. (Refer to the Example)
+</p>
+<p>If observations should be considered which do not have a parameter code,
+e.g., if an SDTM dataset is used, temporary parameter codes can be derived
+by specifying a list of expressions. The name of the element defines the
+temporary parameter code and the expression defines the condition for
+selecting the records. For example <code>constant_parameters = exprs(HGHT = VSTESTCD == "HEIGHT")</code> selects the observations with
+<code>VSTESTCD == "HEIGHT"</code> from the input data (<code>dataset</code> and <code>dataset_add</code>),
+sets <code>PARAMCD = "HGHT"</code> for these observations, and adds them to the
+observations to consider.
+</p>
+<p>Unnamed elements in the list of expressions are considered as parameter
+codes. For example, <code>constant_parameters = exprs(WEIGHT, HGHT = VSTESTCD == "HEIGHT")</code> uses the parameter code <code>"WEIGHT"</code> and creates a temporary
+parameter code <code>"HGHT"</code>.
+</p>
+<p><em>Permitted Values:</em> A character vector of <code>PARAMCD</code> values or a list of expressions</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each group (with respect to the variables specified for the
+<code>by_vars</code> argument), the values of the new variables (<code>new_vars</code>) are
+computed based on the parameters in the additional dataset
+(<code>dataset_add</code>) and then the new variables are merged to the input
+dataset (<code>dataset</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the new variables added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_merged_summary()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_var_relative_flag()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged()</code>,
+<code>derive_vars_merged_lookup()</code>,
+<code>derive_vars_transposed()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr)
+
+# Example 1: Derive BMIBL
+adsl &lt;- tribble(
+  ~STUDYID,   ~USUBJID, ~AGE,   ~AGEU,
+  "PILOT01", "01-1302",   61, "YEARS",
+  "PILOT01", "17-1344",   64, "YEARS"
+)
+
+advs &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~PARAMCD, ~PARAM, ~VISIT, ~AVAL, ~AVALU, ~ABLFL,
+  "PILOT01", "01-1302", "HEIGHT", "Height (cm)", "SCREENING", 177.8, "cm", "Y",
+  "PILOT01", "01-1302", "WEIGHT", "Weight (kg)", "SCREENING", 81.19, "kg", "N",
+  "PILOT01", "01-1302", "WEIGHT", "Weight (kg)", "BASELINE", 82.1, "kg", "Y",
+  "PILOT01", "01-1302", "WEIGHT", "Weight (kg)", "WEEK 2", 81.19, "kg", "N",
+  "PILOT01", "01-1302", "WEIGHT", "Weight (kg)", "WEEK 4", 82.56, "kg", "N",
+  "PILOT01", "01-1302", "WEIGHT", "Weight (kg)", "WEEK 6", 80.74, "kg", "N",
+  "PILOT01", "17-1344", "HEIGHT", "Height (cm)", "SCREENING", 163.5, "cm", "Y",
+  "PILOT01", "17-1344", "WEIGHT", "Weight (kg)", "SCREENING", 58.06, "kg", "N",
+  "PILOT01", "17-1344", "WEIGHT", "Weight (kg)", "BASELINE", 58.06, "kg", "Y",
+  "PILOT01", "17-1344", "WEIGHT", "Weight (kg)", "WEEK 2", 58.97, "kg", "N",
+  "PILOT01", "17-1344", "WEIGHT", "Weight (kg)", "WEEK 4", 57.97, "kg", "N",
+  "PILOT01", "17-1344", "WEIGHT", "Weight (kg)", "WEEK 6", 58.97, "kg", "N"
+)
+
+derive_vars_computed(
+  dataset = adsl,
+  dataset_add = advs,
+  by_vars = exprs(STUDYID, USUBJID),
+  parameters = c("WEIGHT", "HEIGHT"),
+  new_vars = exprs(BMIBL = compute_bmi(height = AVAL.HEIGHT, weight = AVAL.WEIGHT)),
+  filter_add = ABLFL == "Y"
+)
+</code></pre>
+
+
+</div>

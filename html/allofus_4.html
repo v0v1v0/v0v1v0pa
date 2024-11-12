@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aou_atlas_cohort</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve a cohort from ATLAS for use in All of Us</h2>
+
+<h3>Description</h3>
+
+<p>Retrieves a cohort definition from ATLAS and generates the cohort in All of
+Us. Observation periods are first generated for each subject using the
+<code>aou_observation_period()</code> function.The resulting cohort is a table with the
+cohort start and end dates for each person_id.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aou_atlas_cohort(
+  cohort_definition,
+  cohort_sql,
+  debug = FALSE,
+  collect = FALSE,
+  ...,
+  con = getOption("aou.default.con")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cohort_definition</code></td>
+<td>
+<p>A cohort definition generated using
+<code style="white-space: pre;">⁠getCohortDefinition() from ROhdsiWebApi⁠</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cohort_sql</code></td>
+<td>
+<p>The cohort_sql generated using <code style="white-space: pre;">⁠getCohortSql() from ROhdsiWebApi⁠</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>Print the query to the console; useful for debugging.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collect</code></td>
+<td>
+<p>Whether to bring the resulting table into local memory
+(<code>collect = TRUE</code>) as a dataframe or leave as a reference to a database
+table (for continued analysis using, e.g., <code>dbplyr</code>). Defaults to <code>FALSE.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed along to <code>collect()</code> if <code>collect = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>con</code></td>
+<td>
+<p>Connection to the allofus SQL database. Defaults to
+getOption("aou.default.con"), which is set automatically if you use
+<code>aou_connect()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function is based on a similar function in
+<a href="https://github.com/cmayer2/r4aou">https://github.com/cmayer2/r4aou</a> with some tweaks to generate the
+appropriate observation periods and incorporate other package functions.
+Please see the <a href="https://roux-ohdsi.github.io/allofus/articles/atlas.html">online vignette</a> for
+additional details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe if <code>collect = TRUE</code>; a reference to a remote database
+table if not. The SQL query used to generate the cohort is stored as an
+attribute.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# generate a simple stroke cohort
+# see https://atlas-demo.ohdsi.org/#/cohortdefinition/1788061
+# If this cohort is not available, you can create one, or choose one already made.
+# aou_cohort_example contains the results of
+# cd &lt;- ROhdsiWebApi::getCohortDefinition(1788061, "https://atlas-demo.ohdsi.org/WebAPI")
+# cd_sql &lt;- ROhdsiWebApi::getCohortSql(cd, "https://atlas-demo.ohdsi.org/WebAPI")
+
+cohort &lt;- aou_atlas_cohort(
+  cohort_definition = aou_cohort_example$cd,
+  cohort_sql = aou_cohort_example$cd_sql
+)
+
+# print query that was executed
+cat(attr(cohort, "query"))
+
+</code></pre>
+
+
+</div>

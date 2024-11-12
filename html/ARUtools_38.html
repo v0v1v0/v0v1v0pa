@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_recordings</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample recordings</h2>
+
+<h3>Description</h3>
+
+<p>Sample recordings based on selection weights from <code>calc_selection_weights()</code>
+using <code>spsurvey::grts()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_recordings(
+  meta_weights,
+  n,
+  os = NULL,
+  col_site_id = site_id,
+  col_sel_weights = psel_std,
+  seed = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>meta_weights</code></td>
+<td>
+<p>(Spatial) Data frame. Recording meta data selection
+weights. Output of <code>calc_selection_weights()</code>. Must have at least the
+columns identified by <code>col_site_id</code> and <code>col_sel_weights</code>, as well as the
+probability of selection columns (those starting with <code>psel</code>) and <code>doy</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Numeric, Data frame, Vector, or List. Number of base samples to
+choose. For stratification by site, a named vector/list of samples per site, or
+a data frame with columns <code>n</code> for samples, <code>n_os</code> for oversamples and the
+column matching that identified by <code>col_site_id</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>os</code></td>
+<td>
+<p>Numeric, Vector, or List. Over sample size (proportional) or named
+vector/list of number of samples per site Ignored if <code>n</code> is a data
+frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_site_id</code></td>
+<td>
+<p>Column. Unquoted column containing site strata IDs
+(defaults to <code>site_id</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_sel_weights</code></td>
+<td>
+<p>Column. Unquoted name of column identifying selection
+weights (defaults to <code>psel_std</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Numeric. Random seed to use for random sampling. Seed only
+applies to specific sampling events (does not change seed in the
+environment). <code>NULL</code> does not set a seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra named arguments passed on to <code>spsurvey::grts()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A sampling run from grts. Note that the included dataset is spatial,
+but is a dummy spatial dataset created by using dates and times to create
+the spatial landscape.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">s &lt;- clean_site_index(example_sites_clean,
+  name_date_time = c("date_time_start", "date_time_end")
+)
+m &lt;- clean_metadata(project_files = example_files) |&gt;
+  add_sites(s) |&gt;
+  calc_sun()
+
+params &lt;- sim_selection_weights()
+w &lt;- calc_selection_weights(m, params = params)
+
+# No stratification by site
+samples &lt;- sample_recordings(w, n = 10, os = 0.1, col_site_id = NULL)
+
+# Stratification by site defined by...
+
+# lists
+samples &lt;- sample_recordings(w, n = list(P01_1 = 2, P02_1 = 5, P03_1 = 2), os = 0.2)
+
+# vectors
+samples &lt;- sample_recordings(w, n = c(P01_1 = 2, P02_1 = 5, P03_1 = 2), os = 0.2)
+
+# data frame
+samples &lt;- sample_recordings(
+  w,
+  n = data.frame(
+    site_id = c("P01_1", "P02_1", "P03_1"),
+    n = c(2, 5, 2),
+    n_os = c(0, 0, 1)
+  )
+)
+
+</code></pre>
+
+
+</div>

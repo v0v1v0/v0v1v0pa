@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>node_level_CI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>To obtain confidence intervals for node-level network metrics</h2>
+
+<h3>Description</h3>
+
+<p>To obtain confidence intervals for node-level network metrics
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">node_level_CI(
+  network,
+  n_versions = 100,
+  network_metrics_functions_list = c(degree = igraph::degree, strength =
+    igraph::strength, betweenness = igraph::betweenness, clustering_coefficient =
+    function(x) {
+     trans &lt;- igraph::transitivity(x, type = "local", vids =
+    igraph::V(x), isolates = "zero")
+     names(trans) &lt;- igraph::V(x)$name
+    
+    return(trans)
+ }, eigenvector_centrality = function(x)
+    igraph::eigen_centrality(x)$vector),
+  n_cores = 1,
+  CI_size = 0.95
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>network</code></td>
+<td>
+<p>An igraph graph object consisting of observed network.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_versions</code></td>
+<td>
+<p>Number of bootstrapped versions to be used. (default = 100)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>network_metrics_functions_list</code></td>
+<td>
+<p>A list consisting of function definitions of the network metrics that the user wants to evaluate. Each element in the list should have an assigned name. Each function 
+definition should include two parameters, one for the main network and another one for the subnetwork. See default example.
+network_metrics_functions_list = c("degree" = igraph::degree, 
+"strength" = igraph::strength , 
+"betweenness" = igraph::betweenness, 
+"clustering_coefficient" = function(x) {
+trans &lt;- igraph::transitivity(x, type = "local", isolates = "zero")
+names(trans) &lt;- igraph::V(x)$name;return(trans)
+},
+"eigenvector_centrality" = function(x) igraph::eigen_centrality(x)$vector
+)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cores</code></td>
+<td>
+<p>Number of cores for parallel processing with default 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CI_size</code></td>
+<td>
+<p>Size of confidence interval. Default is 0.95 that generates a 95% confidence interval.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of dataframes of class list_node_level_CI. Each element of list is a dataframe having five columns and
+having number of rows equal to number of nodes in the network. The five columns correspond to node_number,
+node_name, metric_value, lower_CI, upper_CI.
+correspond to subsampling_proportion and rows correspond to n_simulations.
+The entries of the matrix provide value of correlation between the nodes in 
+full network and the sub-sampled network for the corresponding metric.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+data(elk_network_2010)
+elk_node_level_CI &lt;- node_level_CI(elk_network_2010)
+plot(elk_node_level_CI)
+
+</code></pre>
+
+
+</div>

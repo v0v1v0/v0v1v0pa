@@ -1,0 +1,400 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>seqTrack</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>SeqTrack algorithm for reconstructing genealogies</h2>
+
+<h3>Description</h3>
+
+<p>The SeqTrack algorithm [1] aims at reconstructing genealogies of sampled
+haplotypes or genotypes for which a collection date is
+available. Contrary to phylogenetic methods which aims at reconstructing
+hypothetical ancestors for observed sequences, SeqTrack
+considers that ancestors and descendents are sampled together, and
+therefore infers ancestry relationships among the sampled sequences.
+</p>
+<p>This approach proved more efficient than phylogenetic approaches for
+reconstructing transmission trees in densely sampled disease outbreaks
+[1]. This implementation defines a generic function <code>seqTrack</code>
+with methods for specific object classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">seqTrack(...)
+
+## S3 method for class 'matrix'
+seqTrack(x, x.names, x.dates, best = c("min", "max"),
+    prox.mat = NULL, mu = NULL, haplo.length = NULL, ...)
+
+## S3 method for class 'seqTrack'
+as.igraph(x, col.pal=redpal, ...)
+
+## S3 method for class 'seqTrack'
+plot(x, y=NULL, col.pal=redpal, ...)
+
+plotSeqTrack(x, xy, use.arrows=TRUE, annot=TRUE, labels=NULL, col=NULL,
+                         bg="grey", add=FALSE, quiet=FALSE,
+                         date.range=NULL, jitter.arrows=0, plot=TRUE, ...)
+
+get.likelihood(...)
+
+## S3 method for class 'seqTrack'
+get.likelihood(x, mu, haplo.length, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>for seqTrack, a matrix giving weights to pairs of ancestries
+such that x[i,j] is the weight of 'i ancestor of j'. For
+plotSeqTrack and get.likelihood. seqTrack, a <code>seqTrack</code>
+object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.names</code></td>
+<td>
+<p>a character vector giving the labels of the haplotypes/genotypes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.dates</code></td>
+<td>
+<p>a vector of collection dates for the sampled
+haplotypes/genotypes. Dates must have the POSIXct format. See
+<code>details</code> or <code>?as.POSIXct</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>a character string matching 'min' or 'max', indicating
+whether genealogies should minimize or maximize the sum of weights
+of ancestries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prox.mat</code></td>
+<td>
+<p>an optional matrix of proximities between
+haplotypes/genotypes used to resolve ties in the choice of
+ancestors, by picking up the 'closest' ancestor amongst possible
+ancestors, in the sense of <code>prox.mat</code>. <code>prox.mat[i,j]</code>
+must indicate a proximity for the relationship 'i ancestor to
+j'. For instance, if <code>prox.mat</code> contains spatial proximities,
+then <code>prox.mat[i,j]</code> gives a measure of how easy it is to
+migrate from location 'i' to 'j'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>(optional) a mutation rate, per site and per day. When 'x'
+contains numbers of mutations, used to resolve ties using a maximum
+likelihood approach (requires <code>haplo.length</code> to be provided).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>haplo.length</code></td>
+<td>
+<p>(optional) the length of analysed sequences in
+number of nucleotides. When 'x' contains numbers of mutations, used
+to resolve ties using a maximum likelihood approach (requires
+<code>mu</code> to be provided).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>unused argument, for compatibility with 'plot'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.pal</code></td>
+<td>
+<p>a color palette to be used to represent weights using
+colors on the edges of the graph. See <code>?num2col</code>. Note that the
+palette is inversed by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>spatial coordinates of the sampled haplotypes/genotypes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.arrows</code></td>
+<td>
+<p>a logical indicating whether arrows should be used to
+represented ancestries (pointing from ancestor to descendent, TRUE),
+or whether segments shall be used (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>annot</code></td>
+<td>
+<p>a logical indicating whether arrows or segments
+representing ancestries should be annotated (TRUE) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>a character vector containing annotations of the
+ancestries. If left empty, ancestries are annotated by the descendent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>a vector of colors to be used for plotting ancestries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bg</code></td>
+<td>
+<p>a color to be used as background.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>a logical stating whether the plot should be added to
+current figure (TRUE), or drawn as a new plot (FALSE, default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>a logical stating whether messages other than errors
+should be displayed (FALSE, default), or hidden (TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.range</code></td>
+<td>
+<p>a vector of length two with POSIXct format indicating
+the time window for which ancestries should be displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jitter.arrows</code></td>
+<td>
+<p>a positive number indicating the amount of noise
+to be added to coordinates of arrows; useful when several arrows
+overlap. See <code>jitter</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>a logical stating whether a plot should be drawn (TRUE,
+default), or not (FALSE). In all cases, the
+function invisibly returns plotting information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to other methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>=== Maximum parsimony genealogies ===<br>
+Maximum parsimony genealogies can be obtained easily using this
+implementation of seqTrack. One has to provide in <code>x</code> a matrix of
+genetic distances. The most straightforward distance is the number of
+differing nucleotides. See <code>dist.dna</code> in the ape
+package for a wide range of genetic distances between aligned
+sequences. The argument <code>best</code> should be set to "min" (its
+default value), so that the identified genealogy minimizes the total
+number of mutations. If <code>x</code> contains number of mutations, then
+<code>mu</code> and <code>haplo.length</code> should also be provided for
+resolving ties in equally parsimonious ancestors using maximum
+likelihood.
+</p>
+<p>=== Likelihood of observed genetic differentiation ===<br>
+The probability of oberving a given number of mutations between a
+sequence and its ancestor can be computed using
+<code>get.likelihood.seqTrack</code>. Note that this is only possible
+if <code>x</code> contained number of mutations.
+</p>
+<p>=== Plotting/converting seqTrack objects to graphs ===<br>
+seqTrack objects are best plotted as graphs. From adegenet_1.3-5
+onwards, seqTrack objects can be converted to <code>igraph</code> objects (from the
+package <code>igraph</code>), which can in turn be plotted and manipulated
+using classical graph tools. The plot method does this operation
+automatically, using colors to represent edge weights, and using
+time-ordering of the data from top (ancient) to bottom (recent).
+</p>
+
+
+<h3>Value</h3>
+
+<p>=== output of seqTrack ===<br>
+seqTrack function returns data.frame with the class <code>seqTrack</code>,
+in which each row is an inferred ancestry described by the following columns:
+- id: indices identifying haplotypes/genotypes<br>
+- ances: index of the inferred ancestor<br>
+- weight: weight of the inferred ancestries<br>
+- date: date of the haplotype/genotype<br>
+- ances.date: date of the ancestor
+</p>
+<p>=== output of plotSeqTrack ===<br>
+This graphical function invisibly returns the coordinates of the
+arrows/segments drawn and their colors, as a data.frame.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Jombart T, Eggo R, Dodd P, Balloux F (2010) Reconstructing disease
+outbreaks from genetic data: a graph approach. Heredity. doi:
+10.1038/hdy.2010.78.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dist.dna</code> in the ape package to compute pairwise
+genetic distances in aligned sequences.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+if(require(ape &amp;&amp; require(igraph))){
+## ANALYSIS OF SIMULATED DATA ##
+## SIMULATE A GENEALOGY
+dat &lt;- haploGen(seq.l=1e4, repro=function(){sample(1:4,1)}, gen.time=1, t.max=3)
+plot(dat, main="Simulated data")
+
+## SEQTRACK ANALYSIS
+res &lt;- seqTrack(dat, mu=0.0001, haplo.length=1e4) 
+plot(res, main="seqTrack reconstruction")
+
+## PROPORTION OF CORRECT RECONSTRUCTION
+mean(dat$ances==res$ances,na.rm=TRUE)
+
+
+## ANALYSIS OF PANDEMIC A/H1N1 INFLUENZA DATA ##
+## note:
+## this is for reproduction purpose only
+## seqTrack is best kept for the analysis
+## of densely sampled outbreaks, which
+## is not the case of this dataset.
+## 
+dat &lt;- read.csv(system.file("files/pdH1N1-data.csv",package="adegenet"))
+ha &lt;-  read.dna(system.file("files/pdH1N1-HA.fasta",package="adegenet"), format="fa")
+na &lt;- read.dna(system.file("files/pdH1N1-NA.fasta",package="adegenet"), format="fa")
+
+
+## COMPUTE NUCLEOTIDIC DISTANCES
+nbNucl &lt;- ncol(as.matrix(ha)) + ncol(as.matrix(na))
+D &lt;- dist.dna(ha,model="raw")*ncol(as.matrix(ha)) +
+dist.dna(na,model="raw")*ncol(as.matrix(na))
+D &lt;- round(as.matrix(D))
+
+
+## MATRIX OF SPATIAL CONNECTIVITY
+## (to promote local transmissions)
+xy &lt;- cbind(dat$lon, dat$lat)
+temp &lt;- as.matrix(dist(xy))
+M &lt;- 1* (temp &lt; 1e-10)
+
+
+## SEQTRACK ANALYSIS
+dat$date &lt;- as.POSIXct(dat$date)
+res &lt;- seqTrack(D, rownames(dat), dat$date, prox.mat=M, mu=.00502/365, haplo.le=nbNucl)
+
+
+## COMPUTE GENETIC LIKELIHOOD
+p &lt;- get.likelihood(res, mu=.00502/365, haplo.length=nbNucl)
+# (these could be shown as colors when plotting results)
+# (but mutations will be used instead)
+
+
+## EXAMINE RESULTS
+head(res)
+tail(res)
+range(res$weight, na.rm=TRUE)
+barplot(table(res$weight)/sum(!is.na(res$weight)), ylab="Frequency",
+xlab="Mutations between inferred ancestor and descendent", col="orange")
+
+
+## DISPLAY SPATIO-TEMPORAL DYNAMICS 
+if(require(maps)){
+myDates &lt;- as.integer(difftime(dat$date, as.POSIXct("2009-01-21"), unit="day"))
+myMonth &lt;- as.POSIXct(
+c("2009-02-01", "2009-03-01","2009-04-01","2009-05-01","2009-06-01","2009-07-01"))
+x.month &lt;-  as.integer(difftime(myMonth, as.POSIXct("2009-01-21"), unit="day"))
+
+
+## FIRST STAGE:
+## SPREAD TO THE USA AND CANADA
+curRange &lt;- as.POSIXct(c("2009-03-29","2009-04-25"))
+par(bg="deepskyblue")
+map("world", fill=TRUE, col="grey")
+opal &lt;- palette()
+palette(rev(heat.colors(10)))
+plotSeqTrack(res, round(xy), add=TRUE,annot=FALSE,lwd=2,date.range=curRange,
+col=res$weight+1)
+title(paste(curRange, collapse=" to "))
+legend("bottom", lty=1, leg=0:8, title="number of mutations", col=1:9,
+lwd=2, horiz=TRUE)
+
+
+## SECOND STAGE:
+## SPREAD WITHIN AMERICA, FIRST SEEDING OUTSIDE AMERICA
+curRange &lt;- as.POSIXct(c("2009-04-30","2009-05-07"))
+par(bg="deepskyblue")
+map("world", fill=TRUE, col="grey")
+opal &lt;- palette()
+palette(rev(heat.colors(10)))
+plotSeqTrack(res, round(xy), add=TRUE,annot=FALSE,lwd=2,
+date.range=curRange, col=res$weight+1)
+title(paste(curRange, collapse=" to "))
+legend("bottom", lty=1, leg=0:8, title="number of mutations",
+col=1:9,lwd=2, horiz=TRUE)
+
+
+## THIRD STAGE:
+## PANDEMIC
+curRange &lt;- as.POSIXct(c("2009-05-15","2009-05-25"))
+par(bg="deepskyblue")
+map("world", fill=TRUE, col="grey")
+opal &lt;- palette()
+palette(rev(heat.colors(10)))
+plotSeqTrack(res, round(xy), add=TRUE,annot=FALSE,lwd=2, date.range=curRange,
+col=res$weight+1)
+title(paste(curRange, collapse=" to "))
+legend("bottom", lty=1, leg=0:8, title="number of mutations",
+col=1:9,lwd=2, horiz=TRUE)
+
+}
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

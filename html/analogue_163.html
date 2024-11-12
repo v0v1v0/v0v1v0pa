@@ -1,0 +1,299 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prcurve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fits a principal curve to m-dimensional data
+</h2>
+
+<h3>Description</h3>
+
+<p>A principal curve is a non-parametric generalisation of the principal
+component and is a curve that passes through the <em>middle</em> of a
+cloud of data points for a certain definition of ‘middle’.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prcurve(X, method = c("ca", "pca", "random", "user"), start = NULL,
+        smoother = smoothSpline, complexity, vary = FALSE,
+        maxComp, finalCV = FALSE, axis = 1, rank = FALSE,
+        stretch = 2, maxit = 10, trace = FALSE, thresh = 0.001,
+        plotit = FALSE, ...)
+
+initCurve(X, method = c("ca", "pca", "random", "user"), rank = FALSE,
+          axis = 1, start)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix-like object containing the variables to which the
+principal curve is to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; method to use when initialising the principal
+curve. <code>"ca"</code> fits a correspondence analysis to <code>X</code> and uses
+the <code>axis</code>-th axis scores as the initial curve. <code>"pca"</code> does
+the same but fits a principal components analysis to
+<code>X</code>. <code>"random"</code> produces a random ordering as the initial
+curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>numeric vector specifying the initial curve when
+<code>method = "user"</code>. Must be of length <code>nrow(X)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoother</code></td>
+<td>
+<p>function; the choice of smoother used to fit the
+principal curve. Currently, the only options are
+<code>smoothSpline</code>, which is a wrapper to
+<code>smooth.spline</code>, and <code>smoothGAM</code>, which is a
+wrapper to  <code>gam</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complexity</code></td>
+<td>
+<p>numeric; the complexity of the fitted smooth
+functions.
+</p>
+<p>The function passed as argument <code>smoother</code> should arrange for
+this argument to be passed on to relevant aspect of the underlying
+smoother. In the case of <code>smoothSpline</code>, complexity is the
+<code>df</code> argument of <code>smooth.spline</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vary</code></td>
+<td>
+<p>logical; should the complexity of the smoother fitted to
+each variable in <code>X</code> be allowed to vary (i.e. to allow a more or
+less smooth function for a particular variable. If <code>FALSE</code> the
+median complexity over all <em>m</em> variables is chosen as the fixed
+complexity for all <em>m</em> smooths.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxComp</code></td>
+<td>
+<p>numeric; the upper limt on the allowed complexity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finalCV</code></td>
+<td>
+<p>logial; should a final fit of the smooth function be
+performed using cross validation?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>axis</code></td>
+<td>
+<p>numeric; the ordinaion axis to use as the initial curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>logical; should rank position on the gradient be used? Not
+yet implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stretch</code></td>
+<td>
+<p>numeric; a factor by which the curve can be
+extrapolated when points are projected.  Default is 2 (times the
+last segment length).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>numeric; the maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>logical; print progress on the iterations be printed to
+the console?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>numeric; convergence threshold on shortest distances to
+the curve. The algorithm is considered to have converged when the
+latest iteration produces a total residual distance to the curve
+that is within <code>thresh</code> of the value obtained during the
+previous iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotit</code></td>
+<td>
+<p>logical; should the fitting process be plotted? If
+<code>TRUE</code>, then the fitted principal curve and observations in
+<code>X</code> are plotted in principal component space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments are passed solely on to the function
+<code>smoother</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>"prcurve"</code> with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>a matrix corresponding to <code>X</code>, giving their projections
+onto the curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tag</code></td>
+<td>
+<p>an index, such that <code>s[tag, ]</code> is smooth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>for each point, its arc-length from the beginning of the
+curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>the sum-of-squared distances from the points to their
+projections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>logical; did the algorithm converge?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>numeric; the number of iterations performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totalDist</code></td>
+<td>
+<p>numeric; total sum-of-squared distances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complexity</code></td>
+<td>
+<p>numeric vector; the complexity of the smoother
+fitted to each variable in <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordination</code></td>
+<td>
+<p>an object of class <code>"rda"</code>, the result of a
+call to <code>rda</code>. This is a principal components analysis
+of the input data <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a copy of the data used to fit the principal curve.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The fitting function uses function
+<code>project_to_curve</code> in package <span class="pkg">princurve</span>
+to find the projection of the data on to the fitted curve.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>smoothGAM</code> and <code>smoothSpline</code> for the
+wrappers fitting smooth functions to each variable.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load Abernethy Forest data set
+data(abernethy)
+
+## Remove the Depth and Age variables
+abernethy2 &lt;- abernethy[, -(37:38)]
+
+## Fit the principal curve using the median complexity over
+## all species
+aber.pc &lt;- prcurve(abernethy2, method = "ca", trace = TRUE,
+                   vary = FALSE, penalty = 1.4)
+
+## Extract fitted values
+fit &lt;- fitted(aber.pc) ## locations on curve
+abun &lt;- fitted(aber.pc, type = "smooths") ## fitted response
+
+## Fit the principal curve using varying complexity of smoothers
+## for each species
+aber.pc2 &lt;- prcurve(abernethy2, method = "ca", trace = TRUE,
+                    vary = TRUE, penalty = 1.4)
+
+## Predict new locations
+take &lt;- abernethy2[1:10, ]
+pred &lt;- predict(aber.pc2, take)
+
+## Not run: 
+## Fit principal curve using a GAM - currently slow ~10secs
+aber.pc3 &lt;- prcurve(abernethy2 / 100, method = "ca", trace = TRUE,
+                    vary = TRUE, smoother = smoothGAM, bs = "cr", family = mgcv::betar())
+
+## End(Not run)
+</code></pre>
+
+
+</div>

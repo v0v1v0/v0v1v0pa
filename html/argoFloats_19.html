@@ -1,0 +1,301 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getIndex</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get an Index of Available Argo Float Profiles</h2>
+
+<h3>Description</h3>
+
+<p>This function gets an index of available Argo float profiles, typically
+for later use as the first argument to <code>getProfiles()</code>. The source for the
+index may be (a) a remote data repository, (b) a local repository (see the
+<code>keep</code> argument), or (c) a cached RDA file that contains the result
+of a previous call to <code>getIndex()</code> (see the <code>age</code> parameter).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getIndex(
+  filename = "core",
+  server = argoDefaultServer(),
+  destdir = argoDefaultDestdir(),
+  age = argoDefaultIndexAge(),
+  quiet = FALSE,
+  keep = FALSE,
+  debug = 0L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>character value that indicates the file name to be downloaded
+from a remote server, or (if <code>server</code> is set to NULL) the name of a local
+file.  For the remote case, the value of <code>server</code> must be taken from
+the first column of the table given in “Details”, or (for some file types)
+as in the nickname given in the middle column. Note that the downloaded
+file name will be based on the full file name given as this argument, and
+that nicknames are expanded to the full filenames before saving.  Note that
+the downloaded file is in gzipped format (indicated by a file name ending
+in <code>.gz</code>) and it is examined and processed by <code>getIndex()</code> to produce an
+R archive file (ending in <code>.rda</code>) that is stored locally. The <code>.gz</code> file
+is discarded by default, unless <code>keep</code> is set to TRUE.  (See also
+the documentation on the <code>server</code> parameter, next, and the subsection
+entitled “Using a previously-downloaded index”.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>server</code></td>
+<td>
+<p>an indication of the source for <code>filename</code>.  There are 2
+possibilities for this.  (1) If <code>server</code> is <code>NULL</code>, then <code>filename</code> is taken
+to be the name of a local index file (ending in suffix <code>.gz</code>) that
+was previously downloaded from a server.  The easiest way to get
+such a file is with a previous call to <code>getIndex()</code> with <code>keep</code> set
+to TRUE.  (2) If <code>server</code> is a character vector (as is it is by default),
+it is taken to represent remote servers to be tried as sources
+for an index file.  The use of multiple servers is a way to avoid
+errors that can result if a server refuses a download request.
+As of March 2023, the three servers known to work are
+<code>"https://data-argo.ifremer.fr"</code>, <code>"ftp://ftp.ifremer.fr/ifremer/argo"</code> and
+<code>"ftp://usgodae.org/pub/outgoing/argo"</code>.
+These may be referred
+to with nicknames <code>"ifremer-https"</code>, <code>"ifremer"</code>and  <code>"usgodae"</code>.
+Any URL that can be used in <code>curl::curl_download()</code> is a valid value provided
+that the file structure is identical to the mirrors listed above. See
+<code>argoDefaultServer()</code> for how to provide a default value for <code>server</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>destdir</code></td>
+<td>
+<p>character value indicating the directory in which to store
+downloaded files. The default value is to compute this using
+<code>argoDefaultDestdir()</code>, which returns <code style="white-space: pre;">⁠~/data/argo⁠</code> by default,
+although it also provides ways to set other values using
+<code>options()</code>.
+Set <code>destdir=NULL</code>
+if <code>destfile</code> is a filename with full path information.
+File clutter is reduced by creating a top-level directory called
+<code>data</code>, with subdirectories for various file types; see
+“Examples”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>numeric value indicating how old a downloaded file
+must be (in days), for it to be considered out-of-date.  The
+default, <code>argoDefaultIndexAge()</code>, limits downloads to once per day, as a way
+to avoid slowing down a workflow with a download that might take
+a minute or so.  Setting <code>age=0</code> will force a new
+download, regardless of the age of the local file, and that
+age is changed to 0 if <code>keep</code> is <code>TRUE</code>.  The value of <code>age</code>
+is ignored if <code>server</code> is NULL (see “Using a previously
+downloaded Index” in “Details”).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>logical value indicating whether to silence some
+progress indicators.  The default is to show such indicators.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep</code></td>
+<td>
+<p>logical value indicating whether to retain the
+raw index file as downloaded from the server.  This is <code>FALSE</code>
+by default, indicating that the raw index file is to be
+discarded once it has been analyzed and used to create a cached
+file (which is an RDA file).  Note that if <code>keep</code>
+is <code>TRUE</code>, then the supplied value of <code>age</code> is converted
+to 0, to force a new download.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>integer value indicating level of debugging. If this
+is less than 1, no debugging is done. Otherwise, some functions
+will print debugging information.  If a function call fails, the
+first step should be to rerun the function with <code>debug=1</code>,
+to see if the output suggests a problem in the call.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Using an index from a remote server</strong>
+</p>
+<p>The first step is to construct a URL for downloading, based on the
+<code>url</code> and <code>file</code> arguments. That URL will be a string ending in <code>.gz</code>,
+or <code>.txt</code> and from this the name of a local file is constructed
+by changing the suffix to <code>.rda</code> and prepending the file directory
+specified by <code>destdir</code>.  If an <code>.rda</code> file of that name already exists,
+and is less than <code>age</code> days old, then no downloading takes place. This
+caching procedure is a way to save time, because the download can take
+from a minute to an hour, depending on the bandwidth of the connection
+to the
+server.
+</p>
+<p>The resultant <code>.rda</code> file, which is named in the return value of this
+function, holds a list named <code>index</code> that holds following elements:
+</p>
+
+<ul>
+<li> <p><code>ftpRoot</code>, the FTP root stored in the header of the source <code>file</code>
+(see next paragraph).
+</p>
+</li>
+<li> <p><code>server</code>, the URL at which the index was found, and from
+which <code>getProfiles()</code> can construct URLs from which to
+download the NetCDF files for individual float profiles.
+</p>
+</li>
+<li> <p><code>filename</code>, the argument provided here.
+</p>
+</li>
+<li> <p><code>header</code>, the preliminary lines in the source file that start
+with the <code style="white-space: pre;">⁠#⁠</code> character.
+</p>
+</li>
+<li> <p><code>data</code>, a data frame containing the items in the source file.
+The names of these items are determined automatically from
+<code>"core"</code>,<code>"bgcargo"</code>, <code>"synthetic"</code> files.
+</p>
+</li>
+</ul>
+<p>Some expertise is required in deciding on the value for the
+<code>file</code> argument to <code>getIndex()</code>.  As of March 2023, the
+FTP sites
+<code style="white-space: pre;">⁠ftp://usgodae.org/pub/outgoing/argo⁠</code>
+and
+<code style="white-space: pre;">⁠ftp://ftp.ifremer.fr/ifremer/argo⁠</code>
+contain multiple index files, as listed in the left-hand column of the
+following table. The middle column lists nicknames
+for some of the files.  These can be provided as the <code>file</code> argument,
+as alternatives to the full names.
+The right-hand column describes the file contents.
+Note that the servers also provide files with names similar to those
+given in the table, but ending in <code>.txt</code>.  These are uncompressed
+equivalents of the <code>.gz</code> files that offer no advantage and take
+longer to download, so <code>getIndex()</code> is not designed to work with them.
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<em>File Name</em>                           </td>
+<td style="text-align: left;"> <em>Nickname</em>              </td>
+<td style="text-align: left;"> <em>Contents</em>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>ar_greylist.txt</code>                     </td>
+<td style="text-align: left;"> -                       </td>
+<td style="text-align: left;"> Suspicious/malfunctioning floats</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>ar_index_global_meta.txt.gz</code>         </td>
+<td style="text-align: left;"> -                       </td>
+<td style="text-align: left;"> Metadata files</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>ar_index_global_prof.txt.gz</code>         </td>
+<td style="text-align: left;"> <code>"argo"</code> or <code>"core"</code>    </td>
+<td style="text-align: left;"> Argo data</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>ar_index_global_tech.txt.gz</code>         </td>
+<td style="text-align: left;"> -                       </td>
+<td style="text-align: left;"> Technical files</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>ar_index_global_traj.txt.gz</code>         </td>
+<td style="text-align: left;"> <code>"traj"</code>                </td>
+<td style="text-align: left;"> Trajectory files</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>argo_bio-profile_index.txt.gz</code>       </td>
+<td style="text-align: left;"> <code>"bgc"</code> or <code>"bgcargo"</code>  </td>
+<td style="text-align: left;"> Biogeochemical Argo data (without S or T)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>argo_bio-traj_index.txt.gz</code>          </td>
+<td style="text-align: left;"> <code>"bio-traj"</code>            </td>
+<td style="text-align: left;"> Bio-trajectory files</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>argo_synthetic-profile_index.txt.gz</code> </td>
+<td style="text-align: left;"> <code>"synthetic"</code>           </td>
+<td style="text-align: left;"> Synthetic data, successor to <code>"merge"</code>
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p><strong>Using a previously downloaded index</strong>
+</p>
+<p>In some situations, it can be desirable to work with local
+index file that has been copied directly from a remote server.
+This can be useful if there is a desire to work with the files
+in R separately from the <code>argoFloats</code> package, or with python, etc.
+It can also be useful for group work, in which it is important for
+all participants to use the same source file.
+</p>
+<p>This need can be handled with <code>getIndex()</code>, by specifying <code>filename</code>
+as the full path name to the previously downloaded file, and
+at the same time specifying <code>server</code> as NULL. This works for
+both the raw files as downloaded from the server (which end
+in <code>.gz</code>, and for the R-data-archive files produced by <code>getIndex()</code>,
+which end in <code>.rda</code>. Since the <code>.rda</code> files load an order
+of magnitude faster than the <code>.gz</code> files, this is usually
+the preferred approach.  However, if the <code>.gz</code> files are preferred,
+perhaps because part of a software chain uses python code that
+works with such files, then it should be noted that calling
+<code>getIndex()</code> with <code>keep=TRUE</code> will save the <code>.gz</code> file in
+the <code>destdir</code> directory.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>argoFloats</code> with type=<code>"index"</code>, which
+is suitable as the first argument of <code>getProfiles()</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dan Kelley and Jaimie Harbin
+</p>
+
+
+<h3>References</h3>
+
+<p>Kelley, D. E., Harbin, J., &amp; Richards, C. (2021). argoFloats: An R package for analyzing
+Argo data. Frontiers in Marine Science, (8), 636922.
+<a href="https://doi.org/10.3389/fmars.2021.635922">doi:10.3389/fmars.2021.635922</a>
+</p>
+
+
+</div>

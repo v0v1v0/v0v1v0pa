@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addto.test.summary</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a row to a <code>test.summary</code> <code>data.frame</code>.</h2>
+
+<h3>Description</h3>
+
+<p>A row that summarizes the result of a proposed change to a model is added to a 
+<code>test.summary</code> <code>data.frame</code>. Only the values of those arguments for which there 
+are columns in <code>test.summary</code> will be included in the row.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addto.test.summary(test.summary, terms, DF = 1, denDF = NA, 
+                          p = NA, AIC = NA, BIC = NA,
+                          action = "Boundary")</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>test.summary</code></td>
+<td>
+<p>A <code>data.frame</code> whose columns are a subset of <code>terms</code>, 
+<code>DF</code>, <code>denDF</code>, <code>p</code>, <code>AIC</code>, <code>BIC</code> and <code>action</code>. 
+Each row summarizes the results of proposed changes to the fitted model. 
+See <code>asrtests.object</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>A <code>character</code> giving the name of a term that might be added to or removed 
+from the model or a label indicating a change that might be made to the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DF</code></td>
+<td>
+<p>A <code>numeric</code> giving the numerator degrees of freedom for a Wald F-statistic 
+or the number of variance parameters in the current model minus the number 
+in the proposed model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>denDF</code></td>
+<td>
+<p>A <code>numeric</code> giving the denominator degrees of freedom for a 
+Wald F-statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A <code>numeric</code> giving the p-value for a Wald F-statistic or REML ratio test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>A <code>numeric</code> giving Akiake Information Criterion (AIC) for a model or the 
+difference between the AIC values for the current and proposed models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BIC</code></td>
+<td>
+<p>A <code>numeric</code> giving Bayesian (Schwarz) Information Criterion for a model or the 
+difference between the AIC values for the current and proposed models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>action</code></td>
+<td>
+<p>A <code>character</code> giving what action was taken with respect to the 
+proposed change. See <code>asrtests.object</code> for more 
+information.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asremlPlus-package</code>, <code>asrtests.object</code>,  <code>print.test.summary</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+data(Wheat.dat)
+
+## Fit an autocorrelation model
+ar1.asr &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                  random = ~ Row + Column + units,
+                  residual = ~ ar1(Row):ar1(Column), 
+                  data=Wheat.dat)
+ar1.asrt &lt;- as.asrtests(ar1.asr, NULL, NULL, 
+                        label = "Autocorrelation model")
+ar1.asrt &lt;- rmboundary.asrtests(ar1.asrt)
+
+## Fit a tensor spline
+Wheat.dat &lt;- within(Wheat.dat, 
+                    {
+                      cRow &lt;- dae::as.numfac(Row)
+                      cRow &lt;- cRow - mean(unique(cRow))
+                      cColumn &lt;- dae::as.numfac(Column)
+                      cColumn &lt;- cColumn - mean(unique(cColumn))
+                    })
+ts.asr &lt;- asreml(yield ~ Rep + cRow + cColumn + WithinColPairs + 
+                         Variety, 
+                  random = ~ spl(cRow) + spl(cColumn) + 
+                             dev(cRow) + dev(cColumn) + 
+                             spl(cRow):cColumn + cRow:spl(cColumn) + 
+                             spl(cRow):spl(cColumn),
+                  residual = ~ Row:Column, 
+                  data=Wheat.dat)
+ts.asrt &lt;- as.asrtests(ts.asr, NULL, NULL, 
+                       label = "Tensor spline model")
+ts.asrt &lt;- rmboundary.asrtests(ts.asrt)
+ar1.ic &lt;- infoCriteria(ar1.asrt$asreml.obj)
+ts.ic &lt;- infoCriteria(ts.asrt$asreml.obj)
+if (ar1.ic$AIC &lt; ts.ic$AIC)
+{
+  ic.diff &lt;- ar1.ic - ts.ic
+  new.asrt &lt;- ar1.asrt 
+  new.asrt$test.summary &lt;- addto.test.summary(ar1.asrt$test.summary, 
+                                              terms = "Compare ar1 to ts", 
+                                              DF = ic.diff$varDF, 
+                                              AIC = ic.diff$AIC, BIC = ic.diff$BIC, 
+                                              action = "Chose ar1")
+} else
+{
+  ic.diff &lt;- ts.ic - ar1.ic
+  new.asrt &lt;- ts.asrt
+  new.asrt$test.summary &lt;- addto.test.summary(ts.asrt$test.summary, 
+                                              terms = "Compare ar1 to ts", 
+                                              DF = ic.diff$varDF, 
+                                              AIC = ic.diff$AIC, BIC = ic.diff$BIC, 
+                                              action = "Chose ts")
+}
+
+## End(Not run)</code></pre>
+
+
+</div>

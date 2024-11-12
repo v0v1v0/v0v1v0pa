@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_response</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a Parameter Indicating If a Subject Had a Response before Progressive
+Disease</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_param_response()</code> function has
+been superseded in favor of <code>derive_extreme_event()</code>.
+</p>
+<p>Adds a parameter indicating if a response has been observed.
+If a response has been observed, <code>AVALC</code> is set to "Y", <code>AVAL</code> to 1 and <code>ADT</code>
+is set to the
+first date when a response has been observed.
+If a response has not been observed, <code>AVALC</code> is set to "N", <code>AVAL</code> to 0 and
+<code>ADT</code> is set NA.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_response(
+  dataset,
+  dataset_adsl,
+  filter_source,
+  source_pd = NULL,
+  source_datasets = NULL,
+  set_values_to,
+  aval_fun,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>subject_keys</code>and <code>ADT</code> are expected.
+</p>
+<p>After applying <code>filter_source</code> and/or <code>source_pd</code> the variable <code>ADT</code> and the
+variables specified by <code>subject_keys</code> must be a unique key of the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_adsl</code></td>
+<td>
+<p>Input dataset
+</p>
+
+<ul>
+<li>
+<p> The variables specified for <code>subject_keys</code> are expected.
+</p>
+</li>
+<li>
+<p> For each observation of the specified dataset a new observation is added
+to the input dataset. This is to capture those patients that may never have
+had a tumor assessment.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_source</code></td>
+<td>
+<p>Source filter
+</p>
+<p>All observations in the <code>dataset</code> data fulfilling the specified condition
+are selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_pd</code></td>
+<td>
+<p>Sources and conditions defining the end of the assessment
+period for the responses.
+</p>
+<p>An object of type <code>date_source</code> is expected
+</p>
+<p>All observations in <code>dataset</code> defining the response data fulfilling the
+<code>filter_source</code> condition are considered as response if they fall before
+the end of the assessment period as defined by <code>source_pd</code>.
+</p>
+
+<ul>
+<li>
+<p> For subjects with at least one response before the end of the assessment
+period, <code>AVALC</code> is set to <code>"Y"</code>, <code>AVAL</code> to <code>1</code>, and <code>ADT</code> to the first
+date when the response occurred.
+</p>
+</li>
+<li>
+<p> For all other subjects <code>AVALC</code> is set to <code>"N"</code>, <code>AVAL</code> to <code>0</code>, and
+<code>ADT</code> to <code>NA</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source dataset
+</p>
+<p>A named list of datasets with one element is expected
+(e.g. <code>list(adrs= adrs)</code>).
+</p>
+<p>The name must match the <code>dataset_name</code> field of the
+<code>admiral::date_source()</code> object specified for <code>source_pd</code>.
+</p>
+<p>The variables specified by the <code>subject_keys</code> argument and the <code>date</code>
+field of the <code>admiral::date_source()</code> object are expected in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the variables to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "RSP", PARAM = "Response by investigator")</code> is expected.
+</p>
+<p>The values must be symbols, character strings, numeric values or <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aval_fun</code></td>
+<td>
+<p><em>Deprecated</em>, please use <code>set_values_to</code> instead.
+</p>
+<p>Function to map character analysis value (<code>AVALC</code>) to numeric analysis
+value (<code>AVAL</code>)
+</p>
+<p>The (first) argument of the function must expect a character vector and the
+function must return a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of symbols created using <code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The Date of the end of the assessment period (e.g. Progressive disease,
+as defined by <code>pd_source</code>) is added to the response dataset.
+</p>
+</li>
+<li>
+<p> The response dataset is restricted to observations occurring before
+<strong>or on</strong> the date of progressive disease.
+</p>
+</li>
+<li>
+<p> For each subject (with respect to the variables specified for the
+<code>subject_keys</code> parameter), the first observation (with respect to
+<code>ADT</code>) where the response condition (<code>filter_source</code> parameter) is
+fulfilled is selected.
+</p>
+</li>
+<li>
+<p> For each observation in <code>dataset_adsl</code> a new observation is created.
+</p>
+
+<ul>
+<li>
+<p> For subjects with a response <code>AVALC</code> is set to <code>"Y"</code>, <code>AVAL</code> to <code>1</code>, and
+<code>ADT</code> to  the first date (<code>ADT</code>) where the response condition is fulfilled.
+</p>
+</li>
+<li>
+<p> For all other subjects <code>AVALC</code> is set to <code>"N"</code>, <code>AVAL</code> to <code>0</code>
+and <code>ADT</code> to <code>NA</code>.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> parameter are added to
+the new observations.
+</p>
+</li>
+<li>
+<p> The new observations are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with a new parameter indicating if and when a
+response occurred
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Samia Kabi
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other superseded: 
+<code>derive_param_bor()</code>,
+<code>derive_param_clinbenefit()</code>,
+<code>derive_param_confirmed_bor()</code>,
+<code>derive_param_confirmed_resp()</code>,
+<code>filter_pd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+library(admiral)
+library(lubridate)
+library(tibble)
+
+adsl &lt;- tribble(
+  ~USUBJID,
+  "1",
+  "2",
+  "3",
+  "4"
+) %&gt;%
+  mutate(STUDYID = "XX1234")
+
+adrs &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~ADTC,         ~AVALC, ~ANL01FL,
+  "1",      "OVR",    "2020-01-02",  "PR",   "Y",
+  "1",      "OVR",    "2020-02-01",  "CR",   "Y",
+  "1",      "OVR",    "2020-03-01",  "CR",   "Y",
+  "1",      "OVR",    "2020-04-01",  "SD",   "Y",
+  "1",      "PD",     NA_character_, "N",    "Y",
+  "2",      "OVR",    "2021-06-15",  "SD",   "Y",
+  "2",      "OVR",    "2021-07-16",  "PD",   "Y",
+  "2",      "OVR",    "2021-09-14",  "PD",   "Y",
+  "2",      "PD",     "2021-09-14",  "Y",    "Y",
+  "3",      "OVR",    "2021-09-14",  "SD",   "Y",
+  "3",      "OVR",    "2021-10-30",  "PD",   "Y",
+  "3",      "OVR",    "2021-12-25",  "CR",   "Y",
+  "3",      "PD",     "2021-10-30",  "Y",    "Y"
+) %&gt;%
+  mutate(
+    STUDYID = "XX1234",
+    ADT = ymd(ADTC),
+    ANL01FL = "Y"
+  ) %&gt;%
+  select(-ADTC)
+
+# Define the end of the assessment period for responses:
+# all responses before or on the first PD will be used.
+pd &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == "PD" &amp; AVALC == "Y"
+)
+# Derive the response parameter
+derive_param_response(
+  dataset = adrs,
+  dataset_adsl = adsl,
+  filter_source = PARAMCD == "OVR" &amp; AVALC %in% c("CR", "PR") &amp; ANL01FL == "Y",
+  source_pd = pd,
+  source_datasets = list(adrs = adrs),
+  set_values_to = exprs(
+    AVAL = yn_to_numeric(AVALC),
+    PARAMCD = "RSP",
+    PARAM = "Response by investigator"
+  ),
+  subject_keys = get_admiral_option("subject_keys")
+) %&gt;%
+  arrange(USUBJID, PARAMCD, ADT)
+</code></pre>
+
+
+</div>

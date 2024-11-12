@@ -1,0 +1,407 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>interestMeasure</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Additional Interest Measures</h2>
+
+<h3>Description</h3>
+
+<p>Provides the generic function <code>interestMeasure()</code> and the
+methods to calculate various additional interest measures for existing sets
+of itemsets or rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">interestMeasure(x, measure, transactions = NULL, reuse = TRUE, ...)
+
+## S4 method for signature 'itemsets'
+interestMeasure(x, measure, transactions = NULL, reuse = TRUE, ...)
+
+## S4 method for signature 'rules'
+interestMeasure(x, measure, transactions = NULL, reuse = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a set of itemsets or rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p>name or vector of names of the desired interest measures (see
+the Details section for available measures). If measure is missing then all available
+measures are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transactions</code></td>
+<td>
+<p>the transactions used to mine the associations
+or a set of different transactions to calculate interest measures from
+(Note: you need to set <code>reuse = FALSE</code> in the later case).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reuse</code></td>
+<td>
+<p>logical indicating if information in the quality slot should be
+reuse for calculating the measures. This speeds up the process significantly
+since only very little (or no) transaction counting is necessary if support,
+confidence and lift are already available. Use <code>reuse = FALSE</code> to force
+counting (might be very slow but is necessary if you use a different set of
+transactions than was used for mining).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments for the measure calculation. Many measures
+are based on contingency table counts and zero counts can produce <code>NaN</code> values
+(division by zero). This issue can be resolved by using the additional
+parameter <code>smoothCounts</code> which performs additive smoothing by adds a
+"pseudo count" of <code>smoothCounts</code> to each cell in the contingency
+table. Use <code>smoothCounts = 1</code> or larger values for Laplace smoothing.
+Use <code>smoothCounts = .5</code> for Haldane-Anscombe correction (Haldan, 1940; Anscombe, 1956)
+which is often used for chi-squared, phi correlation and related measures.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A searchable list of definitions, equations and
+references for all available interest measures can be found at
+<a href="https://mhahsler.github.io/arules/docs/measures">https://mhahsler.github.io/arules/docs/measures</a>. The descriptions
+are also linked in the list below.
+</p>
+<p>The following measures are implemented for <strong>itemsets</strong>:
+</p>
+
+<ul>
+<li>
+<p> "support": <a href="https://mhahsler.github.io/arules/docs/measures#support">Support.</a>
+</p>
+</li>
+<li>
+<p> "count": <a href="https://mhahsler.github.io/arules/docs/measures#count">Support Count.</a>
+</p>
+</li>
+<li>
+<p> "allConfidence": <a href="https://mhahsler.github.io/arules/docs/measures#allconfidence">All-Confidence.</a>
+</p>
+</li>
+<li>
+<p> "crossSupportRatio": <a href="https://mhahsler.github.io/arules/docs/measures#crosssupportratio">Cross-Support Ratio.</a>
+</p>
+</li>
+<li>
+<p> "lift": <a href="https://mhahsler.github.io/arules/docs/measures#lift">Lift.</a>
+</p>
+</li>
+</ul>
+<p>The following measures are implemented for <strong>rules</strong>:
+</p>
+
+<ul>
+<li>
+<p> "support": <a href="https://mhahsler.github.io/arules/docs/measures#support">Support.</a>
+</p>
+</li>
+<li>
+<p> "confidence": <a href="https://mhahsler.github.io/arules/docs/measures#confidence">Confidence.</a>
+</p>
+</li>
+<li>
+<p> "lift": <a href="https://mhahsler.github.io/arules/docs/measures#lift">Lift.</a>
+</p>
+</li>
+<li>
+<p> "count": <a href="https://mhahsler.github.io/arules/docs/measures#count">Support Count.</a>
+</p>
+</li>
+<li>
+<p> "addedValue": <a href="https://mhahsler.github.io/arules/docs/measures#addedvalue">Added Value.</a>
+</p>
+</li>
+<li>
+<p> "boost": <a href="https://mhahsler.github.io/arules/docs/measures#boost">Confidence Boost.</a>
+</p>
+</li>
+<li>
+<p> "casualConfidence": <a href="https://mhahsler.github.io/arules/docs/measures#casualconfidence">Casual Confidence.</a>
+</p>
+</li>
+<li>
+<p> "casualSupport": <a href="https://mhahsler.github.io/arules/docs/measures#casualsupport">Casual Support.</a>
+</p>
+</li>
+<li>
+<p> "centeredConfidence": <a href="https://mhahsler.github.io/arules/docs/measures#centeredconfidence">Centered Confidence.</a>
+</p>
+</li>
+<li>
+<p> "certainty": <a href="https://mhahsler.github.io/arules/docs/measures#certainty">Certainty Factor.</a>
+</p>
+</li>
+<li>
+<p> "chiSquared": <a href="https://mhahsler.github.io/arules/docs/measures#chisquared">Chi-Squared.</a> Additional parameters are: <code>significance = TRUE</code> returns the p-value of the test for independence instead of the chi-squared statistic. For p-values, substitution effects (the occurrence of one item makes the occurrence of another item less likely) can be tested using the parameter <code>complements = FALSE</code>.  Note: Correction for multiple comparisons can be done using <code>stats::p.adjust()</code>.
+</p>
+</li>
+<li>
+<p> "collectiveStrength": <a href="https://mhahsler.github.io/arules/docs/measures#collectivestrength">Collective Strength.</a>
+</p>
+</li>
+<li>
+<p> "confirmedConfidence": <a href="https://mhahsler.github.io/arules/docs/measures#confirmedconfidence">Descriptive Confirmed Confidence.</a>
+</p>
+</li>
+<li>
+<p> "conviction": <a href="https://mhahsler.github.io/arules/docs/measures#conviction">Conviction.</a>
+</p>
+</li>
+<li>
+<p> "cosine": <a href="https://mhahsler.github.io/arules/docs/measures#cosine">Cosine.</a>
+</p>
+</li>
+<li>
+<p> "counterexample": <a href="https://mhahsler.github.io/arules/docs/measures#counterexample">Example and Counter-Example Rate.</a>
+</p>
+</li>
+<li>
+<p> "coverage": <a href="https://mhahsler.github.io/arules/docs/measures#coverage">Coverage.</a>
+</p>
+</li>
+<li>
+<p> "doc": <a href="https://mhahsler.github.io/arules/docs/measures#doc">Difference of Confidence.</a>
+</p>
+</li>
+<li>
+<p> "fishersExactTest": <a href="https://mhahsler.github.io/arules/docs/measures#fishersexacttest">Fisher's Exact Test.</a> By default complementary effects are mined, substitutes can be found by using the parameter <code>complements = FALSE</code>. Note that Fisher's exact test is equal to hyper-confidence with <code>significance = TRUE</code>. Correction for multiple comparisons can be done using <code>stats::p.adjust()</code>.
+</p>
+</li>
+<li>
+<p> "gini": <a href="https://mhahsler.github.io/arules/docs/measures#gini">Gini Index.</a>
+</p>
+</li>
+<li>
+<p> "hyperConfidence": <a href="https://mhahsler.github.io/arules/docs/measures#hyperconfidence">Hyper-Confidence.</a> Reports the confidence level by default and the significance level if <code>significance = TRUE</code> is used. By default complementary effects are mined, substitutes (too low co-occurrence counts) can be found by using the parameter <code>complements = FALSE</code>.
+</p>
+</li>
+<li>
+<p> "hyperLift": <a href="https://mhahsler.github.io/arules/docs/measures#hyperlift">Hyper-Lift.</a> The used quantile can be changed using parameter <code>level</code> (default: <code>level = 0.99</code>).
+</p>
+</li>
+<li>
+<p> "imbalance": <a href="https://mhahsler.github.io/arules/docs/measures#imbalance">Imbalance Ratio.</a>
+</p>
+</li>
+<li>
+<p> "implicationIndex": <a href="https://mhahsler.github.io/arules/docs/measures#implicationindex">Implication Index.</a>
+</p>
+</li>
+<li>
+<p> "importance": <a href="https://mhahsler.github.io/arules/docs/measures#importance">Importance.</a>
+</p>
+</li>
+<li>
+<p> "improvement": <a href="https://mhahsler.github.io/arules/docs/measures#improvement">Improvement.</a> The additional parameter <code>improvementMeasure</code> (default: <code>'confidence'</code>) can be used to specify the measure used for the improvement calculation. See <a href="https://mhahsler.github.io/arules/docs/measures#generalizedImprovement">Generalized improvement</a>.
+</p>
+</li>
+<li>
+<p> "jaccard": <a href="https://mhahsler.github.io/arules/docs/measures#jaccard">Jaccard Coefficient.</a>
+</p>
+</li>
+<li>
+<p> "jMeasure": <a href="https://mhahsler.github.io/arules/docs/measures#jmeasure">J-Measure.</a>
+</p>
+</li>
+<li>
+<p> "kappa": <a href="https://mhahsler.github.io/arules/docs/measures#kappa">Kappa.</a>
+</p>
+</li>
+<li>
+<p> "kulczynski": <a href="https://mhahsler.github.io/arules/docs/measures#kulczynski">Kulczynski.</a>
+</p>
+</li>
+<li>
+<p> "lambda": <a href="https://mhahsler.github.io/arules/docs/measures#lambda">Lambda.</a>
+</p>
+</li>
+<li>
+<p> "laplace": <a href="https://mhahsler.github.io/arules/docs/measures#laplace">Laplace Corrected Confidence.</a> Parameter <code>k</code> can be used to specify the number of classes (default is 2).
+</p>
+</li>
+<li>
+<p> "leastContradiction": <a href="https://mhahsler.github.io/arules/docs/measures#leastcontradiction">Least Contradiction.</a>
+</p>
+</li>
+<li>
+<p> "lerman": <a href="https://mhahsler.github.io/arules/docs/measures#lerman">Lerman Similarity.</a>
+</p>
+</li>
+<li>
+<p> "leverage": <a href="https://mhahsler.github.io/arules/docs/measures#leverage">Leverage.</a>
+</p>
+</li>
+<li>
+<p> "LIC": <a href="https://mhahsler.github.io/arules/docs/measures#lic">Lift Increase.</a> The additional parameter <code>improvementMeasure</code> (default: <code>'lift'</code>) can be used to specify the measure used for the increase calculation.  See <a href="https://mhahsler.github.io/arules/docs/measures#ginc">Generalized increase ratio</a>.
+</p>
+</li>
+<li>
+<p> "maxconfidence": <a href="https://mhahsler.github.io/arules/docs/measures#maxconfidence">MaxConfidence.</a>
+</p>
+</li>
+<li>
+<p> "mutualInformation": <a href="https://mhahsler.github.io/arules/docs/measures#mutualinformation">Mutual Information.</a>
+</p>
+</li>
+<li>
+<p> "oddsRatio": <a href="https://mhahsler.github.io/arules/docs/measures#oddsratio">Odds Ratio.</a>
+</p>
+</li>
+<li>
+<p> "phi": <a href="https://mhahsler.github.io/arules/docs/measures#phi">Phi Correlation Coefficient.</a>
+</p>
+</li>
+<li>
+<p> "ralambondrainy": <a href="https://mhahsler.github.io/arules/docs/measures#ralambondrainy">Ralambondrainy.</a>
+</p>
+</li>
+<li>
+<p> "relativeRisk": <a href="https://mhahsler.github.io/arules/docs/measures#relativerisk">Relative Risk.</a>
+</p>
+</li>
+<li>
+<p> "rhsSupport": <a href="https://mhahsler.github.io/arules/docs/measures#rhssupport">Right-Hand-Side Support.</a>
+</p>
+</li>
+<li>
+<p> "RLD": <a href="https://mhahsler.github.io/arules/docs/measures#rld">Relative Linkage Disequilibrium.</a>
+</p>
+</li>
+<li>
+<p> "rulePowerFactor": <a href="https://mhahsler.github.io/arules/docs/measures#rulepowerfactor">Rule Power Factor.</a>
+</p>
+</li>
+<li>
+<p> "sebag": <a href="https://mhahsler.github.io/arules/docs/measures#sebag">Sebag-Schoenauer.</a>
+</p>
+</li>
+<li>
+<p> "stdLift": <a href="https://mhahsler.github.io/arules/docs/measures#stdlift">Standardized Lift.</a>
+</p>
+</li>
+<li>
+<p> "table": <a href="https://mhahsler.github.io/arules/docs/measures#table">Contingency Table.</a> Returns the four counts for the contingency table. The entries are labeled <code>n11</code>, <code>n01</code>, <code>n10</code>, and <code>n00</code> (the first subscript is for X and the second is for Y; 1 indicated presence and 0 indicates absence). If several measures are specified, then the counts have the prefix <code>table.</code>
+</p>
+</li>
+<li>
+<p> "varyingLiaison": <a href="https://mhahsler.github.io/arules/docs/measures#varyingliaison">Varying Rates Liaison.</a>
+</p>
+</li>
+<li>
+<p> "yuleQ": <a href="https://mhahsler.github.io/arules/docs/measures#yuleq">Yule's Q.</a>
+</p>
+</li>
+<li>
+<p> "yuleY": <a href="https://mhahsler.github.io/arules/docs/measures#yuley">Yule's Y.</a>
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>If only one measure is used, the function returns a numeric vector
+containing the values of the interest measure for each association in the
+set of associations <code>x</code>.
+</p>
+<p>If more than one measures are specified, the result is a data.frame
+containing the different measures for each association as columns.
+</p>
+<p><code>NA</code> is returned for rules/itemsets for which a certain measure is not
+defined.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>References</h3>
+
+<p>Hahsler, Michael (2015). A Probabilistic Comparison of Commonly Used
+Interest Measures for Association Rules, 2015, URL:
+<a href="https://mhahsler.github.io/arules/docs/measures">https://mhahsler.github.io/arules/docs/measures</a>.
+</p>
+<p>Haldane, J.B.S. (1940). "The mean and variance of the moments of chi-squared
+when used as a test of homogeneity, when expectations are small".
+<em>Biometrika,</em> 29, 133-134.
+</p>
+<p>Anscombe, F.J. (1956). "On estimating binomial response relations".
+<em>Biometrika,</em> 43, 461-464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>itemsets, rules
+</p>
+<p>Other interest measures: 
+<code>confint()</code>,
+<code>coverage()</code>,
+<code>is.redundant()</code>,
+<code>is.significant()</code>,
+<code>support()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("Income")
+rules &lt;- apriori(Income)
+
+## calculate a single measure and add it to the quality slot
+quality(rules) &lt;- cbind(quality(rules),
+	hyperConfidence = interestMeasure(rules, measure = "hyperConfidence",
+	transactions = Income))
+
+inspect(head(rules, by = "hyperConfidence"))
+
+## calculate several measures
+m &lt;- interestMeasure(rules, c("confidence", "oddsRatio", "leverage"),
+	transactions = Income)
+inspect(head(rules))
+head(m)
+
+## calculate all available measures for the first 5 rules and show them as a
+## table with the measures as rows
+t(interestMeasure(head(rules, 5), transactions = Income))
+
+## calculate measures on a different set of transactions (I use a sample here)
+## Note: reuse = TRUE (default) would just return the stored support on the
+##	data set used for mining
+newTrans &lt;- sample(Income, 100)
+m2 &lt;- interestMeasure(rules, "support", transactions = newTrans, reuse = FALSE)
+head(m2)
+
+## calculate all available measures for the 5 frequent itemsets with highest support
+its &lt;- apriori(Income, parameter = list(target = "frequent itemsets"))
+its &lt;- head(its, 5, by = "support")
+inspect(its)
+
+interestMeasure(its, transactions = Income)
+</code></pre>
+
+
+</div>

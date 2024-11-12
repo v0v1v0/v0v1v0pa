@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Event</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>R6 class to create and represent an event</h2>
+
+<h3>Description</h3>
+
+<p>R6 class to create and represent an event
+</p>
+<p>R6 class to create and represent an event
+</p>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>time</code></dt>
+<dd>
+<p>returns the event time</p>
+</dd>
+<dt><code>get</code></dt>
+<dd>
+<p>returns the external pointer, which can then be passed to
+functions such as schedule and unschedule.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-R6Event-new"><code>Event$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-R6Event-clone"><code>Event$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-R6Event-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Event$new(time, handler)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>time</code></dt>
+<dd>
+<p>the time that this event will occur. A length-1
+numeric vector.</p>
+</dd>
+<dt><code>handler</code></dt>
+<dd>
+<p>an R function that handles the event when it occurs.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Details</h5>
+
+<p>The R handler function should take exactly 3 arguments
+</p>
+
+<ol>
+<li>
+<p> time: the current time in the simulation
+</p>
+</li>
+<li>
+<p> sim: the simulation object, an external pointer
+</p>
+</li>
+<li>
+<p> agent: the agent to whom this event is attached to.
+</p>
+</li>
+</ol>
+<p>The return value of the handler function is ignored.
+</p>
+
+
+<hr>
+<a id="method-R6Event-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Event$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This handler prints increases a counter in the state of the 
+# Simulation object, and schedule another event every 0.1 time unit.
+handler = function(time, sim, agent) {
+  x = getState(sim)
+  x$counter = x$counter + 1
+  setState(sim, x)
+  schedule(agent, newEvent(time + 0.1, handler))
+}
+# create a new simulation with no agents. but the simulation itself is
+# an agent. So we can use all the methods of agent
+sim = Simulation$new()
+# set the state of the simulation, initialize the counter
+sim$state = list(counter = 0)
+# schedule a new event at time 0
+sim$schedule(Event$new(0, handler))
+# add a logger for the counter. Note that, because sim is an R6 class
+# to use it in the newStateLogger function, we need to access the 
+# external pointer using its $get method
+sim$addLogger(newStateLogger("counter", sim$get, "counter"))
+# run the simulation for 10 time units.
+print(sim$run(0:10))
+# interestingly, the counts are not exactly in 10 event time unit. 
+# Firstly, report always happen before event, so event at time 0 is 
+# not counted in the time interval 0 to 1. Secondly, the event time 
+# is stored as a numeric value with increments of 0.1, which is 
+# subject to rounding errors. So some the the integer tiome events
+# may be before the reporting and some may be after.
+
+</code></pre>
+
+
+</div>

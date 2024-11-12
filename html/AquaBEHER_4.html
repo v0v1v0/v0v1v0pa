@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calcSeasCal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wet Season Calendar</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the wet season calendar, including the onset date,
+cessation date, and duration, based on an agroclimatic approach. The
+function relies on daily soil water balance parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calcSeasCal(data, onsetWind.start, onsetWind.end, cessaWind.end, soilWHC)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An R dataframe returned by <code>calcWatBal</code> or
+a dataframe with similar parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onsetWind.start</code></td>
+<td>
+<p>The earliest possible start date for the onset window
+in "MM-DD" format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onsetWind.end</code></td>
+<td>
+<p>The latest possible end date for the onset window
+in "MM-DD" format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cessaWind.end</code></td>
+<td>
+<p>The latest possible end date for the cessation window
+in "MM-DD" format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soilWHC</code></td>
+<td>
+<p>The available soil water holding capacity at
+root zone depth (in mm).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The agroclimatic approach defines the wet season based on the balance
+between precipitation and potential evapotranspiration (PET). The wet season
+begins when the moisture available to crops exceeds their
+evapotranspiration demands, ensuring optimal growth conditions.
+</p>
+<p><strong>Onset:</strong>
+The wet season onset is defined as the first day after <code>onsetWind.start</code>
+when the ratio of actual evapotranspiration (AET) to potential
+evapotranspiration (PET) exceeds 0.5 for at least 5 consecutive days, and the
+soil moisture remains above 25% of the available soil water holding capacity
+(<code>soilWHC</code>) for a minimum of 20 consecutive days, ensuring sufficient
+moisture availability for plant growth.
+</p>
+<p><strong>Cessation:</strong>
+The wet season ends on the first day after <code>onsetWind.end</code> when the
+AET/PET ratio falls below 0.5 for at least 5 consecutive days, and the
+soil moisture remains below 25% of the available soil water holding capacity
+(<code>soilWHC</code>) for a minimum of 12 consecutive days.
+</p>
+<p><strong>Duration:</strong>
+The total duration of the wet season is the number of days between
+onset and cessation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe containing the following columns:
+</p>
+
+<dl>
+<dt>Year</dt>
+<dd>
+<p>The year of the season (YYYY).</p>
+</dd>
+<dt>OnsetDate</dt>
+<dd>
+<p>The onset date, formatted as "YYYY-MM-DD".</p>
+</dd>
+<dt>OnsetDOY</dt>
+<dd>
+<p>The Julian day (DOY) of the onset.</p>
+</dd>
+<dt>OnsetValue</dt>
+<dd>
+<p>The number of days since <code>onsetWind.start</code>.</p>
+</dd>
+<dt>CessationDate</dt>
+<dd>
+<p>The cessation date, formatted as "YYYY-MM-DD".</p>
+</dd>
+<dt>CessationDOY</dt>
+<dd>
+<p>The Julian day (DOY) of the cessation.</p>
+</dd>
+<dt>CessationValue</dt>
+<dd>
+<p>The number of days since <code>onsetWind.start</code>.</p>
+</dd>
+<dt>Duration</dt>
+<dd>
+<p>The duration of the wet season (in days).</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>FAO, 1977. Crop water requirements. FAO Irrigation and Drainage Paper No. 24,
+by Doorenbos J. and W.O. Pruitt. FAO, Rome, Italy.
+</p>
+<p>FAO, 1978. Forestry for Local Community Development. FAO Forestry Paper
+No. 7, FAO, Rome.
+</p>
+<p>FAO, 1986. Early Agrometeorological Crop Yield Forecasting. FAO Plant
+Production and Protection Paper No. 73, by M. Frère and G.F.
+Popov. FAO, Rome.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>calcEto, calcWatBal</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Load example data:
+data(AgroClimateData)
+
+## Estimate daily PET:
+PET &lt;- calcEto(AgroClimateData, method = "PM", Zh = 10)
+
+## Add the estimated PET 'ET.Daily' to a new column in AgroClimateData:
+AgroClimateData$Eto &lt;- PET$ET.Daily
+
+## Estimate daily water balance for the soil having 100mm of WHC:
+watBal.list &lt;- calcWatBal(data = AgroClimateData, soilWHC = 100)
+watBal &lt;- watBal.list$data
+
+## seasonal calendar is estimated for the onset window ranges from
+## 01 September to 31 January having a soil with 100mm of WHC:
+
+soilWHC &lt;- 100
+onsetWind.start &lt;- "09-01"
+onsetWind.end &lt;- "01-31"
+cessaWind.end &lt;- "06-30"
+
+seasCal.dF &lt;- calcSeasCal(
+  data = watBal, onsetWind.start, onsetWind.end,
+  cessaWind.end, soilWHC
+)
+
+str(seasCal.dF)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>diag.qr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Diagnostics for Quantile Regression Using Asymmetric Laplace Distribution</h2>
+
+<h3>Description</h3>
+
+<p>Return case-deletion estimating the parameters in a quantile regression</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  diag.qr(y,x,tau,theta)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>the quantile to be estimated, this is generally a number strictly between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>parameter estimated</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Hessian and gradient matrix. Also the generalized cook distance (GDi), approximation of the likelihood distance (QDi) </p>
+
+
+<h3>Author(s)</h3>
+
+<p>Luis Benites Sanchez <a href="mailto:lbenitesanchez@gmail.com">lbenitesanchez@gmail.com</a>, Christian E. Galarza <a href="mailto:cgalarza88@gmail.com">cgalarza88@gmail.com</a>, Victor Hugo Lachos <a href="mailto:hlachos@ime.unicamp.br">hlachos@ime.unicamp.br</a></p>
+
+
+<h3>References</h3>
+
+<p>[1] Koenker, R. W. (2005). Quantile Regression, Cambridge U. Press.
+[2] Yu, K. &amp; Moyeed, R. (2001). Bayesian quantile regression. Statistics &amp; Probability Letters, 54 (4), 437 to 447.
+[3] Kotz, S., Kozubowski, T. &amp; Podgorski, K. (2001). The laplace distribution and generalizations: A revisit with applications to communications, economics, engineering, and finance. Number 183. Birkhauser. 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+##############################################################
+### Graphic of the generalized Cook distance for data(AIS) ###
+##############################################################
+#Dados 
+data(ais, package="sn")
+attach(ais)
+sexInd &lt;- (sex=="female") + 0
+x      &lt;- cbind(1,LBM,sexInd)
+y      &lt;- BMI
+
+
+#Percentile
+ perc         &lt;- 0.5
+
+res           &lt;- EM.qr(y,x,perc)
+diag          &lt;- diag.qr(y,x,perc,res$theta)
+HessianMatrix &lt;- diag$MatrizQ
+Gradiente     &lt;- diag$mdelta
+GDI           &lt;- c()
+for (i in 1:202) {
+ GDI[i] &lt;- t(Gradiente[,i])
+}
+
+  
+#Seccion de los graficos
+ par(mfrow = c(1,1))
+ plot(seq(1:202),GDI,xlab='Index',ylab=expression(paste(GD[i])),main='p=0.1')
+ abline(h=2*(4+1)/202,lty=2)
+ identify(GDI,n=1) 
+
+ plot(seq(1:202),GDI,xlab='Index',ylab=expression(paste(GD[i])),main='p=0.5')
+ abline(h=2*(4+1)/202,lty=2)
+ identify(GDI,n=1) 
+
+ plot(seq(1:202),GDI,xlab='Index',ylab=expression(paste(GD[i])),main='p=0.9')
+ abline(h=2*(4+1)/202,lty=2)
+ identify(GDI,n=4) 
+
+
+#############################################################
+### Graphic of the likelihood displacemente for data(AIS) ###
+#############################################################
+#Dados 
+ data(ais, package="sn"); attach(ais); sexInd&lt;-(sex=="female")+0; x=cbind(1,LBM,sexInd); y=BMI
+
+#Percentile
+ perc          &lt;- 0.9
+ n             &lt;- nrow(x)
+
+ res           &lt;- EM.qr(y,x,perc)
+ 
+ thetaest      &lt;- res$theta
+ sigmaest      &lt;- thetaest[4]
+ betaest       &lt;- matrix(thetaest[1:3],3,1)
+
+ taup2         &lt;- (2/(perc*(1-perc)))
+ thep          &lt;- (1-2*peGraphic of the generalized Cook distance for data(AIS)rc)/(perc*(1-perc))
+
+ diag          &lt;- diag.qr(y,x,perc,thetaest)
+
+ HessianMatrix &lt;- diag$MatrizQ
+ Gradiente     &lt;- diag$mdelta
+
+ sigma         &lt;- sigmaest
+ beta          &lt;- betaest 
+
+ muc           &lt;- (y-x
+ delta2        &lt;- (y-x
+ gamma2        &lt;- (2+thep^2/taup2)/sigma
+
+ vchpN         &lt;- besselK(sqrt(delta2*gamma2), 0.5-1)
+                  /(besselK(sqrt(delta2*gamma2), 0.5))*(sqrt(delta2/gamma2))^(-1)
+ vchp1         &lt;- besselK(sqrt(delta2*gamma2), 0.5+1)
+                  /(besselK(sqrt(delta2*gamma2), 0.5))*(sqrt(delta2/gamma2))
+ 
+ Q             &lt;- -0.5*n*log(sigmaest)-0.5*(sigmaest*taup2)^{-1}*
+                  (sum(vchpN*muc^2 - 2*muc*thep + vchp1*(thep^2+2*taup2)))  
+ ########################################################
+ theta_i       &lt;- thetaest
+ sigmaest      &lt;- theta_i[4,]
+ betaest       &lt;- theta_i[1:3,]
+ sigma         &lt;- sigmaest
+ beta          &lt;- betaest
+ muc           &lt;- (y-x
+ 
+ delta2        &lt;- (y-x
+ gamma2        &lt;- (2+thep^2/taup2)/sigma
+ 
+ vchpN         &lt;- besselK(sqrt(delta2*gamma2), 0.5-1)
+                  /(besselK(sqrt(delta2*gamma2), 0.5))*(sqrt(delta2/gamma2))^(-1)
+ vchp1         &lt;- besselK(sqrt(delta2*gamma2), 0.5+1)
+                  /(besselK(sqrt(delta2*gamma2), 0.5))*(sqrt(delta2/gamma2))
+
+ Q1 &lt;- c()
+ for (i in 1:202)
+ {
+   Q1[i] &lt;- -0.5*n*log(sigmaest[i])-sum(vchpN[,i]*muc[,i]^2 - 2*muc[,i]*thep
+     + vchp1[,i]*(thep^2+2*taup2))/(2*(sigmaest[i]*taup2))
+ }
+
+ ######################################################## 
+ QDi &lt;- 2*(-Q+Q1)
+
+ #Depois de escolger perc guardamos os valores de  QDi
+ QDi0.1 &lt;- QDi
+ QDi0.5 &lt;- QDi
+ QDi0.9 &lt;- QDi
+
+#Seccion de los graficos
+ par(mfrow = c(1,1))
+ plot(seq(1:202),QDi0.1,xlab='Index',ylab=expression(paste(QD[i])),main='p=0.1')
+ abline(h=mean(QDi0.1)+3.5*sd(QDi0.1),lty=2)
+ identify(QDi0.1,n=3) 
+
+ plot(seq(1:202),QDi0.5,xlab='Index',ylab=expression(paste(QD[i])),main='p=0.5')
+ abline(h=mean(QDi0.5)+3.5*sd(QDi0.5),lty=2)
+ identify(QDi0.5,n=3) 
+
+ plot(seq(1:202),QDi0.9,xlab='Index',ylab=expression(paste(QD[i])),main='p=0.9')
+ abline(h=mean(QDi0.9)+3.5*sd(QDi0.9),lty=2)
+ identify(QDi0.9,n=4) 
+
+## End(Not run) 
+</code></pre>
+
+
+</div>

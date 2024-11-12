@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_varcov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculates variance-covariance matrix of an Apollo model</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the Hessian, variance-covariance matrix and standard errors of an Apollo model as defined by its likelihood function 
+and <code>apollo_inputs</code> list of settings. Performs automatic scaling for increased numeric stability.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_varcov(apollo_beta, apollo_fixed, varcov_settings)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apollo_beta</code></td>
+<td>
+<p>Named numeric vector. Names and values of parameters at which to calculate the covariance matrix.
+Values <strong>must not be scaled</strong>, and they must include any fixed parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_fixed</code></td>
+<td>
+<p>Character vector. Names of fixed parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcov_settings</code></td>
+<td>
+<p>List of settings defining the behaviour of this function. It must contain at least one of
+the following: <code>apollo_logLike</code>, <code>apollo_grad</code> or <code>apollo_inputs</code> together with <code>apollo_probabilities</code>.
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_grad</code></strong>: Function to calculate the gradient of the model, as returned by apollo_makeGrad.
+</p>
+</li>
+<li> <p><strong><code>apollo_hessian</code></strong>: Function to calculate the hessian of the model, as returned by apollo_makeHessian.
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: List grouping most common inputs. Created by function apollo_validateInputs.
+</p>
+</li>
+<li> <p><strong><code>apollo_logLike</code></strong>: Function to calculate the log-likelihood of the model, as returned by apollo_makeLogLike.
+</p>
+</li>
+<li> <p><strong><code>apollo_probabilities</code></strong>: apollo_probabilities Function. Returns probabilities of the model to be estimated. Must receive three arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters.
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: List containing options of the model. See apollo_validateInputs.
+</p>
+</li>
+<li> <p><strong><code>functionality</code></strong>: Character. Can be either 
+<strong><code>"components"</code></strong>, <strong><code>"conditionals"</code></strong>, <strong><code>"estimate"</code></strong> (default), <strong><code>"gradient"</code></strong>, <strong><code>"output"</code></strong>, <strong><code>"prediction"</code></strong>, <strong><code>"preprocess"</code></strong>, <strong><code>"raw"</code></strong>, <strong><code>"report"</code></strong>, <strong><code>"shares_LL"</code></strong>, <strong><code>"validate"</code></strong> or <strong><code>"zero_LL"</code></strong>.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><strong><code>BHHH_matrix</code></strong>: Matrix. Optional input, providing the BHHH matrix so it does not get recalculated.
+</p>
+</li>
+<li> <p><strong><code>hessianRoutine</code></strong>: Character. Name of routine used to calculate the Hessian. Valid values are <code>"analytic"</code>, <code>"numDeriv"</code>, <code>"maxLik"</code> or <code>"none"</code> to avoid estimating the Hessian and covariance matrix.
+</p>
+</li>
+<li> <p><strong><code>numDeriv_method</code></strong>: Character. Method used for numerical differentiation. Can be <code>"Richardson"</code> or <code>"simple"</code>, Only used if analytic gradients are available. See argument <code>method</code> in grad for more details.
+</p>
+</li>
+<li> <p><strong><code>numDeriv_settings</code></strong>: List. Additional arguments to the Richardson method used by numDeriv to calculate the Hessian. See argument <code>method.args</code> in grad for more details.
+</p>
+</li>
+<li> <p><strong><code>scaleBeta</code></strong>: Logical. If TRUE (default), parameters are scaled by their own value before calculating the Hessian to increase numerical stability. However, the output is de-scaled, so they are in the same scale as the <code>apollo_beta</code> argument.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It calculates the Hessian, variance-covariance, and standard errors at <code>apollo_beta</code> values of an 
+estimated model. At least one of the following settings must be provided (ordered by speed of computation): <code>apollo_grad</code>, 
+<code>apollo_logLike</code>, or (<code>apollo_probabilities</code> and <code>apollo_inputs</code>). If more than one is provided, 
+then the priority is: <code>apollo_grad</code>, <code>apollo_logLike</code>, (<code>apollo_probabilities</code> and <code>apollo_inputs</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with the following elements
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numerical vector. Parameter estimates (<code>model$estimate</code>, not scaled).
+</p>
+</li>
+<li> <p><strong><code>corrmat</code></strong>: Numerical matrix. Correlation between parameter estimates.
+</p>
+</li>
+<li> <p><strong><code>hessian</code></strong>: Numerical matrix. Hessian of the model at parameter estimates (<code>model$estimate</code>).
+</p>
+</li>
+<li> <p><strong><code>hessianScaling</code></strong>: Named numeric vector. Scales used on the paramaters to calculate the Hessian (non-fixed only).
+</p>
+</li>
+<li> <p><strong><code>methodsAttempted</code></strong>: Character vector. Name of methods attempted to calculate the Hessian.
+</p>
+</li>
+<li> <p><strong><code>methodUsed</code></strong>: Character. Name of method used to calculate the Hessian.
+</p>
+</li>
+<li> <p><strong><code>robcorrmat</code></strong>: Numerical matrix. Robust correlation between parameter estimates.
+</p>
+</li>
+<li> <p><strong><code>robse</code></strong>: Named numerical vector. Robust standard errors of parameter estimates.
+</p>
+</li>
+<li> <p><strong><code>robvarcov</code></strong>: Numerical matrix. Robust variance-covariance matrix.
+</p>
+</li>
+<li> <p><strong><code>se</code></strong>: Named numerical vector. Standard errors of parameter estimates.
+</p>
+</li>
+<li> <p><strong><code>varcov</code></strong>: Numerical matrix. Variance-covariance matrix.
+</p>
+</li>
+</ul>
+</div>

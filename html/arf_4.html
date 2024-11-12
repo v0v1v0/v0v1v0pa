@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>forde</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forests for Density Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Uses a pre-trained ARF model to estimate leaf and distribution parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">forde(
+  arf,
+  x,
+  oob = FALSE,
+  family = "truncnorm",
+  finite_bounds = FALSE,
+  alpha = 0,
+  epsilon = 0,
+  parallel = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>arf</code></td>
+<td>
+<p>Pre-trained <code>adversarial_rf</code>. Alternatively, any
+object of class <code>ranger</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Training data for estimating parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oob</code></td>
+<td>
+<p>Only use out-of-bag samples for parameter estimation? If
+<code>TRUE</code>, <code>x</code> must be the same dataset used to train <code>arf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Distribution to use for density estimation of continuous
+features. Current options include truncated normal (the default
+<code>family = "truncnorm"</code>) and uniform (<code>family = "unif"</code>). See
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finite_bounds</code></td>
+<td>
+<p>Impose finite bounds on all continuous variables?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Optional pseudocount for Laplace smoothing of categorical
+features. This avoids zero-mass points when test data fall outside the
+support of training data. Effectively parametrizes a flat Dirichlet prior
+on multinomial likelihoods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>Optional slack parameter on empirical bounds when
+<code>family = "unif"</code> or <code>finite_bounds = TRUE</code>. This avoids
+zero-density points when test data fall outside the support of training
+data. The gap between lower and upper bounds is expanded by a factor of
+<code>1 + epsilon</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Compute in parallel? Must register backend beforehand, e.g.
+via <code>doParallel</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>forde</code> extracts leaf parameters from a pretrained forest and learns
+distribution parameters for data within each leaf. The former includes
+coverage (proportion of data falling into the leaf) and split criteria. The
+latter includes proportions for categorical features and mean/variance for
+continuous features. The result is a probabilistic circuit, stored as a
+<code>data.table</code>, which can be used for various downstream inference tasks.
+</p>
+<p>Currently, <code>forde</code> only provides support for a limited number of
+distributional families: truncated normal or uniform for continuous data,
+and multinomial for discrete data. Future releases will accommodate a larger
+set of options.
+</p>
+<p>Though <code>forde</code> was designed to take an adversarial random forest as
+input, the function's first argument can in principle be any object of class
+<code>ranger</code>. This allows users to test performance with alternative
+pipelines (e.g., with supervised forest input). There is also no requirement
+that <code>x</code> be the data used to fit <code>arf</code>, unless <code>oob = TRUE</code>.
+In fact, using another dataset here may protect against overfitting. This
+connects with Wager &amp; Athey's (2018) notion of "honest trees".
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> with 5 elements: (1) parameters for continuous data; (2)
+parameters for discrete data; (3) leaf indices and coverage; (4) metadata on
+variables; and (5) the data input class. This list is used for estimating
+likelihoods with <code>lik</code> and generating data with <code>forge</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Watson, D., Blesch, K., Kapar, J., &amp; Wright, M. (2023). Adversarial random
+forests for density estimation and generative modeling. In <em>Proceedings
+of the 26th International Conference on Artificial Intelligence and
+Statistics</em>, pp. 5357-5375.
+</p>
+<p>Wager, S. &amp; Athey, S. (2018). Estimation and inference of heterogeneous
+treatment effects using random forests. <em>J. Am. Stat. Assoc.</em>,
+<em>113</em>(523): 1228-1242.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adversarial_rf</code>, <code>forge</code>, <code>lik</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">arf &lt;- adversarial_rf(iris)
+psi &lt;- forde(arf, iris)
+head(psi)
+
+
+</code></pre>
+
+
+</div>

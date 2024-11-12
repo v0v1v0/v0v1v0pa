@@ -1,0 +1,357 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pcr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prinicpal component regression transfer function models</h2>
+
+<h3>Description</h3>
+
+<p>Fits a palaeoecological transfer function model using principal
+component regression, using an optional transformation of the matrix
+of predictor variables when these are species abundance data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+## Default S3 method:
+pcr(x, y, ncomp, tranFun, ...)
+
+## S3 method for class 'formula'
+pcr(formula, data, subset, na.action, ..., model = FALSE)
+
+Hellinger(x, ...)
+
+ChiSquare(x, apply = FALSE, parms)
+
+## S3 method for class 'pcr'
+performance(object, ...)
+
+## S3 method for class 'pcr'
+residuals(object, comps = NULL, ...)
+
+## S3 method for class 'pcr'
+fitted(object, comps = NULL, ...)
+
+## S3 method for class 'pcr'
+coef(object, comps = NULL, ...)
+
+## S3 method for class 'pcr'
+screeplot(x, restrict = NULL,
+          display = c("RMSE","avgBias","maxBias","R2"),
+          xlab = NULL, ylab = NULL, main = NULL, sub = NULL, ...)
+
+## S3 method for class 'pcr'
+eigenvals(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix or data frame of predictor variables. Usually species
+composition or abundance data for transfer function models. For
+<code>screeplot</code> and <code>eigenvals</code>, an object of class
+<code>"pcr"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Numeric vector; the response variable to be modelled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>numeric; number of principal components to build models
+for. If not supplied the largest possible number of components is
+determined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tranFun</code></td>
+<td>
+<p>function; a function or name of a function that
+performs a transformation of the predictor variables <code>x</code>. The
+function must be self-contained as no arguments are passed to the
+function when it is applied. See Details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a model formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object
+coercible by <code>as.data.frame</code> to a data frame) containing
+the variables specified on the RHS of the model formula. If not found in
+<code>data</code>, the  variables are taken from
+<code>environment(formula)</code>, typically the environment from which
+<code>pcr</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when
+the data contain <code>NA</code>s.  The default is set by the
+<code>na.action</code> setting of <code>options</code>, and is <code>na.fail</code> if
+that is unset.  The 'factory-fresh' default is <code>na.omit</code>.
+Another possible value is <code>NULL</code>, no action. Value
+<code>na.exclude</code> can be useful.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>logical; If <code>TRUE</code> the model frame is returned?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apply</code></td>
+<td>
+<p>logical; should an existing tranformation, using
+pre-computed meta-parameters, be applied?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parms</code></td>
+<td>
+<p>list; a named list of parameters computed during model
+fitting that can be used to apply the transformation during
+prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"pcr"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comps</code></td>
+<td>
+<p>numeric; which components to return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrict</code></td>
+<td>
+<p>numeric; limit the number of components on the
+screeplot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>display</code></td>
+<td>
+<p>character; which model performance statistic should be
+drawn on the screeplot?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab, ylab, main, sub</code></td>
+<td>
+<p>character; labels for the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When applying cross-validation (CV) to transfer function models, any
+transformation of the predictors must be applied separately during
+each iteration of the CV procedure to the part of the data used in
+fitting the model. In the same way, any samples to be predicted from
+the model must use any meta-parameters derived from the training data
+only. For examle, centring is appled to the training data only and the
+variables means used to centre the training data are used to centre
+the test samples. The variable means should not be computed on a
+combination of the training and test samples.
+</p>
+<p>When using PCR, we might wish to apply a transformation to the species
+data predictor variables such that the PCA of those data preserves a
+dissimilarity coefficient other than the Euclidean distance. This
+transformation is applied to allow PCA to better describe patterns in
+the species data (Legendre &amp; Gallagher 2001).
+</p>
+<p>How this is handled in <code>pcr</code> is to take a user-supplied function
+that takes a single argument, the matrix of predictor variables. The
+function should return a matrix of the same dimension as the input. If
+any meta-parameters are required for subsequent use in prediction,
+these should be returned as attribute <code>"parms"</code>, attached to the
+matrix.
+</p>
+<p>Two example transformation functions are provided implementing the
+Hellinger and Chi Square transformations of Legendre &amp; Gallagher
+(2001). Users can base their transformation functions on
+these. <code>ChiSquare()</code> illustrates how meta-parameters should be
+returned as the attribute <code>"parms"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>"pcr"</code>, a list with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>matrix; the PCR estimates of the response. The
+columns contain fitted values using C components, where C is the Cth
+column of the matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>matrix; regression coefficients for the
+PCR. Columns as per <code>fitted</code> above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>matrix; residuals, where the Cth column represents a
+PCR model using C components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loadings</code></td>
+<td>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yloadings</code></td>
+<td>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xMeans</code></td>
+<td>
+<p>numeric; means of the predictor variables in the
+training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yMean</code></td>
+<td>
+<p>numeric; mean of the response variable in the training
+data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varExpl</code></td>
+<td>
+<p>numeric; variance explained by the PCR model. These are
+the squares of the singular values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totvar</code></td>
+<td>
+<p>numeric; total variance in the training data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tranFun</code></td>
+<td>
+<p>transformation function used. <code>NA</code> if none
+supplied/used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tranParms</code></td>
+<td>
+<p>list; meta parameters used to computed the
+transformed training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>performance</code></td>
+<td>
+<p>data frame; cross-validation performance statistics
+for the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>numeric; number of principal components computed</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>See Also</h3>
+
+<p><code>wa</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load the Imbrie &amp; Kipp data and
+## summer sea-surface temperatures
+data(ImbrieKipp)
+data(SumSST)
+
+## normal interface and apply Hellinger transformation
+mod &lt;- pcr(ImbrieKipp, SumSST, tranFun = Hellinger)
+mod
+
+## formula interface, but as above
+mod2 &lt;- pcr(SumSST ~ ., data = ImbrieKipp, tranFun = Hellinger)
+mod2
+
+## Several standard methods are available
+fitted(mod, comps = 1:4)
+resid(mod, comps = 1:4)
+coef(mod, comps = 1:4)
+
+## Eigenvalues can be extracted
+eigenvals(mod)
+
+## screeplot method
+screeplot(mod)
+</code></pre>
+
+
+</div>

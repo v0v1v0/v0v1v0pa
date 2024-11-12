@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amModelLib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create An <code>AMModelLib</code> Object That Stores Lists Of <code>amModel</code> And <code>amData</code> Objects</h2>
+
+<h3>Description</h3>
+
+<p>Creates an object of class <code>amModelLib</code>, either empty, or containing <code>amModel</code> and/or <code>amData</code> objects.
+</p>
+<p>An S4 class to hold model and data, each with descriptive metadata.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">amModelLib(models = list(), data = list(), info = list(),
+  description = "")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>A list of objects of class amModel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A list of objects of class amData.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>Named list with descriptive metadata about the <code>amModelLib</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Text field describing the <code>amModelLib</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>amModelLib</code> objects are useful for storing multiple models and datasets of a related theme, along with relevant metadata. Most extraction and manipulation functions will attempt to keep any relevant data with any model for which it is used. Multiple models may refer to a single dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class amModelLib.
+</p>
+
+
+<h3>Slots</h3>
+
+
+<dl>
+<dt><code>models</code></dt>
+<dd>
+<p>A named list of <code>amModel</code> objects. Models are added with <code>insertAMModelLib</code> and removed with <code>rmModel</code>.</p>
+</dd>
+<dt><code>data</code></dt>
+<dd>
+<p>A named list of <code>amData</code> objects. Data are added with <code>insertAMModelLib</code> and removed with <code>rmData</code>.</p>
+</dd>
+<dt><code>info</code></dt>
+<dd>
+<p>A named list of length 1 character strings that forms name:value metadata pairs describing the <code>amModelLib</code>, e.g. the project, the owner, etc. Name:value pairs may be retrieved or set using <code>ammlInfo</code>.</p>
+</dd>
+<dt><code>description</code></dt>
+<dd>
+<p>Length 1 character vector describing the <code>amModelLib</code>, intended to offer a summary of the <code>amModelLib</code> and quickly refresh the user to its contents and purpose without poring over the detailed metadata. The description may be retrieved or set with <code>ammlDesc</code>.</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p>Other amModelLib: <code>AMModels</code>,
+<code>amData</code>, <code>amModel</code>,
+<code>getters</code>, <code>grepAMModelLib</code>,
+<code>insertAMModelLib</code>, <code>lsModels</code>,
+<code>rmModel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# code from the lm helpfile
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+lm.D9 &lt;- lm(weight ~ group)
+lm.D90 &lt;- lm(weight ~ group - 1) # omitting intercept
+
+# create a data.frame of the plant data
+plant.data &lt;- data.frame(group = group, weight = weight)
+
+# create an amData object that includes the data.frame and metadata 
+plant.data &lt;- amData(
+    data = plant.data, 
+    comment = 'Dataset from lm helpfile.'
+)
+
+# create an amModel model object that includes model lm.D9 and metadata
+# use the metadata keyword 'data' to link the model with the amData object 
+# that produced it
+plant.model1 &lt;- amModel(
+    model = lm.D9, 
+    comment = 'Example model produced from from lm helpfile.',
+    data = 'plant.data'
+)
+
+# create a second amModel model object that includes model lm.D90 and metadata
+# use the metadata keyword 'data' to soft link the model with its data
+plant.model2 &lt;- amModel(
+    model = lm.D90, 
+    comment = 'Second model produced from from lm helpfile.',
+    data = 'plant.data'
+)
+
+
+# use the amModelLib function to create a new amModelLib containing the two
+# amModel objects and one amData object
+mymodels &lt;- amModelLib(
+     models = list(
+        plant.model1 = plant.model1,
+        plant.model2 = plant.model2
+    ), 
+    data = list(
+        plant.data = plant.data
+    ), 
+    description = "This amModelLib stores models and data from the lm helpfile.",
+    info = list(
+        owner = "Me"
+    )
+)
+
+# use the amModelLib function amModelLib to create an empty amModelLib called mymodels2
+mymodels2 &lt;- amModelLib(
+     description = "A second amModelLib called mymodels2.", 
+     info = list(
+         owner = "Me2"
+     )
+)
+
+# use the insertAMModelLib function to insert the two amModel objects and one 
+# amData oject to the existing amModelLib
+mymodels2 &lt;- insertAMModelLib(
+     models = list(
+         plant.model1 = plant.model1, 
+         plant.model2 = plant.model2), 
+     data = list(plant.data = plant.data)
+)
+
+
+
+
+</code></pre>
+
+
+</div>

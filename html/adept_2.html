@@ -1,0 +1,349 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>segmentPattern</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pattern Segmentation From a Time-series via ADEPT</h2>
+
+<h3>Description</h3>
+
+<p>Segment pattern from a time-series <code>x</code> via Adaptive Empirical Pattern
+Transformation (ADEPT).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">segmentPattern(
+  x,
+  x.fs,
+  template,
+  pattern.dur.seq,
+  similarity.measure = "cov",
+  similarity.measure.thresh = 0,
+  x.adept.ma.W = NULL,
+  finetune = NULL,
+  finetune.maxima.ma.W = NULL,
+  finetune.maxima.nbh.W = NULL,
+  run.parallel = FALSE,
+  run.parallel.cores = 1L,
+  x.cut = TRUE,
+  x.cut.vl = 6000,
+  compute.template.idx = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector. A time-series to segment pattern from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.fs</code></td>
+<td>
+<p>A numeric scalar. Frequency at which a time-series <code>x</code> is collected,
+expressed in a number of observations per second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>template</code></td>
+<td>
+<p>A list of numeric vectors, or a numeric vector.
+Each vector represents a distinct pattern template used in segmentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern.dur.seq</code></td>
+<td>
+<p>A numeric vector. A grid of potential pattern durations
+used in segmentation. Expressed in seconds. See: Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>similarity.measure</code></td>
+<td>
+<p>A character scalar. Statistic used to compute similarity
+between a time-series <code>x</code>  and pattern templates. Currently supported values:
+</p>
+
+<ul>
+<li> <p><code>"cov"</code> - covariance,
+</p>
+</li>
+<li> <p><code>"cor"</code> - correlation,
+</p>
+</li>
+</ul>
+<p>Default is <code>"cov"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>similarity.measure.thresh</code></td>
+<td>
+<p>A numeric scalar. Threshold of minimal similarity
+value between a time-series <code>x</code> and a template
+below which the algorithm does not identify a pattern occurrence from <code>x</code>.
+Default is <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.adept.ma.W</code></td>
+<td>
+<p>A numeric scalar.
+A length of a window used in moving average smoothing of a time-series <code>x</code> for
+similarity matrix computation. Expressed in seconds.
+Default is <code>NULL</code> (no smoothing applied).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finetune</code></td>
+<td>
+<p>A character scalar. A type of fine-tuning procedure employed in
+segmentation. Defaults to <code>NULL</code> (no fine-tuning procedure employed). Currently supported values:
+</p>
+
+<ul><li> <p><code>"maxima"</code> - tunes preliminarily identified
+beginning and end of a pattern so
+as they correspond to local maxima of time-series <code>x</code> (or smoothed version of <code>x</code>)
+found within neighbourhoods of preliminary locations.
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finetune.maxima.ma.W</code></td>
+<td>
+<p>A numeric scalar.
+A length of a window used in moving average smoothing of a time-series <code>x</code> in
+<code>"maxima"</code> fine-tuning procedure. Expressed in seconds.
+Default is <code>NULL</code> (no smoothing applied).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finetune.maxima.nbh.W</code></td>
+<td>
+<p>A numeric scalar.
+A length of the two neighborhoods centered at preliminarily identified
+beginning and end of a pattern
+within which we search for local maxima of <code>x</code> (or smoothed version of <code>x</code>) in <code>"maxima"</code>
+fine-tuning procedure. Expressed in seconds. Default is <code>NULL</code>.
+Note: if the length provided corresponds to an even number of <code>x</code> vector indices,
+it will be rounded down so as the corresponding number of vector indices is its closest odd number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run.parallel</code></td>
+<td>
+<p>A logical scalar. Whether or not to use parallel execution in the algorithm
+with <code>parallel</code> package. Default is <code>FALSE</code>. DOES NOT WORK ON WINDOWS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run.parallel.cores</code></td>
+<td>
+<p>An integer scalar.
+The number of cores to use for parallel execution. Defaults to 1L (no parallel).
+DOES NOT WORK ON WINDOWS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.cut</code></td>
+<td>
+<p>A logical scalar. Whether or not to use time optimization procedure in
+which a time-series <code>x</code> is cut into parts and segmentation is performed for
+each part of <code>x</code> separately. Recommended for a time-series <code>x</code> of vector length
+above 30,000. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.cut.vl</code></td>
+<td>
+<p>An integer scalar.
+Defines a vector length of parts that <code>x</code> vector is cut into during the execution time optimization procedure.
+Default is <code>6000</code> (recommended).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute.template.idx</code></td>
+<td>
+<p>A logical scalar. Whether or not to compute and return information about
+which of the provided pattern templates yielded a similarity matrix value
+that corresponds to an identified pattern occurrence.
+Setting to <code>TRUE</code> may increase computation time. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function implements Adaptive Empirical Pattern Transformation (ADEPT) method for pattern segmentation
+from a time-series <code>x</code>.
+ADEPT is optimized to perform fast, accurate walking strides segmentation from
+high-density data collected with a wearable accelerometer during walking.
+</p>
+<p>ADEPT identifies patterns in a time-series <code>x</code> via maximization of chosen
+similarity statistic (correlation, covariance, etc.) between a time-series <code>x</code>
+and a pattern template(s). It accounts for variability in both
+(1) pattern duration and (2) pattern shape.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with segmentation results. Each row
+describes one identified pattern occurrence:
+</p>
+
+<ul>
+<li> <p><code>tau_i</code> - index of  <code>x</code> where pattern starts,
+</p>
+</li>
+<li> <p><code>T_i</code> - pattern duration, expressed in <code>x</code> vector length,
+</p>
+</li>
+<li> <p><code>sim_i</code> -  similarity between a pattern and <code>x</code>;
+note: if <code>"maxima"</code> fine-tune and/or <code>x</code> smoothing is employed,
+the similarity value between the final segmented pattern and a template
+may differ from the value in this table,
+</p>
+</li>
+<li> <p><code>template_i</code> - if <code>compute.template.idx</code> equals <code>TRUE</code>:
+index of a template best matched to <code>x</code>;
+if <code>compute.template.idx</code> equals <code>FALSE</code>: <code>NA</code>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Karas, M., Straczkiewicz, M., Fadel, W., Harezlak, J., Crainiceanu, C.M.,
+Urbanek, J.K. (2019). Adaptive empirical pattern
+transformation (ADEPT) with application to walking stride segmentation.
+Biostatistics. https://doi.org/10.1093/biostatistics/kxz033
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: Simulate a time-series `x`. Assume that
+## - `x` is collected at a frequency of 100 Hz,
+## - there is one shape of pattern present within `x`,
+## - each pattern lasts 1 second,
+## - there is no noise in the collected data.
+true.pattern &lt;- cos(seq(0, 2 * pi, length.out = 100))
+x &lt;- c(true.pattern[1], replicate(10, true.pattern[-1]))
+## Segment pattern from x.
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = true.pattern,
+  pattern.dur.seq = c(0.9, 0.95, 1.03, 1.1),
+  similarity.measure = "cor",
+  compute.template.idx = TRUE)
+out
+## Segment pattern from x. Now assume a grid of potential pattern duratios
+## contains true pattern duration
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = true.pattern,
+  pattern.dur.seq = c(0.9, 0.95, 1, 1.03, 1.1),
+  similarity.measure = "cor",
+  compute.template.idx = TRUE)
+out
+
+## Example 2: Simulate a time-series `x`. Assume that
+## - `x` is collected at a frequency of 100 Hz,
+## - there are two shapes of pattern present within `x`,
+## - patterns have various duration,
+## - there is no noise in the collected data.
+true.pattern.1 &lt;- cos(seq(0, 2 * pi, length.out = 200))
+true.pattern.2 &lt;- true.pattern.1
+true.pattern.2[70:130] &lt;- 2 * true.pattern.2[min(70:130)] + abs(true.pattern.2[70:130])
+x &lt;- numeric()
+for (vl in seq(70, 130, by = 10)){
+  true.pattern.1.s &lt;- approx(
+    seq(0, 1, length.out = 200),
+    true.pattern.1, xout = seq(0, 1, length.out = vl))$y
+  true.pattern.2.s &lt;- approx(
+    seq(0, 1, length.out = 200),
+    true.pattern.2, xout = seq(0, 1, length.out = vl))$y
+  x &lt;- c(x, true.pattern.1.s[-1], true.pattern.2.s[-1])
+  if (vl == 70) x &lt;- c(true.pattern.1.s[1], x)
+}
+## Segment pattern from x. Use a `template` object consisting of both
+## true patterns used in `x` simulation.
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = list(true.pattern.1, true.pattern.2),
+  pattern.dur.seq = 60:130 * 0.01,
+  similarity.measure = "cor",
+  compute.template.idx = TRUE)
+out
+
+## Example 3: Simulate a time-series `x`. Assume that
+## - `x` is collected at a frequency of 100 Hz,
+## - there are two shapes of a pattern present within `x`,
+## - patterns have various duration,
+## - there is noise in the collected data.
+set.seed(1)
+x &lt;- x + rnorm(length(x), sd = 0.5)
+## Segment pattern from x.
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = list(true.pattern.1, true.pattern.2),
+  pattern.dur.seq =  60:130 * 0.01,
+  similarity.measure = "cor",
+  compute.template.idx = TRUE)
+out
+## Segment pattern from x. Use `x.adept.ma.W` to define a length of a smoothing
+## window to smooth `x` for similarity matrix computation.
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = list(true.pattern.1, true.pattern.2),
+  pattern.dur.seq =  60:130 * 0.01,
+  similarity.measure = "cor",
+  x.adept.ma.W = 0.1,
+  compute.template.idx = TRUE)
+out
+## Segment pattern from x. Use `x.adept.ma.W` to define a length of a smoothing
+## window to smooth `x` for similarity matrix computation. Employ a fine-tuning
+## procedure for stride identification.
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = list(true.pattern.1, true.pattern.2),
+  pattern.dur.seq =  60:130 * 0.01,
+  similarity.measure = "cor",
+  x.adept.ma.W = 0.1,
+  finetune = "maxima",
+  finetune.maxima.nbh.W = 0.3,
+  compute.template.idx = TRUE)
+out
+## Segment pattern from x. Employ a fine-tuning procedure for stride
+## identification. Smooth `x` for both similarity matrix computation
+## (set `x.adept.ma.W = 0.1`) and for  fine-tune peak detection procedure
+## (set `finetune.maxima.nbh.W = 0.3`).
+out &lt;- segmentPattern(
+  x = x,
+  x.fs = 100,
+  template = list(true.pattern.1, true.pattern.2),
+  pattern.dur.seq =  60:130 * 0.01,
+  similarity.measure = "cor",
+  x.adept.ma.W = 0.1,
+  finetune = "maxima",
+  finetune.maxima.nbh.W = 0.3,
+  compute.template.idx = TRUE)
+out
+
+</code></pre>
+
+
+</div>

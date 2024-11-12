@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>insist_rows</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Raises error if dynamically created predicate is FALSE for any row
+after applying row reduction function</h2>
+
+<h3>Description</h3>
+
+<p>Meant for use in a data analysis pipeline, this function applies a
+function to a data frame that reduces each row to a single value. Then,
+a predicate generating function is applied to row reduction values. It will
+then use these predicates to check each of the row reduction values. If any
+of these predicate applications yield FALSE, this function will raise
+an error, effectively terminating the pipeline early. If there are no
+FALSEs, this function will just return the data that it was supplied for
+further use in later parts of the pipeline.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">insist_rows(
+  data,
+  row_reduction_fn,
+  predicate_generator,
+  ...,
+  success_fun = success_continue,
+  error_fun = error_stop,
+  skip_chain_opts = FALSE,
+  obligatory = FALSE,
+  defect_fun = defect_append,
+  description = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row_reduction_fn</code></td>
+<td>
+<p>A function that returns a value for each row of
+the provided data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predicate_generator</code></td>
+<td>
+<p>A function that is applied to the results of
+the row reduction function. This will produce,
+a true predicate function to be applied to every
+element in the vector that the row reduction
+function returns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Comma separated list of unquoted expressions.
+Uses dplyr's <code>select</code> to select
+columns from data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>success_fun</code></td>
+<td>
+<p>Function to call if assertion passes. Defaults to
+returning <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error_fun</code></td>
+<td>
+<p>Function to call if assertion fails. Defaults to printing
+a summary of all errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip_chain_opts</code></td>
+<td>
+<p>If TRUE, <code>success_fun</code> and <code>error_fun</code>
+are used even if assertion is called within a chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obligatory</code></td>
+<td>
+<p>If TRUE and assertion failed the data is marked as defective.
+For defective data, all the following rules are handled by
+<code>defect_fun</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defect_fun</code></td>
+<td>
+<p>Function to call when data is defective. Defaults to skipping
+assertion and storing info about it in special attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Custom description of the rule. Is stored in result
+reports and data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For examples of possible choices for the <code>success_fun</code> and
+<code>error_fun</code> parameters, run <code>help("success_and_error_functions")</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, the <code>data</code> is returned if dynamically created
+predicate assertion is TRUE and and error is thrown if not. If a
+non-default <code>success_fun</code> or <code>error_fun</code> is used, the
+return values of these function will be returned.
+</p>
+
+
+<h3>Note</h3>
+
+<p>See <code>vignette("assertr")</code> for how to use this in context
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>insist</code> <code>assert_rows</code>
+<code>assert</code> <code>verify</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# returns mtcars
+insist_rows(mtcars, maha_dist, within_n_mads(30), mpg:carb)
+
+library(magrittr)                    # for piping operator
+
+mtcars %&gt;%
+  insist_rows(maha_dist, within_n_mads(10), vs:am)
+  # anything here will run
+
+## Not run: 
+mtcars %&gt;%
+  insist_rows(maha_dist, within_n_mads(1), everything())
+  # the assertion is untrue so
+  # nothing here will run
+## End(Not run)
+
+</code></pre>
+
+
+</div>

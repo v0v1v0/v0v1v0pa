@@ -1,0 +1,425 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>setup_trial_binom</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Setup a trial specification using a binary, binomially distributed outcome</h2>
+
+<h3>Description</h3>
+
+<p>Specifies the design of an adaptive trial with a binary, binomially
+distributed outcome and validates all inputs. Uses <em>beta-binomial</em>
+conjugate models with <code>beta(1, 1)</code> prior distributions, corresponding to a
+uniform prior (or the addition of 2 patients, 1 with an event and 1 without,
+in each <code>arm</code>) to the trial. Use <code>calibrate_trial()</code> to calibrate the trial
+specification to obtain a specific value for a certain performance metric
+(e.g., the Bayesian type 1 error rate). Use <code>run_trial()</code> or <code>run_trials()</code>
+to conduct single/multiple simulations of the specified trial, respectively.
+<br><strong>Note:</strong> <code>add_info</code> as specified in <code>setup_trial()</code> is set to <code>NULL</code> for
+trial specifications setup by this function.<br><strong>Further details:</strong> please see <code>setup_trial()</code>. See <code>setup_trial_norm()</code> for
+simplified setup of trials with a normally distributed continuous outcome.<br>
+For additional trial specification examples, see the the <strong>Basic examples</strong>
+vignette (<code>vignette("Basic-examples", package = "adaptr")</code>) and the
+<strong>Advanced example</strong> vignette
+(<code>vignette("Advanced-example", package = "adaptr")</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">setup_trial_binom(
+  arms,
+  true_ys,
+  start_probs = NULL,
+  fixed_probs = NULL,
+  min_probs = rep(NA, length(arms)),
+  max_probs = rep(NA, length(arms)),
+  rescale_probs = NULL,
+  data_looks = NULL,
+  max_n = NULL,
+  look_after_every = NULL,
+  randomised_at_looks = NULL,
+  control = NULL,
+  control_prob_fixed = NULL,
+  inferiority = 0.01,
+  superiority = 0.99,
+  equivalence_prob = NULL,
+  equivalence_diff = NULL,
+  equivalence_only_first = NULL,
+  futility_prob = NULL,
+  futility_diff = NULL,
+  futility_only_first = NULL,
+  highest_is_best = FALSE,
+  soften_power = 1,
+  cri_width = 0.95,
+  n_draws = 5000,
+  robust = TRUE,
+  description = "generic binomially distributed outcome trial"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>arms</code></td>
+<td>
+<p>character vector with unique names for the trial arms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_ys</code></td>
+<td>
+<p>numeric vector, true probabilities (between <code>0</code> and <code>1</code>) of
+outcomes in all trial <code>arms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_probs</code></td>
+<td>
+<p>numeric vector, allocation probabilities for each arm at
+the beginning of the trial. The default (<code>NULL</code>) automatically generates
+equal randomisation probabilities for each arm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_probs</code></td>
+<td>
+<p>numeric vector, fixed allocation probabilities for each
+arm. Must be either a numeric vector with <code>NA</code> for arms without fixed
+probabilities and values between <code>0</code> and <code>1</code> for the other arms or <code>NULL</code>
+(default), if adaptive randomisation is used for all arms or if one of the
+special settings (<code>"sqrt-based"</code>, <code>"sqrt-based start"</code>,
+<code>"sqrt-based fixed"</code>, or <code>"match"</code>) is specified for <code>control_prob_fixed</code>
+(described below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_probs</code></td>
+<td>
+<p>numeric vector, lower threshold for adaptive allocation
+probabilities; lower probabilities will be rounded up to these values. Must
+be <code>NA</code> (default for all arms) if no lower threshold is wanted and for arms
+using fixed allocation probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_probs</code></td>
+<td>
+<p>numeric vector, upper threshold for adaptive allocation
+probabilities; higher probabilities will be rounded down to these values.
+Must be <code>NA</code> (default for all arms) if no threshold is wanted and for arms
+using fixed allocation probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale_probs</code></td>
+<td>
+<p><code>NULL</code> (default) or one of either <code>"fixed"</code>, <code>"limits"</code>,
+or <code>"both"</code>. Rescales <code>fixed_probs</code> (if <code>"fixed"</code> or <code>"both"</code>) and
+<code>min_probs/max_probs</code> (if <code>"limits"</code> or <code>"both"</code>) after arm dropping in
+trial specifications with <code style="white-space: pre;">⁠&gt;2 arms⁠</code> using a <code>rescale_factor</code> defined as
+<code style="white-space: pre;">⁠initial number of arms/number of active arms⁠</code>. <code style="white-space: pre;">⁠"fixed_probs⁠</code> and
+<code>min_probs</code> are rescaled as <code style="white-space: pre;">⁠initial value * rescale factor⁠</code>, except for
+<code>fixed_probs</code> controlled by the <code>control_prob_fixed</code> argument, which are
+never rescaled. <code>max_probs</code> are rescaled as
+<code style="white-space: pre;">⁠1 - ( (1 - initial value) * rescale_factor)⁠</code>.<br>
+Must be <code>NULL</code> if there are only <code style="white-space: pre;">⁠2 arms⁠</code> or if <code>control_prob_fixed</code> is
+<code>"sqrt-based fixed"</code>. If not <code>NULL</code>, one or more valid non-<code>NA</code> values must
+be specified for either <code>min_probs/max_probs</code> or <code>fixed_probs</code> (not
+counting a fixed value for the original <code>control</code> if <code>control_prob_fixed</code>
+is <code>"sqrt-based"/"sqrt-based start"/"sqrt-based fixed"</code>).<br><strong>Note:</strong> using this argument and specific combinations of values in
+the other arguments may lead to invalid combined (total) allocation
+probabilities after arm dropping, in which case all probabilities will
+ultimately be rescaled to sum to <code>1</code>. It is the responsibility of the user
+to ensure that rescaling fixed allocation probabilities and minimum/maximum
+allocation probability limits will not lead to invalid or unexpected
+allocation probabilities after arm dropping.<br>
+Finally, any initial values that are overwritten by the
+<code>control_prob_fixed</code> argument after arm dropping will not be rescaled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_looks</code></td>
+<td>
+<p>vector of increasing integers, specifies when to conduct
+adaptive analyses (= the total number of patients with available outcome
+data at each adaptive analysis). The last number in the vector represents
+the final adaptive analysis, i.e., the final analysis where superiority,
+inferiority, practical equivalence, or futility can be claimed.
+Instead of specifying <code>data_looks</code>, the <code>max_n</code> and <code>look_after_every</code>
+arguments can be used in combination (in which case <code>data_looks</code> must be
+<code>NULL</code>, the default value).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_n</code></td>
+<td>
+<p>single integer, number of patients with available outcome data
+at the last possible adaptive analysis (defaults to <code>NULL</code>).
+Must only be specified if <code>data_looks</code> is <code>NULL</code>. Requires specification of
+the <code>look_after_every</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>look_after_every</code></td>
+<td>
+<p>single integer, specified together with <code>max_n</code>.
+Adaptive analyses will be conducted after every <code>look_after_every</code>
+patients have available outcome data, and at the total sample size as
+specified by <code>max_n</code> (<code>max_n</code> does not need to be a multiple of
+<code>look_after_every</code>). If specified, <code>data_looks</code> must be <code>NULL</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomised_at_looks</code></td>
+<td>
+<p>vector of increasing integers or <code>NULL</code>,
+specifying the number of patients randomised at the time of each adaptive
+analysis, with new patients randomised using the current allocation
+probabilities at said analysis.
+If <code>NULL</code> (the default), the number of patients randomised at each analysis
+will match the number of patients with available outcome data at said
+analysis, as specified by <code>data_looks</code> or <code>max_n</code> and <code>look_after_every</code>,
+i.e., outcome data will be available immediately after randomisation for
+all patients.<br>
+If not <code>NULL</code>, the vector must be of the same length as the number of
+adaptive analyses specified by <code>data_looks</code> or <code>max_n</code> and
+<code>look_after_every</code>, and all values must be larger than or equal to the
+number of patients with available outcome data at each analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>single character string, name of one of the <code>arms</code> or <code>NULL</code>
+(default). If specified, this arm will serve as a common control arm, to
+which all other arms will be compared and the
+inferiority/superiority/equivalence thresholds (see below) will be for
+those comparisons. See <code>setup_trial()</code> <strong>Details</strong> for information on
+behaviour with respect to these comparisons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control_prob_fixed</code></td>
+<td>
+<p>if a common <code>control</code> arm is specified, this can
+be set <code>NULL</code> (the default), in which case the control arm allocation
+probability will not be fixed if control arms change (the allocation
+probability for the first control arm may still be fixed using
+<code>fixed_probs</code>, but will not be 'reused' for the new control arm).<br>
+If not <code>NULL</code>, a vector of probabilities of either length <code>1</code> or
+<code style="white-space: pre;">⁠number of arms - 1⁠</code> can be provided, or one of the special arguments
+<code>"sqrt-based"</code>, <code>"sqrt-based start"</code>, <code>"sqrt-based fixed"</code> or <code>"match"</code>.<br>
+See <code>setup_trial()</code> <strong>Details</strong> for details on how this affects
+trial behaviour.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inferiority</code></td>
+<td>
+<p>single numeric value or vector of numeric values of the
+same length as the maximum number of possible adaptive analyses, specifying
+the probability threshold(s) for inferiority (default is <code>0.01</code>). All
+values must be <code style="white-space: pre;">⁠&gt;= 0⁠</code> and <code style="white-space: pre;">⁠&lt;= 1⁠</code>, and if multiple values are supplied, no
+values may be lower than the preceding value. If a common <code>control</code>is not
+used, all values must be <code style="white-space: pre;">⁠&lt; 1 / number of arms⁠</code>. An arm will be considered
+inferior and dropped if the probability that it is best (when comparing all
+arms) or better than the control arm (when a common <code>control</code> is used)
+drops below the inferiority threshold at an adaptive analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>superiority</code></td>
+<td>
+<p>single numeric value or vector of numeric values of the
+same length as the maximum number of possible adaptive analyses, specifying
+the probability threshold(s) for superiority (default is <code>0.99</code>). All
+values must be <code style="white-space: pre;">⁠&gt;= 0⁠</code> and <code style="white-space: pre;">⁠&lt;= 1⁠</code>, and if multiple values are supplied, no
+values may be higher than the preceding value. If the probability that an
+arm is best (when comparing all arms) or better than the control arm (when
+a common <code>control</code> is used) exceeds the superiority threshold at an
+adaptive analysis, said arm will be declared the winner and the trial will
+be stopped (if no common <code>control</code> is used or if the last comparator is
+dropped in a design with a common control) <em>or</em> become the new control and
+the trial will continue (if a common control is specified).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equivalence_prob</code></td>
+<td>
+<p>single numeric value, vector of numeric values of the
+same length as the maximum number of possible adaptive analyses or <code>NULL</code>
+(default, corresponding to no equivalence assessment), specifying the
+probability threshold(s) for equivalence. If not <code>NULL</code>, all values must be
+<code style="white-space: pre;">⁠&gt; 0⁠</code> and <code style="white-space: pre;">⁠&lt;= 1⁠</code>, and if multiple values are supplied, no value may be
+higher than the preceding value. If not <code>NULL</code>, arms will be dropped for
+equivalence if the probability of either <em>(a)</em> equivalence compared to a
+common <code>control</code> or <em>(b)</em> equivalence between all arms remaining (designs
+without a common <code>control</code>) exceeds the equivalence threshold at an
+adaptive analysis. Requires specification of <code>equivalence_diff</code> and
+<code>equivalence_only_first</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equivalence_diff</code></td>
+<td>
+<p>single numeric value (<code style="white-space: pre;">⁠&gt; 0⁠</code>) or <code>NULL</code> (default,
+corresponding to no equivalence assessment). If a numeric value is
+specified, estimated absolute differences smaller than this threshold will
+be considered equivalent. For designs with a common <code>control</code> arm, the
+differences between each non-control arm and the <code>control</code> arm is used, and
+for trials without a common <code>control</code> arm, the difference between the
+highest and lowest estimated outcome rates are used and the trial is only
+stopped for equivalence if all remaining arms are equivalent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equivalence_only_first</code></td>
+<td>
+<p>single logical in trial specifications where
+<code>equivalence_prob</code> and <code>equivalence_diff</code> are specified and a common
+<code>control</code> arm is included, otherwise <code>NULL</code> (default). If a common
+<code>control</code> arm is used, this specifies whether equivalence will only be
+assessed for the first control (if <code>TRUE</code>) or also for subsequent <code>control</code>
+arms (if <code>FALSE</code>) if one arm is superior to the first control and becomes
+the new control.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futility_prob</code></td>
+<td>
+<p>single numeric value, vector of numeric values of the
+same length as the maximum number of possible adaptive analyses or <code>NULL</code>
+(default, corresponding to no futility assessment), specifying the
+probability threshold(s) for futility. All values must be <code style="white-space: pre;">⁠&gt; 0⁠</code> and <code style="white-space: pre;">⁠&lt;= 1⁠</code>,
+and if multiple values are supplied, no value may be higher than the
+preceding value. If not <code>NULL</code>, arms will be dropped for futility if
+the probability for futility compared to the common <code>control</code> exceeds the
+futility threshold at an adaptive analysis. Requires a common <code>control</code>
+arm (otherwise this argument must be <code>NULL</code>), specification of
+<code>futility_diff</code>, and <code>futility_only_first</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futility_diff</code></td>
+<td>
+<p>single numeric value (<code style="white-space: pre;">⁠&gt; 0⁠</code>) or <code>NULL</code> (default,
+corresponding to no futility assessment). If a numeric value is specified,
+estimated differences below this threshold in the <em>beneficial</em> direction
+(as specified in <code>highest_is_best</code>) will be considered futile when
+assessing futility in designs with a common <code>control</code> arm. If only 1 arm
+remains after dropping arms for futility, the trial will be stopped without
+declaring the last arm superior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futility_only_first</code></td>
+<td>
+<p>single logical in trial specifications designs
+where <code>futility_prob</code> and <code>futility_diff</code> are specified, otherwise <code>NULL</code>
+(default and required in designs without a common <code>control</code> arm).
+Specifies whether futility will only be assessed against the first
+<code>control</code> (if <code>TRUE</code>) or also for subsequent control arms (if <code>FALSE</code>) if
+one arm is superior to the first control and becomes the new control.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>highest_is_best</code></td>
+<td>
+<p>single logical, specifies whether larger estimates of
+the outcome are favourable or not; defaults to <code>FALSE</code>, corresponding to,
+e.g., an undesirable binary outcomes (e.g., mortality) or a continuous
+outcome where lower numbers are preferred (e.g., hospital length of stay).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soften_power</code></td>
+<td>
+<p>either a single numeric value or a numeric vector of
+exactly the same length as the maximum number of looks/adaptive analyses.
+Values must be between <code>0</code> and <code>1</code> (default); if <code style="white-space: pre;">⁠&lt; 1⁠</code>, then re-allocated
+non-fixed allocation probabilities are all raised to this power (followed
+by rescaling to sum to <code>1</code>) to make adaptive allocation probabilities
+less extreme, in turn used to redistribute remaining probability while
+respecting limits when defined by <code>min_probs</code> and/or <code>max_probs</code>. If <code>1</code>,
+then no <em>softening</em> is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cri_width</code></td>
+<td>
+<p>single numeric <code style="white-space: pre;">⁠&gt;= 0⁠</code> and <code style="white-space: pre;">⁠&lt; 1⁠</code>, the width of the
+percentile-based credible intervals used when summarising individual trial
+results. Defaults to <code>0.95</code>, corresponding to 95% credible intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_draws</code></td>
+<td>
+<p>single integer, the number of draws from the posterior
+distributions for each arm used when running the trial. Defaults to
+<code>5000</code>; can be reduced for a speed gain (at the potential loss of stability
+of results if too low) or increased for increased precision (increasing
+simulation time). Values <code style="white-space: pre;">⁠&lt; 100⁠</code> are not allowed and values <code style="white-space: pre;">⁠&lt; 1000⁠</code> are
+not recommended and warned against.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>single logical, if <code>TRUE</code> (default) the medians and median
+absolute deviations (scaled to be comparable to the standard deviation for
+normal distributions; MAD_SDs, see <code>stats::mad()</code>) are used to summarise
+the posterior distributions; if <code>FALSE</code>, the means and standard deviations
+(SDs) are used instead (slightly faster, but may be less appropriate for
+posteriors skewed on the natural scale).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>character string, default is
+<code>"generic binomially distributed outcome trial"</code>. See arguments of
+<code>setup_trial()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>trial_spec</code> object used to run simulations by <code>run_trial()</code> or
+<code>run_trials()</code>. The output is essentially a list containing the input
+values (some combined in a <code>data.frame</code> called <code>trial_arms</code>), but its class
+signals that these inputs have been validated and inappropriate
+combinations and settings have been ruled out. Also contains <code>best_arm</code>,
+holding the arm(s) with the best value(s) in <code>true_ys</code>. Use <code>str()</code> to
+peruse the actual content of the returned object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup a trial specification using a binary, binomially
+# distributed, undesirable outcome
+binom_trial &lt;- setup_trial_binom(
+  arms = c("Arm A", "Arm B", "Arm C"),
+  true_ys = c(0.25, 0.20, 0.30),
+  # Minimum allocation of 15% in all arms
+  min_probs = rep(0.15, 3),
+  data_looks = seq(from = 300, to = 2000, by = 100),
+  # Stop for equivalence if &gt; 90% probability of
+  # absolute differences &lt; 5 percentage points
+  equivalence_prob = 0.9,
+  equivalence_diff = 0.05,
+  soften_power = 0.5 # Limit extreme allocation ratios
+)
+
+# Print using 3 digits for probabilities
+print(binom_trial, prob_digits = 3)
+
+</code></pre>
+
+
+</div>

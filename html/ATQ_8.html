@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eval_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate Alarm Metrics for Epidemic Models</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates various performance metrics for epidemic alarm systems
+across different lags and thresholds. It evaluates False Alarm Rate (FAR),
+Added Days Delayed (ADD), Average Alarm Time Quality (AATQ), First Alarm Time
+Quality (FATQ), and their weighted versions (WAATQ, WFATQ).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eval_metrics(data, maxlag = 15, thres = seq(0.1, 0.6, by = 0.05), topt = 14)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the epidemic data with lagged variables,
+typically output from the compile_epi function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxlag</code></td>
+<td>
+<p>The maximum number of lags to consider (default: 15).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thres</code></td>
+<td>
+<p>A vector of threshold values to evaluate (default: seq(0.1, 0.6, by = 0.05)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topt</code></td>
+<td>
+<p>Optimal alarm day (default = 14).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing three elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>An object of class "alarm_metrics" with the following components:
+</p>
+
+<ul>
+<li>
+<p> FAR: Matrix of False Alarm Rates for each lag and threshold
+</p>
+</li>
+<li>
+<p> ADD: Matrix of Added Days Delayed for each lag and threshold
+</p>
+</li>
+<li>
+<p> AATQ: Matrix of Average Alarm Time Quality for each lag and threshold
+</p>
+</li>
+<li>
+<p> FATQ: Matrix of First Alarm Time Quality for each lag and threshold
+</p>
+</li>
+<li>
+<p> WAATQ: Matrix of Weighted Average Alarm Time Quality for each lag and threshold
+</p>
+</li>
+<li>
+<p> WFATQ: Matrix of Weighted First Alarm Time Quality for each lag and threshold
+</p>
+</li>
+<li>
+<p> best.AATQ: Best model according to AATQ
+</p>
+</li>
+<li>
+<p> best.FATQ: Best model according to FATQ
+</p>
+</li>
+<li>
+<p> best.FAR: Best model according to FAR
+</p>
+</li>
+<li>
+<p> best.ADD: Best model according to ADD
+</p>
+</li>
+<li>
+<p> best.WFATQ: Best model according to WFATQ
+</p>
+</li>
+<li>
+<p> best.WAATQ: Best model according to WAATQ
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_data</code></td>
+<td>
+<p>An object of class "alarm_plot_data" for generating plots</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary</code></td>
+<td>
+<p>An object of class "alarm_metrics_summary" containing summary statistics</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>ssir</code>, <code>compile_epi</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate simulated epidemic data
+n_rows &lt;- 7421
+n_houses &lt;- 1000
+
+epidemic_new &lt;- ssir(n_rows, T = 300, alpha = 0.298, inf_init = 32, rep = 3)
+
+individual_data &lt;- data.frame(
+  houseID = rep(1:n_houses, each = ceiling(n_rows / n_houses))[1:n_rows],
+  catchID = sample(1:10, n_rows, replace = TRUE),
+  schoolID = sample(1:10, n_rows, replace = TRUE),
+  num_people = round(rnorm(n_rows, mean = 4, sd = 1)),
+  num_elem_child = round(rnorm(n_rows, mean = 1, sd = 1)),
+  xStart = 0,
+  xEnd = 5,
+  yStart = 0,
+  yEnd = 5,
+  loc.x = rnorm(n_rows, mean = 2.5, sd = 1),
+  loc.y = rnorm(n_rows, mean = 2.5, sd = 1),
+  individualID = 1:n_rows,
+  elem_child_ind = sample(0:1, n_rows, replace = TRUE)
+)
+
+compiled_data &lt;- compile_epi(epidemic_new, individual_data)
+
+# Evaluate alarm metrics
+alarm_metrics &lt;- eval_metrics(compiled_data,
+                              thres = seq(0.1, 0.3, by = 0.05))
+
+# Access the results
+summary(alarm_metrics$summary)
+</code></pre>
+
+
+</div>

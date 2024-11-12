@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logitreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Logistic regression models for assessing analogues/non-analogues</h2>
+
+<h3>Description</h3>
+
+<p>Fits logistic regression models to each level of <code>group</code> to
+model the probability of two samples being analogues conditional upon
+the dissimilarity between the two samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logitreg(object, groups, k = 1, ...)
+
+## Default S3 method:
+logitreg(object, groups, k = 1,
+         biasReduced = FALSE, ...)
+
+## S3 method for class 'analog'
+logitreg(object, groups, k = 1, ...)
+
+## S3 method for class 'logitreg'
+summary(object, p = 0.9, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>for <code>logitreg</code>; a full dissimilarity matrix. For
+<code>summary.logitreg</code> an object of class <code>"logitreg"</code>, the
+result of a call to <code>logitreg</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>factor (or object that can be coerced to one) containing
+the group membership for each sample in <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; the <code>k</code> closest analogues to use in the model
+fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biasReduced</code></td>
+<td>
+<p>logical; should Firth's method for bias reduced
+logistic regression be used to fit the models? If <code>TRUE</code>, model
+fits are performed via <code>brglm</code>. The default,
+<code>FALSE</code>, indicates that models will be fitted via the standard
+<code>glm</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>probability at which to predict the dose needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to other methods. These arguments are
+passed on to <code>glm</code> or <code>brglm</code>. See their
+respective helps pages for details. Note that <code>logitreg</code> sets
+internally the <code>formula</code>, <code>data</code>, and <code>family</code>
+arguments and hence can not be specified by the user.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fits logistic regression models to each level of <code>group</code> to
+model the probability of two samples being analogues (i.e. in the same
+group) conditional upon the dissimilarity between the two samples.
+</p>
+<p>This function can be seen as a way of directly modelling the
+probability that two sites are analogues, conditional upon
+dissimilarity, that can also be done less directly using
+<code>roc</code> and <code>bayesF</code>.
+</p>
+<p>Often, the number of true analogues in the training set is small, both
+in absolute terms and as a proportion of comparisons. Logistic
+regression is known to suffer from a small-sample bias. Firth's method
+of bias reduction is a general solution to this problem and is
+implemented in <code>logitreg</code> through the <span class="pkg">brglm</span> package of
+Ioannis Kosmidis.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>logitreg</code> returns an object of class <code>"logitreg"</code>; a list
+whose components are objects returned by <code>glm</code>. See
+<code>glm</code> for further details on the returned objects.
+</p>
+<p>The components of this list take their names from <code>group</code>.
+</p>
+<p>For <code>summary.logitreg</code> an object of class
+<code>"summary.logitreg"</code>, a data frame with summary statistics of the
+model fits. The components of this data frame are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>In, Out</code></td>
+<td>
+<p>The number of analogue and non-analogue dissimilarities
+analysed in each group,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Est.(Dij), Std.Err</code></td>
+<td>
+<p>Coefficient and its standard error for
+dissimilarity from the logit model,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z-value, p-value</code></td>
+<td>
+<p>Wald statistic and associated p-value for each
+logit model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dij(p=?), Std.Err(Dij)</code></td>
+<td>
+<p>The dissimilarity at which the posterior
+probability of two samples being analogues is equal to <code class="reqn">p</code>, and
+its standard error. These are computed using
+<code>dose.p</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The function may generate warnings from function
+<code>glm.fit</code>. These should be investigated and not simply
+ignored.
+</p>
+<p>If the message is concerns fitted probabilities being numerically 0 or
+1, then check the fitted values of each of the models. These may well
+be numerically 0 or 1. Heed the warning in <code>glm</code> and read
+the reference cited therein which <strong>may</strong> indicate problems with
+the fitted models, such as (quasi-)complete separation.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Firth, D. (1993). Bias reduction of maximum likelihood
+estimates. <em>Biometrika</em> <strong>80</strong>, 27-38.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>roc</code>, <code>bayesF</code>, <code>glm</code>, and
+<code>brglm</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load the example data
+data(swapdiat, swappH, rlgh)
+
+## merge training and test set on columns
+dat &lt;- join(swapdiat, rlgh, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+swapdiat &lt;- dat[[1]] / 100
+rlgh &lt;- dat[[2]] / 100
+
+## fit an analogue matching (AM) model using the squared chord distance
+## measure - need to keep the training set dissimilarities
+swap.ana &lt;- analog(swapdiat, rlgh, method = "SQchord",
+                   keep.train = TRUE)
+
+## fit the ROC curve to the SWAP diatom data using the AM results
+## Generate a grouping for the SWAP lakes
+METHOD &lt;- if (getRversion() &lt; "3.1.0") {"ward"} else {"ward.D"}
+clust &lt;- hclust(as.dist(swap.ana$train), method = METHOD)
+grps &lt;- cutree(clust, 6)
+
+## fit the logit models to the analog object
+swap.lrm &lt;- logitreg(swap.ana, grps)
+swap.lrm
+
+## summary statistics
+summary(swap.lrm)
+
+## plot the fitted logit curves
+plot(swap.lrm, conf.type = "polygon")
+
+## extract fitted posterior probabilities for training samples
+## for the individual groups
+fit &lt;- fitted(swap.lrm)
+head(fit)
+
+## compute posterior probabilities of analogue-ness for the rlgh
+## samples. Here we take the dissimilarities between fossil and
+## training samples from the `swap.ana` object rather than re-
+## compute them
+pred &lt;- predict(swap.lrm, newdata = swap.ana$analogs)
+head(pred)
+
+## Bias reduction
+## fit the logit models to the analog object
+swap.brlrm &lt;- logitreg(swap.ana, grps, biasReduced = TRUE)
+summary(swap.brlrm)
+</code></pre>
+
+
+</div>

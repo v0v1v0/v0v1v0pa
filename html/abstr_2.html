@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ab_json</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert geographic ('sf') representation of OD data to 'JSON list' structure</h2>
+
+<h3>Description</h3>
+
+<p>This function takes outputs from <code>ab_scenario()</code> and returns a list that
+can be saved as a JSON file for import into A/B Street.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ab_json(
+  desire_lines,
+  mode_column = NULL,
+  time_fun = ab_time_normal,
+  scenario_name = "test",
+  default_purpose = "Work",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>desire_lines</code></td>
+<td>
+<p>OD data represented as geographic lines created by
+<code>ab_scenario()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode_column</code></td>
+<td>
+<p>The column name in the desire lines data that contains
+the mode of transport. <code>"mode_baseline"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_fun</code></td>
+<td>
+<p>The function used to calculate departure times.
+<code>ab_time_normal()</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scenario_name</code></td>
+<td>
+<p>The name of the scenario to appear in A/B Street.
+The default value is <code>"test"</code>, which generates a message to tell you to
+think of a more imaginative scenario name!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_purpose</code></td>
+<td>
+<p>In case a <code>purpose</code> column is not present in the input,
+or there are missing values in the <code>purpose</code> column, this argument sets
+the default, fallback purpose, as <code>"Work"</code> by default, reflecting the
+prevalence of work-based data and thinking in transport models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass to <code>ab_json()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: the departure time in seconds is multiplied by 10000 on conversion
+to a .json list object for compatibility with the A/B Street schema.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list that can be saved as a JSON file with <code>ab_save()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Starting with tabular data
+od = leeds_od
+od[[1]] = c("E02006876")
+zones = leeds_zones
+ablines = ab_scenario(od, zones = zones)
+ab_list = ab_json(ablines, mode_column = "mode", scenario_name = "test")
+ab_list$scenario
+f = tempfile(fileext = ".json")
+ab_save(ab_list, f)
+readLines(f)[1:30]
+
+# Starting with JSON data from A/B Street (multiple trips per person)
+f = system.file("extdata/minimal_scenario2.json", package = "abstr")
+desire_lines = ab_sf(f)
+desire_lines
+json_list = ab_json(desire_lines)
+json_list
+</code></pre>
+
+
+</div>

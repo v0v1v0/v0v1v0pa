@@ -1,0 +1,334 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>awsLocalSigma</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+3D variance estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>Functions for 3D variance estimation. <code>awsLocalSigma</code> implements the
+local adaptive variance estimation procedure introduced in Tabelow, Voss and Polzehl (2015).
+<code>awslinsd</code> uses a parametric model for varianc/mesn dependence. Functions
+<code>AFLocalSigma</code> and <code>estGlobalSigma</code> implement various proposals for local
+and global variance estimates from Aja-Fernandez (2009, 2013) and a global variant of the
+approach from Tabelow, Voss and Polzehl (2015).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">awsLocalSigma(y, steps, mask, ncoils, vext = c(1, 1), lambda = 5,
+    minni = 2, hsig = 5, sigma = NULL, family = c("NCchi", "Gauss"),
+    verbose = FALSE, trace = FALSE, u = NULL)
+awslinsd(y, hmax = NULL, hpre = NULL, h0 = NULL, mask = NULL,
+    ladjust = 1, wghts = NULL, varprop = 0.1, A0, A1)
+AFLocalSigma(y, ncoils, level = NULL, mask = NULL, h = 2, hadj = 1,
+    vext = c(1, 1))
+estGlobalSigma(y, mask = NULL, ncoils = 1, steps = 16, vext = c(1, 1),
+    lambda = 20, hinit = 2, hadj = 1, q = 0.25, level = NULL,
+    sequence = FALSE, method = c("awsVar", "awsMAD", "AFmodevn",
+                "AFmodem1chi", "AFbkm2chi", "AFbkm1chi"))
+estimateSigmaCompl(magnitude, phase, mask, kstar = 20, kmin = 8, hsig = 5,
+        lambda = 12, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>3D array of image intensities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>steps</code></td>
+<td>
+
+<p>number of steps in adapive weights smoothing, used to reveal the unerlying
+mean structure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+
+<p>restrict computations to voxel in mask, if <code>is.null(mask)</code> all voxel are used.
+In function <code>estGlobalSigma</code> mask should refer to background for <code>method %in% c("modem1chi","bkm2chi","bkm1chi")</code> and to voxel within the head for
+<code>method=="modevn"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncoils</code></td>
+<td>
+
+<p>effective number of coils, or equivalently number of effective degrees of freedom of non-central chi distribution divided by 2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vext</code></td>
+<td>
+
+<p>voxel extentions or relative voxel extensions
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>scale parameter in adaptive weights smoothing
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minni</code></td>
+<td>
+
+<p>minimal bandwidth for calculating local variance estimates
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hsig</code></td>
+<td>
+
+<p>bandwwidth for median filter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+
+<p>optional initial global variance estimate
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+
+<p>type of distribution, either noncentral Chi ("NCchi") or Gaussian ("Gauss")
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>if <code>verbose==TRUE</code> density plots
+and quantiles of local estimates of <code>sigma</code> are provided.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>if <code>trace==TRUE</code> intermediate results for each step are
+returned in component tergs for all voxel in mask.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>if <code>verbose==TRUE</code> an array of noncentrality paramters for
+comparisons. Internal use for tests only
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+
+<p>maximal bandwidth
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpre</code></td>
+<td>
+
+<p>minimal bandwidth
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h0</code></td>
+<td>
+
+<p>bandwidth vector characterizing to spatial correlation as correlation induced
+by convolution with a Gaussian kernel
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+
+<p>correction factor for lambda
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts</code></td>
+<td>
+
+<p>relative voxel extensions
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varprop</code></td>
+<td>
+
+<p>defines a lower bound for the estimated variance as <code>varprop*mean(sigma2hat</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A0</code></td>
+<td>
+
+<p>select voxel with <code>A0 &lt; theta &lt; A1</code> to estimate parameters of the variance model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A1</code></td>
+<td>
+
+<p>select voxel with <code>A0 &lt; theta &lt; A1</code> to estimate parameters of the variance model
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+
+<p>threshold for mask definition
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+
+<p>bandwidth for local variance estimates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hinit</code></td>
+<td>
+
+<p>minimal bandwidth for local variance estimates with <code>method="awsxxx"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hadj</code></td>
+<td>
+
+<p>bandwidth for mode estimation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+
+<p>Quantile for interquantile estimate of standard deviation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sequence</code></td>
+<td>
+
+<p>logical, return sequence of estimated variances for iterative methods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>determines variance estimation method
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>magnitude</code></td>
+<td>
+
+<p>magnitude of complex 3D image
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phase</code></td>
+<td>
+
+<p>phase of complex 3D image
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kstar</code></td>
+<td>
+
+<p>number of steps in adapive weights smoothing, used to reveal the unerlying
+mean structure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmin</code></td>
+<td>
+
+<p>iteration to start adaptation
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>all functions return lists with variance estimates in component <code>sigma</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J\"org Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>K. Tabelow, H.U. Voss, J. Polzehl, Local estimation of the noise level in MRI using
+structural adaptation, Medical Image Analysis, 20 (2015), 76–86. DOI:10.1016/j.media.2014.10.008.
+</p>
+<p>S. Aja-Fernandez, V. Brion, A. Tristan-Vega, Effective noise estimation and
+filtering from correlated multiple-coil MR data. Magn Reson Imaging, 31 (2013), 272-285.
+DOI:10.1016/j.mri.2012.07.006
+</p>
+<p>S. Aja-Fernandez, A. Tristan-Vega, C. Alberola-Lopez, Noise estimation in
+single- and multiple-coil magnetic resonance data based on statistical models.
+Magn Reson Imaging, 27 (2009), 1397-1409. DOI:10.1016/j.mri.2009.05.025.
+</p>
+
+
+</div>

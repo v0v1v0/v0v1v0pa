@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_summarize_uni</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Univariate summary</h2>
+
+<h3>Description</h3>
+
+<p>Summarize the univariate information from an ORSF object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_summarize_uni(
+  object,
+  n_variables = NULL,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  importance = NULL,
+  class = NULL,
+  verbose_progress = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) a trained oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_variables</code></td>
+<td>
+<p>(<em>integer</em>) how many variables should be summarized?
+Setting this input to a lower number will reduce computation time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_horizon</code></td>
+<td>
+<p>(<em>double</em>) Only relevent for survival forests.
+A value or vector indicating the time(s) that predictions will be
+calibrated to. E.g., if you were predicting risk of incident heart
+failure within the next 10 years, then <code>pred_horizon = 10</code>.
+<code>pred_horizon</code> can be <code>NULL</code> if <code>pred_type</code> is <code>'mort'</code>, since
+mortality predictions are aggregated over all event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_type</code></td>
+<td>
+<p>(<em>character</em>) the type of predictions to compute. Valid
+Valid options for survival are:
+</p>
+
+<ul>
+<li>
+<p> 'risk' : probability of having an event at or before <code>pred_horizon</code>.
+</p>
+</li>
+<li>
+<p> 'surv' : 1 - risk.
+</p>
+</li>
+<li>
+<p> 'chf': cumulative hazard function
+</p>
+</li>
+<li>
+<p> 'mort': mortality prediction
+</p>
+</li>
+<li>
+<p> 'time': survival time prediction
+</p>
+</li>
+</ul>
+<p>For classification:
+</p>
+
+<ul><li>
+<p> 'prob': probability for each class
+</p>
+</li></ul>
+<p>For regression:
+</p>
+
+<ul><li>
+<p> 'mean': predicted mean, i.e., the expected value
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importance</code></td>
+<td>
+<p>(<em>character</em>) Indicate method for variable importance:
+</p>
+
+<ul>
+<li>
+<p> 'none': no variable importance is computed.
+</p>
+</li>
+<li>
+<p> 'anova': compute analysis of variance (ANOVA) importance
+</p>
+</li>
+<li>
+<p> 'negate': compute negation importance
+</p>
+</li>
+<li>
+<p> 'permute': compute permutation importance
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>(<em>character</em>) only relevant for classification forests.
+If <code>NULL</code> (the default), summary statistics are returned for all
+classes in the outcome, and printed summaries will show the last
+class in the class levels. To specify a single class to summarize,
+indicate the name of the class with <code>class</code>. E.g., if the categorical
+outcome has class levels A, B,  and C, then using <code>class = "A"</code> will
+restrict output to class A.
+</p>
+<p>For details on these methods, see orsf_vi.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress will be
+printed to console. If <code>FALSE</code> (the default), nothing will be
+printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>pred_horizon</code> is left unspecified, the median value of
+the time-to-event variable in <code>object</code>'s training data will be used.
+It is recommended to always specify your own prediction horizon,
+as the median time may not be an especially meaningful horizon to
+compute predicted risk values at.
+</p>
+<p>If <code>object</code> already has variable importance values, you can
+safely bypass the computation of variable importance in this function
+by setting importance = 'none'.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class 'orsf_summary', which includes data on
+</p>
+
+<ul>
+<li>
+<p> importance of individual predictors.
+</p>
+</li>
+<li>
+<p> expected values of predictions at specific values of predictors.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>as.data.table.orsf_summary_uni
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+object &lt;- orsf(pbc_orsf, Surv(time, status) ~ . - id, n_tree = 25)
+
+# since anova importance was used to make object, it is also
+# used for ranking variables in the summary, unless we specify
+# a different type of importance
+
+orsf_summarize_uni(object, n_variables = 2)
+
+# if we want to summarize object according to variables
+# ranked by negation importance, we can compute negation
+# importance within orsf_summarize_uni() as follows:
+
+orsf_summarize_uni(object, n_variables = 2, importance = 'negate')
+
+# for multi-category fits, you can specify which class
+# you want to summarize:
+
+object =  orsf(species ~ ., data = penguins_orsf, n_tree = 25)
+
+orsf_summarize_uni(object, class = "Adelie", n_variables = 1)
+
+
+</code></pre>
+
+
+</div>

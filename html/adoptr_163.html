@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TwoStageDesign-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Two-stage designs</h2>
+
+<h3>Description</h3>
+
+<p><code>TwoStageDesign</code> is the fundamental design class of the
+<span class="pkg">adoptr</span> package.
+Formally, we represent a generic two-stage design as a five-tuple
+(n<sub>1</sub>, c<sub>1</sub><sup>f</sup>, c<sub>1</sub><sup>e</sup>, n<sub>2</sub>(·), c<sub>2</sub>(·)).
+Here, n<sub>1</sub> is the first-stage sample
+size (per group), c<sub>1</sub><sup>f</sup>
+and c<sub>1</sub><sup>e</sup> are
+boundaries for early stopping for futility and efficacy, respectively.
+Since the trial design is a two-stage design, the elements
+n<sub>2</sub>(·) (stage-two sample
+size) and c<sub>2</sub>(·)
+(stage-two critical value) are functions of the first-stage outcome
+X<sub>1</sub>=x<sub>1</sub>.
+X<sub>1</sub> denotes the first-stage test
+statistic. A brief description on this definition of two-stage designs can be
+read <a href="https://optad.github.io/adoptr/articles/adoptr.html">here</a>.
+For available methods, see the 'See Also' section at the end of this page.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TwoStageDesign(n1, ...)
+
+## S4 method for signature 'numeric'
+TwoStageDesign(
+  n1,
+  c1f,
+  c1e,
+  n2_pivots,
+  c2_pivots,
+  order = NULL,
+  event_rate,
+  ...
+)
+
+## S4 method for signature 'TwoStageDesign'
+summary(object, ..., rounded = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n1</code></td>
+<td>
+<p>stage-one sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further optional arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1f</code></td>
+<td>
+<p>early futility stopping boundary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c1e</code></td>
+<td>
+<p>early efficacy stopping boundary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n2_pivots</code></td>
+<td>
+<p>numeric vector, stage-two sample size on the integration
+pivot points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c2_pivots</code></td>
+<td>
+<p>numeric vector, stage-two critical values on the integration
+pivot points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p><code>integer</code>, integration order of the employed Gaussian quadrature
+integration rule to evaluate scores. Automatically set to <code>length(n2_pivots)</code> if <br><code>length(n2_pivots) == length(c2_pivots) &gt; 1</code>, otherwise c2 and n2
+are taken to be constant in stage-two and replicated to match the number of
+pivots specified by <code>order</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event_rate</code></td>
+<td>
+<p>probability that a subject in either group will eventually have an event,
+only needs to be specified for time-to-event endpoints</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>object to show</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounded</code></td>
+<td>
+<p>should rounded n-values be used?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>summary</code> can be used to quickly compute and display basic facts about
+a TwoStageDesign.
+An arbitrary number of names <code>UnconditionalScore</code> objects can be
+provided via the optional arguments <code>...</code> and are included in the summary displayed using
+<code>print</code>.
+</p>
+
+
+<h3>Slots</h3>
+
+
+<dl>
+<dt><code>n1</code></dt>
+<dd>
+<p>cf. parameter 'n1'</p>
+</dd>
+<dt><code>c1f</code></dt>
+<dd>
+<p>cf. parameter 'c1f'</p>
+</dd>
+<dt><code>c1e</code></dt>
+<dd>
+<p>cf. parameter 'c1e'</p>
+</dd>
+<dt><code>n2_pivots</code></dt>
+<dd>
+<p>vector of length 'order' giving the values of n2 at the
+pivot points of the numeric integration rule</p>
+</dd>
+<dt><code>c2_pivots</code></dt>
+<dd>
+<p>vector of length order giving the values of c2 at the
+pivot points of the numeric integration rule</p>
+</dd>
+<dt><code>x1_norm_pivots</code></dt>
+<dd>
+<p>normalized pivots for integration rule (in [-1, 1])
+the actual pivots are scaled to the interval [c1f, c1e] and can be
+obtained by the internal method <br><code>adoptr:::scaled_integration_pivots(design)</code></p>
+</dd>
+<dt><code>weights</code></dt>
+<dd>
+<p>weights of of integration rule at <code>x1_norm_pivots</code> for
+approximating integrals over <code>x1</code></p>
+</dd>
+<dt><code>tunable</code></dt>
+<dd>
+<p>named logical vector indicating whether corresponding slot is
+considered a tunable parameter (i.e. whether it can be changed during
+optimization via <code>minimize</code> or not; cf. <br><code>make_fixed</code>)</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p>For accessing sample sizes and critical values safely, see methods in
+<code>n</code> and <code>c2</code>; for modifying behaviour during optimizaton
+see <code>make_tunable</code>; to convert between S4 class represenation and
+numeric vector, see <code>tunable_parameters</code>; for simulating from a given
+design, see <code>simulate</code>;
+for plotting see <code>plot,TwoStageDesign-method</code>.
+Both group-sequential and
+one-stage designs (!) are implemented as subclasses of
+<code>TwoStageDesign</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">design &lt;- TwoStageDesign(50, 0, 2, 50.0, 2.0, 5)
+pow    &lt;- Power(Normal(), PointMassPrior(.4, 1))
+summary(design, "Power" = pow)
+
+</code></pre>
+
+
+</div>

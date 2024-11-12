@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read Transaction Data</h2>
+
+<h3>Description</h3>
+
+<p>Reads transaction data from a file and creates a
+transactions object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read.transactions(
+  file,
+  format = c("basket", "single"),
+  header = FALSE,
+  sep = "",
+  cols = NULL,
+  rm.duplicates = FALSE,
+  quote = "\"'",
+  skip = 0,
+  encoding = "unknown"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>the file name or a connection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>a character string indicating the format of the data set.  One
+of <code>"basket"</code> or <code>"single"</code>, can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>a logical value indicating whether the file contains the names
+of the variables as its first line.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>a character string specifying how fields are separated in the
+data file. The default (<code>""</code>) splits at whitespaces.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>For the <em>single</em> format, <code>cols</code> is a numeric or
+character vector of length two giving the numbers or names of the columns
+(fields) with the transaction and item ids, respectively. If character, the
+first line of <code>file</code> is assumed to be a header with column names.  For
+the <em>basket</em> format, <code>cols</code> can be a numeric scalar giving the
+number of the column (field) with the transaction ids.  If
+<code>cols = NULL</code>, the data do not contain transaction ids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm.duplicates</code></td>
+<td>
+<p>a logical value specifying if duplicate items should be
+removed from the transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quote</code></td>
+<td>
+<p>a list of characters used as quotes when reading.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>number of lines to skip in the file before start reading data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>encoding</code></td>
+<td>
+<p>character string indicating the encoding which is passed to
+<code>readLines()</code> or <code>scan()</code> (see Encoding for character encoding).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For <em>basket</em> format, each line in the transaction data file
+represents a transaction where the items (item labels) are separated by the
+characters specified by <code>sep</code>.  For <em>single</em> format, each line
+corresponds to a single item, containing at least ids for the transaction
+and the item.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class transactions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler and Kurt Hornik
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other import/export: 
+<code>DATAFRAME()</code>,
+<code>LIST()</code>,
+<code>pmml</code>,
+<code>write()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## create a demo file using basket format for the example
+data &lt;- paste(
+  "# this is some test data",
+  "item1, item2",
+  "item1",
+  "item2, item3",
+  sep="\n")
+cat(data)
+write(data, file = "demo_basket.txt")
+
+## read demo data (skip the comment in the first line)
+tr &lt;- read.transactions("demo_basket.txt", format = "basket", sep = ",", skip = 1)
+inspect(tr)
+## make always sure that the items were properly separated
+itemLabels(tr)
+
+## create a demo file using single format for the example
+## column 1 contains the transaction ID and column 2 contains one item
+data &lt;- paste(
+  "trans1 item1",
+  "trans2 item1",
+  "trans2 item2",
+  sep ="\n")
+cat(data)
+write(data, file = "demo_single.txt")
+
+## read demo data
+tr &lt;- read.transactions("demo_single.txt", format = "single", cols = c(1,2))
+inspect(tr)
+
+## create a demo file using single format with column headers
+data &lt;- paste(
+  "item_id;trans_id",
+  "item1;trans1",
+  "item1;trans2",
+  "item2;trans2",
+  sep ="\n")
+cat(data)
+write(data, file = "demo_single.txt")
+
+## read demo data
+tr &lt;- read.transactions("demo_single.txt", format = "single",
+  header = TRUE, sep = ";", cols = c("trans_id", "item_id"))
+inspect(tr)
+
+## tidy up
+unlink("demo_basket.txt")
+unlink("demo_single.txt")
+</code></pre>
+
+
+</div>

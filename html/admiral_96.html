@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_transposed</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Variables by Transposing and Merging a Second Dataset</h2>
+
+<h3>Description</h3>
+
+<p>Adds variables from a vertical dataset after transposing it into a wide one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_transposed(
+  dataset,
+  dataset_merge,
+  by_vars,
+  id_vars = NULL,
+  key_var,
+  value_var,
+  filter = NULL,
+  relationship = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_merge</code></td>
+<td>
+<p>Dataset to transpose and merge
+</p>
+<p>The variables specified by the <code>by_vars</code>, <code>key_var</code> and <code>value_var</code> parameters
+are expected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>Keys used to merge <code>dataset_merge</code> with <code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_vars</code></td>
+<td>
+<p>ID variables
+</p>
+<p>Variables (excluding by_vars) that uniquely identify each observation in <code>dataset_merge</code>.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key_var</code></td>
+<td>
+<p>The variable of <code>dataset_merge</code> containing the names of the
+transposed variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value_var</code></td>
+<td>
+<p>The variable of <code>dataset_merge</code> containing the values of the
+transposed variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Expression used to restrict the records of <code>dataset_merge</code> prior to transposing</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relationship</code></td>
+<td>
+<p>Expected merge-relationship between the <code>by_vars</code>
+variable(s) in <code>dataset</code> and <code>dataset_merge</code> (after transposition)
+</p>
+<p>This argument is passed to the <code>dplyr::left_join()</code> function. See
+<a href="https://dplyr.tidyverse.org/reference/mutate-joins.html#arguments">https://dplyr.tidyverse.org/reference/mutate-joins.html#arguments</a> for
+more details.
+</p>
+<p>Permitted Values for <code>relationship</code>: <code>"one-to-one"</code>, <code>"one-to-many"</code>,
+<code>"many-to-one"</code>, <code>"many-to-many"</code>, <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>After filtering <code>dataset_merge</code> based upon the condition provided in <code>filter</code>, this
+dataset is transposed and subsequently merged onto <code>dataset</code> using <code>by_vars</code> as
+keys.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with transposed variables from <code>dataset_merge</code> added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_merged_summary()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_var_relative_flag()</code>,
+<code>derive_vars_computed()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged()</code>,
+<code>derive_vars_merged_lookup()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+
+cm &lt;- tribble(
+  ~USUBJID, ~CMGRPID, ~CMREFID, ~CMDECOD,
+  "BP40257-1001", "14", "1192056", "PARACETAMOL",
+  "BP40257-1001", "18", "2007001", "SOLUMEDROL",
+  "BP40257-1002", "19", "2791596", "SPIRONOLACTONE"
+)
+facm &lt;- tribble(
+  ~USUBJID, ~FAGRPID, ~FAREFID, ~FATESTCD, ~FASTRESC,
+  "BP40257-1001", "1", "1192056", "CMATC1CD", "N",
+  "BP40257-1001", "1", "1192056", "CMATC2CD", "N02",
+  "BP40257-1001", "1", "1192056", "CMATC3CD", "N02B",
+  "BP40257-1001", "1", "1192056", "CMATC4CD", "N02BE",
+  "BP40257-1001", "1", "2007001", "CMATC1CD", "D",
+  "BP40257-1001", "1", "2007001", "CMATC2CD", "D10",
+  "BP40257-1001", "1", "2007001", "CMATC3CD", "D10A",
+  "BP40257-1001", "1", "2007001", "CMATC4CD", "D10AA",
+  "BP40257-1001", "2", "2007001", "CMATC1CD", "D",
+  "BP40257-1001", "2", "2007001", "CMATC2CD", "D07",
+  "BP40257-1001", "2", "2007001", "CMATC3CD", "D07A",
+  "BP40257-1001", "2", "2007001", "CMATC4CD", "D07AA",
+  "BP40257-1001", "3", "2007001", "CMATC1CD", "H",
+  "BP40257-1001", "3", "2007001", "CMATC2CD", "H02",
+  "BP40257-1001", "3", "2007001", "CMATC3CD", "H02A",
+  "BP40257-1001", "3", "2007001", "CMATC4CD", "H02AB",
+  "BP40257-1002", "1", "2791596", "CMATC1CD", "C",
+  "BP40257-1002", "1", "2791596", "CMATC2CD", "C03",
+  "BP40257-1002", "1", "2791596", "CMATC3CD", "C03D",
+  "BP40257-1002", "1", "2791596", "CMATC4CD", "C03DA"
+)
+
+cm %&gt;%
+  derive_vars_transposed(
+    facm,
+    by_vars = exprs(USUBJID, CMREFID = FAREFID),
+    id_vars = exprs(FAGRPID),
+    key_var = FATESTCD,
+    value_var = FASTRESC
+  ) %&gt;%
+  select(USUBJID, CMDECOD, starts_with("CMATC"))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>glomApply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Subset an SPC by applying glom to each profile</h2>
+
+<h3>Description</h3>
+
+<p><code>glomApply()</code> is a function used for subsetting SoilProfileCollection objects by depth. It is a wrapper around <code>glom</code> which is intended to subset single-profile SPCs based on depth intervals/intersection.
+</p>
+<p><code>glomApply</code> works by accepting a function <code>.fun</code> as argument. This function is used on each profile to process a multi-profile SPC for input to <code>glom</code> (via <code>profileApply</code>). For each profile, <code>.fun</code> returns a 2-length numeric vector of top and bottom boundaries <code>glom</code> arguments: <code>z1</code>, <code>z2</code>.
+</p>
+<p><code>glomApply</code> provides the option to generate profile-specific glom depths for a large SPC and handles iteration and rebuilding of a subset SPC object. Optional arguments include: <code>truncate</code> to cut the boundaries to specified <code>[z1, z2]</code>; <code>invert</code> to the portion outside <code>[z1, z2]</code>, <code>modality</code> to either <code>"all"</code> horizons or <code>"thickest"</code> horizon in the <code>glom</code> interval. <code>...</code> are various expressions you can run on the individual profiles using NSE, similar to <code>mutate</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">glomApply(
+  object,
+  .fun = NULL,
+  truncate = FALSE,
+  invert = FALSE,
+  modality = "all",
+  ...,
+  chunk.size = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.fun</code></td>
+<td>
+<p>A function that returns vector with top and bottom depth (<code>z1</code> and <code>z2</code> arguments to <code>glom</code>) for a single profile <code>p</code> (as passed by <code>profileApply</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truncate</code></td>
+<td>
+<p>Truncate horizon top and bottom depths to <code>[z1, z2]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invert</code></td>
+<td>
+<p>Truncate horizon top and bottom depths to <code>[z1, z2]</code> and then invert result?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modality</code></td>
+<td>
+<p>Aggregation method for glom result. Default <code>"all"</code>: return all horizons; <code>"thickest"</code>: return (shallowest) thickest horizon</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A set of comma-delimited R expressions that resolve to a transformation to be applied to a single profile e.g <code>glomApply(hzdept = max(hzdept) - hzdept)</code> like <code>aqp::mutate</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk.size</code></td>
+<td>
+<p>Chunk size parameter for <code>profileApply</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A SoilProfileCollection.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andrew G. Brown.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glom</code>  <code>trunc</code>
+</p>
+<p><code>glom</code>  <code>glomApply</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+data(sp3)
+depths(sp3) &lt;- id ~ top + bottom
+
+# init horizon designation column in metadata, used by estimateSoilDepth
+hzdesgnname(sp3) &lt;- 'name'
+
+# constant depths, whole horizon returns by default
+plot(glomApply(sp3, function(p) c(25,100)))
+
+# constant depths, truncated
+#(see aqp::trunc for helper function)
+plot(glomApply(sp3, function(p) c(25,30), truncate = TRUE))
+
+# constant depths, inverted
+plot(glomApply(sp3, function(p) c(25,100), invert = TRUE))
+
+# constant depths, inverted + truncated (same as above)
+plot(glomApply(sp3, function(p) c(25,30), invert = TRUE, truncate=TRUE))
+
+# random boundaries in each profile
+plot(glomApply(sp3, function(p) round(sort(runif(2, 0, max(sp3))))))
+
+# random boundaries in each profile (truncated)
+plot(glomApply(sp3, function(p) round(sort(runif(2, 0, max(sp3)))), truncate = TRUE))
+
+# calculate some boundaries as site level attribtes
+sp3$glom_top &lt;- profileApply(sp3, getMineralSoilSurfaceDepth)
+sp3$glom_bottom &lt;- profileApply(sp3, estimateSoilDepth)
+
+# use site level attributes for glom intervals for each profile
+plot(glomApply(sp3, function(p) return(c(p$glom_top, p$glom_bottom))))
+
+</code></pre>
+
+
+</div>

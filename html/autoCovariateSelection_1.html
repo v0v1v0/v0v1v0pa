@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_candidate_covariates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate candidate empirical baseline covariates based on prevalence in the baseline period</h2>
+
+<h3>Description</h3>
+
+<p><code>get_candidate_covariates</code> function generates the list of candidate empirical covariates based on their prevalence
+within each domains (dimensions). This is the first step in the automated covariate selection process. See 'Automated Covariate Selection'
+section below for more details regarding the overall process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_candidate_covariates(
+  df,
+  domainVarname,
+  eventCodeVarname,
+  patientIdVarname,
+  patientIdVector,
+  n = 200,
+  min_num_patients = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>The input <code>data.frame</code>. This should contain at least 3 fields containing information on patient identifier,
+covariate codes and domain names of covariate codes in a long format. Any other fields containing values such as dates,
+treatment group are optional and will be ignored for this analysis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domainVarname</code></td>
+<td>
+<p>The variable(field) name which contains the domain of the covariate in the <code>df</code>.
+The domains are usually diagnosis, procedures and medications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventCodeVarname</code></td>
+<td>
+<p>The variable name which contains the covariate codes (eg:- CCS, ICD9) in the <code>df</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patientIdVarname</code></td>
+<td>
+<p>The variable name which contains the patient identifier in the <code>df</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patientIdVector</code></td>
+<td>
+<p>The 1-D vector with all the patient identifiers. The length of this vector should be equal to
+the number of distinct patients in the <code>df</code>. This vector is not really used in the function analysis per se. This is
+used only to return the same back as function output because the filtered <code>df</code> based on <code>covars</code> will likely not
+contain all patients in the input <code>df</code> because there could be patients for whom no records were found for any of the
+identified <code>covars</code> and they will thus be not present in the filtered <code>df</code> which is also an output of this function.
+The <code>patientIds</code> vector output will contain all original patients and by returning this vector, it can later be  used in the
+next steps of automated covariate selection because each step is dependent on previous steps and information on patients who did not
+have any identified <code>covars</code> is also important for the next steps. This is why this vector is an input as well as an output, without
+affecting the analysis of this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The maximum number of empirical candidate baseline covariates that should be returned within each domain.
+By default, n is 200</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_num_patients</code></td>
+<td>
+<p>Minimum number of patients that should be present for each covariate to be selected for selection.
+To be considered for selection, a covariate should have occurred for a minimum <code>min_num_patients</code> in the baseline period</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The theoretical details of the high-dimensional propensity score (HDPS) algorithm is detailed in the publication listed below in the <code>References</code> section.
+<code>get_candidate_covariates</code> is the function implementing what is described in the 'Identify candidate empirical covariates' section
+of the article.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list containing three R objects
+</p>
+
+<ul>
+<li> <p><code>covars</code>   A 1-D vector containing the names of selected baseline covariate names from each domain.
+For each domain in the <code>df</code>, the number of <code>covars</code> would be equal to or less than <code>n</code>
+</p>
+</li>
+<li> <p><code>covars_data</code>   The <code>data.frame</code> that is filtered out of <code>df</code> with only the selected <code>covars</code>. The values of the
+<code>eventCodeVarname</code> field is prefixed with the corresponding <code>domain</code> name. For example, if the event code is 19900 and the domain
+is 'dx', then the the covariate name will be 'dx_19900'.
+</p>
+</li>
+<li> <p><code>patientIds</code>   The list of patient ids present in the original input <code>df</code>. This is exactly the same as the input <code>patientIdVector</code>
+</p>
+</li>
+</ul>
+<h3>Automated Covariate Selection</h3>
+
+<p><strong>The three steps in automated covariate selection are listed below with the functions implementing the methodology</strong>
+</p>
+
+<ol>
+<li>
+<p> Identify candidate empirical covariates: <code>get_candidate_covariates</code>
+</p>
+</li>
+<li>
+<p> Assess recurrence: <code>get_recurrence_covariates</code>
+</p>
+</li>
+<li>
+<p> Prioritize covariates: <code>get_prioritised_covariates</code>
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Dennis Robert <a href="mailto:dennis.robert.nm@gmail.com">dennis.robert.nm@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Schneeweiss S, Rassen JA, Glynn RJ, Avorn J, Mogun H, Brookhart MA. High-dimensional propensity score adjustment in studies of treatment effects using health care claims data Epidemiology. 2009;20(4):512-522. doi:10.1097/EDE.0b013e3181a663cc
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library("autoCovariateSelection")
+data(rwd)
+head(rwd, 3)
+#select distinct elements that are unique for each patient - treatment and outcome
+basetable &lt;- rwd %&gt;% select(person_id, treatment, outcome_date) %&gt;% distinct()
+head(basetable, 3)
+patientIds &lt;- basetable$person_id
+step1 &lt;- get_candidate_covariates(df = rwd,  domainVarname = "domain",
+eventCodeVarname = "event_code", patientIdVarname = "person_id",
+patientIdVector = patientIds,n = 100, min_num_patients = 10)
+out1 &lt;- step1$covars_data #this will be input to get_recurrence_covariates() function
+</code></pre>
+
+
+</div>

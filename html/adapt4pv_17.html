@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ps_pond_one</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>weihting on propensity score for one drug exposure</h2>
+
+<h3>Description</h3>
+
+<p>Implement the weighting on propensity score with Matching Weights (MW)
+or the Inverse Probability of Treatment Weighting (IPTW) for
+one drug exposure.
+The binary outcome is regressed on the drug exposure of interest
+through a classical weighted regression.
+Internal function, not supposed to be used directly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ps_pond_one(
+  ps_est,
+  y,
+  weights_type = c("mw", "iptw"),
+  truncation = FALSE,
+  q = 0.025
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ps_est</code></td>
+<td>
+<p>An object of class <code>"ps", "*"</code> where <code>"*"</code> is
+<code>"bic"</code>, <code>"hdps"</code> or <code>"xgb"</code> according on how the
+score was estimated, respective outputs of internal functions
+<code>est_ps_bic</code>, <code>est_ps_hdps</code>, <code>est_ps_xgb</code>.
+It is a list with the following elements :
+* score_type: character, name of the drug exposure for which the PS was
+estimated.
+* indicator_expo: indicator of the drugs exposure for which the
+PS was estimated. One-column Matrix object.
+* score_variables: Character vector, names of covariate(s) selected
+to include in the PS estimation model. Could be empty.
+*score: One-column Matrix object, the estimated score.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Binary response variable, numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights_type</code></td>
+<td>
+<p>Character. Indicates which type of weighting
+is implemented. Could be either "mw" or "iptw".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truncation</code></td>
+<td>
+<p>Bouleen, should we do weight truncation?
+Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>If <code>truncation</code> is <code>TRUE</code>, quantile value for
+weight truncation. Ignored if <code>truncation</code> is <code>FALSE</code>.
+Default is 2.5 <code class="reqn">\%</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The MW are defined by
+</p>
+<p style="text-align: center;"><code class="reqn">mw_i = min(PS_i, 1-PS_i)/[(expo_i) * PS_i + (1-expo_i) * (1-PS_i) ] </code>
+</p>
+
+<p>and weights from IPTW by
+</p>
+<p style="text-align: center;"><code class="reqn">iptw_i = expo_i/PS_i + (1-expo_i)/(1-PS_i)  </code>
+</p>
+
+<p>where <code class="reqn">expo_i</code> is the drug exposure indicator.
+The PS could be estimated in different ways: using lasso-bic approach,
+the hdPS algorithm or gradient tree boosting using functions
+<code>est_ps_bic</code>, <code>est_ps_hdps</code> and <code>est_ps_xgb</code>
+respectivelly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ps","*" </code>,
+where <code>"*"</code> is <code>"mw"</code> or <code>"iptw"</code>, same as the
+input parameter <code>weights_type</code>
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>expo_name</code></td>
+<td>
+<p>Character, name of the drug exposure for which the PS
+was estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>Regression coefficient associated with the drug exposure
+in adjustment on PS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval_1sided</code></td>
+<td>
+<p>One sided p-value associated with the drug exposure
+in adjustment on PS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval_2sided</code></td>
+<td>
+<p>Two sided p-value associated with the drug exposure
+in adjustment on PS.</p>
+</td>
+</tr>
+</table>
+<p>Could return NA if the adjustment on the PS did not converge.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Emeline Courtois <br> Maintainer: Emeline Courtois
+<a href="mailto:emeline.courtois@inserm.fr">emeline.courtois@inserm.fr</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(15)
+drugs &lt;- matrix(rbinom(100*20, 1, 0.2), nrow = 100, ncol = 20)
+colnames(drugs) &lt;- paste0("drugs",1:ncol(drugs))
+ae &lt;- rbinom(100, 1, 0.3)
+pshdps2 &lt;- est_ps_hdps(idx_expo = 2, x = drugs, y = ae, keep_total = 10)
+pondps2 &lt;- ps_pond_one(ps_est = pshdps2, y = ae, weights_type = "iptw")
+pondps2$estimate #estimated strength of association between drug_2 and the outcome by PS weighting
+
+</code></pre>
+
+
+</div>

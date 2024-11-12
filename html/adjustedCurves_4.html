@@ -1,0 +1,252 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adjusted_curve_diff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate the difference between or the ratio of two Confounder-Adjusted Survival Curves or CIFs
+</h2>
+
+<h3>Description</h3>
+
+<p>Given a previously created <code>adjustedsurv</code> or <code>adjustedcif</code> object, calculate the difference between or the ratio of two of the <code>variable</code> specific curves. Can either calculate the whole difference / ratio curve or estimates at specified points in time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adjusted_curve_diff(adj, group_1=NULL, group_2=NULL,
+                    times=NULL, conf_int=FALSE, conf_level=0.95,
+                    use_boot=FALSE, interpolation="steps")
+
+adjusted_curve_ratio(adj, group_1=NULL, group_2=NULL,
+                     times=NULL, conf_int=FALSE, conf_level=0.95,
+                     use_boot=FALSE, interpolation="steps")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>adj</code></td>
+<td>
+
+<p>An <code>adjustedsurv</code> object created using the <code>adjustedsurv</code> function, or a <code>adjustedcif</code> object created using the <code>adjustedcif</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_1</code></td>
+<td>
+
+<p>Optional argument to get a specific difference or ratio. This argument takes a single character string specifying one of the levels of the <code>variable</code> used in the original <code>adjustedsurv</code> or <code>adjustedcif</code> function call. This group will be subtracted from. For example if <code>group_1="A"</code> and <code>group_2="B"</code> the difference <code>A - B</code> or ratio <code>A / B</code> will be used. If <code>NULL</code>, the order of the factor levels in the original <code>data</code> determines the order. If not <code>NULL</code>, the <code>group_2</code> argument also needs to be specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_2</code></td>
+<td>
+
+<p>Also a single character string specifying one of the levels of <code>variable</code>. This corresponds to the right side of the difference equation. See argument <code>group_1</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>An optional numeric vector of points in time at which the difference or ratio should be estimated. If <code>NULL</code> (default) the differences or ratios are estimated for the whole curve.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_int</code></td>
+<td>
+
+<p>Whether standard errors, confidence intervals and p-values should be calculated. Only possible when either <code>conf_int=TRUE</code> or <code>bootstap=TRUE</code> was used in the original function call. See details for how those are estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_level</code></td>
+<td>
+
+<p>A number specifying the confidence level of the confidence intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_boot</code></td>
+<td>
+
+<p>Whether to use the standard errors estimated using bootstrapping for the confidence interval and p-value calculation. Can only be used if <code>bootstrap=TRUE</code> was used in the original <code>adjustedsurv</code> or <code>adjustedcif</code> function call. Ignored if <code>conf_int=FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+
+<p>Either <code>"steps"</code> (default) or <code>"linear"</code>. This parameter controls how interpolation is performed. If this argument is set to <code>"steps"</code>, the curves will be treated as step functions. If it is set to <code>"linear"</code>, the curves wil be treated as if there are straight lines between the point estimates instead. Points that lie between estimated points will be interpolated accordingly. Should usually be kept at <code>"steps"</code>. See Details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong><em>Confidence Intervals &amp; P-Values</em></strong>
+</p>
+<p>For differences, the standard error of the difference is estimated using the pooled standard error of the two probability estimates, given by:
+</p>
+<p style="text-align: center;"><code class="reqn">SE_{group_1 - group_2} = \sqrt{SE_{group_1}^2 + SE_{group_2}^2}</code>
+</p>
+
+<p>Confidence intervals are then calculated using this pooled standard error and the normal approximation. The P-Values are also obtained using this standard error combined with a two-sided one-sample t-test. The null-hypothesis is that the difference is equal to 0, and the alternative hypothesis is that the difference is not equal to 0.
+</p>
+<p>For ratios, the confidence intervals are calculated according to the method given by Fieller (1954), assuming the probabilities to be independent. P-values are calculated using a one-sample two-sided t-test with the test-statistic of Fieller (1954).
+</p>
+<p>If p-values are calculated for multiple points in time simultaneously, the user should adjust those. See <code>?p.adjust</code> for more information.
+</p>
+<p><strong><em>Overall Difference Test</em></strong>
+</p>
+<p>This function does not perform a test of the overall difference between two functions. To calculate the integral of the difference in a given interval the <code>plot_curve_diff</code> function can be used. Additionally, to test whether that integral is equal to zero the <code>adjusted_curve_test</code> function can be used. No such test is available for ratios, as it is unclear what that would entail.
+</p>
+<p><strong><em>More than Two Groups</em></strong>
+</p>
+<p>If more than two groups are present in <code>variable</code>, all other comparisons except for <code>group_1 vs. group_2</code> are ignored. If multiple comparisons are desired, the user needs to call this function multiple times and adjust the <code>group_1</code> and <code>group_2</code> arguments accordingly.
+</p>
+<p><strong><em>Graphical Displays</em></strong>
+</p>
+<p>There is no directly associated <code>plot</code> method for this function. However, this function is used internally when calling the <code>plot_curve_diff</code> function. In order to get a plot of the difference curve or point estimates, that function can be used.
+</p>
+<p><strong><em>Multiple Imputation</em></strong>
+</p>
+<p>This function works exactly the same way for adjusted survival curves or adjusted CIFs estimated using multiple imputation as it does without any missing values. If multiple imputation was used previously, this function simply uses the pooled estimates to calculate the differences or ratios.
+</p>
+<p><strong><em>Computational Details</em></strong>
+</p>
+<p>When estimating the difference or ratios at some point in time at which no direct point estimates are available, this function needs to interpolate the curves. The interpolation method can be controlled using the <code>interpolation</code> function. In most cases, the estimated curves are step functions and the default (<code>interpolation="steps"</code>) is therefore appropriate. However, when parametric survival models where used in the estimation process it might be preferable to use linear interpolation instead.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>data.frame</code> containing the columns <code>time</code> (the points in time where the difference or ratios were estimated) and <code>diff</code> or <code>ratio</code> (the estimated difference or ratio).
+</p>
+<p>If <code>conf_int=TRUE</code> was used in the function call, it additionally contains the columns <code>se</code> (the estimated standard error of the difference, not included for ratios), <code>ci_lower</code> (lower limit of the confidence interval of the difference/ratio), <code>ci_upper</code> (upper limit of the confidence interval of the difference/ratio) and <code>p_value</code> (the p-value for the mentioned test).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>References</h3>
+
+<p>John P. Klein, Brent Logan, Mette Harhoff, and Per Kragh Andersen (2007). "Analyzing Survival Curves at a Fixed Point in Time". In: Statistics in Medicine 26, pp. 4505-4519
+</p>
+<p>Michael Coory, Karen E. Lamb, and Michael Sorich (2014). "Risk-Difference Curves can be used to Communicate Time-Dependent Effects of Adjuvant Therapies for Early Stage Cancer". In: Journal of Clinical Epidemiology 67, pp. 966-972
+</p>
+<p>Edgar C. Fieller (1954). "Some Problems in Interval Estimation". In: Journal of the Royal Statistical Society, Series B 16.2, pp. 175-185
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot_curve_diff</code>, <code>adjustedsurv</code>, <code>adjustedcif</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adjustedCurves)
+library(survival)
+
+#### Simple Survival Case with adjusted survival curves ####
+
+# simulate some data as example
+set.seed(42)
+sim_dat &lt;- sim_confounded_surv(n=30, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# propensity score model
+ps_mod &lt;- glm(group ~ x1 + x2 + x4 + x5, data=sim_dat, family="binomial")
+
+# use it to estimate adjusted survival curves with bootstrapping
+adjsurv &lt;- adjustedsurv(data=sim_dat,
+                        variable="group",
+                        ev_time="time",
+                        event="event",
+                        method="iptw_km",
+                        treatment_model=ps_mod,
+                        conf_int=TRUE,
+                        bootstrap=TRUE,
+                        n_boot=10) # n_boot should be much higher in reality
+
+# calculate the whole difference curve
+adjdiff &lt;- adjusted_curve_diff(adjsurv)
+adjratio &lt;- adjusted_curve_ratio(adjsurv)
+
+# only some points in time
+adjdiff &lt;- adjusted_curve_diff(adjsurv, times=c(0.2, 0.4))
+adjratio &lt;- adjusted_curve_ratio(adjsurv, times=c(0.2, 0.4))
+
+# with confidence intervals, p-values
+adjdiff &lt;- adjusted_curve_diff(adjsurv, times=c(0.2, 0.4), conf_int=TRUE)
+adjratio &lt;- adjusted_curve_ratio(adjsurv, times=c(0.2, 0.4), conf_int=TRUE)
+
+# using bootstrapping
+adjdiff &lt;- adjusted_curve_diff(adjsurv, times=c(0.2, 0.4), conf_int=TRUE,
+                               use_boot=TRUE)
+
+#### Competing Risks Case with adjusted CIFs ####
+if (requireNamespace("cmprsk") &amp; requireNamespace("riskRegression") &amp;
+    requireNamespace("prodlim")) {
+
+library(cmprsk)
+library(riskRegression)
+library(prodlim)
+
+set.seed(1)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_crisk(n=100, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# estimate a cause-specific cox-regression for the outcome
+csc_mod &lt;- CSC(Hist(time, event) ~ x1 + x2 + x3 + x4 + x5 + x6 + group,
+               data=sim_dat)
+
+# use it to calculate adjusted CIFs for cause = 1 with bootstrapping
+adjcif &lt;- adjustedcif(data=sim_dat,
+                      variable="group",
+                      ev_time="time",
+                      event="event",
+                      method="direct",
+                      outcome_model=csc_mod,
+                      conf_int=TRUE,
+                      bootstrap=TRUE,
+                      n_boot=10,
+                      cause=1,
+                      product.limit=FALSE)
+
+# calculate the whole difference curve
+adjdiff &lt;- adjusted_curve_diff(adjcif)
+adjratio &lt;- adjusted_curve_ratio(adjcif)
+
+# with confidence intervals
+adjdiff &lt;- adjusted_curve_diff(adjcif, conf_int=TRUE)
+adjratio &lt;- adjusted_curve_ratio(adjcif, conf_int=TRUE)
+
+# only at specific points in time
+adjdiff &lt;- adjusted_curve_diff(adjcif, times=c(0.2, 0.4), conf_int=TRUE)
+adjratio &lt;- adjusted_curve_ratio(adjcif, times=c(0.2, 0.4), conf_int=TRUE)
+}
+</code></pre>
+
+
+</div>

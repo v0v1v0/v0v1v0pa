@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modavg.utility</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Various Utility Functions
+</h2>
+
+<h3>Description</h3>
+
+<p><code>reverse.parm</code> and <code>reverse.exclude</code> reverse the order of
+variables in an interaction term.
+</p>
+<p><code>formatCands</code> creates new classes for lists containing candidate
+models.
+</p>
+<p><code>formulaShort</code> prints a succinct formula from an <code>unmarkedFit</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reverse.parm(parm)
+reverse.exclude(exclude)
+formatCands(cand.set)
+formulaShort(mod, unmarked.type = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+
+<p>a parameter to be model-averaged, enclosed between quotes, as it appears
+in the output of some models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+
+<p>a list of interaction or polynomial terms appearing in some models, as
+they would appear in the call to the model function (i.e., <code>A*B</code>,
+<code>A:B</code>).  Models containing elements from the list will be
+excluded to obtain a model-averaged estimate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cand.set</code></td>
+<td>
+<p>a list storing each of the models in the candidate model set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+<p>an object storing the result of an <code>unmarkedFit</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unmarked.type</code></td>
+<td>
+<p>a character string specifying the type of parameter in
+an <code>unmarkedFit</code> for which a formula is requested.  This argument
+uses the character string for each parameter group as defined by
+<code>unmarked</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These utility functions are used internally by <code>aictab</code>,
+<code>modavg</code>, and other related functions.
+</p>
+<p><code>reverse.parm</code> and <code>reverse.exclude</code> enable the user to
+specify differently interaction terms (e.g., <code>A:B</code>, <code>B:A</code>)
+across models for model averaging.  These functions have been added to
+avoid problems when users are not consistent in the specification of
+interaction terms across models.
+</p>
+<p><code>formatCands</code> creates new classes for the list of candidate
+models based on the contents of the list.  These new classes are used
+for method dispatch.
+</p>
+<p><code>formulaShort</code> is used by <code>anovaOD</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>reverse.parm</code> returns all possible combinations of an interaction
+term to identify models that include the <code>parm</code> of interest and
+find the corresponding estimate and standard error in the model object.
+</p>
+<p><code>reverse.exclude</code> returns a list of all possible combinations of
+<code>exclude</code> to identify models that should be excluded when
+computing a model-averaged estimate.
+</p>
+<p><code>formatCands</code> adds a new class to the list of candidate
+models based on the classes of the models.
+</p>
+<p><code>formulaShort</code> creates a character string for the formula related
+to a given parameter type from an <code>unmarkedFit</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aictab</code>, <code>anovaOD</code>, <code>modavg</code>,
+<code>modavgShrink</code>, <code>modavgPred</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##a main effect
+reverse.parm(parm = "Ageyoung") #does not return anything
+
+
+##an interaction term as it might appear in the output
+reverse.parm(parm = "Ageyoung:time") #returns the reverse
+
+
+##exclude two interaction terms
+reverse.exclude(exclude = list("Age*time", "A:B"))
+##returns all combinations
+reverse.exclude(exclude = list("Age:time", "A*B"))
+##returns all combinations
+
+
+##Mazerolle (2006) frog water loss example
+data(dry.frog)
+
+##setup a subset of models of Table 1
+Cand.models &lt;- list( )
+Cand.models[[1]] &lt;- lm(log_Mass_lost ~ Shade + Substrate +
+                       cent_Initial_mass + Initial_mass2,
+                       data = dry.frog)
+Cand.models[[2]] &lt;- lm(log_Mass_lost ~ Shade + Substrate +
+                       cent_Initial_mass + Initial_mass2 +
+                       Shade:Substrate, data = dry.frog)
+Cand.models[[3]] &lt;- lm(log_Mass_lost ~ cent_Initial_mass +
+                       Initial_mass2, data = dry.frog)
+
+formatCands(Cand.models)
+
+## Not run: 
+require(unmarked)
+data(bullfrog)
+bfrog &lt;- unmarkedFrameOccu(y = bullfrog[, c("V1", "V2", "V3", "V4")],
+                           siteCovs = bullfrog[, 1:2])
+fm1 &lt;- occu(~ 1 ~ Reed.presence, data = bfrog)
+formulaShort(fm1, unmarked.type = "state")
+formulaShort(fm1, unmarked.type = "det")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

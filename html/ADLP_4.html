@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.adlp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Accident and Development period Adjusted Linear Pools (ADLP) Functions</h2>
+
+<h3>Description</h3>
+
+<p>Family of functions used to support ADLP inference and prediction.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'adlp'
+predict(object, newdata = NULL, ...)
+
+adlp_dens(adlp, newdata, model = c("train", "full"))
+
+adlp_logS(adlp, newdata, model = c("train", "full"), epsilon = 1e-06)
+
+adlp_CRPS(
+  adlp,
+  newdata,
+  response_name,
+  model = c("train", "full"),
+  lower = 1,
+  upper = NULL,
+  sample_n = 2000
+)
+
+adlp_simulate(n, adlp, newdata = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class <code>adlp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data to perform the function on</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters to pass onto predict</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adlp</code></td>
+<td>
+<p>Object of class <code>adlp</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Whether the <code>train</code> or <code>full</code> model should be used in function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>Offset added to the density before calculating the log</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response_name</code></td>
+<td>
+<p>The column name of the response variable; in string format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>The lower limit to calculate CRPS; the default value is set to be 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>The upper limit to calculate CRPS; the default value is set to be
+twice the maximum value of the response variable in the dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_n</code></td>
+<td>
+<p>The number of evenly spaced values to sample between lower
+and upper range of numeric integration used to calculate CRPS. This sample
+function is designed to constrain memory usage during the computation of
+CRPS, particularly when dealing with large response variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of simulations</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Predicts the central estimates based on the ADLP component models and weights.
+</p>
+<p>Calculates the probability density ad each point, given <code>newdata</code>.
+</p>
+<p>Calculates the log score, which is the log of the probability density, with
+an offset <code>epsilon</code> to handle zero densities.
+Log Score is a strictly proper scoring rule.
+For full discussion of the mathematical details and
+advantages of Log Score, one might refer to Gneiting and Raftery (2007)
+</p>
+<p>Continuously Ranked Probability Score (CRPS) is calculated for each data point.
+<code>lower</code> and <code>upper</code> are used as limits when approximating the integral.
+CRPS is a strictly proper scoring rule.
+For full discussion of the mathematical details and
+advantages of CRPS, one might refer to Gneiting and Raftery (2007).
+The CRPS function has been discretized in this context to ensure
+adaptability to various distributions.
+For details, one might refer to
+Gneiting and Ranjan (2011)
+</p>
+<p>Simulations of ADLP predictions, given component models and ADLP weights.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>data.frame</code> of results, where the first and second columns correspond
+to the <code style="white-space: pre;">⁠$origin⁠</code> and <code style="white-space: pre;">⁠$dev⁠</code> columns from the triangles. An index column for
+<code>simulation #</code> is also included when simulating ADLP.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gneiting, T., Raftery, A. E., 2007. Strictly proper scoring rules, prediction, and estimation. Journal of the American Statistical Association 102 (477), 359–378.
+</p>
+<p>Gneiting, T., Ranjan, R., 2011. Comparing density forecasts using threshold-and quantile-weighted scoring rules. Journal of Business &amp; Economic Statistics 29 (3), 411–422.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(test_adlp_component)
+test_component1 &lt;- test_adlp_component
+test_component2 &lt;- test_adlp_component
+test_components &lt;- adlp_components(
+    component1 = test_component1,
+    component2 = test_component2
+)
+
+newdata &lt;- test_component1$model_train$data
+
+test_adlp &lt;- adlp(test_components, newdata = newdata,
+    partition_func = adlp_partition_ap, tri.size = 40, size = 3)
+
+test_adlp_dens &lt;- adlp_dens(test_adlp, newdata, "full")
+
+data(test_adlp_component)
+test_component1 &lt;- test_adlp_component
+test_component2 &lt;- test_adlp_component
+test_components &lt;- adlp_components(
+    component1 = test_component1,
+    component2 = test_component2
+)
+
+newdata &lt;- test_component1$model_train$data
+
+test_adlp &lt;- adlp(test_components, newdata = newdata,
+    partition_func = adlp_partition_ap, tri.size = 40, size = 3)
+
+test_adlp_logs &lt;- adlp_logS(test_adlp, newdata, "full")
+
+data(test_adlp_component)
+test_component1 &lt;- test_adlp_component
+test_component2 &lt;- test_adlp_component
+test_components &lt;- adlp_components(
+    component1 = test_component1,
+    component2 = test_component2
+)
+
+newdata &lt;- test_component1$model_train$data
+
+test_adlp &lt;- adlp(test_components, newdata = newdata,
+    partition_func = adlp_partition_ap, tri.size = 40, size = 3)
+
+test_adlp_crps &lt;- adlp_CRPS(test_adlp, newdata, "full", response_name = "claims", sample_n = 100)
+
+data(test_adlp_component)
+test_component1 &lt;- test_adlp_component
+test_component2 &lt;- test_adlp_component
+test_components &lt;- adlp_components(
+    component1 = test_component1,
+    component2 = test_component2
+)
+
+newdata &lt;- test_component1$model_train$data
+
+test_adlp &lt;- adlp(test_components, newdata = newdata,
+    partition_func = adlp_partition_ap, tri.size = 40, size = 3)
+
+test_adlp_sim &lt;- adlp_simulate(10, test_adlp, newdata=newdata)
+
+</code></pre>
+
+
+</div>

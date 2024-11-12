@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getIFFChunk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get a specific IFFChunk nested inside other IFFChunks</h2>
+
+<h3>Description</h3>
+
+<p><code>IFFChunk()</code>s can be nested in a tree-like structure. Use this method
+to get a specific chunk with a specific label.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'IFFChunk,character,integer'
+getIFFChunk(x, chunk.path, chunk.number)
+
+## S4 method for signature 'IFFChunk,character,missing'
+getIFFChunk(x, chunk.path, chunk.number)
+
+## S4 replacement method for signature 'IFFChunk,character,missing,IFFChunk'
+getIFFChunk(x, chunk.path, chunk.number = NULL) &lt;- value
+
+## S4 replacement method for signature 'IFFChunk,character,integer,IFFChunk'
+getIFFChunk(x, chunk.path, chunk.number = NULL) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>IFFChunk()</code> object from which the nested
+<code>IFFChunk()</code> should be extracted an returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk.path</code></td>
+<td>
+<p>A <code>vector</code> of 4 <code>character</code> long strings
+of IFF chunk labels, specifying the path of the target IFF chunk.
+For example: <code>c("ILBM", "BODY")</code> means, get the "BODY" chunk
+from inside the "ILBM" chunk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk.number</code></td>
+<td>
+<p>A <code>vector</code> of the same length as <code>chunk.path</code>,
+with <code>integer</code> index numbers. Sometimes a chunk can contain a list of
+chunks with the same label. With this argument you can specify which element
+should be returned. By default (when missing), the first element is always
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>An <code>IFFChunk()</code> with which the target chunk should be
+replaced. Make sure that <code>value</code> is of the same <code>chunk.type</code> as the last
+chunk specified in the <code>chunk.path</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>IFFChunk</code> objects have 4 <code>character</code> identifiers, indicating what type
+of chunk you are dealing with. These chunks can be nested inside of each other.
+Use this method to extract specific chunks by referring to there respective
+identifiers. The identifiers are shown when calling <code>print</code> on an
+<code>IFFChunk()</code>. If a specified path doesn't exist, this method throws a
+‘subscript out of range’ error.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an <code>IFFChunk()</code> object nested inside <code>x</code> at the
+specified path. Or in case of the replace method the original chunk <code>x</code> is
+returned with the target chunk replaced by <code>value</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pepijn de Vries
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other iff.operations: 
+<code>IFFChunk-class</code>,
+<code>WaveToIFF()</code>,
+<code>as.raster.AmigaBasicShape()</code>,
+<code>interpretIFFChunk()</code>,
+<code>rasterToIFF()</code>,
+<code>rawToIFFChunk()</code>,
+<code>read.iff()</code>,
+<code>write.iff()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## load an IFF file
+example.iff &lt;- read.iff(system.file("ilbm8lores.iff", package = "AmigaFFH"))
+
+## Get the BMHD (bitmap header) from the ILBM (interleaved bitmap) chunk:
+bmhd &lt;- getIFFChunk(example.iff, c("ILBM", "BMHD"))
+
+## This is essentially doing the same thing, but we now explicitly
+## tell the method to get the first element for each specified label:
+bmhd &lt;- getIFFChunk(example.iff, c("ILBM", "BMHD"), c(1L, 1L))
+
+## Let's modify the bitmap header and replace it in the parent IFF chunk.
+bmhd.itpt &lt;- interpretIFFChunk(bmhd)
+
+## Let's disable the masking, the bitmap will no longer be transparent:
+bmhd.itpt$Masking &lt;- "mskNone"
+bmhd &lt;- IFFChunk(bmhd.itpt)
+
+## Now replace the header from the original iff with the modified header:
+getIFFChunk(example.iff, c("ILBM", "BMHD")) &lt;- bmhd
+
+## End(Not run)
+</code></pre>
+
+
+</div>

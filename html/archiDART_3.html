@@ -1,0 +1,223 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>architect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computing Traits Describing The Global Root System Architecture</h2>
+
+<h3>Description</h3>
+
+<p>Calculation of common root system architecture (RSA) traits from Data Analysis of Root Tracings (DART) output files and RSA data encoded with the Root System Markup Language (RSML). More information can be found in <cite>Delory et al (2016)</cite>, <cite>Le Bot et al (2010)</cite>, and <cite>Lobet et al (2015)</cite>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">architect(inputrac=NULL, inputtps=NULL, inputrsml=NULL, res=NULL, unitlength="px",
+          rsml.date=NULL, rsml.connect=FALSE, vertical3d="y",
+          fitter=FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>inputrac</code></td>
+<td>
+<p>A dartToTable object or a character string specifying the path to the folder containing the rac files created by DART. If <code>inputrac</code> is a character string, it can be the same as <code>inputtps</code>/<code>inputrsml</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputtps</code></td>
+<td>
+<p>A character string specifying the path to the folder containing the tps files created by DART. This argument can be the same as <code>inputrac</code>/<code>inputrsml</code>. This argument will not be used if <code>inputrac</code> is a dartToTable object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputrsml</code></td>
+<td>
+<p>A rsmlToTable object or a character string specifying the path to the folder containing the RSML files. If <code>inputrsml</code> is a character string, it can be the same as <code>inputrac</code>/<code>inputtps</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>Mandatory for DART files only. <b>If images were acquired with a flatbed scanner</b>: a numeric value specifying the resolution of the images used to vectorize the root systems with DART (resolution is expressed in dots/inch). <b>If images were acquired with a digital camera</b>: the ratio between the length of a reference object located on the image expressed in pixels and the actual length of the same object expressed in inches. For DART files, this argument must be specified if <code>inputrac</code> is not a dartToTable object and if <code>unitlength="mm"</code> or <code>unitlength="cm"</code>. For RSML files, the resolution is imported from the metadata and does not need to be specified as an argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitlength</code></td>
+<td>
+<p>A character string specifying the unit of length that must be used to express the results. The value acceptable for this argument could be either “px” for pixels, “cm” for centimetres or “mm” for millimetres. This argument will not be used if <code>inputrac</code> is a dartToTable object and/or <code>inputrsml</code> is a rsmlToTable object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rsml.date</code></td>
+<td>
+<p>Only used if <code>inputrsml</code> is not a rsmlToTable object. A numeric value specifying the root system age (the unit of time is defined by the user). If <code>rsml.date=NULL</code>, a default value of 1 is used by the function. If the root system age is stored as a continuous function along the root segments, a character string specifying the name/label of the function can be used (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rsml.connect</code></td>
+<td>
+<p>Only used if <code>inputrsml</code> is not a rsmlToTable object. A logical value that must be specified when <code>is.null(inputrsml)=FALSE</code>. If <code>TRUE</code>, the lateral roots are connected to their parent root (see details). If <code>FALSE</code>, no connection is made between daughter and mother roots.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vertical3d</code></td>
+<td>
+<p>The vertical axis for 3D RSA data (x, y, or z).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitter</code></td>
+<td>
+<p>A logical value. Should the Fitter topological indices be computed? Yes is TRUE, No is FALSE. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To run <code>architect</code> efficiently, DART (.rac or .tps) and RSML (.rsml) files must have been saved with their appropriate extension.
+</p>
+<p>If <code>inputtps</code> contains a single tps file, it is used by <code>architect</code> for each rac file located in <code>inputrac</code>.  If <code>inputtps</code> contains more than one tps file, the number of tps files in <code>inputtps</code> must be equal to the number of rac files in <code>inputrac</code> and corresponding rac and tps files must have the same name.
+</p>
+<p>After reading the RSML files located in <code>inputrsml</code>, the data associated with each root system are converted into a data frame possessing the same structure as the rac files created by DART.  The <code>architect</code> function then uses these data frames to calculate RSA traits describing the global architecture of each root system. 
+</p>
+<p>The argument <code>rsml.date</code> is used to create a tps file for each root system located in <code>inputrsml</code>.  If the root system age is stored as a continuous function along the root segments, the <code>rsml.date</code> argument can be a character string specifying the name/label of the function.  For instance, the root system age at the first apparition of each node is stored as a continuous function called “age” in RSML files containing RSA data simulated with the ArchiSimple model (<cite>Pages et al (2013)</cite>).  The “age” function attaches the root system age along the root segments, so that each node is associated with one age value.  An RSML library containing 3D RSA data simulated with ArchiSimple is available here: doi: <a href="https://doi.org/10.5281/zenodo.208214">10.5281/zenodo.208214</a>.
+</p>
+<p>The <code>rsml.connect</code> argument can be used to connect the lateral roots to their corresponding mother root.  If <code>rsml.connect=TRUE</code>, each point starting a lateral root is connected to the nearest point located on its mother root.  DBase is approximated by the distance between the parent root base and the point located on the mother root that is closest to the point starting a lateral root.  Using RSML files, only RSA data associated with roots possessing a branching order lower or equal to 7 are used for the computation of RSA traits.
+</p>
+<p>Growth rates are calculated as follows:
+</p>
+
+<ul>
+<li> <p><em>First-order root growth rate</em>: for the first observation date, it is calculated as the ratio of the total first-order root length to the root system age. For other observation dates (t), it is calculated as the difference between the total first-order root length at time t and t-1 divided by the difference between the root system age at time t and t-1.
+</p>
+</li>
+<li> <p><em>Lateral root growth rates</em>: for the first observation date, it is calculated as the ratio of the lateral root length to the root system age. For other observation dates (t), it is calculated as the difference between the lateral root length at time t and t-1 divided by the difference between the root system age at time t and t-1.
+</p>
+</li>
+<li> <p><em>Growth rate of the root system</em>: for the first observation date, it is calculated as the ratio of the total root system length to the root system age. For other observation dates (t), it is calculated as the difference between the total root system length at time t and t-1 divided by the difference between the root system age at time t and t-1.</p>
+</li>
+</ul>
+<p>If <code>inputrac</code> is a dartTotable object and/or <code>inputrsml</code> is a rsmlToTable object, topological indices described in <cite>Fitter (1986, 1987)</cite> can be calculated (<code>fitter=TRUE</code>). Here, we define each topological index as in <cite>Fitter (1986, 1987)</cite>. We recommend the reading of these papers for more information.
+</p>
+<p>The magnitude of a root system is equal to the number of external links in the system. Therefore, the magnitude is also equal to the number of root apices.
+</p>
+<p>The altitude of a root system is equal to the longest path length from one exterior link (or one root apex) to the root system base.
+</p>
+<p>The total exterior path length is equal to the sum of all path lengths from all exterior links (or all root apices) to the root system base.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a data frame summarizing all RSA traits calculated for each rac/RSML file located in <code>inputrac</code>/<code>inputrsml</code>. 
+</p>
+<p>The data frame contains the following columns:
+</p>
+<p><b>FileName</b>: (the name of the rac/RSML files).
+</p>
+<p><b>Time</b>: the root system age expressed in the same unit (=unittime) as in the tps file(s) (for rac files) or in the same unit as <code>rsml.date</code> (for RSML files).
+</p>
+<p><b>TRL</b>: the total root system length expressed in <code>unitlength</code>.
+</p>
+<p><b>GRTR</b>: the growth rate of the root system expressed in <code>unitlength</code>/unittime.
+</p>
+<p><b>L1R</b>: the first-order root length expressed in <code>unitlength</code>.
+</p>
+<p><b>GR1R</b>: the first-order root growth rate expressed in <code>unitlength</code>/unittime.
+</p>
+<p><b>TN1R</b>: the total number of first-order roots.
+</p>
+<p><b>TNLR</b>: the total number of lateral roots.
+</p>
+<p><b>TLRL</b>: the total lateral root length expressed in <code>unitlength</code>.
+</p>
+<p><b>NxLR</b>: the total number of lateral roots with a branching order equal to x.
+</p>
+<p><b>LxLR</b>: the total length of lateral roots with a branching order equal to x expressed in <code>unitlength</code>.
+</p>
+<p><b>MLxLR</b>: the mean length of lateral roots with a branching order equal to x expressed in <code>unitlength</code>.
+</p>
+<p><b>GRxL</b>: the growth rate of lateral roots with a branching order equal to x expressed in <code>unitlength</code>/unittime.
+</p>
+<p><b>D2LR</b>: the density of secondary roots on the first-order root(s) expressed in root(s)/<code>unitlength</code>.
+</p>
+<p>If <code>inputrac</code> is a dartTotable object and/or <code>inputrsml</code> is a rsmlToTable object, the following parameters will be calculated:
+</p>
+<p><b>Height</b>: the root system height expressed in <code>unitlength</code>.
+</p>
+<p><b>Width</b>: the root system width expressed in <code>unitlength</code>.
+</p>
+<p><b>ConvexhullXY</b>: the area of the convex hull on the XY plane expressed in <code>unitlength^2</code>.
+</p>
+<p><b>ConvexhullXZ</b>: the area of the convex hull on the XZ plane expressed in <code>unitlength^2</code>.
+</p>
+<p><b>ConvexhullYZ</b>: the area of the convex hull on the YZ plane expressed in <code>unitlength^2</code>.
+</p>
+<p><b>Convexhull3D</b>: the volume of the convex hull expressed in <code>unitlength^3</code>.
+</p>
+<p><b>Magnitude</b>: the magnitude of the root system. See details for more information. Computed only if <code>fitter=TRUE</code>.
+</p>
+<p><b>Altitude</b>: the altitude of the root system. See details for more information. Computed only if <code>fitter=TRUE</code>.
+</p>
+<p><b>ExtPathLength</b>: the total exterior path length of the root system. See details for more information. Computed only if <code>fitter=TRUE</code>.
+</p>
+<p><b>MDx</b>: the mean diameter of roots with a branching order equal to x expressed in <code>unitlength</code>.
+</p>
+<p><b>MDLR</b>: the mean lateral root diameter expressed in <code>unitlength</code>.
+</p>
+<p><b>Sx</b>: the total surface area of roots with a branching order equal to x expressed in <code>unitlength^2</code>.
+</p>
+<p><b>Stot</b>: the total root surface area expressed in <code>unitlength^2</code>.
+</p>
+<p><b>Vx</b>: the total volume of roots with a branching order equal to x expressed in <code>unitlength^3</code>.
+</p>
+<p><b>Vtot</b>: the root system volume expressed in <code>unitlength^3</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Benjamin M. Delory, Caroline Baudson, Yves Brostaux, Guillaume Lobet, Loic Pages, Patrick du Jardin, Pierre Delaplace
+</p>
+
+
+<h3>References</h3>
+
+<p>Delory B.M., Baudson C., Brostaux Y., Lobet G., du Jardin P., Pages L., Delaplace P. (2016) archiDART: an R package for the automated computation of plant root architectural traits, <em>Plant and Soil</em>, DOI: 10.1007/s11104-015-2673-4.
+</p>
+<p>Fitter A.H. (1986) The topology and geometry of plant root systems: influence of watering rate on root system topology in <em>Trifolium pratense</em>, <em>Annals of Botany</em>, 58, 91-101. 
+</p>
+<p>Fitter A.H. (1987) An architectural approach to the comparative ecology of plant root systems, <em>New Phytologist</em>, 106, 61-77. 
+</p>
+<p>Le Bot J., Serra V., Fabre J., Draye X., Adamowicz S., Pages L. (2010) DART: a software to analyse root system architecture and development from captured images, <em>Plant and Soil</em>, DOI: 10.1007/s11104-009-0005-2.
+</p>
+<p>Lobet G., Pound M.P., Diener J., Pradal C., Draye X., Godin C., Javaux M., Leitner D., Meunier F., Nacry P., Pridmore T.P., Schnepf A. (2015) Root System Markup Language: Toward a Unified Root Architecture Description Language, <em>Plant Physiology</em>, DOI: 10.1104/pp.114.253625.
+</p>
+<p>Pages L., Becel C., Boukcim H., Moreau D., Nguyen C., Voisin, A-S. (2013) Calibration and evaluation of ArchiSimple, a simple model of root system architecture, <em>Ecological Modelling</em>, DOI: 10.1016/j.ecolmodel.2013.11.014.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dartToTable</code>, <code>rsmlToTable</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Locate folder with DART and RSML files
+path &lt;- system.file("extdata", package="archiDART")
+
+## Compute RSA parameters for DART and RSML files
+res2a &lt;- architect(inputrac=path, inputtps=path, inputrsml=path, res=75, unitlength="cm",
+rsml.connect=TRUE, rsml.date="age")
+
+tablersml&lt;-rsmlToTable(inputrsml=path, unitlength="cm", rsml.date="age", rsml.connect=TRUE)
+res2b &lt;- architect(inputrsml=tablersml, fitter=TRUE)
+</code></pre>
+
+
+</div>

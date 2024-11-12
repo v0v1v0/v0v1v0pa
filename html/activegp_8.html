@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>C_var</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Element-wise Cn+1 variance</h2>
+
+<h3>Description</h3>
+
+<p>Element-wise Cn+1 variance
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">C_var(C, xnew, grad = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>A const_C object, the result of a call to <code>C_GP</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xnew</code></td>
+<td>
+<p>The new design point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grad</code></td>
+<td>
+<p>If <code>FALSE</code>, calculate variance of update. If <code>TRUE</code>, returns the gradient.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A real number giving the expected elementwise variance of C given the current design.
+</p>
+
+
+<h3>References</h3>
+
+<p>N. Wycoff, M. Binois, S. Wild (2019+), Sequential Learning of Active Subspaces, preprint.<br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">################################################################################
+### Norm of the variance of C criterion landscape
+################################################################################
+library(hetGP)
+set.seed(42)
+nvar &lt;- 2
+n &lt;- 20
+
+# theta gives the subspace direction
+f &lt;- function(x, theta = pi/6, nugget = 1e-6){
+ if(is.null(dim(x))) x &lt;- matrix(x, 1)
+ xact &lt;- cos(theta) * x[,1] - sin(theta) * x[,2]
+ return(hetGP::f1d(xact) 
+   + rnorm(n = nrow(x), sd = rep(nugget, nrow(x))))
+}
+
+design &lt;- matrix(signif(runif(nvar*n), 2), ncol = nvar)
+response &lt;- apply(design, 1, f)
+model &lt;- mleHomGP(design, response, lower = rep(1e-4, nvar),
+                  upper = rep(0.5,nvar), known = list(g = 1e-4))
+                  
+C_hat &lt;- C_GP(model)
+
+ngrid &lt;- 51
+xgrid &lt;- seq(0, 1,, ngrid)
+Xgrid &lt;- as.matrix(expand.grid(xgrid, xgrid))
+filled.contour(matrix(f(Xgrid), ngrid))
+
+cvar_crit &lt;- function(C, xnew){
+ return(sqrt(sum(C_var(C, xnew)^2)))
+}
+
+Cvar_grid &lt;- apply(Xgrid, 1, cvar_crit, C = C_hat)
+filled.contour(matrix(Cvar_grid, ngrid), color.palette = terrain.colors,
+               plot.axes = {axis(1); axis(2); points(design, pch = 20)})
+</code></pre>
+
+
+</div>

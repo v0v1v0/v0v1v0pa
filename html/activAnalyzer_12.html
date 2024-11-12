@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_fig_mx_by_day</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a radar plot for MX metrics relating to each day of the measurement of physical behavior</h2>
+
+<h3>Description</h3>
+
+<p>This function creates radar plots in relation to MX metrics as illustrated in Rowlands et al.
+(2018; doi:10.1249/MSS.0000000000001561) paper, here for each day of an accelerometer measurement.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_fig_mx_by_day(
+  data,
+  labels = NULL,
+  mpa_cutpoint = 2690,
+  vpa_cutpoint = 6167
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe with physical behavior metrics summarised for each day of the measurement. It should have been obtained using
+the <code>prepare_dataset</code>, <code>mark_wear_time</code>, <code>mark_intensity</code>, and then
+the <code>recap_by_day</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A vector of numeric values setting the breaks of the Y axis of the radar plot. Default is a vector of 6 values with
+a start at 0 and an end at the maximum of all the computed MX metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mpa_cutpoint</code></td>
+<td>
+<p>A numeric value at and above which time is considered as spent in moderate-to-vigorous physical activity (in counts/epoch length used to compute MX metrics).
+Default value is from Sasaki et al. (2011; doi:10.1016/j.jsams.2011.04.003) relating to vector magnitude in counts/min.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vpa_cutpoint</code></td>
+<td>
+<p>A numeric value at and above which time is considered as spent in vigorous physical activity (in counts/epoch length used to compute MX metrics).
+Default value is from Sasaki et al. (2011; doi:10.1016/j.jsams.2011.04.003) relating to vector magnitude in counts/min.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+file &lt;- system.file("extdata", "acc.agd", package = "activAnalyzer")
+mydata &lt;- prepare_dataset(data = file)
+mydata_with_wear_marks &lt;- mark_wear_time(
+    dataset = mydata, 
+    TS = "TimeStamp", 
+    to_epoch = 60,
+    cts  = "vm",
+    frame = 90, 
+    allowanceFrame = 2, 
+    streamFrame = 30
+    )
+mydata_with_intensity_marks &lt;- mark_intensity(
+    data = mydata_with_wear_marks, 
+    col_axis = "vm", 
+    equation = "Sasaki et al. (2011) [Adults]",
+    sed_cutpoint = 200, 
+    mpa_cutpoint = 2690, 
+    vpa_cutpoint = 6167, 
+    age = 32,
+    weight = 67,
+    sex = "male"
+    )
+summary_by_day &lt;- recap_by_day(
+    data = mydata_with_intensity_marks, 
+    col_axis = "vm",
+    age = 32, 
+    weight = 67, 
+    sex = "male",
+    valid_wear_time_start = "07:00:00",
+    valid_wear_time_end = "22:00:00",
+    start_first_bin = 0,
+    start_last_bin = 10000,
+    bin_width = 500
+    )$df_all_metrics
+create_fig_mx_by_day(
+    data = summary_by_day,
+    labels = seq(2500, 12500, 2500)
+)
+
+
+</code></pre>
+
+
+</div>

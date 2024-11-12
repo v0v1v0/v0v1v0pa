@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readGLONASSNavigationRINEX</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a RINEX navigation file for GLONASS satellites
+</h2>
+
+<h3>Description</h3>
+
+<p>RINEX (Receiver Independent Exchange Format) is one of the most widely used
+formats for providing data of satellite navigation systems. The RINEX standard
+defines several structured text file types, among which navigation files are used 
+to distribute positional information of the satellites. The exact information 
+provided in a RINEX navigation file varies for each satellite navigation system. 
+This function reads RINEX navigation files for satellites of the GLONASS 
+constellation, operated by Russia.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readGLONASSNavigationRINEX(filename)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Path to the GLONASS RINEX navigation file.
+</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A list with two elements. The first element, named <code>header</code>, is a list with
+the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>rinexVersion </code></td>
+<td>
+<p>Version of the RINEX format used in the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rinexFileType </code></td>
+<td>
+<p>Type of RINEX file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generatorProgram </code></td>
+<td>
+<p>Program used to generate the RINEX file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generatorEntity </code></td>
+<td>
+<p>Individual or organization that generated the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fileCreationDateString </code></td>
+<td>
+<p>Date-time string indicating when the file was
+created</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refYear </code></td>
+<td>
+<p>Reference year for system time correction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refMonth </code></td>
+<td>
+<p>Reference month for system time correction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refDay </code></td>
+<td>
+<p>Reference day for system time correction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sysTimeCorrection </code></td>
+<td>
+<p>Correction to system time scale to fine-tune GLONASS
+time to UTC in seconds. Since GLONASS time is linked to UTC, it should be a
+very small amount</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leapSeconds </code></td>
+<td>
+<p>Leap seconds introduced since 1980. Useful to convert to
+GPS time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comments </code></td>
+<td>
+<p>Miscellaneous comments found in the header of the RINEX file</p>
+</td>
+</tr>
+</table>
+<p>The second element is named <code>messages</code>, and it contains one element for
+each navigation message found in the RINEX file. Each of these elements is a 
+list with the following elements that provide information about the position
+of the GLONASS satellite:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>satelliteNumber </code></td>
+<td>
+<p>Slot number of the satellite within the GLONASS
+constellation. It can be converted to a PRN code by adding 37 to it</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochYearShort </code></td>
+<td>
+<p>Epoch year in 2-digit format. If lower than 80, the
+meaning should be taken as 20XX, while if larger than 80, it refers to 19XX.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochMonth </code></td>
+<td>
+<p>Epoch month</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochDay </code></td>
+<td>
+<p>Epoch day</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochHour </code></td>
+<td>
+<p>Epoch hour</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochMinute </code></td>
+<td>
+<p>Epoch minute</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochSecond </code></td>
+<td>
+<p>Epoch second</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ephemerisUTCTime </code></td>
+<td>
+<p>A nanotime object indicating the time
+corresponding to the reported position (ephemeris) in the present message. 
+The time is in UTC, obtained by applying the individual clock bias of the 
+particular satellite (<code>clockBias</code> field of each message) and the latest 
+global GLONASS time bias with respect to UTC (<code>sysTimeCorrection</code> field
+of the header) to the uncorrected ephemeris time, given by the previous
+time fields. Corrections are performed as described in the GLONASS system
+specifications (https://russianspacesystems.ru/wp-content/uploads/2016/08/ICD_GLONASS_eng_v5.1.pdf)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clockBias </code></td>
+<td>
+<p>Clock bias (i.e., constant offset) that should be applied to
+the satellite time in order to obtain an even more accurate UTC time. In 
+seconds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relativeFreqBias </code></td>
+<td>
+<p>Clock drift of the satellite clock that should be
+applied in combination with the time difference to the reference time in order
+to obtain an even more accurate UTC time. In seconds per second</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>messageFrameTime </code></td>
+<td>
+<p>Second of the UTC day when the message was 
+transmitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positionX </code></td>
+<td>
+<p>X coordinate of the position of the satellite in km, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positionY </code></td>
+<td>
+<p>Y coordinate of the position of the satellite in km, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positionZ </code></td>
+<td>
+<p>Z coordinate of the position of the satellite in km, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>velocityX </code></td>
+<td>
+<p>X component of the velocity of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>velocityY </code></td>
+<td>
+<p>Y component of the velocity of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>velocityZ </code></td>
+<td>
+<p>Z component of the velocity of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accelX </code></td>
+<td>
+<p>X component of the accel of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accelY </code></td>
+<td>
+<p>Y component of the accel of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accelZ </code></td>
+<td>
+<p>Z component of the accel of the satellite in km/s, in the
+ITRF system of coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>satelliteHealthCode </code></td>
+<td>
+<p>Code indicating the health of the satellite. 0 if
+healthy</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freqNumber </code></td>
+<td>
+<p>Frequency number (k) of the GLONASS satellite. The two 
+frequencies in MHz, f1 and f2, used by the satellite to transmit data can be 
+calculated as follows: f1 = 1602 + k*9/16 and f2 = 1246 + k*7/16</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>informationAge </code></td>
+<td>
+<p>Age in days of the observation data used to generate
+the provided ephemeris</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>https://gage.upc.edu/gFD/
+https://www.navcen.uscg.gov/pubs/gps/rinex/rinex.txt
+ftp://www.ngs.noaa.gov/cors/RINEX211.txt
+http://acc.igs.org/misc/rinex304.pdf
+https://russianspacesystems.ru/wp-content/uploads/2016/08/ICD_GLONASS_eng_v5.1.pdf
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The file testGLONASSRINEX.txt provided with the package includes 5 navigation
+# messages from 4 GLONASS satellites
+
+testGLONASSnav &lt;- readGLONASSNavigationRINEX(paste0(path.package("asteRisk"), 
+"/testGLONASSRINEX.txt"))
+testGLONASSnav$header
+testGLONASSnav$messages
+</code></pre>
+
+
+</div>

@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>topRules</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Rule Generation</h2>
+
+<h3>Description</h3>
+
+<p>A wrapper for the apriori method from the arules package that iteratively changes mining parameters until a desired number of rules is obtained, all options are exhausted or a preset time limit is reached.
+Within the arc package, this function serves as a replacement for the CBA Rule Generation algorithm (Liu et al, 1998) – without pessimistic pruning – with general apriori implementation provided by existing fast R package <strong>arules</strong>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">topRules(
+  txns,
+  appearance = list(),
+  target_rule_count = 1000,
+  init_support = 0,
+  init_conf = 0.5,
+  conf_step = 0.05,
+  supp_step = 0.05,
+  minlen = 2,
+  init_maxlen = 3,
+  iteration_timeout = 2,
+  total_timeout = 100,
+  max_iterations = 30,
+  trim = TRUE,
+  debug = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>txns</code></td>
+<td>
+<p>input transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>appearance</code></td>
+<td>
+<p>object named list or APappearance object (refer to arules package)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_rule_count</code></td>
+<td>
+<p>the main stopping criterion, mining stops when the resulting rule set contains this number of rules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_support</code></td>
+<td>
+<p>initial support.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_conf</code></td>
+<td>
+<p>initial confidence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_step</code></td>
+<td>
+<p>confidence will be changed by steps defined by this parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>supp_step</code></td>
+<td>
+<p>support will be changed by steps defined by this parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minlen</code></td>
+<td>
+<p>minimum length of rules, minlen=1 corresponds to rule with empty antecedent and one item in consequent. In general, rules with empty antecedent are not desirable for the subsequent pruning algorithm, therefore the value of this parameter should be set at least to value 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_maxlen</code></td>
+<td>
+<p>maximum length of rules, should be equal or higher than minlen. A higher value may decrease the number of iterations to obtain target_rule_count rules, but it also increases the risk of initial combinatorial explosion and subsequent memory crash of the apriori rule learner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iteration_timeout</code></td>
+<td>
+<p>maximum number of seconds it should take apriori to obtain rules with current configuration/</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_timeout</code></td>
+<td>
+<p>maximum number of seconds the mining should take.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iterations</code></td>
+<td>
+<p>maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>if set to TRUE and more than <code>target_rule_count</code> is discovered, only first <code>target_rule_count</code> rules will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>boolean indicating whether to output debug messages.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of class rules.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ma, Bing Liu Wynne Hsu Yiming. Integrating classification and association rule mining. Proceedings of the fourth international conference on knowledge discovery and data mining. 1998.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>prune</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+  utils::data(Adult)
+  rules &lt;- topRules(Adult, appearance = list(), target_rule_count = 100,
+  init_support = 0.5,init_conf = 0.9, minlen = 1, init_maxlen = 10)
+
+# Example 2
+  rules &lt;- topRules(as(discrNumeric(datasets::iris, "Species")$Disc.data,"transactions"),
+  getAppearance(datasets::iris,"Species"))
+
+# Example 3
+  utils::data(datasets::iris)
+  appearance &lt;- list(rhs =  c("Species=setosa", "Species=versicolor",
+   "Species=virginica"), default="lhs")
+  data &lt;- sapply(datasets::iris,as.factor)
+  data &lt;- data.frame(data, check.names=FALSE)
+  txns &lt;- as(data,"transactions")
+  rules &lt;- topRules(txns, appearance)
+
+</code></pre>
+
+
+</div>

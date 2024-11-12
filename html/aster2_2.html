@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aster2-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Aster Models
+</h2>
+
+<h3>Description</h3>
+
+<p>Aster models are exponential family graphical models that
+combine aspects of generalized linear models and survival analysis.
+</p>
+<p>This package is still under development, only about half finished.
+However, it does do maximum likelihood for unconditional aster models
+with dependence groups, which the old package <code>aster</code> does not.
+</p>
+<p>The main differences between this package and the old package are as follows.
+</p>
+
+<ol>
+<li>
+<p> The old package had triple indices for model matrices.  The first index
+ran over individuals, the second index over nodes of the graph for
+an individual, and the third index over regression coefficients.  Consequently
+the model matrix was represented (sometimes, but not consistently) as a
+three-dimensional array rather than a matrix, which was very confusing, even
+to the package author.  This package ignores individuals, one index runs
+over all nodes of the combined graph for all individuals.  Thus model matrices
+are always matrices.
+</p>
+</li>
+<li>
+<p> The old package did not implement dependence groups, although they were
+described in Geyer, Wagenius and Shaw (2007).  This package does.
+Consequently, this package requires a data frame, a vector <code>pred</code> that
+indicates predecessors, a vector <code>group</code> that indicates individuals in
+the same dependence group, and a vector <code>fam</code> that indicates families
+to specify a saturated aster model (the old package required only
+the data frame, <code>pred</code>, and <code>fam</code>).
+To facilitate the old style model specification, there is a new function
+<code>asterdata</code> that constructs objects of class <code>"asterdata"</code>
+given an old style data frame, <code>pred</code>, and <code>fam</code>.  All other
+functions of the package take objects of class <code>"asterdata"</code> as model
+specifications.
+</p>
+</li>
+<li>
+<p> The function <code>predict.aster</code> in the old package
+did some parameter transformations, but not all, and the returned value,
+when a list, had a component <code>gradient</code>, that was undocumented but useful
+in applying the delta method.  The functions
+<code>transformSaturated</code>,
+<code>transformConditional</code>, and
+<code>transformUnconditional</code> in this package transform
+between any of the following parameter vectors:
+the conditional canonical parameter <code class="reqn">\theta</code>,
+the unconditional canonical parameter <code class="reqn">\varphi</code>,
+the conditional mean value parameter <code class="reqn">\xi</code>,
+the unconditional mean value parameter <code class="reqn">\mu</code>,
+the canonical affine submodel canonical parameter <code class="reqn">\beta</code>,
+and (unconditional aster models only)
+the canonical affine submodel mean value parameter <code class="reqn">\tau</code>
+(this last parameter is new, not discussed in the cited papers below, it is
+<code class="reqn">\tau = M^T \mu</code>, where <code class="reqn">M</code> is the model matrix).
+The change of parameter from <code class="reqn">\tau</code> to <code class="reqn">\beta</code>
+is equivalent to maximum likelihood estimation for an unconditional
+aster model when the value <code class="reqn">\tau = M^T y</code> is used,
+where <code class="reqn">y</code> is the response vector.  All of these transformation functions
+also compute derivatives, if requested.  See examples.
+</p>
+</li>
+</ol>
+<h3>Bugs</h3>
+
+<p>Functions analogous to <code>aster</code>, <code>anova</code>, and <code>predict</code>
+in the old package are missing, thus model fitting, hypothesis tests,
+and confidence intervals are more cumbersome.  In fact, since there is
+no function to calculate log likelihoods (like <code>mlogl</code> in the old
+package), there is no way to do likelihood ratio tests (but Rao or Wald
+tests could be done, for unconditional aster models, since the derivative
+of the log likelihood is observed minus expected
+<code class="reqn">M^T (y - \mu)</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Geyer, C. J., Wagenius, S., and Shaw, R. G. (2007)
+Aster Models for Life History Analysis.
+<em>Biometrika</em> <b>94</b> 415–426.
+</p>
+<p>Shaw, R. G., Geyer, C. J., Wagenius, S., Hangelbroek, H. H.
+and Etterson, J. R. (2008)
+Unifying Life History Analyses for Inference of Fitness
+and Population Growth.
+<em>American Naturalist</em>, <b>172</b>, E35–E47. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asterdata</code>, <code>transformSaturated</code>,
+<code>families</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: # perfectly good example but takes longer to run than CRAN allows
+data(echinacea)
+#### estimate MLE (simpler model than in Biometrika paper cited, not as good)
+hdct &lt;- as.numeric(grepl("hdct", as.character(echinacea$redata$varb)))
+modmat &lt;- model.matrix(resp ~ varb + nsloc + ewloc + pop * hdct - pop,
+    data = echinacea$redata)
+tau.hat &lt;- as.numeric(t(modmat) %*% echinacea$redata$resp)
+beta.hat &lt;- transformUnconditional(tau.hat, modmat, echinacea,
+    from = "tau", to = "beta")
+inverse.fisher &lt;- jacobian(tau.hat, echinacea, transform = "unconditional",
+    from = "tau", to = "beta", modmat = modmat)
+#### now have MLE (beta.hat) and pseudo-inverse of Fisher information
+#### (inverse.fisher), pseudo-inverse because modmat is not full rank
+foo &lt;- cbind(beta.hat, sqrt(diag(inverse.fisher)))
+foo &lt;- cbind(foo, foo[ , 1]/foo[ , 2])
+foo &lt;- cbind(foo, 2 * pnorm(- abs(foo[ , 3])))
+dimnames(foo) &lt;- list(colnames(modmat),
+    c("Estimate", "Std. Error", "z value", "Pr(&gt;|z|)"))
+printCoefmat(foo)
+#### coefficients constrained to be zero because parameterization is not
+#### identifiable have estimate zero and std. error zero (and rest NA)
+
+#### estimate fitness in populations
+#### generate new data with one individual in each pop at location (0, 0)
+pop.names &lt;- levels(echinacea$redata$pop)
+pop.idx &lt;- match(pop.names, as.character(echinacea$redata$pop))
+pop.id &lt;- echinacea$redata$id[pop.idx]
+newdata &lt;- subset(echinacea, echinacea$redata$id %in% pop.id)
+newdata$redata[ , "nsloc"] &lt;- 0
+newdata$redata[ , "ewloc"] &lt;- 0
+hdct &lt;- as.integer(grepl("hdct", as.character(newdata$redata$varb)))
+#### modmat for new data
+newmodmat &lt;- model.matrix(resp ~ varb + nsloc + ewloc + pop * hdct - pop,
+    data = newdata$redata)
+#### matrix that when multiplied mean value parameter vector gives fitness
+#### in each pop
+amat &lt;- matrix(NA, nrow = length(pop.id), ncol = nrow(newmodmat))
+for (i in 1:nrow(amat))
+    amat[i, ] &lt;- as.numeric(grepl(paste("^", pop.id[i], ".hdct", sep = ""),
+        rownames(newmodmat)))
+#### transform to expected fitness parameters
+efit &lt;- transformUnconditional(beta.hat, newmodmat, newdata,
+    from = "beta", to = "mu")
+efit &lt;- as.numeric(amat %*% efit)
+#### jacobian matrix of this transformation
+jack &lt;- jacobian(beta.hat, newdata, transform = "unconditional",
+    from = "beta", to = "mu", modmat = newmodmat)
+#### delta method standard errors
+sefit &lt;- sqrt(diag(amat %*% jack %*% inverse.fisher %*% t(jack) %*% t(amat)))
+foo &lt;- cbind(efit, sefit)
+dimnames(foo) &lt;- list(pop.names, c("Est. fitness", "Std. Error"))
+print(foo)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

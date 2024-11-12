@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>electroStatics_1D</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Label placement based on a simulation of electrostatic forces</h2>
+
+<h3>Description</h3>
+
+<p>This function attempts to move labels along a 1D coordinate system such that overlap (as specified by threshold) is minimized. An electrostatic simulation applies forces of repulsion between labels that are within <code>thresh</code> (e.g. overlapping) and forces of attraction to a uniformly spaced sequence to iteratively perturb affected labels until either no overlap is reported, or a maximum number of iterations (<code>maxIter</code>) has been reached.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">electroStatics_1D(
+  x,
+  thresh,
+  q = 1,
+  chargeDecayRate = 0.01,
+  QkA_GrowthRate = 0.05,
+  maxIter = 100,
+  tiny = 1e-04,
+  const = 0.001,
+  trace = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector, pre-sorted sorted, without duplication, describing 1D label (particle) configuration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>numeric, overlap threshold, same as in <code>fixOverlap()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>numeric, electrical charge (typically between 0.1 and 2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chargeDecayRate</code></td>
+<td>
+<p>numeric, exponential decay rate constant for <code>q</code> as a function of iteration <code>i</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>QkA_GrowthRate</code></td>
+<td>
+<p>numeric, growth rate constant for <code>Qk</code> applied to attraction to uniform spacing of labels, invoked when rank order is violated during the simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>integer, maximum number of iterations before giving up</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tiny</code></td>
+<td>
+<p>numeric, 0-values replaced by this number to avoid division by 0 and infinite forces</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const</code></td>
+<td>
+<p>numeric, empirical constant added to the 1D electrostatic force equation to dampen oscillation: <code>(Qk * Q1 * Q2) / (d^ex + const)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>logical, include diagnostic output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used, absorbs additional arguments to <code>fixOverlap()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Difficult overlap problems can be addressed by reducing <code>thresh</code> and increasing <code>q</code>. Large values of <code>q</code> can lead to chaotic results.
+</p>
+<p>This function will generate unpredictable output when <code>x</code> contains duplicate values.
+</p>
+<p>This function requires input to be pre-sorted, although interesting "artistic" simulations will often result from unsorted <code>x</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>When <code>trace = TRUE</code> a <code>list</code>, otherwise numeric vector with <code>converged</code> attribute.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette and K.C. Thompson
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fixOverlap()</code>, <code>SANN_1D()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# vector of object locations, with potential overlap
+x &lt;- c(1, 2, 3, 3.3, 3.8, 5, 6, 7, 8, 9, 10)
+
+# full diagnostic output
+z &lt;- electroStatics_1D(x, thresh = 0.65, trace = TRUE, q = 1)
+txt &lt;- sprintf("Converged %s (%s iterations)", z$converged, length(z$cost))
+
+plot(
+seq_along(z$cost),
+z$cost, 
+las = 1, 
+xlab = 'Iteration', 
+ylab = 'Overlap Cost', 
+type = 'b', 
+main = txt
+)
+
+abline(h = 0, lty = 2, col = 2)
+
+# final configuration only
+xnew &lt;- electroStatics_1D(x, thresh = 0.65, q = 1)
+
+# check for convergence
+attr(xnew, 'converged')
+
+# compare original vs. modified
+data.frame(orig = x, new = round(xnew, 2))
+
+</code></pre>
+
+
+</div>

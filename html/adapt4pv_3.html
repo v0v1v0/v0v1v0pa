@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adapt_cisl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fit an adaptive lasso with adaptive weights derived from CISL</h2>
+
+<h3>Description</h3>
+
+<p>Compute the CISL procedure (see <code>cisl</code> for more details) to determine
+adaptive penalty weights, then run an adaptive lasso with this penalty weighting.
+BIC is used for the adaptive lasso for variable selection.
+Can deal with very large sparse data matrices.
+Intended for binary reponse only (option <code>family = "binomial"</code> is forced).
+Depends on the <code>glmnet</code> function from the package <code>glmnet</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adapt_cisl(
+  x,
+  y,
+  cisl_nB = 100,
+  cisl_dfmax = 50,
+  cisl_nlambda = 250,
+  cisl_ncore = 1,
+  maxp = 50,
+  path = TRUE,
+  betaPos = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix, of dimension nobs x nvars. Each row is an observation
+vector. Can be in sparse matrix format (inherit from class
+<code>"sparseMatrix"</code> as in package <code>Matrix</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Binary response variable, numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cisl_nB</code></td>
+<td>
+<p><code>nB</code> option in <code>cisl</code> function. Default is 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cisl_dfmax</code></td>
+<td>
+<p><code>dfmax</code> option in <code>cisl</code> function. Default is 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cisl_nlambda</code></td>
+<td>
+<p><code>nlambda</code> option in <code>cisl</code> function. Default is 250.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cisl_ncore</code></td>
+<td>
+<p><code>ncore</code> option in <code>cisl</code> function. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxp</code></td>
+<td>
+<p>A limit on how many relaxed coefficients are allowed.
+Default is 50, in <code>glmnet</code> option default is 'n-3', where 'n' is the sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Since <code>glmnet</code> does not do stepsize optimization, the Newton
+algorithm can get stuck and not converge, especially with relaxed fits. With <code>path=TRUE</code>,
+each relaxed fit on a particular set of variables is computed pathwise using the original sequence
+of lambda values (with a zero attached to the end). Default is <code>path=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaPos</code></td>
+<td>
+<p>Should the covariates selected by the procedure be
+positively associated with the outcome ? Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that can be passed to <code>glmnet</code>
+from package <code>glmnet</code> other than <code>penalty.factor</code>,
+<code>family</code>, <code>maxp</code> and <code>path</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The CISL procedureis first implemented with its default value except for
+<code>dfmax</code> and <code>nlambda</code> through parameters <code>cisl_dfmax</code> and
+<code>cisl_nlambda</code>.
+In addition, the <code>betaPos</code> parameter is set to FALSE in <code>cisl</code>.
+For each covariate <code class="reqn">i</code>, <code>cisl_nB</code> values of the CISL quantity <code class="reqn">\tau_i</code>
+are estimated.
+The adaptive weight for a given covariate <code class="reqn">i</code> is defined by
+</p>
+<p style="text-align: center;"><code class="reqn">w_i = 1- 1/cisl_nB \sum_{b=1, .., cisl_nB} 1 [ \tau^b_i &gt;0  ]</code>
+</p>
+
+<p>If <code class="reqn">\tau_i</code> is the null vector, the associated adaptve weights in infinty.
+If <code class="reqn">\tau_i</code> is always positive, rather than "forcing" the variable into
+the model, we set the corresponding adaptive weight to 1/<code>cisl_nB</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"adaptive"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>aws</code></td>
+<td>
+<p>Numeric vector of penalty weights derived from CISL.
+Length equal to nvars.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>Character, indicates which criterion is used with the
+adaptive lasso for variable selection. For <code>adapt_cisl</code> function,
+<code>criterion</code> is "bic".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Numeric vector of regression coefficients in the adaptive lasso.
+If <code>criterion</code> = "cv" the regression coefficients are PENALIZED, if
+<code>criterion</code> = "bic" the regression coefficients are UNPENALIZED.
+Length equal to nvars. Could be NA if adaptive weights are all equal to infinity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selected_variables</code></td>
+<td>
+<p>Character vector, names of variable(s) selected
+with this adaptive approach.
+If <code>betaPos = TRUE</code>, this set is the covariates with a positive regression
+coefficient in <code>beta</code>.
+Else this set is the covariates with a non null regression coefficient in <code>beta</code>.
+Covariates are ordering according to the p-values (two-sided if <code>betaPos = FALSE</code> ,
+one-sided if <code>betaPos = TRUE</code>) in the classical multiple logistic regression
+model that minimzes the BIC in the adaptive lasso.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Emeline Courtois <br> Maintainer: Emeline Courtois
+<a href="mailto:emeline.courtois@inserm.fr">emeline.courtois@inserm.fr</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(15)
+drugs &lt;- matrix(rbinom(100*20, 1, 0.2), nrow = 100, ncol = 20)
+colnames(drugs) &lt;- paste0("drugs",1:ncol(drugs))
+ae &lt;- rbinom(100, 1, 0.3)
+acisl &lt;- adapt_cisl(x = drugs, y = ae, cisl_nB = 50, maxp=10)
+
+
+</code></pre>
+
+
+</div>

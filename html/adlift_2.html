@@ -1,0 +1,251 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AdaptNeighmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AdaptNeighmp</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the prediction lifting step over neighbourhoods and interpolation schemes, for multiple point data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AdaptNeighmp(pointsin, X, coefflist, coeff, nbrs, newnbrs, 
+remove, intercept, neighbours, mpdet, g)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>The indices of gridpoints still to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the vector of grid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>the vector of detail and scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefflist</code></td>
+<td>
+<p>the list of detail and multiple scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices (into <span class="env">X</span>) of the neighbours to be used in the prediction step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newnbrs</code></td>
+<td>
+<p>as nbrs, but repeated according to the multiple point structure of the grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove</code></td>
+<td>
+<p>the index (into <span class="env">X</span>) of the point to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>Boolean value for whether or not an intercept is used in the prediction step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighbours</code></td>
+<td>
+<p>the number of neighbours in the computation of the predicted value. This is not actually used specifically in <code>AdaptNeighmp</code>, since this is known already from <span class="env">nbrs</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mpdet</code></td>
+<td>
+<p>how the mutiple point detail coefficients are computed.  Possible values are "ave", in which the multiple detail coefficients produced when performing the multiple predictions are averaged, or "min", where the overall minimum detail coefficient is taken.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>the group structure of the multiple point data.  </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The procedure performs adaptive regression (through <code>AdaptPred</code>) over the three types of regression and also over the 3*<span class="env">neighbours</span> configurations of neighbours. The combination (type of regression, configuration of neighbours) is chosen which gives the smallest detail coefficient (in absolute value). 
+</p>
+
+
+<h3>Value</h3>
+
+<p><strong>results.</strong>  This is a ten item list giving the regression information chosen from the detail coefficient minimisation (i.e, the information supplied to <code>AdaptNeigh</code> by <code>AdaptPred</code>): 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xneigh</code></td>
+<td>
+<p>matrix of <span class="env">X</span> values corresponding to the neighbours of the removed point. The matrix consists of columns <code class="reqn">1,X[nbrs],X[nbrs]^2,...</code> depending on the order of the prediction used and whether or not an intercept is used. Refer to any reference on linear regression for more details. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mm</code></td>
+<td>
+<p>the matrix from which the prediction is made. In terms of <span class="env">Xneigh</span>, it is <br><code class="reqn">({Xneigh}^T Xneigh)^{-1} {Xneigh}^T</code> . </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bhat</code></td>
+<td>
+<p>The regression coefficients used in prediction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the prediction weights for the neighbours. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>the predicted function value obtained from the regression. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of (modified) detail and scaling coefficients to be used in the update step of the transform. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int</code></td>
+<td>
+<p>if TRUE, an intercept was used in the regression. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scheme</code></td>
+<td>
+<p>a character vector denoting the type of regression used in the prediction ("Linear", "Quad" or "Cubic"). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+<p>a vector of the detail coefficients from which <code>AdaptPred</code> selects the minimum value. There are six entries. The first three entries represent the detail coefficients from regression with no intercept in increasing order of prediction. The second three details are values for regression with intercept. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minindex</code></td>
+<td>
+<p>the index into details (<span class="env">results[[9]]</span>) which produces the minimum value.</p>
+</td>
+</tr>
+</table>
+<p><strong>newinfo.</strong> A six item list containing extra information to be used in the main transform procedure (<code>fwtnp</code>) obtained from the minimisation in <code>AdaptNeigh</code>: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>clo</code></td>
+<td>
+<p>boolean value telling the configuration of the neighbours which produce the overall minimum detail coefficient. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totalminindex</code></td>
+<td>
+<p>the index into <span class="env">mindetails</span> (below) indicating the overall minimum detail coefficient produced by the procedure. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices into <span class="env">X</span> of the neighbours used in the best prediction scheme.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the indices into <span class="env">pointsin</span> of the neighbours used in the best prediction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mindetails</code></td>
+<td>
+<p>a vector of 3*<span class="env">neighbours</span> entries giving the minimum details produced by each call of <code>AdaptPred</code> in <code>AdaptNeigh</code> (for the different number and configuration of neighbours). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minindices</code></td>
+<td>
+<p>vector of 3*<span class="env">neighbours</span> entries giving the index (out of 6) of the schemes which produce the best predictions by each call of <br><code>AdaptPred</code> in <code>AdaptNeigh</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>AdaptPredmp</code>, <code>fwtnpmp</code>     </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#read in data with multiple values...
+
+data(motorcycledata)
+times&lt;-motorcycledata$time
+accel&lt;-motorcycledata$accel
+short&lt;-adjustx(times,accel,"mean")
+X&lt;-short$sepx
+coeff&lt;-short$sepx
+g&lt;-short$g
+
+coefflist&lt;-list()
+for (i in 1:length(g)){
+coefflist[[i]]&lt;-accel[g[[i]]]
+}
+
+#work out neighbours of point to be removed (31)
+
+out&lt;-getnbrs(X,31,order(X),2,TRUE)
+nbrs&lt;-out$n
+
+nbrs
+
+newnbrs&lt;-NULL
+for (i in 1:length(nbrs)){
+newnbrs&lt;-c(newnbrs,rep(nbrs[i],times=length(g[[nbrs[i]]])))
+}
+
+#work out repeated neighbours using g...
+newnbrs
+
+AdaptNeighmp(order(X),X,coefflist,coeff,nbrs,newnbrs,31,TRUE,2,"ave",g)
+
+</code></pre>
+
+
+</div>

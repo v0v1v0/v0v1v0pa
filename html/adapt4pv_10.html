@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>est_ps_xgb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>propensity score estimation in high dimension using gradient tree boosting</h2>
+
+<h3>Description</h3>
+
+<p>Estimate a propensity score to a given drug exposure (treatment)
+with extreme gradient boosting.
+Depends on <code>xgboost</code> package.
+Internal function, not supposed to be used directly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">est_ps_xgb(
+  idx_expo,
+  x,
+  parameters = list(eta = 0.1, max_depth = 6, objective = "binary:logistic", nthread =
+    1),
+  nrounds = 200,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>idx_expo</code></td>
+<td>
+<p>Index of the column in <code>x</code> that corresponds to the
+drug covariate for which we aim at estimating the PS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix, of dimension nobs x nvars. Each row is an
+observation vector. Can be in sparse matrix format (inherit from class
+<code>"sparseMatrix"</code> as in package <code>Matrix</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>correspond to <code>params</code> in <code>xgb.train</code> function.
+The complete list of parameters is available at
+<a href="http://xgboost.readthedocs.io/en/latest/parameter.html">http://xgboost.readthedocs.io/en/latest/parameter.html</a>.
+Default is a list with <code>eta=0.1</code> (learning rate),
+<code>max_depth = 6</code> (maximum length of a tree),
+<code>objective = "binary:logistic"</code>
+and  <code>nthread = 1</code> (number of threads for parallelization).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrounds</code></td>
+<td>
+<p>Maximum number of boosting iterations. Default is 200.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that can be passed to <code>xgb.train</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ps", "xgb"</code>.
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>expo_name</code></td>
+<td>
+<p>Character, name of the drug exposure for which the PS was
+estimated. Correspond to <code>colnames(x)[idx_expo]</code></p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>indicator_expo</code></td>
+<td>
+<p>One-column Matrix object. Indicator of the drug
+exposure for which the PS was estimated.
+Defined by <code>x[, idx_expo]</code>.</p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>score_variables</code></td>
+<td>
+<p>Character vector, names of covariates(s) used in
+a at list one tree in the gradient tree boosting algorithm.
+Obtained with <code>xgb.importance</code> function from <code>xgboost</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>score</code></td>
+<td>
+<p>One-column Matrix object, the estimated score.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Emeline Courtois <br> Maintainer: Emeline Courtois
+<a href="mailto:emeline.courtois@inserm.fr">emeline.courtois@inserm.fr</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(15)
+drugs &lt;- matrix(rbinom(100*20, 1, 0.2), nrow = 100, ncol = 20)
+colnames(drugs) &lt;- paste0("drugs",1:ncol(drugs))
+ae &lt;- rbinom(100, 1, 0.3)
+psxgb2 &lt;- est_ps_xgb(idx_expo = 2, x = drugs, nrounds = 100)
+psxgb2$score_variables #selected variables to include in the PS model of drug_2
+
+
+</code></pre>
+
+
+</div>

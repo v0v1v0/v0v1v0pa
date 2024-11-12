@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getExpressionEstimates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Returns the estimated phi posterior for a gene</h2>
+
+<h3>Description</h3>
+
+<p>Posterior estimates for the phi value of specified genes
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getExpressionEstimates(
+  parameter,
+  gene.index,
+  samples,
+  quantiles = c(0.025, 0.975),
+  genome = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>on object created by <code>initializeParameterObject</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gene.index</code></td>
+<td>
+<p>a integer or vector of integers representing the gene(s) of interesst.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samples</code></td>
+<td>
+<p>number of samples for the posterior estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>vector of quantiles, (default: c(0.025, 0.975))</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genome</code></td>
+<td>
+<p>if genome is given, then will include gene ids in output (default is NULL)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The returned vector is unnamed as gene ids are only stored in the <code>genome</code> object, 
+but the <code>gene.index</code> vector can be used to match the assignment to the genome.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns a vector with the mixture assignment of each gene corresbonding to <code>gene.index</code> in the same order as the genome.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+genome_file &lt;- system.file("extdata", "genome.fasta", package = "AnaCoDa")
+
+genome &lt;- initializeGenomeObject(file = genome_file)
+sphi_init &lt;- c(1,1)
+numMixtures &lt;- 2
+geneAssignment &lt;- c(rep(1,floor(length(genome)/2)),rep(2,ceiling(length(genome)/2)))
+parameter &lt;- initializeParameterObject(genome = genome, sphi = sphi_init, 
+                                       num.mixtures = numMixtures, 
+                                       gene.assignment = geneAssignment, 
+                                       mixture.definition = "allUnique")
+model &lt;- initializeModelObject(parameter = parameter, model = "ROC")
+samples &lt;- 2500
+thinning &lt;- 50
+adaptiveWidth &lt;- 25
+mcmc &lt;- initializeMCMCObject(samples = samples, thinning = thinning, 
+                             adaptive.width=adaptiveWidth, est.expression=TRUE,
+                             est.csp=TRUE, est.hyper=TRUE, est.mix = TRUE) 
+divergence.iteration &lt;- 10
+## Not run: 
+runMCMC(mcmc = mcmc, genome = genome, model = model, 
+        ncores = 4, divergence.iteration = divergence.iteration)
+
+# get the estimated expression values for all genes based on the mixture 
+# they are assigned to at each step
+estimatedExpression &lt;- getExpressionEstimates(parameter, 1:length(genome), 1000)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

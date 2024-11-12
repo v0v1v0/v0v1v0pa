@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ReportMCMC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary statistics, diagnostic statistics and plots.
+
+</h2>
+
+<h3>Description</h3>
+
+<p>This function reports summary statistics of the MCMC samples such as the posterior 
+mean, the posterior standard deviation, the 95% credible interval, the expected sample size, the inefficiency factor, the posterior probability that the parameter is positive. Further it plots the sample path, the sample autocorrelation function
+and the estimated posterior density.
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+ReportMCMC(mx, dBm = NULL, vname = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mx</code></td>
+<td>
+<p>nSim x m matrix where nSim is the MCMC sample size and m is the 
+number of parameters.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dBm</code></td>
+<td>
+<p>The bandwidth to compute the inefficient factor. Default value is the 
+maximum integer less than or equal to 2*sqrt(nSim)+1.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vname</code></td>
+<td>
+<p>The vector of variable names. Default names are Param1, Param2 and so forth.
+
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Mean</code></td>
+<td>
+<p>The posterior mean of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Std Dev</code></td>
+<td>
+<p>The posterior standard deviation of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>95%L</code></td>
+<td>
+<p>The lower limit of the 95% credible interval of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Median</code></td>
+<td>
+<p>The posterior median of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>95%U</code></td>
+<td>
+<p>The upper limit of the 95% credible interval of the parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ESS</code></td>
+<td>
+<p>Expected sample size defined as the MCMC sample size divided by IF </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IF</code></td>
+<td>
+<p>Inefficiency factor. See, for example, Kim, Shephard and Chib (1998).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CD</code></td>
+<td>
+<p>p-value of convergence diagnostics test by Geweke (1992). H_0:mean of the first 10% of MCMC samples is equal to mean of the last 50% of MCMC samples vs. H_1:not H_0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pr(+)</code></td>
+<td>
+<p>The posterior probability that the parameter is positive.</p>
+</td>
+</tr>
+</table>
+<p>Further, it plots the sample path, the sample autocorrelation function 
+and the posterior density for each parameter.
+
+
+
+
+
+</p>
+
+
+<h3>Note</h3>
+
+<p>‘freqdom’ package needs to be pre-installed.
+
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Yasuhiro Omori
+</p>
+
+
+<h3>References</h3>
+
+
+<p>Kim, S., Shephard, N. and S. Chib (1998) "Stochastic volatility: likelihood inference and comparison with ARCH models", The Review of Economic Studies, 65(3), 361-393.
+</p>
+<p>Geweke, J. (1992), "Evaluating the accuracy of sampling-based approaches to calculating posterior moments,"" in Bayesian Statistics 4 (ed J.M. Bernardo, J.O. Berger, A.P. Dawid and A.F.M. Smith), Oxford, UK.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">nobs = 80; # n is often larger than 1000 in practice.
+mu = 0; phi = 0.97; sigma_eta = 0.3; rho = 0.0;
+h  = 0;   Y = c();
+
+for(i in 1:nobs){
+  eps = rnorm(1, 0, 1)
+  eta = rho*sigma_eta*eps + sigma_eta*sqrt(1-rho^2)*rnorm(1, 0, 1)
+  y   = eps * exp(0.5*h)
+  h   = mu + phi * (h-mu) + eta
+  Y   = append(Y, y)
+}
+
+# This is a toy example. Increase nsim and nburn
+# until the convergence of MCMC in practice.
+
+nsim = 500; nburn = 100;
+vhyper = c(0.0,1000,1.0,1.0,0.01,0.01)
+out  = sv_mcmc(Y, nsim, nburn, vhyper)
+vmu = out[[1]]; vphi = out[[2]]; vsigma_eta = out[[3]]; mh  = out[[4]];
+myname = c(expression(mu), expression(phi),expression(sigma[eta]))
+ReportMCMC(cbind(vmu,vphi,vsigma_eta), vname=myname)
+
+</code></pre>
+
+
+</div>

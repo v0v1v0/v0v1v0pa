@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generalize.hz</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generalize Horizon Names</h2>
+
+<h3>Description</h3>
+
+<p>Generalize a vector of horizon names, based on new classes, and REGEX
+patterns. Or create a new column <code>ghl</code> in a <code>SoilProfileCollection</code> (requires a horizon designation name to be defined for the collection, see details)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generalize.hz(
+  x,
+  new,
+  pattern,
+  non.matching.code = "not-used",
+  hzdepm = NULL,
+  ordered = !missing(hzdepm),
+  ...
+)
+
+## S4 method for signature 'character'
+generalizeHz(
+  x,
+  new,
+  pattern,
+  non.matching.code = "not-used",
+  hzdepm = NULL,
+  ordered = !missing(hzdepm),
+  ...
+)
+
+## S4 method for signature 'SoilProfileCollection'
+generalizeHz(
+  x,
+  new,
+  pattern,
+  non.matching.code = "not-used",
+  hzdepm = NULL,
+  ordered = !missing(hzdepm),
+  ghl = "genhz",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>character vector of horizon names or a <code>SoilProfileCollection</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new</code></td>
+<td>
+<p>character vector of generalized horizon labels (GHL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern</code></td>
+<td>
+<p>character vector of REGEX patterns, same length as <code>new</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>non.matching.code</code></td>
+<td>
+<p>character, label used for any horizon not matched by <code>pattern</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hzdepm</code></td>
+<td>
+<p>numeric vector of horizon mid-points; <code>NA</code> values in <code>hzdepm</code> will result in <code>non.matching.code</code> (or <code>NA</code> if not defined) in result</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordered</code></td>
+<td>
+<p>logical, <code>TRUE</code> when <code>hzdepm</code> argument is specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>grep()</code> such as <code>perl = TRUE</code> for advanced REGEX</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ghl</code></td>
+<td>
+<p>Generalized Horizon Designation column name (to be created/updated when <code>x</code> is a <code>SoilProfileCollection</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When <code>x</code> is a <code>SoilProfileCollection</code> the <code>ghl</code> column will be updated with the factor results. This requires that the "horizon designation name" metadata be defined for the collection to set the column for input designations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>factor (possibly an ordered factor) of the same length as <code>x</code> (if character) or as number of horizons in <code>x</code> (if <code>SoilProfileCollection</code>)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+<p>Beaudette, D.E., Roudier, P., Skovlin, J. (2016). Probabilistic Representation of Genetic Soil Horizons. In: Hartemink, A., Minasny, B. (eds) Digital Soil Morphometrics. Progress in Soil Science. Springer, Cham. https://doi.org/10.1007/978-3-319-28295-4_18
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>hzdesgnname()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(sp1)
+
+# check original distribution of hz designations
+table(sp1$name)
+
+# generalized horizon labels
+# character vector input
+sp1$genhz &lt;- generalizeHz(
+  sp1$name,
+  new = c('O','A','B','C','R'),
+  pattern = c('O', '^A','^B','C','R'),
+  ordered = TRUE
+)
+
+# see how we did / what we missed
+table(sp1$genhz, sp1$name)
+
+
+## a more advanced example, requries `perl = TRUE`
+# example data
+x &lt;- c('A', 'AC', 'Bt1', '^AC', 'C', 'BC', 'CB')
+
+# new labels
+n &lt;- c('A', '^AC', 'C')
+
+# patterns:
+# "A anywhere in the name"
+# "literal '^A' anywhere in the name"
+# "C anywhere in name, but without preceding A"
+p &lt;- c('A', '^A', '(?&lt;!A)C')
+
+# note additional argument
+res &lt;- generalizeHz(
+  x, 
+  new = n, 
+  pattern = p, 
+  perl = TRUE
+)
+
+# double-check: OK
+table(res, x)
+
+## apply to a SoilProfileCollection
+data(sp1)
+depths(sp1) &lt;- id ~ top + bottom
+
+# must set horizon designation metadata
+hzdesgnname(sp1) &lt;- 'name'
+
+# result is a SoilProfileCollection
+x &lt;- generalizeHz(
+  sp1,
+  new = c('O','A','B','C','R'),
+  pattern = c('O', '^A','^B','C','R'),
+  ordered = TRUE
+)
+
+# GHL stored in 'genhz' column
+x$genhz
+
+# GHL metadata is set
+GHL(x)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_table_operation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Batch transactions for table storage</h2>
+
+<h3>Description</h3>
+
+<p>Batch transactions for table storage
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_table_operation(
+  endpoint,
+  path,
+  options = list(),
+  headers = list(),
+  body = NULL,
+  metadata = c("none", "minimal", "full"),
+  http_verb = c("GET", "PUT", "POST", "PATCH", "DELETE", "HEAD")
+)
+
+create_batch_transaction(endpoint, operations)
+
+do_batch_transaction(transaction, ...)
+
+## S3 method for class 'batch_transaction'
+do_batch_transaction(
+  transaction,
+  batch_status_handler = c("warn", "stop", "message", "pass"),
+  num_retries = 10,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>endpoint</code></td>
+<td>
+<p>A table storage endpoint, of class <code>table_endpoint</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>The path component of the operation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>A named list giving the query parameters for the operation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>headers</code></td>
+<td>
+<p>A named list giving any additional HTTP headers to send to the host. AzureCosmosR will handle authentication details, so you don't have to specify these here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>The request body for a PUT/POST/PATCH operation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metadata</code></td>
+<td>
+<p>The level of ODATA metadata to include in the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_verb</code></td>
+<td>
+<p>The HTTP verb (method) for the operation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operations</code></td>
+<td>
+<p>A list of individual table operation objects, each of class <code>table_operation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transaction</code></td>
+<td>
+<p>For <code>do_batch_transaction</code>, an object of class <code>batch_transaction</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to lower-level functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_status_handler</code></td>
+<td>
+<p>For <code>do_batch_transaction</code>, what to do if one or more of the batch operations fails. The default is to signal a warning and return a list of response objects, from which the details of the failure(s) can be determined. Set this to "pass" to ignore the failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_retries</code></td>
+<td>
+<p>The number of times to retry the call, if the response is a HTTP error 429 (too many requests). The Cosmos DB endpoint tends to be aggressive at rate-limiting requests, to maintain the desired level of latency. This will generally not affect calls to an endpoint provided by a storage account.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Table storage supports batch transactions on entities that are in the same table and belong to the same partition group. Batch transactions are also known as <em>entity group transactions</em>.
+</p>
+<p>You can use <code>create_table_operation</code> to produce an object corresponding to a single table storage operation, such as inserting, deleting or updating an entity. Multiple such objects can then be passed to <code>create_batch_transaction</code>, which bundles them into a single atomic transaction. Call <code>do_batch_transaction</code> to send the transaction to the endpoint.
+</p>
+<p>Note that batch transactions are subject to some limitations imposed by the REST API:
+</p>
+
+<ul>
+<li>
+<p> All entities subject to operations as part of the transaction must have the same <code>PartitionKey</code> value.
+</p>
+</li>
+<li>
+<p> An entity can appear only once in the transaction, and only one operation may be performed against it.
+</p>
+</li>
+<li>
+<p> The transaction can include at most 100 entities, and its total payload may be no more than 4 MB in size.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>create_table_operation</code> returns an object of class <code>table_operation</code>.
+</p>
+<p>Assuming the batch transaction did not fail due to rate-limiting, <code>do_batch_transaction</code> returns a list of objects of class <code>table_operation_response</code>, representing the results of each individual operation. Each object contains elements named <code>status</code>, <code>headers</code> and <code>body</code> containing the respective parts of the response. Note that the number of returned objects may be smaller than the number of operations in the batch, if the transaction failed.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>import_table_entities, which uses (multiple) batch transactions under the hood
+</p>
+<p><a href="https://docs.microsoft.com/en-us/rest/api/storageservices/performing-entity-group-transactions">Performing entity group transactions</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- table_endpoint("https://mycosmosdb.table.cosmos.azure.com:443", key="mykey")
+tab &lt;- create_storage_table(endp, "mytable")
+
+## a simple batch insert
+ir &lt;- subset(iris, Species == "setosa")
+
+# property names must be valid C# variable names
+names(ir) &lt;- sub("\\.", "_", names(ir))
+
+# create the PartitionKey and RowKey properties
+ir$PartitionKey &lt;- ir$Species
+ir$RowKey &lt;- sprintf("%03d", seq_len(nrow(ir)))
+
+# generate the array of insert operations: 1 per row
+ops &lt;- lapply(seq_len(nrow(ir)), function(i)
+    create_table_operation(endp, "mytable", body=ir[i, ], http_verb="POST")))
+
+# create a batch transaction and send it to the endpoint
+bat &lt;- create_batch_transaction(endp, ops)
+do_batch_transaction(bat)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

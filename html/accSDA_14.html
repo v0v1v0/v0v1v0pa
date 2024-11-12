@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ordASDA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ordinal Accelerated Sparse Discriminant Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Applies accelerated proximal gradient algorithm to
+the optimal scoring formulation of sparse discriminant analysis proposed
+by Clemmensen et al. 2011. The problem is further casted to a binary
+classification problem as described in "Learning to Classify Ordinal Data:
+The Data Replication Method" by Cardoso and da Costa to handle the ordinal labels.
+This function serves as a wrapper for the <code>ASDA</code> function, where the
+appropriate data augmentation is performed. Since the problem is casted into
+a binary classication problem, only a single discriminant vector comes from the
+result. The first *p* entries correspond to the variables/coefficients for
+the predictors, while the following K-1 entries correspond to biases for the
+found hyperplane, to separate the classes. The resulting object is of class ordASDA
+and has an accompanying predict function. The paper by Cardoso and dat Costa can
+be found here: (http://www.jmlr.org/papers/volume8/cardoso07a/cardoso07a.pdf).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ordASDA(Xt, ...)
+
+## Default S3 method:
+ordASDA(
+  Xt,
+  Yt,
+  s = 1,
+  Om,
+  gam = 0.001,
+  lam = 1e-06,
+  method = "SDAAP",
+  control,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xt</code></td>
+<td>
+<p>n by p data matrix, (can also be a data.frame that can be coerced to a matrix)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for <code>ASDA</code> and <code>lda</code>
+function in package MASS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yt</code></td>
+<td>
+<p>vector of length n, equal to the number of samples. The classes should be
+1,2,...,K where K is the number of classes. Yt needs to be a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>We need to find a hyperplane that separates all classes with different biases.
+For each new bias we define a binary classification problem, where a maximum of
+s ordinal classes or contained in each of the two classes. A higher value of s means
+that more data will be copied in the data augmentation step. BY default s is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Om</code></td>
+<td>
+<p>p by p parameter matrix Omega in generalized elastic net penalty, where
+p is the number of variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gam</code></td>
+<td>
+<p>Regularization parameter for elastic net penalty, must be greater than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam</code></td>
+<td>
+<p>Regularization parameter for l1 penalty, must be greater than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>String to select method, now either SDAD or SDAAP, see ?ASDA for more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>List of control arguments further passed to ASDA. See <code>ASDA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ordASDA</code> returns an object of <code>class</code> "<code>ordASDA</code>" including a list
+with the same components as an ASDA objects and:
+</p>
+
+<dl>
+<dt><code>h</code></dt>
+<dd>
+<p>Scalar value for biases.</p>
+</dd>
+<dt><code>K</code></dt>
+<dd>
+<p>Number of classes.</p>
+</dd>
+</dl>
+<p><code>NULL</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>Remember to normalize the data.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ASDA</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    set.seed(123)
+
+    # You can play around with these values to generate some 2D data to test one
+    numClasses &lt;- 5
+    sigma &lt;- matrix(c(1,-0.2,-0.2,1),2,2)
+    mu &lt;- c(0,0)
+    numObsPerClass &lt;- 5
+
+    # Generate the data, can access with train$X and train$Y
+    train &lt;- accSDA::genDat(numClasses,numObsPerClass,mu,sigma)
+    test &lt;- accSDA::genDat(numClasses,numObsPerClass*2,mu,sigma)
+
+    # Visualize it, only using the first variable gives very good separation
+    plot(train$X[,1],train$X[,2],col = factor(train$Y),asp=1,main="Training Data")
+
+    # Train the ordinal based model
+    res &lt;- accSDA::ordASDA(train$X,train$Y,s=2,h=1, gam=1e-6, lam=1e-3)
+    vals &lt;- predict(object = res,newdata = test$X) # Takes a while to run ~ 10 seconds
+    sum(vals==test$Y)/length(vals) # Get accuracy on test set
+    #plot(test$X[,1],test$X[,2],col = factor(test$Y),asp=1,
+    #      main="Test Data with correct labels")
+    #plot(test$X[,1],test$X[,2],col = factor(vals),asp=1,
+    #    main="Test Data with predictions from ordinal classifier")
+
+</code></pre>
+
+
+</div>

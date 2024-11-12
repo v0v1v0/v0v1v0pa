@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>countGenes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tabulates V(D)J allele, gene or family usage.</h2>
+
+<h3>Description</h3>
+
+<p>Determines the count and relative abundance of V(D)J alleles, genes or families within
+groups.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">countGenes(
+  data,
+  gene,
+  groups = NULL,
+  copy = NULL,
+  clone = NULL,
+  fill = FALSE,
+  mode = c("gene", "allele", "family", "asis"),
+  remove_na = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame with AIRR-format or Change-O style columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gene</code></td>
+<td>
+<p>column containing allele assignments. Only the first allele in the
+column will be considered when <code>mode</code> is "gene", "family" or 
+"allele". The value will be used as it is with <code>mode="asis"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>columns containing grouping variables. If <code>NULL</code> do not group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copy</code></td>
+<td>
+<p>name of the <code>data</code> column containing copy numbers for each 
+sequence. If this value is specified, then total copy abundance
+is determined by the sum of copy numbers within each gene.
+This argument is ignored if <code>clone</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clone</code></td>
+<td>
+<p>name of the <code>data</code> column containing clone identifiers for each 
+sequence. If this value is specified, then one gene will be considered 
+for each clone. Note, this is accomplished by using the most 
+common gene within each <code>clone</code> identifier. As such,
+ambiguous alleles within a clone will not be accurately represented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>logical of <code>c(TRUE, FALSE)</code> specifying when if groups (when specified)
+lacking a particular gene should be counted as 0 if TRUE or not (omitted)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>one of <code>c("gene", "family", "allele", "asis")</code> defining
+the degree of specificity regarding allele calls. Determines whether 
+to return counts for genes (calling <code>getGene</code>), 
+families (calling <code>getFamily</code>), alleles (calling 
+<code>getAllele</code>) or using the value as it is in the column
+<code>gene</code>, without any processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove_na</code></td>
+<td>
+<p>removes rows with <code>NA</code> values in the gene column if <code>TRUE</code> and issues a warning. 
+Otherwise, keeps those rows and considers <code>NA</code> as a gene in the final counts 
+and relative abundances.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.frame summarizing family, gene or allele counts and frequencies 
+with columns:
+</p>
+
+<ul>
+<li> <p><code>gene</code>:         name of the family, gene or allele.
+</p>
+</li>
+<li> <p><code>seq_count</code>:    total number of sequences for the gene.
+</p>
+</li>
+<li> <p><code>seq_freq</code>:     frequency of the gene as a fraction of the total
+number of sequences within each grouping.
+</p>
+</li>
+<li> <p><code>copy_count</code>:   sum of the copy counts in the <code>copy</code> column.
+for each gene. Only present if the <code>copy</code> 
+argument is specified.
+</p>
+</li>
+<li> <p><code>copy_freq</code>:    frequency of the gene as a fraction of the total
+copy number within each group. Only present if 
+the <code>copy</code> argument is specified.
+</p>
+</li>
+<li> <p><code>clone_count</code>:  total number of clones for the gene. Only present if 
+the <code>clone</code> argument is specified.
+</p>
+</li>
+<li> <p><code>clone_freq</code>:   frequency of the gene as a fraction of the total
+number of clones within each grouping. Only present if 
+the <code>clone</code> argument is specified.
+</p>
+</li>
+</ul>
+<p>Additional columns defined by the <code>groups</code> argument will also be present.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Without copy numbers
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups="sample_id", mode="family")
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups="sample_id", mode="gene")
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups="sample_id", mode="allele")
+
+# With copy numbers and multiple groups
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups=c("sample_id", "c_call"), 
+                    copy="duplicate_count", mode="family")
+
+# Count by clone
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups=c("sample_id", "c_call"), 
+                    clone="clone_id", mode="family")
+
+# Count absent genes 
+genes &lt;- countGenes(ExampleDb, gene="v_call", groups="sample_id", 
+                    mode="allele", fill=TRUE)
+
+</code></pre>
+
+
+</div>

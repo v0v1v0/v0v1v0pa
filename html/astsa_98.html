@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>specenv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Spectral Envelope
+</h2>
+
+<h3>Description</h3>
+
+<p>Computes the spectral envelope of categorical-valued or real-valued time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">specenv(xdata, section = NULL, spans = NULL, kernel = NULL, taper = 0,
+         significance = 1e-04, plot = TRUE, ylim = NULL, real = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xdata</code></td>
+<td>
+<p>For categorical-valued sequences, a matrix with rows that are indicators
+of the categories represented by the columns, possibly a sequence converted using
+<code>dna2vector</code>.  For real-valued sequences, a matrix with at least two
+columns that are various transformations of the data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section</code></td>
+<td>
+
+<p>of the form <code>start:end</code> where <code>start &lt; end</code> are positive integers;
+specifies the section used in the analysis - default is the entire sequence.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spans</code></td>
+<td>
+
+<p>specify smoothing used in <code>mvspec</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+
+<p>specify kernel to be used in <code>mvspec</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taper</code></td>
+<td>
+
+<p>specify amount of tapering to be used in <code>mvspec</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>significance</code></td>
+<td>
+
+<p>significance threshold exhibited in plot - default is .0001; set to NA to cancel
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>if TRUE (default) a graphic of the spectral envelope is produced
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+
+<p>limits of the spectral envelope axis; if NULL (default), a suitable range is calculated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>real</code></td>
+<td>
+<p> FALSE (default) for categorical-valued sequences and TRUE for
+real-valued sequences.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other graphical parameters.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates the spectral envelope for categorical-valued series as discussed in <br><kbd>https://www.stat.pitt.edu/stoffer/dss_files/spenv.pdf</kbd> <br>
+and summarized in <br><kbd>https://doi.org/10.1214/ss/1009212816</kbd>. <br>
+Alternately, calculates the spectral envelope for real-valued series as discussed in <br><kbd>https://doi.org/10.1016/S0378-3758(96)00044-4</kbd>.
+</p>
+<p>These concepts are also presented (with examples) in Section 7.9 (Chapter 7) of  Time Series Analysis and Its Applications: With R Examples: <kbd>https://www.stat.pitt.edu/stoffer/tsa4/</kbd>.
+</p>
+<p>For categorical-valued series, the input  <code>xdata</code> must be a matrix of indicators which is perhaps a sequence preprocessed using <code>dna2vector</code>.
+</p>
+<p>For real-valued series, the input <code>xdata</code> should be a matrix whose columns are various transformations of the univariate series.
+</p>
+<p>The script does not detrend the data prior to estimating spectra. If this is an issue, then detrend the data prior to using this script.
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, will produce a graph of the spectral envelope and an approximate significance threshold.
+A matrix containing: frequency, spectral envelope ordinates, and (1) the scalings of the categories in the order of the categories in the alphabet or (2) the coefficients of the transformations, is returned invisibly.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.S. Stoffer
+</p>
+
+
+<h3>References</h3>
+
+<p>You can find demonstrations of  astsa capabilities at
+<a href="https://github.com/nickpoison/astsa/blob/master/fun_with_astsa/fun_with_astsa.md">FUN WITH ASTSA</a>.
+</p>
+<p>The most recent version of the package can be found  at <a href="https://github.com/nickpoison/astsa/">https://github.com/nickpoison/astsa/</a>.
+</p>
+<p>In addition, the News and ChangeLog files are at  <a href="https://github.com/nickpoison/astsa/blob/master/NEWS.md">https://github.com/nickpoison/astsa/blob/master/NEWS.md</a>.
+</p>
+<p>The webpages for the texts and some help on using R for time series analysis can be found at
+<a href="https://nickpoison.github.io/">https://nickpoison.github.io/</a>. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dna2vector</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# a DNA sequence
+data  = bnrf1ebv
+xdata = dna2vector(data)
+u = specenv(xdata, section=1:1000, spans=c(7,7))
+head(u)  # scalings are for A, C, G, and last one T=0 always
+
+# a real-valued series (nyse returns)
+x = astsa::nyse
+xdata = cbind(x, abs(x), x^2)
+u = specenv(xdata, real=TRUE,  spans=c(3,3))
+# plot optimal transform at freq = .001
+beta = u[2, 3:5]
+b = beta/beta[2]  # makes abs(x) coef=1
+gopt = function(x) { b[1]*x+b[2]*abs(x)+b[3]*x^2 }
+curve(gopt, -.2, .2, col=4, lwd=2, panel.first=Grid())
+g2 = function(x) { b[2]*abs(x) } # corresponding to |x|
+curve(g2, -.2,.2, add=TRUE, col=6)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

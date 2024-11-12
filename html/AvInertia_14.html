@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_feat_inertia</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the inertia of the individual feathers</h2>
+
+<h3>Description</h3>
+
+<p>Compute the inertia of the individual feathers
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat_mat</code></td>
+<td>
+<p>Dataframe related to the current species input as a
+dataframe with the following structure:
+</p>
+
+<ul>
+<li>
+<p>materialMaterial information. Must include the following:
+"Cortex", "Medullary"
+</p>
+</li>
+<li>
+<p>densityDensity of each material (kg/m^3)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat_feat_curr</code></td>
+<td>
+<p>Dataframe related to the current bird wing feathers
+input as a dataframe with the following structure:
+</p>
+
+<ul>
+<li>
+<p>featherFeather ID code. Must be in standard format i.e.
+1st primary is "P1", third secondary is "S3", etc.
+Alula feathers should be grouped and named "alula".
+</p>
+</li>
+<li>
+<p>m_fMass of feather in the same row as the
+appropriate feather ID code (kg)
+</p>
+</li>
+<li>
+<p>l_calLength of calamus in the same row as the
+appropriate feather ID code (m)
+</p>
+</li>
+<li>
+<p>l_vaneLength of rachis/vane in the same row as the
+appropriate feather ID code (m)
+</p>
+</li>
+<li>
+<p>w_calWidth (diameter) of calamus in the same row as the
+appropriate feather ID code (m)
+</p>
+</li>
+<li>
+<p>w_vpWidth of proximal vane (average value) in the same row as the
+appropriate feather ID code (m)
+</p>
+</li>
+<li>
+<p>w_vdWidth of distal vane (average value)  in the same row as the
+appropriate feather ID code (m)
+</p>
+</li>
+<li>
+<p>vane_angleInterior angle between the rachis and calamus  (degrees)
+</p>
+</li>
+</ul>
+<p>NOTE: Alula feathers will be treated as point mass so only the mass of the
+feathers is required. Other columns can be left blank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat_bird_curr</code></td>
+<td>
+<p>Dataframe related to the current bird wing that must
+include the following columns:
+</p>
+
+<ul>
+<li>
+<p>barb_radiusRadius of feather barb  for current species (m)
+</p>
+</li>
+<li>
+<p>barb_distanceDistance between feather barbs for current species (m)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with one entry per flight feather. Each primary feather includes the following variables:
+</p>
+
+<ul>
+<li>
+<p>I_pria 3x3 matrix representing the moment of inertia about each feather calamus tip (kg-m^2).
+</p>
+</li>
+<li>
+<p>CG_pria 1x3 vector (x,y,z) representing the center of gravity of the primary feather (m).
+</p>
+</li>
+<li>
+<p>m_pria double representing the mass of the primary feather (kg).
+</p>
+</li>
+</ul>
+<p>Each secondary feather includes the following variables:
+</p>
+
+<ul>
+<li>
+<p>I_seca 3x3 matrix representing the moment of inertia about each feather calamus tip (kg-m^2).
+</p>
+</li>
+<li>
+<p>CG_seca 1x3 vector (x,y,z) representing the center of gravity of the primary feather (m).
+</p>
+</li>
+<li>
+<p>m_seca double representing the mass of the primary feather (kg).
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

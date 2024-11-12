@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RunModel_GR1A</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run with the GR1A hydrological model</h2>
+
+<h3>Description</h3>
+
+<p>Function which performs a single run for the GR1A annual lumped model over the test period.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RunModel_GR1A(InputsModel, RunOptions, Param)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <em>InputsModel</em>] see <code>CreateInputsModel</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RunOptions</code></td>
+<td>
+<p>[object of class <em>RunOptions</em>] see <code>CreateRunOptions</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Param</code></td>
+<td>
+<p>[numeric] vector of 1 parameter
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    GR1A X1 </td>
+<td style="text-align: left;"> model parameter [-] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+ </td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For further details on the model, see the references section. <br>
+For further details on the argument structures and initialisation options, see <code>CreateRunOptions</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[list] containing the function outputs organised as follows:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <em>$DatesR  </em> </td>
+<td style="text-align: left;"> [POSIXlt] series of dates                                     </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$PotEvap </em> </td>
+<td style="text-align: left;"> [numeric] series of input potential evapotranspiration [mm/y] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$Precip  </em> </td>
+<td style="text-align: left;"> [numeric] series of input total precipitation [mm/y]          </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$Qsim    </em> </td>
+<td style="text-align: left;"> [numeric] series of simulated discharge [mm/y]                </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>RunOptions$WarmUpQsim</em> </td>
+<td style="text-align: left;"> [numeric] series of simulated discharge (Q) on the warm-up period [mm/y] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>RunOptions$Param     </em> </td>
+<td style="text-align: left;"> [numeric] parameter set parameter set used by the model                  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$StateEnd</em> </td>
+<td style="text-align: left;"> [numeric] states at the end of the run (NULL) [-]             </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  </td>
+</tr>
+</table>
+<p>Refer to the provided references or to the package source code for further details on these model outputs.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Claude Michel, Olivier Delaigue, Guillaume Thirel
+</p>
+
+
+<h3>References</h3>
+
+<p>Mouelhi S. (2003).
+Vers une chaîne cohérente de modèles pluie-débit conceptuels globaux aux pas de temps pluriannuel, annuel, mensuel et journalier.
+PhD thesis (in French), ENGREF - Cemagref Antony, France.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CreateInputsModel</code>, <code>CreateRunOptions</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## conversion of example data from daily to yearly time step
+TabSeries &lt;- data.frame(DatesR = BasinObs$DatesR,
+                        P = BasinObs$P,
+                        E = BasinObs$E,
+                        Qmm = BasinObs$Qmm)
+TabSeries &lt;- TabSeries[TabSeries$DatesR &lt; as.POSIXct("2012-09-01", tz = "UTC"), ]
+BasinObs &lt;- SeriesAggreg(TabSeries, Format = "%Y",
+                         YearFirstMonth = 09,
+                         ConvertFun = c("sum", "sum", "sum"))
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR1A, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y")=="1990"),
+               which(format(BasinObs$DatesR, format = "%Y")=="1999"))
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR1A,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 0.840)
+OutputsModel &lt;- RunModel_GR1A(InputsModel = InputsModel, RunOptions = RunOptions, Param = Param)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+## efficiency criterion: Nash-Sutcliffe Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                                RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Calibration</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calibration algorithm that optimises the error criterion selected as objective function using the provided functions</h2>
+
+<h3>Description</h3>
+
+<p>Calibration algorithm that optimises the error criterion selected as objective function using the provided functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Calibration(InputsModel, RunOptions, InputsCrit, CalibOptions,
+            FUN_MOD, FUN_CRIT, FUN_CALIB = Calibration_Michel,
+            FUN_TRANSFO = NULL, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <em>InputsModel</em>] see <code>CreateInputsModel</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RunOptions</code></td>
+<td>
+<p>[object of class <em>RunOptions</em>] see <code>CreateRunOptions</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>InputsCrit</code></td>
+<td>
+<p>[object of class <em>InputsCrit</em>] see <code>CreateInputsCrit</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CalibOptions</code></td>
+<td>
+<p>[object of class <em>CalibOptions</em>] see <code>CreateCalibOptions</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN_MOD</code></td>
+<td>
+<p>[function] hydrological model function (e.g. <code>RunModel_GR4J</code>, <code>RunModel_CemaNeigeGR4J</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN_CRIT</code></td>
+<td>
+<p>(deprecated) [function] error criterion function (e.g. <code>ErrorCrit_RMSE</code>, <code>ErrorCrit_NSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN_CALIB</code></td>
+<td>
+<p>(deprecated) [function] calibration algorithm function (e.g. <code>Calibration_Michel</code>), <code>default = Calibration_Michel</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN_TRANSFO</code></td>
+<td>
+<p>(optional) [function] model parameters transformation function, if the <code>FUN_MOD</code> used is native in the package <code>FUN_TRANSFO</code> is automatically defined</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the function is run in verbose mode or not, default = <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to pass to <code>RunModel</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>[list] see <code>Calibration_Michel</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Olivier Delaigue
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Calibration_Michel</code>,
+<code>ErrorCrit</code>, <code>TransfoParam</code>,
+<code>CreateInputsModel</code>, <code>CreateRunOptions</code>,
+<code>CreateInputsCrit</code>, <code>CreateCalibOptions</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## calibration period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## calibration criterion: preparation of the InputsCrit object
+InputsCrit &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                               RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+
+## preparation of CalibOptions object
+CalibOptions &lt;- CreateCalibOptions(FUN_MOD = RunModel_GR4J, FUN_CALIB = Calibration_Michel)
+
+## calibration
+OutputsCalib &lt;- Calibration(InputsModel = InputsModel, RunOptions = RunOptions,
+                            InputsCrit = InputsCrit, CalibOptions = CalibOptions,
+                            FUN_MOD = RunModel_GR4J,
+                            FUN_CALIB = Calibration_Michel)
+
+## simulation
+Param &lt;- OutputsCalib$ParamFinalR
+OutputsModel &lt;- RunModel(InputsModel = InputsModel, RunOptions = RunOptions,
+                         Param = Param, FUN = RunModel_GR4J)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+## efficiency criterion: Nash-Sutcliffe Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                                RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+
+## efficiency criterion: Kling-Gupta Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_KGE, InputsModel = InputsModel,
+                                RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_KGE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,345 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute.event.int.gaps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gap Days and Event (prescribing or dispensing) Intervals.</h2>
+
+<h3>Description</h3>
+
+<p>For a given event (prescribing or dispensing) database, compute the gap days
+and event intervals in various scenarious.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute.event.int.gaps(
+  data,
+  ID.colname = NA,
+  event.date.colname = NA,
+  event.duration.colname = NA,
+  event.daily.dose.colname = NA,
+  medication.class.colname = NA,
+  event.interval.colname = "event.interval",
+  gap.days.colname = "gap.days",
+  carryover.within.obs.window = FALSE,
+  carryover.into.obs.window = FALSE,
+  carry.only.for.same.medication = FALSE,
+  consider.dosage.change = FALSE,
+  followup.window.start = 0,
+  followup.window.start.unit = c("days", "weeks", "months", "years")[1],
+  followup.window.duration = 365 * 2,
+  followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
+  observation.window.start = 0,
+  observation.window.start.unit = c("days", "weeks", "months", "years")[1],
+  observation.window.duration = 365 * 2,
+  observation.window.duration.unit = c("days", "weeks", "months", "years")[1],
+  date.format = "%m/%d/%Y",
+  keep.window.start.end.dates = FALSE,
+  remove.events.outside.followup.window = TRUE,
+  keep.event.interval.for.all.events = FALSE,
+  parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
+    "snow(NWS)")[1],
+  parallel.threads = "auto",
+  suppress.warnings = FALSE,
+  suppress.special.argument.checks = FALSE,
+  return.data.table = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> containing the events used to
+compute the CMA. Must contain, at a minimum, the patient unique ID, the event
+date and duration, and might also contain the daily dosage and medication
+type (the actual column names are defined in the following four parameters);
+the <code>CMA</code> constructors call this parameter <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>data</code>
+containing the unique patient ID; must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the start date of the event (in the format given in
+the <code>date.format</code> parameter); must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.duration.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the event duration (in days); must be present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.daily.dose.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the prescribed daily dose, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the classes/types/groups of medication, or <code>NA</code>
+if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.interval.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of a newly-created
+column storing the number of days between the start of the current event and
+the start of the next one; the default value "event.interval" should be
+changed only if there is a naming conflict with a pre-existing
+"event.interval" column in <code>event.info</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap.days.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of a newly-created column
+storing the number of days when medication was not available (i.e., the
+"gap days"); the default value "gap.days" should be changed only if there is
+a naming conflict with a pre-existing "gap.days" column in <code>event.info</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>carryover.within.obs.window</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> consider
+the carry-over within the observation window, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>carryover.into.obs.window</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> consider the
+carry-over from before the starting date of the observation window, or
+<code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>carry.only.for.same.medication</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> the
+carry-over applies only across medication of the same type, or <code>NA</code>
+if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consider.dosage.change</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> the carry-over
+is adjusted to reflect changes in dosage, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start</code></td>
+<td>
+<p>If a <em><code>Date</code></em> object, it represents
+the actual start date of the follow-up window; if a <em>string</em> it is the
+name of the column in <code>data</code> containing the start date of the follow-up
+window either as the numbers of <code>followup.window.start.unit</code> units after
+the first event (the column must be of type <code>numeric</code>) or as actual
+dates (in which case the column must be of type <code>Date</code>); if a
+<em>number</em> it is the number of time units defined in the
+<code>followup.window.start.unit</code> parameter after the begin of the
+participant's first event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start.unit</code></td>
+<td>
+<p>can be either <em>"days"</em>,
+<em>"weeks"</em>, <em>"months"</em> or <em>"years"</em>, and represents the time
+units that <code>followup.window.start</code> refers to (when a number), or
+<code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.duration</code></td>
+<td>
+<p>either a <em>number</em> representing the
+duration of the follow-up window in the time units given in
+<code>followup.window.duration.unit</code>, or a <em>string</em> giving the column
+containing these numbers. Should represent a period for which relevant
+medication events are recorded accurately (e.g. not extend after end of
+relevant treatment, loss-to-follow-up or change to a health care provider
+not covered by the database).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.duration.unit</code></td>
+<td>
+<p>can be either <em>"days"</em>,
+<em>"weeks"</em>, <em>"months"</em> or <em>"years"</em>, and represents the time
+units that <code>followup.window.duration</code> refers to, or <code>NA</code> if not
+defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observation.window.start, observation.window.start.unit, observation.window.duration, observation.window.duration.unit</code></td>
+<td>
+<p>the definition of the observation window
+(see the follow-up window parameters above for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in the
+<code>data</code> and the other parameters; see the <code>format</code> parameters of the
+<code>as.Date</code> function for details (NB, this concerns only the
+dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.window.start.end.dates</code></td>
+<td>
+<p><em>Logical</em>, should the computed start
+and end dates of the windows be kept?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove.events.outside.followup.window</code></td>
+<td>
+<p><em>Logical</em>, should the
+events that fall outside the follo-wup window be removed from the results?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.event.interval.for.all.events</code></td>
+<td>
+<p><em>Logical</em>, should the computed
+event intervals be kept for all events, or <code>NA</code>'ed for those outside the
+OW?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.backend</code></td>
+<td>
+<p>Can be "none" (the default) for single-threaded
+execution, "multicore"  (using <code>mclapply</code> in package <code>parallel</code>)
+for multicore processing (NB. not currently implemented on MS Windows and
+automatically falls back on "snow" on this platform),  or "snow",
+"snow(SOCK)" (equivalent to "snow"), "snow(MPI)" or "snow(NWS)" specifying
+various types of SNOW clusters (can be on the local machine or more complex
+setups – please see the documentation of package <code>snow</code> for details;
+the last two require packages <code>Rmpi</code> and <code>nws</code>, respectively, not
+automatically installed with <code>AdhereR</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.threads</code></td>
+<td>
+<p>Can be "auto" (for <code>parallel.backend</code> ==
+"multicore", defaults to the number of cores in the system as given by
+<code>options("cores")</code>, while for <code>parallel.backend</code> == "snow",
+defaults to 2), a strictly positive integer specifying the number of parallel
+threads, or a more complex specification of the SNOW cluster nodes for
+<code>parallel.backend</code> == "snow" (see the documentation of package
+<code>snow</code> for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any
+warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.special.argument.checks</code></td>
+<td>
+<p><em>Logical</em> parameter for internal
+use; if <code>FALSE</code> (default) check if the important columns in the <code>data</code>
+have some of the reserved names, if <code>TRUE</code> this check is not performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.data.table</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> return a
+<code>data.table</code> object, otherwise a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>extra arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This should in general not be called directly by the user, but is provided as
+a basis for the extension to new CMAs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> or <code>data.table</code> extending the
+<code>event.info</code> parameter with:
+</p>
+
+<ul>
+<li> <p><code>event.interval</code> Or any other name given in
+<code>event.interval.colname</code>, containing the number of days between the
+start of the current event and the start of the next one.
+</p>
+</li>
+<li> <p><code>gap.days</code> Or any other name given in <code>gap.days.colname</code>,
+containing the number of days when medication was not available for the
+current event (i.e., the "gap days").
+</p>
+</li>
+<li> <p><code>.FU.START.DATE,.FU.END.DATE</code> if kept, the actual start and end
+dates of the follow-up window (after adjustments due to the various
+parameters).
+</p>
+</li>
+<li> <p><code>.OBS.START.DATE,.OBS.END.DATE</code> if kept, the actual start and end
+dates of the observation window (after adjustments due to the various
+parameters).
+</p>
+</li>
+<li> <p><code>.EVENT.STARTS.BEFORE.OBS.WINDOW</code> if kept, <code>TRUE</code> if the
+current event starts before the start of the observation window.
+</p>
+</li>
+<li> <p><code>.TDIFF1,.TDIFF2</code> if kept, various auxiliary time differences
+(in days).
+</p>
+</li>
+<li> <p><code>.EVENT.STARTS.AFTER.OBS.WINDOW</code> if kept, <code>TRUE</code> if the
+current event starts after the end of the observation window.
+</p>
+</li>
+<li> <p><code>.CARRY.OVER.FROM.BEFORE</code> if kept, the carry-over (if any) from
+the previous events.
+</p>
+</li>
+<li> <p><code>.EVENT.WITHIN.FU.WINDOW</code> if kept, <code>TRUE</code> if the current
+event is within the follow-up window.
+</p>
+</li>
+</ul>
+</div>

@@ -1,0 +1,362 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aftsrr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Accelerated Failure Time with Smooth Rank Regression</h2>
+
+<h3>Description</h3>
+
+<p>Fits a semiparametric accelerated failure time (AFT) model with rank-based approach.
+General weights, additional sampling weights and fast sandwich variance estimations
+are also incorporated.
+Estimating equations are solved with Barzilar-Borwein spectral method implemented as
+<code>BBsolve</code> in package <span class="pkg">BB</span>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aftsrr(
+  formula,
+  data,
+  subset,
+  id = NULL,
+  contrasts = NULL,
+  weights = NULL,
+  B = 100,
+  rankWeights = c("gehan", "logrank", "PW", "GP", "userdefined"),
+  eqType = c("is", "ns", "mis", "mns"),
+  se = c("NULL", "bootstrap", "MB", "ZLCF", "ZLMB", "sHCF", "sHMB", "ISCF", "ISMB"),
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula expression, of the form <code>response ~ predictors</code>.
+The <code>response</code> is a <code>Surv</code> object object with right censoring.
+See the documentation of <code>lm</code>, <code>coxph</code> and <code>formula</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame in which to interpret the variables
+occurring in the <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>an optional vector used to identify the clusters.
+If missing, then each individual row of <code>data</code> is presumed to
+represent a distinct subject.
+The length of <code>id</code> should be the same as the number of observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+<p>an optional list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional vector of observation weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>a numeric value specifies the resampling number.
+When <code>B = 0</code> or <code>se = NULL</code>, only the beta estimate will be displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rankWeights</code></td>
+<td>
+<p>a character string specifying the type of general weights.
+The following are permitted:
+</p>
+
+<dl>
+<dt><code>logrank</code></dt>
+<dd>
+<p>logrank weight</p>
+</dd>
+<dt><code>gehan</code></dt>
+<dd>
+<p>Gehan's weight</p>
+</dd>
+<dt><code>PW</code></dt>
+<dd>
+<p>Prentice-Wilcoxon weight</p>
+</dd>
+<dt><code>GP</code></dt>
+<dd>
+<p>GP class weight</p>
+</dd>
+<dt><code>userdefined</code></dt>
+<dd>
+<p>a user defined weight provided as a vector
+with length equal to the number of subject. This argument is still under-development.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eqType</code></td>
+<td>
+<p>a character string specifying the type of the
+estimating equation used to obtain the regression parameters.
+The following are permitted:
+</p>
+
+<dl>
+<dt><code>is</code></dt>
+<dd>
+<p>Regression parameters are estimated by directly solving the
+induced-smoothing estimating equations. This is the default and recommended method.</p>
+</dd>
+<dt><code>ns</code></dt>
+<dd>
+<p>Regression parameters are estimated by directly solving the nonsmooth
+estimating equations.</p>
+</dd>
+<dt><code>mis</code></dt>
+<dd>
+<p>Regression parameters are estimated by iterating the
+monotonic smoothed Gehan-based estimating equations. This is typical when
+<code>rankWeights = "PW"</code> and <code>rankWeights = "GP"</code>.</p>
+</dd>
+<dt><code>mns</code></dt>
+<dd>
+<p>Regression parameters are estimated by iterating the
+monotonic non-smoothed Gehan-based estimating equations. This is typical when
+<code>rankWeights = "PW"</code> and <code>rankWeights = "GP"</code>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>a character string specifying the estimating method for the variance-covariance matrix.
+The following are permitted:
+</p>
+
+<dl>
+<dt><code>NULL</code></dt>
+<dd>
+<p>if <code>se</code> is specified as <code>NULL</code>,
+the variance-covariance matrix will not be computed.</p>
+</dd>
+<dt><code>bootstrap</code></dt>
+<dd>
+<p>nonparametric bootstrap.</p>
+</dd>
+<dt><code>MB</code></dt>
+<dd>
+<p>multiplier resampling.</p>
+</dd>
+<dt><code>ZLCF</code></dt>
+<dd>
+<p>Zeng and Lin's approach with closed form <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+<dt><code>ZLMB</code></dt>
+<dd>
+<p>Zeng and Lin's approach with empirical <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+<dt><code>sHCF</code></dt>
+<dd>
+<p>Huang's approach with closed form <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+<dt><code>sHMB</code></dt>
+<dd>
+<p>Huang's approach with empirical <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+<dt><code>ISCF</code></dt>
+<dd>
+<p>Johnson and Strawderman's sandwich variance estimates with closed form <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+<dt><code>ISMB</code></dt>
+<dd>
+<p>Johnson and Strawderman's sandwich variance estimates with empirical <code class="reqn">V</code>, see <b>Details</b>.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>controls equation solver, maxiter, tolerance, and resampling variance estimation.
+The available equation solvers are <code>BBsolve</code> and <code>dfsane</code> of the <span class="pkg">BB</span> package.
+The default algorithm control parameters are used when these functions are called.
+However, the monotonicity parameter, <code>M</code>, can be specified by users via the control list.
+When <code>M</code> is specified, the merit parameter, <code>noimp</code>, is set at </p>
+<p style="text-align: center;"><code class="reqn">10 * M</code>
+</p>
+<p>.
+The readers are refered to the <span class="pkg">BB</span> package for details.
+Instead of searching for the zero crossing, options including <code>BBoptim</code> and <code>optim</code>
+will return solution from maximizing the corresponding objective function.
+When <code>se = "bootstrap"</code> or <code>se = "MB"</code>,
+an additional argument <code>parallel = TRUE</code> can be specified to
+enable parallel computation.
+The number of CPU cores can be specified with <code>parCl</code>,
+the default number of CPU cores is the integer value of <code>detectCores() / 2</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When <code>se = "bootstrap"</code> or <code>se = "MB"</code>, the variance-covariance matrix
+is estimated through a bootstrap fashion.
+Bootstrap samples that failed to converge are removed when computing the empirical variance matrix.
+When bootstrap is not called, we assume the variance-covariance matrix has a sandwich form
+</p>
+<p style="text-align: center;"><code class="reqn">\Sigma = A^{-1}V(A^{-1})^T,</code>
+</p>
+
+<p>where <code class="reqn">V</code> is the asymptotic variance of the estimating function and
+<code class="reqn">A</code> is the slope matrix.
+In this package, we provide seveal methods to estimate the variance-covariance
+matrix via this sandwich form, depending on how <code class="reqn">V</code> and <code class="reqn">A</code> are estimated.
+Specifically, the asymptotic variance, <code class="reqn">V</code>, can be estimated by either a
+closed-form formulation (<code>CF</code>) or through bootstrap the estimating equations (<code>MB</code>).
+On the other hand, the methods to estimate the slope matrix <code class="reqn">A</code> are
+the inducing smoothing approach (<code>IS</code>), Zeng and Lin's approach (<code>ZL</code>),
+and the smoothed Huang's approach (<code>sH</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>aftsrr</code> returns an object of class "<code>aftsrr</code>" representing the fit.
+An object of class "<code>aftsrr</code>" is a list containing at least the following components:
+</p>
+
+<dl>
+<dt>beta</dt>
+<dd>
+<p>A vector of beta estimates</p>
+</dd>
+<dt>covmat</dt>
+<dd>
+<p>A list of covariance estimates</p>
+</dd>
+<dt>convergence</dt>
+<dd>
+<p>An integer code indicating type of convergence.</p>
+</dd>
+</dl>
+<dl>
+<dt>0</dt>
+<dd>
+<p>indicates successful convergence.</p>
+</dd>
+<dt>1</dt>
+<dd>
+<p>indicates that the iteration limit <code>maxit</code> has been reached.</p>
+</dd>
+<dt>2</dt>
+<dd>
+<p>indicates failure due to stagnation.</p>
+</dd>
+<dt>3</dt>
+<dd>
+<p>indicates error in function evaluation.</p>
+</dd>
+<dt>4</dt>
+<dd>
+<p>is failure due to exceeding 100 step length reductions in line-search.</p>
+</dd>
+<dt>5</dt>
+<dd>
+<p>indicates lack of improvement in objective function.</p>
+</dd>
+</dl>
+<dl>
+<dt>bhist</dt>
+<dd>
+<p>When <code>variance = "MB"</code>, <code>bhist</code> gives the bootstrap samples.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Chiou, S., Kang, S. and Yan, J. (2014)
+Fast Accelerated Failure Time Modeling for Case-Cohort Data. <em>Statistics and Computing</em>,
+<b>24</b>(4): 559–568.
+</p>
+<p>Chiou, S., Kang, S. and Yan, J. (2014)
+Fitting Accelerated Failure Time Model in Routine Survival Analysis with R Package <span class="pkg">Aftgee</span>.
+<em>Journal of Statistical Software</em>, <b>61</b>(11): 1–23.
+</p>
+<p>Huang, Y. (2002) Calibration Regression of Censored Lifetime Medical Cost.
+<em>Journal of American Statistical Association</em>, <b>97</b>, 318–327.
+</p>
+<p>Johnson, L. M. and Strawderman, R. L. (2009)
+Induced Smoothing for the Semiparametric Accelerated Failure Time Model:
+Asymptotic and Extensions to Clustered Data. <em>Biometrika</em>, <b>96</b>, 577 – 590.
+</p>
+<p>Varadhan, R. and Gilbert, P. (2009)
+BB: An R Package for Solving a Large System of Nonlinear Equations and
+for Optimizing a High-Dimensional Nonlinear Objective Function.
+<em>Journal of Statistical Software</em>, <b>32</b>(4): 1–26
+</p>
+<p>Zeng, D. and Lin, D. Y. (2008)
+Efficient Resampling Methods for Nonsmooth Estimating Functions.
+<em>Biostatistics</em>, <b>9</b>, 355–363
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data from an AFT model
+datgen &lt;- function(n = 100) {
+    x1 &lt;- rbinom(n, 1, 0.5)
+    x2 &lt;- rnorm(n)
+    e &lt;- rnorm(n)
+    tt &lt;- exp(2 + x1 + x2 + e)
+    cen &lt;- runif(n, 0, 100)
+    data.frame(Time = pmin(tt, cen), status = 1 * (tt &lt; cen),
+               x1 = x1, x2 = x2, id = 1:n)
+}
+set.seed(1); dat &lt;- datgen(n = 50)
+summary(aftsrr(Surv(Time, status) ~ x1 + x2, data = dat, se = c("ISMB", "ZLMB"), B = 10))
+
+## Data set with sampling weights
+data(nwtco, package = "survival")
+subinx &lt;- sample(1:nrow(nwtco), 668, replace = FALSE)
+nwtco$subcohort &lt;- 0
+nwtco$subcohort[subinx] &lt;- 1
+pn &lt;- mean(nwtco$subcohort)
+nwtco$hi &lt;- nwtco$rel + ( 1 - nwtco$rel) * nwtco$subcohort / pn
+nwtco$age12 &lt;- nwtco$age / 12
+nwtco$study &lt;- factor(nwtco$study)
+nwtco$histol &lt;- factor(nwtco$histol)
+sub &lt;- nwtco[subinx,]
+fit &lt;- aftsrr(Surv(edrel, rel) ~ histol + age12 + study, id = seqno,
+              weights = hi, data = sub, B = 10, se = c("ISMB", "ZLMB"),
+              subset = stage == 4)
+summary(fit)
+confint(fit)
+</code></pre>
+
+
+</div>

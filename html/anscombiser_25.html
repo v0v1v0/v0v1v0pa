@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mimic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Modify a dataset to mimic another dataset</h2>
+
+<h3>Description</h3>
+
+<p>Modifies a dataset <code>x</code> so that it shares sample summary statistics with
+a target dataset <code>x2</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mimic(x, x2, idempotent = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, x2</code></td>
+<td>
+<p>Numeric matrices or data frames.  Each column contains observations
+on a different variable.  Missing observations are not allowed.
+<code>get_stats</code><code>(x2)</code> sets the target summary statistics. If <code>x2</code> is missing
+then <code>set_stats</code> is called with <code>d = ncol(x)</code> and any additional arguments
+supplied via <code>...</code>.  This can be used to set target summary statistics
+(means, variances and/or correlations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idempotent</code></td>
+<td>
+<p>A logical scalar. If <code>idempotent = TRUE</code> then
+<code>mimic(x, x)</code> returns <code>x</code>, apart from a change of <code>class</code>. If
+<code>idempotent = FALSE</code> then the returned dataset may be a rotated version of
+the original dataset, with the same summary statistics. See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>set_stats</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The input dataset <code>x</code> is modified by shifting, scaling and rotating
+it so that its sample mean and covariance matrix match those of the target
+dataset <code>x2</code>.
+</p>
+<p>The rotation is based on the square root of the sample correlation matrix.
+If <code>idempotent = FALSE</code> then this square root is based on the Cholesky
+decomposition this matrix, using <code>chol</code>. If <code>idempotent = TRUE</code> the
+square root is based on the spectral decomposition of this matrix, using
+the output from <code>eigen</code>. This is a minimal rotation square root,
+which means that if the input data <code>x</code> already have the
+exactly/approximately the required summary statistics then the returned
+dataset is exactly/approximately the same as the target dataset <code>x2</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>c("anscombe", "matrix", "array")</code> with
+plot and print methods. This returned
+dataset has the following summary statistics in common with <code>x2</code>.
+</p>
+
+<ul>
+<li>
+<p> The sample means of each variable.
+</p>
+</li>
+<li>
+<p> The sample variances of each variable.
+</p>
+</li>
+<li>
+<p> The sample correlation matrix.
+</p>
+</li>
+<li>
+<p> The estimated regression coefficients from least squares linear
+regressions of each variable on each other variable.
+</p>
+</li>
+</ul>
+<p>The target and new summary statistics are returned as attributes
+<code>old_stats</code> and <code>new_stats</code>.
+If <code>x2</code> is supplied then it is returned as a attribute <code>old_data</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>anscombise</code> modifies a dataset so that it shares sample summary
+statistics with Anscombe's quartet.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### 2D examples
+
+# The UK and a dinosaur
+got_maps &lt;- requireNamespace("maps", quietly = TRUE)
+got_datasauRus &lt;- requireNamespace("datasauRus", quietly = TRUE)
+if (got_maps &amp;&amp; got_datasauRus) {
+  library(maps)
+  library(datasauRus)
+  dino &lt;- datasaurus_dozen_wide[, c("dino_x", "dino_y")]
+  UK &lt;- mapdata("UK")
+  new_UK &lt;- mimic(UK, dino)
+  plot(new_UK)
+}
+
+# Trump and a dinosaur
+if (got_datasauRus) {
+  library(datasauRus)
+  dino &lt;- datasaurus_dozen_wide[, c("dino_x", "dino_y")]
+  new_dino &lt;- mimic(dino, trump)
+  plot(new_dino)
+}
+
+## Examples of passing summary statistics
+
+# The default is zero mean, unit variance and no correlation
+new_faithful &lt;- mimic(faithful)
+plot(new_faithful)
+
+# Change the correlation
+mat &lt;- matrix(c(1, -0.9, -0.9, 1), 2, 2)
+new_faithful &lt;- mimic(faithful, correlation = mat)
+plot(new_faithful)
+
+### A 3D example
+
+new_randu &lt;- mimic(datasets::randu, datasets::trees)
+# The samples summary statistics are equal
+get_stats(new_randu)
+get_stats(datasets::trees)
+</code></pre>
+
+
+</div>

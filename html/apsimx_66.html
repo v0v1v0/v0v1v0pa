@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>optim_apsimx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimize parameters in an APSIM Next Generation simulation</h2>
+
+<h3>Description</h3>
+
+<p>It is a wrapper for running APSIM-X and optimizing parameters using <code>optim</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">optim_apsimx(
+  file,
+  src.dir = ".",
+  parm.paths,
+  data,
+  type = c("optim", "nloptr", "mcmc", "ucminf", "grid"),
+  weights,
+  index = "Date",
+  parm.vector.index,
+  replacement,
+  root,
+  initial.values,
+  grid,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file name to be run (the extension .apsimx is optional)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src.dir</code></td>
+<td>
+<p>directory containing the .apsimx file to be run (defaults to the current directory)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm.paths</code></td>
+<td>
+<p>absolute or relative paths of the coefficients to be optimized.
+It is recommended that you use <code>inspect_apsimx</code> for this</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame with the observed data. By default is assumes there is a 'Date' column for the index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of optimization. For now, <code>optim</code>, and, if available, <code>nloptr</code> or
+‘mcmc’ through <code>runMCMC</code>. Option ‘ucminf’ uses the <code>ucminf</code> function.
+If ‘type’ is ‘grid’, then a grid can be passed and no optimization will be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Weighting method or values for computing the residual sum of squares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>Index for filtering APSIM output. Typically, “Date”, but it can be c(“report”, “Date”) for
+multiple simulations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm.vector.index</code></td>
+<td>
+<p>Index to optimize a specific element of a parameter vector.  At the moment it is
+possible to only edit one element at a time. This is because there is a conflict when generating multiple
+elements in the candidate vector for the same parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replacement</code></td>
+<td>
+<p>TRUE or FALSE for each parameter. Indicating whether it is part of
+the ‘replacement’ component. Its length should be equal to the length or ‘parm.paths’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>root argument for <code>edit_apsimx_replacement</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.values</code></td>
+<td>
+<p>(required) supply the initial values of the parameters. (Working on fixing this...).
+If the parameters to be optimized correspond to a single value, then a simple numeric vector can be supplied.
+If one or more of the parameters represent a vector in APSIM, then the initial values should be passed as a
+list. At the moment, it is not possible to check if these are appropriate (correct name and length).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>grid used when ‘type = grid’. Columns should be parameters and rows different values for
+those parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to the optimization algorithm. See <code>optim</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Simple optimization for APSIM Next Generation
+</p>
+<p>* At the moment it is required to provide starting values for the parameters of interest.
+</p>
+<p>* It is suggested that you keep a backup of the original file. This function
+will edit and overwrite the file during the optimization.
+</p>
+<p>* When you use the parm.vector.index you cannot edit two separate elements of
+a vector at the same time. This should be used to target a single element of
+a vector only. (I can add this feature in the future if it is justified.)
+</p>
+<p>* Internally, the optimization is done around the scaled value of the initial parameter
+values. A value of 1 would correspond to the inital value of the parameter.
+The ‘lower’ and ‘upper’ (or ‘ub’ and ‘lb’) are also scaled
+to the initial values of the parameters. So, for example, if your initial value is 20
+and you provide an upper bound of 5, it means that the actual upper value that you are allowing for is 100.
+</p>
+<p>* I have tested other optimizers and packages, but I think these are enough for most purposes. I tried
+function stats::nlm (but it does not support bounds and it can fail), package 'optimx' is a bit messy and it
+does not provide sufficient additional functionality. Package 'ucminf' seems like a good alternative, but it
+did not perform better than the other ones.
+</p>
+
+
+<h3>Value</h3>
+
+<p>object of class ‘optim_apsim’, but really just a list with results from optim and additional information.
+</p>
+
+
+<h3>Note</h3>
+
+<p>When computing the objective function (residual sum-of-squares) different variables are combined.
+It is common to weight them since they are in different units. If the argument weights is not supplied
+no weighting is applied. It can be 'mean', 'variance' or a numeric vector of appropriate length.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## See the vignette for examples
+
+
+</code></pre>
+
+
+</div>

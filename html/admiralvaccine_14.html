@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_vaxdt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add Vaccination Date Variables to the Output Dataset</h2>
+
+<h3>Description</h3>
+
+<p>Creates vaccination date variables from <code>EX</code> domain. A date variable will be
+created for each vaccination taking values from the variable <code>EXSTDTC</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_vaxdt(dataset, dataset_adsl, by_vars, order)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_adsl</code></td>
+<td>
+<p>Input adsl dataset
+</p>
+<p>The vaccination date variables created will be merged with this adsl dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables.
+</p>
+<p>The variables to be grouped to filter the first observation within each
+by group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sorting variables.
+</p>
+<p>The variables order to be specified either in ascending or descending order.
+By default ascending order will be applicable.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If there are multiple vaccinations for a visit per subject,warning will be
+provided and only first observation will be filtered based on the variable
+order specified on the <code>order</code> argument. In this case, user need to select
+the <code>by_vars</code> appropriately.
+</p>
+<p>The number of variables created will be based on the number of vaccinations
+per subject per visit.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The adsl dataset with vaccination date variables added to it.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Vikram S
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other der_var: 
+<code>derive_var_aval_adis()</code>,
+<code>derive_vars_crit()</code>,
+<code>derive_vars_event_flag()</code>,
+<code>derive_vars_max_flag()</code>,
+<code>derive_vars_merged_vaccine()</code>,
+<code>derive_vars_params()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(admiral)
+library(dplyr)
+
+input &lt;- tribble(
+  ~USUBJID, ~EXSTDTC, ~VISITNUM, ~EXTRT, ~EXLNKGRP, ~VISIT,
+  "A001", "2015-01-10", 1, "DRUG A", "VAC 1", "VISIT 1",
+  "A001", "2015-01-11", 2, "DRUG A", "VAC 2", "VISIT 2",
+  "A001", "2015-01-12", 3, "DRUG B", "VAC 3", "VISIT 3",
+  "A002", "2015-01-13", 1, "DRUG B", "VAC 1", "VISIT 1",
+  "A002", "2015-01-14", 2, "DRUG C", "VAC 2", "VISIT 2"
+)
+
+adsl &lt;- tribble(
+  ~USUBJID, ~SEX, ~AGE,
+  "A001", "MALE", 23,
+  "A002", "FEMALE", 26,
+)
+
+derive_vars_vaxdt(
+  dataset = input,
+  dataset_adsl = adsl,
+  by_vars = exprs(USUBJID, VISITNUM),
+  order = exprs(USUBJID, VISITNUM, VISIT, EXSTDTC)
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,380 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reaster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aster Models with Random Effects</h2>
+
+<h3>Description</h3>
+
+<p>Fits Aster Models with Random Effects using Laplace Approximation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reaster(fixed, random, pred, fam, varvar, idvar, root,
+    famlist = fam.default(), origin, data, effects, sigma, response)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>either a model matrix or a formula specifying response
+and model matrix.  The model matrix for fixed effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>either a model matrix or list of model matrices or
+a formula or a list of formulas specifying a model matrix or matrices.
+The model matrix or matrices for random effects.  Each model matrix
+specifies the random effects for one variance component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>an integer vector of length <code>nnode</code> determining
+the dependence graph of the aster model.  <code>pred[j]</code> is
+the index of the predecessor of
+the node with index <code>j</code> unless the predecessor is a root
+node, in which case <code>pred[j] == 0</code>.  See details section
+of <code>aster</code> for further requirements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam</code></td>
+<td>
+<p>an integer vector of length <code>nnode</code> determining
+the exponential family structure of the aster model.  Each element
+is an index into the vector of family specifications given by
+the argument <code>famlist</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varvar</code></td>
+<td>
+<p>a variable whose length is the row dimension of all model
+matrices that is a factor whose levels are character strings
+treated as variable names.  The number of variable names is <code>nnode</code>.
+Must be of the form <code>rep(vars, each = nind)</code> where <code>vars</code> is
+a vector of variable names.  Usually found in the data frame <code>data</code>
+when this is produced by the <code>reshape</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idvar</code></td>
+<td>
+<p>a variable whose length is the row dimension of all model
+matrices.  The number of individuals is <code>nind</code>.
+Must be of the form <code>rep(inds, times = nnode)</code> where <code>inds</code> is
+a vector of labels for individuals.  Usually found in the data frame
+<code>data</code> when this is produced by the <code>reshape</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>a vector whose length is the row dimension of all model
+matrices.  For nodes whose predecessors are root nodes specifies the
+value of the constant at that root node.  Typically the vector having
+all components equal to one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>famlist</code></td>
+<td>
+<p>a list of family specifications (see <code>families</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>a vector whose length is the row dimension of all model
+matrices.  Distinguished point in parameter space.  May be missing,
+in which case an unspecified default is provided.  See details of
+<code>aster</code> for further explanation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame containing the variables
+in the model.  If not found in <code>data</code>, the variables are taken
+from <code>environment(fixed)</code>, typically the environment from
+which <code>reaster</code> is called.  Usually produced by
+the <code>reshape</code> function.  Not needed when model matrices
+rather than formulas are supplied in <code>fixed</code> and <code>random</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>if not missing, a vector specifying starting values for
+all effects, fixed and random.  Length is the sum of the column dimensions
+of all model matrices.  If supplied, the random effects part should be
+standardized (random effects divided by their standard deviations, like
+the component <code>c</code> of the output of this function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>if not missing, a vector specifying starting values for
+the square roots of the variance components.  Length is the number
+of model matrices for
+random effects (the length of the list <code>random</code> if a list and one
+if <code>random</code> is not a list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>if not missing, a vector specifying the response.  Length
+is the row dimension of all model matrices.  If missing, the response
+is determined by the response in the formula <code>fixed</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the help page for the function <code>aster</code> for specification
+of aster models.  This function only fits unconditional aster models
+(those with default values of the <code>aster</code> function arguments
+<code>type</code> and <code>origin.type</code>.
+</p>
+<p>The only difference between this function and the <code>aster</code> function is
+that some effects are treated as random.  The unconditional canonical
+parameter vector of the aster model is treated as an affine function of
+fixed and random effects
+</p>
+<p style="text-align: center;"><code class="reqn">\varphi = M \beta + \sum_{i = 1}^k \sigma^2_i Z_i b_i</code>
+</p>
+
+<p>where <code class="reqn">M</code> and the <code class="reqn">Z_i</code> are model matrices specified by
+the arguments <code>fixed</code> and <code>random</code>, where <code class="reqn">\beta</code>
+is a vector of
+fixed effects and each <code class="reqn">b_i</code> is a vector of random
+effects that are assumed to be (marginally) normally distributed with
+mean vector zero and variance matrix <code class="reqn">\sigma_i^2</code> times
+the identity matrix.
+The vectors of random effects <code class="reqn">b_i</code> are not parameters, rather
+they are latent (unobservable, hypothetical) variables.  The square roots
+of the variance components <code class="reqn">\sigma_i</code> are parameters as
+are the components of <code class="reqn">\beta</code>.
+</p>
+<p>This function maximizes an approximation to the likelihood introduced
+by Breslow and Clayton (1993).  See Geyer, et al. (2013) for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>reaster</code> returns an object of class inheriting from <code>"reaster"</code>.
+An object of class <code>"reaster"</code> is a list containing at least the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>The aster object returned by a call to the <code>aster</code>
+function to fit the fixed effects model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the model matrix for fixed effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>the model matrix or matrices for random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dropped</code></td>
+<td>
+<p>names of columns dropped from the fixed effects matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>approximate MLE for square roots of variance components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>approximate MLE for variance components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>penalized likelihood estimates for the <code class="reqn">c</code>'s,
+which are rescaled random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>penalized likelihood estimates for the random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>approximate MLE for fixed effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zwz</code></td>
+<td>
+<p><code class="reqn">Z W Z^T</code> where <code class="reqn">Z</code> is
+the model matrix for random effects and <code class="reqn">W</code> is the Hessian matrix
+of minus the complete data log likelihood with respect to random effects
+with MLE values of the parameters plugged in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>the response vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>the origin (offset) vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>number of iterations of trust region algorithm in
+each iteration of re-estimating <code>zwz</code> and re-fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>number of iterations of Nelder-Mead in initial optimization
+of approximate missing data log likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deviance</code></td>
+<td>
+<p>up to a constant, minus twice the maximized value of
+the Breslow-Clayton approximation to the
+log-likelihood.  (Note the minus.  This is somewhat counterintuitive,
+but agrees with the convention used by the <code>aster</code> function.)</p>
+</td>
+</tr>
+</table>
+<p>Calls to <code>reaster.formula</code> return a list also containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>the formulas supplied.</p>
+</td>
+</tr>
+</table>
+<h3>NA Values</h3>
+
+<p>It was almost always wrong for aster model data to have <code>NA</code> values.
+Although theoretically possible for the R formula mini-language to do the
+right thing for an aster model with <code>NA</code> values in the data, usually
+it does some wrong thing.  Thus, since version 0.8-20, this function and
+the <code>aster</code> function give errors when used with data having
+<code>NA</code> values.  Users must remove all <code>NA</code> values (or replace them
+with what they should be, perhaps zero values) “by hand”.
+</p>
+
+
+<h3>Warning about Negative Binomial</h3>
+
+<p>The negative binomial and truncated negative binomial are fundamentally
+incompatible with random effects.  The reason is that the canonical parameter
+space for a one-parameter negative binomial or truncated negative binomial
+is the negative half line.  Thus the conditional canonical parameter
+<code class="reqn">\theta</code> for such a node must be negative valued.  The aster
+transform is so complicated that it is unclear what the corresponding
+constraint on the unconditional canonical parameter <code class="reqn">\varphi</code> is,
+but there is a constraint: its parameter space is not the whole real line.
+A normal random effect, in contrast, does have support the whole real line.
+It wants to make parameters that are constrained to have any real number.
+The code only warns about this situation, because if the random effects do
+not influence any negative binomial or truncated negative binomial nodes
+of the graph, then there would be no problem.
+</p>
+
+
+<h3>Warning about Individual Random Effects</h3>
+
+<p>The Breslow-Clayton approximation assumes the complete data log likelihood
+is approximately quadratic considered as a function of random effects only.
+This will be the case by the law of large numbers if the number of individuals
+is much larger than the number of random effects.  Thus Geyer, et al. (2013)
+warn against trying to put a random effect for each individual in the model.
+If you do that, the code will try to fit the model, but it will take forever
+and no theory says the results will make any sense.
+</p>
+
+
+<h3>References</h3>
+
+<p>Breslow, N. E., and Clayton, D. G. (1993).
+Approximate Inference in Generalized Linear Mixed Models.
+<em>Journal of the American Statistical Association</em>, <b>88</b>, 9–25.
+<a href="https://doi.org/10.1080/01621459.1993.10594284">doi:10.1080/01621459.1993.10594284</a>.
+</p>
+<p>Geyer, C. J., Ridley, C. E., Latta, R. G., Etterson, J. R.,
+and Shaw, R. G. (2012)
+Aster Models with Random Effects via Penalized Likelihood.
+Technical Report 692, School of Statistics, University of Minnesota.
+<a href="http://purl.umn.edu/135870">http://purl.umn.edu/135870</a>.
+</p>
+<p>Geyer, C. J., Ridley, C. E., Latta, R. G., Etterson, J. R.,
+and Shaw, R. G. (2013)
+Local Adaptation and Genetic Effects on Fitness: Calculations
+for Exponential Family Models with Random Effects.
+<em>Annals of Applied Statistics</em>, <b>7</b>, 1778–1795.
+<a href="https://doi.org/10.1214/13-AOAS653">doi:10.1214/13-AOAS653</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(aster)
+data(radish)
+pred &lt;- c(0,1,2)
+fam &lt;- c(1,3,2)
+rout &lt;- reaster(resp ~ varb + fit : (Site * Region),
+    list(block = ~ 0 + fit : Block, pop = ~ 0 + fit : Pop),
+    pred, fam, varb, id, root, data = radish)
+summary(rout)
+summary(rout, stand = FALSE, random = TRUE)
+</code></pre>
+
+
+</div>

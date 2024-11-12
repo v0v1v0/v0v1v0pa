@@ -1,0 +1,234 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>segmentWalking</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Walking Stride Pattern Segmentation from Raw Accelerometry Data via ADEPT</h2>
+
+<h3>Description</h3>
+
+<p>Segment walking stride pattern from a raw accelerometry data time-series
+<code>(x,y,z)</code> via Adaptive Empirical Pattern Transformation (ADEPT).
+Default algorithm parameters are optimized for a wrist-worn sensor and
+were evaluated with data collected in the free-living environment.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">segmentWalking(
+  xyz,
+  xyz.fs,
+  template,
+  sim_MIN = 0.85,
+  dur_MIN = 0.8,
+  dur_MAX = 1.4,
+  ptp_r_MIN = 0.2,
+  ptp_r_MAX = 2,
+  vmc_r_MIN = 0.05,
+  vmc_r_MAX = 0.5,
+  mean_abs_diff_med_p_MAX = 0.5,
+  mean_abs_diff_med_t_MAX = 0.2,
+  mean_abs_diff_dur_MAX = 0.2,
+  compute.template.idx = FALSE,
+  run.parallel = FALSE,
+  run.parallel.cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xyz</code></td>
+<td>
+<p>A numeric matrix (or data frame) of n × 3 dimension.
+Three-dimensional
+raw accelerometry data time-series; acceleration measurements <code>(x,y,z)</code>
+collected
+along three orthogonal axes by the sensor's accelerometer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xyz.fs</code></td>
+<td>
+<p>A numeric scalar. Frequency at which a time-series
+<code>(x,y,z)</code> is
+collected, expressed in a number of observations per second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>template</code></td>
+<td>
+<p>A list of numeric vectors, or a numeric vector. Distinct
+pattern template(s) of walking stride.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim_MIN</code></td>
+<td>
+<p>numeric scalar. Minimum value of correlation between pattern
+template(s) and (r_t)_t vector magnitude of accelerometry data.
+Default used is 0.85.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dur_MIN</code></td>
+<td>
+<p>A numeric scalar. Minimum value of a stride duration allowed
+to be identified. Expressed in seconds. Default used is 0.8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dur_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of a stride duration allowed
+to be identified. Expressed in seconds. Default used is 1.4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptp_r_MIN</code></td>
+<td>
+<p>A numeric scalar. Minimum value of "peak to peak"
+difference in (r_t)_t vector magnitude data of a stride.
+Default used is 0.2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptp_r_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of "peak to peak"
+difference in (r_t)_t vector magnitude data of a stride.
+Default used is 2.0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmc_r_MIN</code></td>
+<td>
+<p>A numeric scalar. Minimum value of VMC in
+(r_t)_t vector magnitude data
+of a stride. Default used is 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmc_r_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of VMC in
+(r_t)_t vector magnitude data
+of a stride. Default used is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_abs_diff_med_p_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of MAD* of
+Azimuth (az_)_t median for 3 subsequent valid strides.
+Here, MAD* stands for mean
+of 2 absolute differences between 3 subsequent values. Default used is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_abs_diff_med_t_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of MAD* of
+Elevation (el_)_t median for 3 subsequent valid strides.
+Here, MAD* stands for mean
+of 2 absolute differences between 3 subsequent values. Default used is 0.2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_abs_diff_dur_MAX</code></td>
+<td>
+<p>A numeric scalar. Maximum value of MAD* of
+duration time for 3 subsequent valid strides. Here, MAD* stands for mean
+of 2 absolute differences between 3 subsequent values. Default used is 0.2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute.template.idx</code></td>
+<td>
+<p>A logical scalar. Whether or not to compute
+and return information about
+which of the provided pattern templates yielded a similarity matrix value
+that corresponds to an identified pattern occurrence.
+Setting to <code>TRUE</code> may increase computation time.
+Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run.parallel</code></td>
+<td>
+<p>A logical scalar. Whether or not to use parallel
+execution in the algorithm
+with <code>parallel</code> package. Default is <code>FALSE</code>.
+DOES NOT WORK ON WINDOWS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run.parallel.cores</code></td>
+<td>
+<p>An integer scalar.
+The number of cores to use for parallel execution. Defaults to 1L
+(no parallel). DOES NOT WORK ON WINDOWS.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with segmentation results. Each row
+describes one identified pattern occurrence:
+</p>
+
+<ul>
+<li> <p><code>tau_i</code> - row index of <code>xyz</code> where pattern starts,
+</p>
+</li>
+<li> <p><code>T_i</code> - pattern duration, expressed in <code>xyz</code> vector length,
+</p>
+</li>
+<li> <p><code>sim_i</code> -  similarity between a pattern and
+best-fit template; see <code>segmentPattern</code> for details,
+</p>
+</li>
+<li> <p><code>template_i</code> - if <code>compute.template.idx</code> equals <code>TRUE</code>:
+index of a template best matched to <code>x</code>;
+if <code>compute.template.idx</code> equals <code>FALSE</code>: <code>NA</code>,
+</p>
+</li>
+<li> <p><code>is_walking_i</code> – <code>1</code> if a pattern is identified as walking
+stride; <code>0</code> otherwise.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adeptdata)
+library(dplyr)
+library(adept)
+xyz &lt;-
+  adeptdata::acc_walking_IU %&gt;%
+  filter(loc_id == "left_wrist", subj_id == "id86237981") %&gt;%
+  arrange(time_s) %&gt;%
+  select(v1 = x, v2 = y, v3 = z) %&gt;%
+  as.matrix()
+# define raw accelerometry data sample frequency
+xyz.fs &lt;- 100
+
+# define template list based on predefined templates
+template_mat &lt;- adeptdata::stride_template$left_wrist[[3]]
+template &lt;- list(
+  template_mat[1, ],
+  template_mat[2, ],
+  template_mat[3, ]
+)
+
+# run walking segmentation
+# (parallel supported, except for Windows; see run.parallel, run.parallel.cores args)
+segmentWalking(xyz, xyz.fs, template)
+
+</code></pre>
+
+
+</div>

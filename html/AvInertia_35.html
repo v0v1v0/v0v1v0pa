@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_CGloc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot the center of gravity of each component</h2>
+
+<h3>Description</h3>
+
+<p>Plot the center of gravity of each component
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_CGloc(
+  clean_pts,
+  mass_properties,
+  mass_properties_skin,
+  mass_properties_bone,
+  mass_properties_feathers,
+  mass_properties_muscle,
+  prop_tertiary1,
+  prop_tertiary2,
+  plot_var
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>clean_pts</code></td>
+<td>
+<p>Dataframe of the key positions of the bird as follows:
+</p>
+
+<ul>
+<li>
+<p>pt1x, pt1y, pt1zPoint on the shoulder joint
+</p>
+</li>
+<li>
+<p>pt2x, pt1y, pt2zPoint on the elbow joint
+</p>
+</li>
+<li>
+<p>pt3x, pt3y, pt3zPoint on the wrist joint
+</p>
+</li>
+<li>
+<p>pt4x, pt4y, pt4zPoint on the end of carpometacarpus
+</p>
+</li>
+<li>
+<p>pt6x, pt6y, pt6zPoint on the leading edge of the wing in front of the
+wrist joint
+</p>
+</li>
+<li>
+<p>pt8x, pt8y, pt8zPoint on tip of most distal primary
+</p>
+</li>
+<li>
+<p>pt9x, pt9y, pt9zPoint that defines the end of carpometacarpus
+</p>
+</li>
+<li>
+<p>pt10x, pt10y, pt10zPoint on tip of last primary to model as if on the
+end of the carpometacarpus
+</p>
+</li>
+<li>
+<p>pt11x, pt11y, pt11zPoint on tip of most proximal feather
+(wing root trailing edge)
+</p>
+</li>
+<li>
+<p>pt12x, pt12y, pt12zPoint on exterior shoulder position
+(wing root leading edge)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the full wing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties_skin</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the skin.
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties_bone</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the wing bones.
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties_feathers</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the feathers.
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mass_properties_muscle</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the muscles
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop_tertiary1</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the first tertiary group.
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop_tertiary2</code></td>
+<td>
+<p>Dataframe containing the center of gravity and
+moment of inertia components of the second tertiary group.
+Formatted with the following columns: "species","BirdID","TestID","FrameID",
+"prop_type","component","value".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_var</code></td>
+<td>
+<p>Character of either "yx" or "yz".
+Defines the output axes of the plot.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A plot of the request axes
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

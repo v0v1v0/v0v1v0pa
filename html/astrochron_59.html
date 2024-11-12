@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lowspec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Robust Locally-Weighted Regression Spectral Background Estimation</h2>
+
+<h3>Description</h3>
+
+<p>LOWSPEC: Robust Locally-Weighted Regression Spectral Background Estimation (Meyers, 2012)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lowspec(dat,decimate=NULL,tbw=3,padfac=5,detrend=F,siglevel=0.9,setrho,
+         lowspan,b_tun,output=0,CLpwr=T,xmin,xmax,pl=1,sigID=T,genplot=T,
+         verbose=T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Stratigraphic series for LOWSPEC. First column should be location (e.g., depth), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decimate</code></td>
+<td>
+<p>Decimate statigraphic series to have this sampling interval (via piecewise linear interpolation). By default, no decimation is performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbw</code></td>
+<td>
+<p>MTM time-bandwidth product (2 or 3 permitted)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>padfac</code></td>
+<td>
+<p>Pad with zeros to (padfac*npts) points, where npts is the original number of data points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detrend</code></td>
+<td>
+<p>Remove linear trend from data series? This detrending is performed following AR1 prewhitening. (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>siglevel</code></td>
+<td>
+<p>Significance level for peak identification. (0-1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setrho</code></td>
+<td>
+<p>Define AR1 coefficient for pre-whitening (otherwise calculated). If set to 0, no pre-whitening is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowspan</code></td>
+<td>
+<p>Span for LOWESS smoothing of prewhitened signal, usually fixed to 1. If using value &lt;1, the method is overly conservative with a reduced false positive rate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b_tun</code></td>
+<td>
+<p>Robustness weight parameter for LOWSPEC. By default, this will be estimated internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>What should be returned as a data frame? (0=nothing; 1=pre-whitened spectrum + harmonic F-test CL + LOWSPEC background + LOWSPEC CL + 90%-99% LOWSPEC power levels; 2=sig peaks)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CLpwr</code></td>
+<td>
+<p>Plot LOWSPEC noise confidence levels on power spectrum? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin</code></td>
+<td>
+<p>Smallest frequency for plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax</code></td>
+<td>
+<p>Largest frequency for plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pl</code></td>
+<td>
+<p>Power spectrum plotting: (1) linear frequency-log spectral power, (2) linear frequency-linear spectral power (3) log frequency-log spectral power, (4) log frequency-linear spectral power</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigID</code></td>
+<td>
+<p>Identify significant frequencies on power and probabilty plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+ 
+<p>LOWSPEC is a 'robust' method for spectral background estimation, designed for the 
+identification of potential astronomical signals that are imbedded in red noise (Meyers, 2012). 
+The complete algoritm implemented here is as follows: (1) initial pre-whitening with AR1 
+filter (default) or other filter as appropriate (e.g., see function prewhiteAR), (2) power spectral 
+estimation via the multitaper method (Thomson, 1982), (3) robust locally weighted estimation of 
+the spectral background using the LOWESS-based (Cleveland, 1979) procedure of Ruckstuhl et al. (2001), 
+(4) assignment of confidence levels using a Chi-square distribution. 
+</p>
+<p>NOTE: If you choose to pre-whiten before running LOWSPEC (rather than using the default AR1 pre-whitening), 
+specify setrho=0.
+</p>
+<p>Candidiate astronomical cycles are subsequently identified via isolation of those frequencies 
+that achieve the required (e.g., 90 percent) LOWSPEC confidence level and MTM harmonic F-test 
+confidence level. Allowance is made for the smoothing inherent in the MTM power spectral estimate 
+as compared to the MTM harmonic spectrum. That is, an F-test peak is reported if it achieves the 
+required MTM harmonic confidence level, while also achieving the required LOWSPEC confidence level 
+within +/- half the power spectrum bandwidth resolution. One additional criterion is included to 
+further reduce the false positive rate, a requirement that significant F-tests must occur on a local 
+power spectrum high, which is parameterized as occurring above the local LOWSPEC background estimate.
+See Meyers (2012) for futher information on the algorithm.
+</p>
+<p>In this implementation, the 'robustness criterion' ('b' in EQ. 6 of Ruckstuhl et al., 2001) has been 
+optimized for 2 and 3 pi DPSS, using a 'span' of 1. By default the robustness criterion will be 
+estimated. Both 'b' and the 'span' can be expliclty set using parameters 'b_tun' and 'lowspan'.
+Note that it is permissible to decrease 'lowspan' from its default value, but this will result in 
+an overly conservative false positive rate. However, it may be necessary to reduce 'lowspan' to provide 
+an approporiate background fit for some stratigraphic data. Other options include decimating the data
+series prior to spectral estimation, or using an alternative pre-whitening filter (e.g., see function prewhiteAR).
+</p>
+<p>Note that the 'rfbaseline' function in package 'IDPmisc' (Locher, 2024) is used for implementation of the procedure of Ruckstuhl et al. (2001).
+</p>
+
+
+<h3>Value</h3>
+
+<p>If option 1 is selected, a data frame containing the following is returned: Frequency, Prewhitened power, harmonic F-test CL, LOWSPEC CL, LOWSPEC background, 90%-99% LOWSPEC power levels.
+NOTE: as of version 0.8, the order of the columns in the output data frame has been changed, for consistency with functions mtm, mtmML96, and mtmPL.
+</p>
+<p>If option 2 is selected, the 'significant' frequencies are returned (as described above).
+</p>
+
+
+<h3>References</h3>
+
+<p>W.S. Cleveland, 1979, 
+<em>Locally weighted regression and smoothing scatterplots</em>: Journal of the American Statistical Association, v. 74, p. 829-836.
+</p>
+<p><em>Locher R (2024). IDPmisc: 'Utilities of Institute of Data Analyses and Process Design (www.zhaw.ch/idp)'</em>. R package version 1.1.21, https://CRAN.R-project.org/package=IDPmisc.
+</p>
+<p>S.R. Meyers, 2012,
+<em>Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for Astrochronology</em>: Paleoceanography, 27, PA3228, doi:10.1029/2012PA002307.
+</p>
+<p>A.F. Ruckstuhl, M.P Jacobson, R.W. Field, and J.A. Dodd, 2001,
+<em>Baseline subtraction using robust local regression estimation</em>: Journal of Quantitative Spectroscopy &amp; Radiative Transfer, v. 68, p. 179-193.
+</p>
+<p>D.J. Thomson, 1982, 
+<em>Spectrum estimation and harmonic analysis</em>: IEEE Proceedings, v. 70, p. 1055-1096.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>eha</code>, <code>mtm</code>, <code>mtmAR</code>, <code>mtmML96</code>, <code>periodogram</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generate example series with periods of 400 ka, 100 ka, 40 ka and 20 ka
+ex = cycles(freqs=c(1/400,1/100,1/40,1/20),start=1,end=1000,dt=5)
+
+# add AR1 noise
+noise = ar1(npts=200,dt=5,sd=.5)
+ex[2] = ex[2] + noise[2]
+
+# LOWSPEC analysis
+pl(1, title="lowspec")
+lowspec(ex)
+
+# compare to MTM spectral analysis, with conventional AR1 noise test
+pl(1,title="mtm")
+mtm(ex,ar1=TRUE)
+
+# compare to ML96 analysis
+pl(1, title="mtmML96")
+mtmML96(ex)
+
+# compare to amplitudes from eha
+pl(1,title="eha")
+eha(ex,tbw=3,win=1000,pad=1000)
+</code></pre>
+
+
+</div>

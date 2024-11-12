@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ah.2ph</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Additive Hazards Regression Models to Two-phase Sampling</h2>
+
+<h3>Description</h3>
+
+<p>The function fits a semiparametric additive hazards model
+</p>
+<p style="text-align: center;"><code class="reqn"> \lambda(t|Z=z) = \lambda_0(t) + \beta'z.</code>
+</p>
+<p> to two-phase sampling data.
+The estimating procedures follow Hu (2014).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ah.2ph(formula, data, R, Pi, ties, robust = FALSE,
+  calibration.variables = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula object for the regression model of the form
+response ~ predictors. The outcome is a survival object created by <code>Surv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame. Input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>a phase II membership indicator. A vector of values of 0 and 1.
+The subject is selected to phase II if R = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pi</code></td>
+<td>
+<p>the  probability of a subject to be selected to the phase II subsample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>a logical variable. FALSE if there are no ties in the censored failure times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>a logical variable.  Robust standard errors are provided if robust = TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calibration.variables</code></td>
+<td>
+<p>a vector of some column names of the data.
+These are the  variables available for every observation. They are used to
+calibrate the weight assigned to each subject in order to improve estimation efficiency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to the low level regression fitting
+functions.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class 'ah.2h' representing the fit.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function estimates both model-based and robust standard errors. It can be
+used to analyze case-cohort studies. It allows subsampling among cases. It can
+incorporate the calibration procedure and analyze the combined dataset of phase
+I and phase II samples.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jie Hu (2014) A Z-estimation System for Two-phase Sampling with Applications to
+Additive Hazards Models and  Epidemiologic Studies. Dissertation, University of Washington.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.ah.2ph</code> for prediction based on fitted additive
+hazards model with two-phase sampling and <code>nwtsco</code> for the description
+of nwtsco dataset.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(survival)
+### fit an additive hazards model to two-phase sampling data without calibration
+nwts2ph$trel &lt;- nwts2ph$trel + runif(dim(nwts2ph)[1],0,1)*1e-8
+fit1 &lt;- ah.2ph(Surv(trel,relaps) ~ age + histol, ties = FALSE, data = nwts2ph, R = in.ph2, Pi = Pi,
+ robust = FALSE,  calibration.variables = NULL)
+summary(fit1)
+
+### fit an additve hazards model with calibration on age
+fit2 &lt;- ah.2ph(Surv(trel,relaps) ~ age + histol, ties = FALSE, data = nwts2ph, R = in.ph2, Pi = Pi,
+ robust = FALSE, calibration.variables = "age")
+summary(fit2)
+
+### calibrate on age square
+### note if users create a  calibration variable, then
+### the new variable should be added to the original data frame
+nwts2ph$age2 &lt;- nwts2ph$age^2
+fit3 &lt;- ah.2ph(Surv(trel,relaps) ~ age + histol, ties = FALSE, data = nwts2ph, R = in.ph2, Pi = Pi,
+                                   robust = FALSE, calibration.variables = "age2")
+summary(fit3)
+
+#############################################################################
+### When phase II samples are obtained by finite Sampling       #############
+#############################################################################
+
+### calculating the sample size for each straum
+### calculate the strata size
+strt.size &lt;- table(nwts2ph$strt)
+ph2.strt.size &lt;- table(subset(nwts2ph, in.ph2 == 1)$strt)
+### fit an additve hazards model with finite stratified sampling
+### calculate the sampling fractions
+frac &lt;- ph2.strt.size/strt.size
+### treating the problem as bernoulli sampling coupled with calibration on strata sizes
+### using frac as the sampling probilities
+nwts2ph_by_FPSS &lt;- nwts2ph
+nwts2ph_by_FPSS$Pi &lt;- NULL
+for (i in 1:length(strt.size)){
+  nwts2ph_by_FPSS$Pi[nwts2ph_by_FPSS$strt ==i] &lt;- frac[i]
+}
+
+### create strt indicators, which become our calibration variables
+for (i in 1:length(strt.size)){
+   nwts2ph_by_FPSS$strt_ind &lt;- as.numeric(nwts2ph_by_FPSS$strt ==i)
+   names(nwts2ph_by_FPSS)[ncol(nwts2ph_by_FPSS)]= paste0("strt", i)
+}
+### fit an additve hazards model with finate sampling
+fit4 &lt;- ah.2ph(Surv(trel,relaps) ~ age + histol,
+                                   data = nwts2ph_by_FPSS, ties = FALSE,
+                                   R = in.ph2, Pi = Pi,
+                                   robust = FALSE,
+                                   calibration.variables = c("strt1","strt2","strt3"))
+summary(fit4)
+</code></pre>
+
+
+</div>

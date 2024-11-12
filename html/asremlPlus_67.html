@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>infoCriteria</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes AIC and BIC for models.</h2>
+
+<h3>Description</h3>
+
+<p>Computes Akiake and Bayesian (Schwarz) Information Criteria for models. 
+Either the Restricted Maximum likelihood (<code>REML</code>) or the full likelihood 
+(<code>full</code>) can be used. The full likelihood, evaluated using REML estimates 
+is used when it is desired to compare models that differ in their fixed models.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+infoCriteria(object, DF = NULL, 
+            bound.exclusions = c("F","B","S","C"), 
+            IClikelihood = "REML", fixedDF = NULL, varDF = NULL, ...)
+## S3 method for class 'list'
+infoCriteria(object, bound.exclusions = c("F","B","S","C"), 
+            IClikelihood = "REML", fixedDF = NULL, varDF = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An <code>asreml</code> object resulting from the fitting of a model using REML 
+or a <code>list</code> of <code>asreml</code> objects. If the components of the 
+<code>list</code> are named, then those names will be used as the 
+<code>rownames</code> for the returned <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DF</code></td>
+<td>
+<p>A <code>numeric</code> giving the number of estimated variance parameters. If
+<code>NULL</code> then this is determined from the information in 
+<code>object</code>. This argument has been replaced by <code>varDF</code>, 
+but is retained for compatibility with legacy code. It is not 
+available with the <code>list</code> method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.exclusions</code></td>
+<td>
+<p>A <code>character</code> specifying the bound (constraint) codes that 
+will result in a variance parameter being excluded from the count of 
+estimated variance parameters. If set to <code>NULL</code> then none will 
+be excluded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IClikelihood</code></td>
+<td>
+<p>A <code>character</code> specifying whether Restricted Maximum Likelihood 
+(<code>REML</code>) or the full likelihood, evaluated using REML estimates, 
+(<code>full</code>) are to be used in calculating the information criteria 
+for <code>family</code> set to <code>asr_gaussian</code>. 
+For <code>family</code> set to <code>asr_binomial</code> 
+or <code>asr_poisson</code> and with <code>dispersion</code> set to 1, the 
+<code>deviance</code> is extracted from <code>object</code> and used to calculate 
+the AIC and BIC (as suggested by Damian Collins); the setting of 
+<code>IClikelihood</code> is ignored and the log-likelihood set to <code>NA</code>. 
+The information criteria are not valid for other settings of 
+<code>family</code> and <code>dispersion</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedDF</code></td>
+<td>
+<p>A <code>numeric</code> giving the number of estimated fixed parameters. If
+<code>NULL</code> then this is determined from the information in 
+<code>object</code>. For <code>object</code> a <code>list</code> only a single value 
+that is used for all components of the <code>list</code> has been 
+implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varDF</code></td>
+<td>
+<p>A <code>numeric</code> giving the number of estimated variance parameters. If
+<code>NULL</code> then this is determined from the information in 
+<code>object</code>. It replaces the <code>DF</code> argument. 
+For <code>object</code> a <code>list</code> only a single value 
+that is used for all components of the <code>list</code> has been 
+implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Provision for passing arguments to functions called internally - 
+not used at present.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The variance degrees of freedom (varDF) are the number of number of variance parameters that 
+have been estimated, excluding those whose estimates have a code for <code>bound</code> 
+specified in <code>bound.exclusions</code>. If <code>varDF</code> is not <code>NULL</code>, the supplied value 
+is used. Otherwise <code>varDF</code> is determined from the information in <code>object</code>, 
+i.e. if <code>object</code> is an <code>asreml</code> object then from it, or if <code>object</code> is a 
+<code>list</code> then from each <code>asreml</code> object in the <code>list</code>. 
+Similarly, the fixed degrees of freedom (fixedDF) are the number of number of fixed parameters 
+that have been estimated, any coefficients that have the value <code>NA</code> being excluded. 
+If <code>fixedDF</code> is not <code>NULL</code>, the supplied value is used. Otherwise <code>fixedDF</code> 
+is determined from the information in <code>object</code>.
+</p>
+<p>If ASReml-R version 4 is being used then the codes specified in <code>bound.exclusions</code> are 
+not restricted to a subset of the default codes, but a warning is issued if a code other 
+than these is specified. 
+For ASReml-R version 3, only a subset of the default codes are allowed:
+<code>F</code> (<code>Fixed</code>), <code>B</code> (<code>Boundary</code>), <code>C</code> (<code>Constrained</code>) and 
+<code>S</code> (<code>Singular</code>).  
+</p>
+<p>The calculation of the information criteria is an adaptation of the code supplied in File S1 
+of Verbyla (2019). The log-likelihood is calculated as 
+<code>loglik = log(REML) - log(|C|)/2</code>, 
+where C is the inverse coefficient matrix; the term involving <b>C</b> is omitted for <code>REML</code>. 
+The AIC is calculated as <code>- 2 * loglik + 2 * (varDF + fixedDF)</code> 
+and the BIC as <code>- 2 * loglik + (fixedDF + varDF) * log(n - r + fixedDF)</code>, 
+where <code>n</code> is the number of observations and <code>r</code> is the rank of the fixed effects 
+design matrix. For <code>REML</code>, <code>fixedDF = 0</code>.</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> containing the numbers of estimated fixed (fixedDF) and variance (varDF) 
+parameters, the number of bound parameters (NBound), AIC, BIC and the value of the 
+log-likelihood (loglik). All elements of the <code>data.frame</code> will be set to <code>NA</code> 
+for the invalid combinations of family and dispersion as noted in the <code>IClikelihood</code> argument. 
+If <code>object</code> is a <code>list</code> and its components are named, then those names will be used to 
+set the <code>rownames</code> of the <code>data.frame</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>References</h3>
+
+<p>Verbyla, A. P. (2019). A note on model selection using information criteria for general 
+linear models estimated using REML. <em>Australian &amp; New Zealand Journal of Statistics</em>, 
+<b>61</b>, 39–50. <a href="https://doi.org/10.1111/anzs.12254">doi:10.1111/anzs.12254</a>.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>REMLRT.asreml</code>, <code>changeTerms.asrtests</code>, <code>changeModelOnIC.asrtests</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+   data(Wheat.dat)
+   ## Fit several models to the wheat data and calculate their ICs
+   # Fit initial model
+   m.max &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                   random = ~ Row + Column + units,
+                   residual = ~ ar1(Row):ar1(Column), 
+                   data=Wheat.dat)
+   infoCriteria(m.max.asr, IClikelihood = "full")
+
+   #Drop term for within Column pairs
+   m1 &lt;- asreml(yield ~ Rep + Variety, 
+                random = ~ Row + Column + units,
+                residual = ~ ar1(Row):ar1(Column), 
+                data=Wheat.dat)
+  
+   #Drop nugget term
+   m2 &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                random = ~ Row + Column,
+                residual = ~ ar1(Row):ar1(Column), 
+                data=Wheat.dat)
+
+   #Drop Row autocorrelation
+   m3 &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                   random = ~ Row + Column + units,
+                   residual = ~ Row:ar1(Column), 
+                   data=Wheat.dat)
+
+   #Drop Col autocorrelation
+   m4 &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                random = ~ Row + Column + units,
+                residual = ~ ar1(Row):Column, 
+                data=Wheat.dat)
+
+   mods.asr &lt;- list(m.max, m1, m2, m3, m4)
+   infoCriteria(mods.asr, IClikelihood = "full")
+
+
+## End(Not run)</code></pre>
+
+
+</div>

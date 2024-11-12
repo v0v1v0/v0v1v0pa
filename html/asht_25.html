@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tukeyWelsch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Tukey-Welsch Pairwise Tests
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate pairwise comparisons between groups levels using step down correction for multiple testing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tukeyWelsch(y, g, method = c("aov", "kw", "sr", "user"), 
+    pvalfunc = NULL, padjfunc = padjTW, maxnTest=10^4,nTestMessage=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>response vector
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>grouping vector or factor
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>type of method for tests, one of 'aov' (ANOVA which is a t-test for the pairwise comparisons) 'kw' (Kruskal-Wallis test, which is a Wilcoxon-Mann-Whitney test for the pairwise comparisons), 
+'sr' (studentized range test), or 'user' (user supplied function, see details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalfunc</code></td>
+<td>
+
+<p>function to test for effects and return a p-value. Used if method='user'. See details. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>padjfunc</code></td>
+<td>
+
+<p>function that takes the unadjusted p-value vector from a stage, and returns the adjusted p-value vector for that stage (see details)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxnTest</code></td>
+<td>
+<p>maximum number of tests, if the number of tests is larger than <code>maxnTest</code> then
+gives an error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nTestMessage</code></td>
+<td>
+
+<p>logical, print a message at the start of calculations telling how many tests will be calculated
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments to pass to XXX (if method='aov'), YYY (if method='kw')
+or pvalfunc (if method='user')
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function does a k-sample test (either one-way ANOVA [method='aov'] or Kruskal-Wallis test [method='kw']) on the responses when the g vector has k levels. Then it does all the pairwise comparisons (either t.tests [method='aov'] or Wilcoxon-Mann-Whitney tests [method='kw']) giving multiple 
+comparison adjusted p-values. The adjustment uses a step-down method, that is different from (and potentially more powerful than) the single step procedures in <code>pairwise.t.test</code> and <code>pairwise.wilcox.test</code>. The method is described in Einot and Gabriel (1975) [for the anova case] and Campbell and Skillings (1985) for the Kruskal-Wallis case. See also Hochberg and Tamhane (1987, p. 111 for 'aov' case, and p. 247-248 for the 'kw' case). 
+</p>
+<p>Here are the details. First, the k-sample test is done, where the type of test is determined  by the <code>method</code>. The function repeats that type of test k-1 times, leaving out a different level of the group each time. These are k-1 tests, each having k-1 levels. This process repeats itself (i.e., do choose(k,k-2) tests each having k-2 levels, then do choose(k,k-3) tests each having k-3 levels, etc) until we get to the choose(k,2) pairwise tests. Reject at level aj = 1- (1-alpha)^(j/k), for all tests where there are j groups, for j=2,..,k-2 and at level aj=alpha for j=k-1 and k. These adjusted significance levels are known as the Tukey-Welch (see Hochberg and Tamhane, p. 111) or Ryan (see Einot and Gabriel, 1975) levels. Then we only reject each pairwise comparison, if we reject at all null hypotheses that contain that pair.
+</p>
+<p>We convert this procedure into adjusted p-values, by finding the lowest alpha level such that each pairwise comparison would be rejected, that is its adjusted p-value. The <code>padjfunc</code> is a function that takes the unadjusted p-values 
+and gives the adjustment for each level by itself. For example, the default uses the Tukey-Welch adjusted significance levels, and the function solves for alpha as a function of aj (i.e.,  inputs unadjP and returns either  1-(1-unadjP^(k/j) for j=2,3,...k-2 or unadjP for j=k-1 or k)). Then taking the individual level adjusted p-values, we define the step-down adjusted p-value for each pairwise comparison as the maximum of all the individual level adjusted p-values for each hypothesis that contains the pair as part of its groups tested. 
+</p>
+<p>When k=3, this method gives an adjusted p-value for each pairwise comparison that is the maximum of the k-sample test p-value and the unadjusted p-value for the two-sample test using that pair of levels.
+</p>
+<p>When method='user' the function uses the <code>pvalfunc</code> function to test for p-values. The function must input y and g and output the p-value for the j-sample test, where j is the number of levels present in g. So the function must be defined when j=2,3,...,k. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class 'tukeyWelsch', a list with elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fullResults</code></td>
+<td>
+<p>a list of all the intermediate p-values (unadjusted and adjusted). Not printed by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>description of method</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>description of input data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ksample.pvalue</code></td>
+<td>
+<p>p-value for k-sample test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pairwise.pvalues</code></td>
+<td>
+<p>vector of adjusted p-values for pairwise comparisons</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Michael P. Fay
+</p>
+
+
+<h3>References</h3>
+
+<p>Campbell and Skillings (1985) JASA 998-1003.
+</p>
+<p>Einot and Gabriel (1975) JASA 574-583.
+</p>
+<p>Hochberg, Y and Tamhane, AC (1987) Multiple Comparison Procedures. Wiley: New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pairwise.wilcox.test</code> and   <code>pairwise.t.test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+createData&lt;-function(n,props,shifts,ry=rnorm){
+  k&lt;-length(props)
+  if (round(sum(props),8)!=1) stop("sum of props must be 1")
+  props&lt;- props/sum(props)
+  if (length(shifts)!=k) stop("length of shifts must equal length of props")
+  g&lt;-rep(1:k,as.vector(rmultinom(1,n,props)))
+  y&lt;-ry(n)
+  for (i in 1:k){
+    y[g==i]&lt;-y[g==i]+shifts[i]
+    }
+  list(y=y,g=g)
+}
+set.seed(1)
+d&lt;-createData(100,c(.2,.3,.2,.3),c(0,0,0,1))
+tukeyWelsch(d$y,factor(d$g),method="kw")
+tukeyWelsch(d$y,factor(d$g),method="aov")
+tukeyWelsch(d$y,factor(d$g),method="sr")
+TukeyHSD(aov(d$y~factor(d$g)))[[1]][,"p adj"]
+
+</code></pre>
+
+
+</div>

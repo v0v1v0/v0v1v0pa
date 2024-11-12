@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update_sl_distr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update movement distributions</h2>
+
+<h3>Description</h3>
+
+<p>Update tentative step length or turning angle distribution from a fitted iSSF.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">update_sl_distr(
+  object,
+  beta_sl = "sl_",
+  beta_log_sl = "log_sl_",
+  beta_sl_sq = "sl_sq_",
+  beta_log_sl_sq = "log_sl_sq_",
+  ...
+)
+
+update_ta_distr(object, beta_cos_ta = "cos_ta_", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[fit_clogit]⁠</code> <br> A fitted iSSF model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_sl</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_log_sl</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the log of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_sl_sq</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the square of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_log_sl_sq</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the square of log of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments, none implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_cos_ta</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of cosine of the turning angle.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>amt_distr</code> object, which consists of a list with the <code>name</code> of
+the distribution and its parameters (saved in <code>params</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Brian J. Smith and Johannes Signer
+</p>
+
+
+<h3>References</h3>
+
+<p>Fieberg J, Signer J, Smith BJ, Avgar T (2020).
+“A “How-to” Guide for Interpreting Parameters in Resource-and Step-Selection Analyses.”
+<em>bioRxiv</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Wrapper to fit a distribution to data <code>fit_distr()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Fit an SSF, then update movement parameters.
+data(deer)
+mini_deer &lt;- deer[1:100, ]
+sh_forest &lt;- get_sh_forest()
+
+# Prepare data for SSF
+ssf_data &lt;- mini_deer |&gt;
+  steps_by_burst() |&gt;
+  random_steps(n = 15) |&gt;
+  extract_covariates(sh_forest) |&gt;
+  mutate(forest = factor(forest, levels = 1:0,
+                    labels = c("forest", "non-forest")),
+  cos_ta_ = cos(ta_),
+  log_sl_ = log(sl_))
+
+# Check tentative distributions
+# Step length
+sl_distr_params(ssf_data)
+attr(ssf_data, "sl_")
+#    Turning angle
+ta_distr_params(ssf_data)
+
+# Fit an iSSF
+m1 &lt;- ssf_data |&gt;
+  fit_issf(case_ ~ forest +
+               sl_ + log_sl_ + cos_ta_ +
+               strata(step_id_))
+
+# Update step length distribution
+new_gamma &lt;- update_sl_distr(m1)
+
+# Update turning angle distribution
+new_vm &lt;- update_ta_distr(m1)
+
+# It is also possible to use different step length distributions
+
+# exponential step-length distribution
+s2 &lt;- mini_deer |&gt; steps_by_burst()
+s2 &lt;- random_steps(s2, sl_distr = fit_distr(s2$sl_, "exp"))
+m2 &lt;- s2 |&gt;
+  fit_clogit(case_ ~ sl_ + strata(step_id_))
+update_sl_distr(m2)
+
+# half normal step-length distribution
+s3 &lt;- mini_deer |&gt; steps_by_burst()
+s3 &lt;- random_steps(s3, sl_distr = fit_distr(s3$sl_, "hnorm"))
+m3 &lt;- s3 |&gt;
+  mutate(sl_sq_ = sl_^2) |&gt;
+  fit_clogit(case_ ~ sl_sq_ + strata(step_id_))
+update_sl_distr(m3)
+
+# log normal step-length distribution
+s4 &lt;- mini_deer |&gt; steps_by_burst()
+s4 &lt;- random_steps(s4, sl_distr = fit_distr(s4$sl_, "lnorm"))
+m4 &lt;- s4 |&gt;
+  mutate(log_sl_ = log(sl_), log_sl_sq_ = log(sl_)^2) |&gt;
+  fit_clogit(case_ ~ log_sl_ + log_sl_sq_ + strata(step_id_))
+update_sl_distr(m4)
+
+
+
+</code></pre>
+
+
+</div>

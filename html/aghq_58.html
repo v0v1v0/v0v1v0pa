@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make_transformation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Marginal Parameter Transformations</h2>
+
+<h3>Description</h3>
+
+<p>These functions make it easier for the user to represent marginal parameter transformations
+for which inferences are to be made. Suppose quadrature is done on the posterior for parameter <code>theta</code>,
+but interest lies in parameter <code>lambda = g(theta)</code> for smooth, monotone, univariate
+<code>g</code>. This interface lets the user provide <code>g</code>, <code>g^-1</code>, and (optionally)
+the Jacobian <code>dtheta/dlambda</code>, and <code>aghq</code> will do quadrature on the <code>theta</code> scale
+but report summaries on the <code>lambda</code> scale. See a note in the Details below about
+multidimensional parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make_transformation(...)
+
+## S3 method for class 'aghqtrans'
+make_transformation(transobj, ...)
+
+## S3 method for class 'list'
+make_transformation(translist, ...)
+
+## Default S3 method:
+make_transformation(totheta, fromtheta, jacobian = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass arguments to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transobj</code></td>
+<td>
+<p>An object of class <code>aghqtrans</code>. Just returns this object. This is for internal
+compatibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>translist</code></td>
+<td>
+<p>A list with elements <code>totheta</code>, <code>fromtheta</code>, and, optionally, <code>jacobian</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totheta</code></td>
+<td>
+<p>Inverse function <code>g^-1(theta)</code>. Specifically, takes vector
+<code>g_1(theta_1)...g_p(theta_p)</code> and returns vector <code>theta_1...theta_p</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fromtheta</code></td>
+<td>
+<p>Function <code>g: R^p -&gt; R^p</code>, where <code>p = dim(theta)</code>.
+Must take vector <code>theta_1...theta_p</code> and return vector <code>g_1(theta_1)...g_p(theta_p)</code>, i.e.
+only independent/marginal transformations are allowed (but these are the only ones
+of interest, see below). For <code>j=1...p</code>, the parameter of
+inferential interest is <code>lambda_j = g_j(theta_j)</code> and the parameter whose posterior is being
+normalized via <code>aghq</code> is <code>theta_j</code>.  Passed to <code>match.fun</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jacobian</code></td>
+<td>
+<p>(optional) Function taking <code>theta</code> and returning the absolute value of the determinant of
+the Jacobian <code>dtheta/dg(theta)</code>. If not provided, a numerically differentiated Jacobian is used as
+follows: <code>numDeriv::jacobian(totheta,fromtheta(theta))</code>. Passed to <code>match.fun</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Often, the scale on which quadrature is done is not the scale on which the user
+wishes to make inferences. For example, when a parameter <code>lambda&gt;0</code> is
+of interest, the posterior for <code>theta = log(lambda)</code> may be better approximated
+by a log-quadratic than that for <code>lambda</code>, so running <code>aghq</code> on the
+likelihood and prior for <code>theta</code> may lead to faster and more stable optimization
+as well as more accurate estimates. But, interest is still in the original parameter
+<code>lambda = exp(theta)</code>.
+</p>
+<p>These considerations are by no means unique to the use of quadrature-based approximate
+Bayesian inferences. However, when using (say) <code>MCMC</code>, inferences for summaries
+of transformations of the parameter are just as easy as for the un-transformed parameter.
+When using quadrature, a little bit more work is needed.
+</p>
+<p>The <code>aghq</code> package provides an interface for computing
+posterior summaries of smooth, monotonic parameter transformations. If quadrature
+is done on parameter <code>theta</code> and <code>g(theta)</code> is a univariate, smooth, monotone function,
+then inferences are made for <code>lambda = g(theta)</code>. In the case that <code>theta</code> is
+<code>p</code>-dimensional, <code>p &gt; 1</code>, the supplied function <code>g</code> is understood to
+take in <code>theta_1...theta_p</code> and return <code>g_1(theta_1)...g_p(theta_p)</code>. The
+Jacobian is diagonal.
+</p>
+<p>To reiterate, all of this discussion applies only to <em>marginal</em> parameter transformations.
+For the full joint parameter, the only summary statistics you can even calculate at all
+(at present?) are moments, and you can already calculate the moment of any function <code>h(theta)</code>
+using <code>aghq::compute_moment</code>, so no additional interface is needed here.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>aghqtrans</code>, which is simply a list with elements <code>totheta</code>,
+<code>fromtheta</code>, and <code>jacobian</code>. Object is suitable for checking with <code>aghq::validate_transformation</code>
+and for inputting into any function in <code>aghq</code> which takes a <code>transformation</code> argument.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other transformations: 
+<code>default_transformation()</code>,
+<code>validate_transformation()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+make_transformation('log','exp')
+make_transformation(log,exp)
+
+</code></pre>
+
+
+</div>

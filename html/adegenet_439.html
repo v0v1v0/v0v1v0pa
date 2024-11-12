@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim2pop</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulated genotypes of two georeferenced populations</h2>
+
+<h3>Description</h3>
+
+<p>This simple data set was obtained by sampling two populations evolving in a
+island model, simulated using Easypop (2.0.1). See <code>source</code> for
+simulation details. Sample sizes were respectively 100 and 30 genotypes. The
+genotypes were given spatial coordinates so that both populations were
+spatially differentiated.
+</p>
+
+
+<h3>Format</h3>
+
+<p><code>sim2pop</code> is a genind object with a matrix of xy coordinates as
+supplementary component.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a>
+</p>
+
+
+<h3>Source</h3>
+
+<p>Easypop version 2.0.1 was run with the following parameters:<br> -
+two diploid populations, one sex, random mating<br> - 1000 individuals per
+population<br> - proportion of migration: 0.002<br> - 20 loci<br> - mutation
+rate: 0.0001 (KAM model)<br> - maximum of 50 allelic states<br> - 1000
+generations (last one taken)<br></p>
+
+
+<h3>References</h3>
+
+<p>Balloux F (2001) Easypop (version 1.7): a computer program for
+oppulation genetics simulations <em>Journal of Heredity</em>, <b>92</b>:
+301-302
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+data(sim2pop)
+
+if(require(hierfstat)){
+## try and find the Fst
+temp &lt;- genind2hierfstat(sim2pop)
+varcomp.glob(temp[,1],temp[,-1])
+# Fst = 0.038
+}
+
+## run monmonier algorithm
+
+# build connection network
+gab &lt;- chooseCN(sim2pop@other$xy,ask=FALSE,type=2)
+
+# filter random noise
+pca1 &lt;- dudi.pca(sim2pop@tab,scale=FALSE, scannf=FALSE, nf=1)
+
+# run the algorithm
+mon1 &lt;- monmonier(sim2pop@other$xy,dist(pca1$l1[,1]),gab, scanthres=FALSE)
+
+# graphical display
+temp &lt;- sim2pop@pop
+levels(temp) &lt;- c(17,19)
+temp &lt;- as.numeric(as.character(temp))
+plot(mon1)
+points(sim2pop@other$xy,pch=temp,cex=2)
+legend("topright",leg=c("Pop A", "Pop B"),pch=c(17,19))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

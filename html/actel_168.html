@@ -1,0 +1,502 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>residency</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Residency Analysis</h2>
+
+<h3>Description</h3>
+
+<p>The <code>residency</code> analysis runs the same initial checks as
+<code>explore</code>, but, similarly to <code>migration</code>, explores
+particular points of the animal behaviour. If you want to know where your animals
+were in each day of the study, how many animals were in each section each day,
+and other residency-focused variables, this is the analysis you are looking
+for!
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">residency(
+  tz = NULL,
+  section.order = NULL,
+  datapack = NULL,
+  max.interval = 60,
+  minimum.detections,
+  min.total.detections = 2,
+  min.per.event = 1,
+  start.time = NULL,
+  stop.time = NULL,
+  speed.method = c("last to first", "last to last"),
+  speed.warning = NULL,
+  speed.error = NULL,
+  jump.warning = 2,
+  jump.error = 3,
+  inactive.warning = NULL,
+  inactive.error = NULL,
+  exclude.tags = NULL,
+  override = NULL,
+  report = FALSE,
+  auto.open = TRUE,
+  discard.orphans = FALSE,
+  discard.first = NULL,
+  save.detections = FALSE,
+  section.warning = 1,
+  section.error = 1,
+  section.minimum,
+  timestep = c("days", "hours"),
+  replicates = NULL,
+  GUI = c("needed", "always", "never"),
+  save.tables.locally = FALSE,
+  print.releases = TRUE,
+  detections.y.axis = c("auto", "stations", "arrays")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>The time zone of the study area. Must match one of the values
+present in <code>timezones</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section.order</code></td>
+<td>
+<p>A vector containing the order by which sections should
+be aligned in the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datapack</code></td>
+<td>
+<p>A data bundle pre-compiled through the function <code>preload</code>.
+May be used to run actel analyses based on R objects, rather than input files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.interval</code></td>
+<td>
+<p>The number of minutes that must pass between detections
+for a new event to be created. Defaults to 60.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum.detections</code></td>
+<td>
+<p>DEPRECATED. Please use the arguments min.total.detections
+and min.per.event instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.total.detections</code></td>
+<td>
+<p>Minimum number of times a tag must have
+been detected during the study period for the detections to be considered true
+and not just random noise. Defaults to 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.per.event</code></td>
+<td>
+<p>Minimum number of detections an event must have to be
+deemed valid. For analyses with both array and section events, a vector of
+two values can be provided. If only one value is provided, the same threshold
+applies for both types of events. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.time</code></td>
+<td>
+<p>Detection data prior to the timestamp set in
+<code>start.time</code> (in YYYY-MM-DD HH:MM:SS format) is not considered during
+the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stop.time</code></td>
+<td>
+<p>Detection data posterior to the timestamp set in
+<code>stop.time</code> (in YYYY-MM-DD HH:MM:SS format) is not considered during
+the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>speed.method</code></td>
+<td>
+<p>Can take two forms: 'last to first' or 'last to last'.
+If 'last to first' (default), the last detection on the previous array is matched
+to the first detection on the target array to perform the calculations.
+If 'last to last', the last detection on ´the previous array is matched to the
+last detection on the target array to perform the calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>speed.warning</code></td>
+<td>
+<p>If a tag moves at a speed equal or greater than
+<code>speed.warning</code> (in metres per second), a warning is issued. If left
+NULL (default), no warnings are issued. Must be equal to or lower than <code>speed.error</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>speed.error</code></td>
+<td>
+<p>If a tag moves at a speed equal or greater than
+<code>speed.error</code> (in metres per second), user intervention is suggested.
+If left NULL (default), user intervention is never suggested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jump.warning</code></td>
+<td>
+<p>If a tag crosses a number of arrays equal or greater
+than <code>jump.warning</code> without being detected, a warning is issued. Defaults
+to 2. To disable jump warnings, set to Inf. Must be equal to or lower than <code>jump.error</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jump.error</code></td>
+<td>
+<p>If a tag crosses a number of arrays equal or greater than
+<code>jump.error</code> without being detected, user intervention is suggested.
+Defaults to 3. To disable user intervention suggestions, set to Inf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inactive.warning</code></td>
+<td>
+<p>If a tag spends a number of days equal or greater
+than <code>inactive.warning</code> in a given array at the tail of the respective
+detections, a warning is issued. If left NULL (default), no warnings are
+issued. Must be equal to or lower than <code>innactive.error</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inactive.error</code></td>
+<td>
+<p>If a tag spends a number of days equal or greater than
+<code>inactive.error</code> in a given array at the tail of the respective
+detections, user intervention is suggested. If left NULL (default), user
+intervention is never suggested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude.tags</code></td>
+<td>
+<p>A vector of tags that should be excluded from the
+detection data before any analyses are performed. Intended to be used if
+stray tags from a different code space but with the same signal as a target
+tag are detected in the study area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>override</code></td>
+<td>
+<p>A vector of signals for which the user intends to manually
+define which movement events are valid and invalid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>Logical. Should an HTML report be created at the end of the
+analysis? NOTE: Setting report to TRUE will generate an HTML file in the current
+directory. Additionally, if auto.open = TRUE (default), the web browser will
+automatically be launched to open the report once the function terminates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto.open</code></td>
+<td>
+<p>Logical: Should the report be automatically opened once the
+analysis is over? Defaults to TRUE. NOTE: If report = TRUE and auto.open = TRUE,
+the web browser will automatically be launched to open the report once the
+function terminates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discard.orphans</code></td>
+<td>
+<p>Logical: Should actel automatically discard
+detections that do not fall within receiver deployment periods, or that
+were recorded before the respective animals were released?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discard.first</code></td>
+<td>
+<p>A threshold amount of time (in hours) that must pass after
+release for the respective detections to be valid. Set to 0 to discard only
+the release-to-first-detection calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.detections</code></td>
+<td>
+<p>Logical: Should the processed detections be saved for
+future runs?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section.warning</code></td>
+<td>
+<p>If a tag has section movement events with less or equal to
+<code>section.warning</code> detections, a warning is issued. Defaults to 1.
+To disable section warnings, set to 0. Must be equal to or greater than <code>section.error</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section.error</code></td>
+<td>
+<p>If a tag has section movement events with less or equal to
+<code>section.error</code> detections, user intervention is suggested.
+Defaults to 1. To disable user intervention suggestions, set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section.minimum</code></td>
+<td>
+<p>DEPRECATED: Please use section.warning and section.error instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timestep</code></td>
+<td>
+<p>The resolution desired for the residency calculations.
+One of "days" (default) or "hours".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replicates</code></td>
+<td>
+<p>A list containing, for each array to which intra-array
+efficiency is to be calculated: The standard names of the stations to be
+used as a replicate. See the vignettes for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GUI</code></td>
+<td>
+<p>One of "needed", "always" or "never". If "needed", a new window is
+opened to inspect the movements only when the movements table is too big to be
+displayed in R's console. If "always", a graphical interface is always created
+when the possibility to invalidate events emerges. If "never", a graphical
+interface is never invoked. In this case, if the table to be displayed does
+not fit in R's console, a temporary file will be saved and the user will be
+prompted to open that file and examine it. Defaults to "needed".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.tables.locally</code></td>
+<td>
+<p>Logical: If a table must be temporarily stored into a file
+for user inspection, should it be saved in the current working directory, or
+in R's temporary folder?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.releases</code></td>
+<td>
+<p>Logical: Should the release sites be printed in the
+study area diagrams?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detections.y.axis</code></td>
+<td>
+<p>The type of y axis desired for the individual
+detection plots. While the argument defaults to "auto", it can be hard-set
+to one of "stations" or "arrays".</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+
+<ul>
+<li> <p><code>detections</code>: A list containing all detections for each target tag;
+</p>
+</li>
+<li> <p><code>valid.detections</code>: A list containing the valid detections for each target tag;
+</p>
+</li>
+<li> <p><code>spatial</code>: A list containing the spatial information used during the analysis;
+</p>
+</li>
+<li> <p><code>deployments</code>: A data frame containing the deployments of each receiver;
+</p>
+</li>
+<li> <p><code>arrays</code>: A list containing the array details used during the analysis;
+</p>
+</li>
+<li> <p><code>movements</code>: A list containing all movement events for each target tag;
+</p>
+</li>
+<li> <p><code>valid.movements</code>: A list containing the valid movement events for each target tag;
+</p>
+</li>
+<li> <p><code>section.movements</code>: A list containing the valid section shifts for each target tag;
+</p>
+</li>
+<li> <p><code>status.df</code>: A data frame containing summary information for each tag, including the
+following columns:
+</p>
+
+<ul>
+<li> <p><em>Times.entered.[section]</em>: Total number of times the tag
+entered a given section
+</p>
+</li>
+<li> <p><em>Average.entry.[section]</em>: Average entry time at a given
+section
+</p>
+</li>
+<li> <p><em>Average.time.[section]</em>: Average time the tag spent in a
+given section during each visit
+</p>
+</li>
+<li> <p><em>Average.departure.[section]</em>: Average departure time from
+a given section
+</p>
+</li>
+<li> <p><em>Total.time.[section]</em>: Total time spent in a given section
+</p>
+</li>
+<li> <p><em>Very.last.array</em>: Last array where the tag was detected
+</p>
+</li>
+<li> <p><em>Very.last.time</em>: Time of the last valid detection
+</p>
+</li>
+<li> <p><em>Status</em>: Fate assigned to the animal
+</p>
+</li>
+<li> <p><em>Valid.detections</em>: Number of valid detections
+</p>
+</li>
+<li> <p><em>Invalid.detections</em>: Number of invalid detections
+</p>
+</li>
+<li> <p><em>Valid.events</em>: Number of valid events
+</p>
+</li>
+<li> <p><em>Invalid.events</em>: Number of invalid events
+</p>
+</li>
+<li> <p><em>P.type</em>: Type of processing:
+</p>
+
+<ul>
+<li>
+<p> 'Skipped' if no data was found for the tag,
+</p>
+</li>
+<li>
+<p> 'Auto' if no user interaction was required,
+</p>
+</li>
+<li>
+<p> 'Manual' if user interaction was suggested and the user made
+changes to the validity of the events,
+</p>
+</li>
+<li>
+<p> 'Overridden' if the user listed the tag in the
+<code>override</code> argument.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><em>Comments</em>: Comments left by the user during the analysis
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>last.seen</code>: A data frame containing the number of tags last seen in
+each study area section;
+</p>
+</li>
+<li> <p><code>array.times</code>: A data frame containing ALL the entry times of each tag
+in each array;
+</p>
+</li>
+<li> <p><code>section.times</code>: A data frame containing all the entry times of each
+tag in each section;
+</p>
+</li>
+<li> <p><code>residency.list</code>: A list containing the places of residency between first and last
+valid detection for each tag;
+</p>
+</li>
+<li> <p><code>time.ratios</code>: A list containing the daily location per section (both in seconds spent
+and in percentage of day) for each tag;
+</p>
+</li>
+<li> <p><code>time.positions</code>: A data frame showing the location where each
+tag spent the most time per day;
+</p>
+</li>
+<li> <p><code>global.ratios</code>: A list containing summary tables showing the number of active tag
+(and respective percentages) present at each location per day;
+</p>
+</li>
+<li> <p><code>efficiency</code>: A list containing the results of the inter-array Multi-way efficiency
+calculations (see vignettes for more details);
+</p>
+</li>
+<li> <p><code>intra.array.CJS</code>: A list containing the results of the intra-array CJS calculations;
+</p>
+</li>
+<li> <p><code>rsp.info</code>: A list containing appendix information for the RSP package;
+</p>
+</li>
+<li> <p><code>dist.mat</code>: The distance matrix used in the analysis (if a valid
+distance matrix was supplied)
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>explore</code>, <code>migration</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Start by moving to a temporary directory
+old.wd &lt;- getwd()
+setwd(tempdir())
+
+# Deploy the example workspace
+exampleWorkspace("residency_example")
+
+# Move your R session into the example workspace
+setwd("residency_example")
+
+# run the residency analysis. Ensure the tz argument
+# matches the time zone of the study area and that the
+# sections match your array names. The line below works
+# for the example data.
+results &lt;- residency(tz = "Europe/Copenhagen")
+
+# to obtain an HTML report, run the analysis with report = TRUE
+
+# return to original working directory
+setwd(old.wd)
+rm(old.wd)
+
+
+</code></pre>
+
+
+</div>

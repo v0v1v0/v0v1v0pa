@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Hmatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Construction of Combined Relationship Matrix H</h2>
+
+<h3>Description</h3>
+
+<p>Given a matrix A and a matrix G returns a H matrix. H matrix is the relationship matrix using combined information from the pedigree and genomic relationship matrices. First, you need to compute the matrices separated and then use them as input to build the combined H matrix. 
+Two methods are implemented: 'Munoz' shrinks the G matrix towards the A matrix scaling the molecular relatadness by each relationship classes; 
+'Martini' is a modified version from Legarra et al. (2009) where combines A and G matrix using scaling factors. When method is equal 'Martini' and 'tau=1' and 'omega=1' you have the same H matrix as in Legarra et al. (2009).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Hmatrix(
+  A = NULL,
+  G = NULL,
+  markers = NULL,
+  c = 0,
+  method = "Martini",
+  tau = 1,
+  omega = 1,
+  missingValue = -9,
+  maf = 0,
+  ploidy = 2,
+  roundVar = 3,
+  ASV = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>A matrix from function Amatrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>G matrix from function Gmatrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markers</code></td>
+<td>
+<p>matrix marker which generated the Gmatrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>constant value of H computation, default: c=0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"Martini" or "Munoz", default="Martini"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>to be used for Martini's method, default=1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>to be used of Martini's method, default=1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missingValue</code></td>
+<td>
+<p>missing value in data, default=-9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maf</code></td>
+<td>
+<p>max of missing data accepted to each markerm default=0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ploidy</code></td>
+<td>
+<p>data ploidy (an even number between 2 and 20), default=2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roundVar</code></td>
+<td>
+<p>only used for Munoz's method, how many digits to consider the relationship be of same class, default=2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ASV</code></td>
+<td>
+<p>if TRUE, transform matrix into average semivariance (ASV) equivalent (K = K / (trace(K) / (nrow(K)-1))). Details formula 2 of Fieldmann et al. (2022). Default = FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>H Matrix with the relationship between the individuals based on pedigree and corrected by molecular information
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rodrigo R Amadeu, <a href="mailto:rramadeu@gmail.com">rramadeu@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p><em>Feldmann MJ, et al. 2022. Average semivariance directly yields accurate estimates of the genomic variance in complex trait analyses. G3 (Bethesda), 12(6).</em>
+</p>
+<p><em>Munoz, PR. 2014 Unraveling additive from nonadditive effects using genomic relationship matrices. Genetics 198, 1759-1768</em>
+</p>
+<p><em>Martini, JW, et al. 2018 The effect of the H-1 scaling factors tau and omega on the structure of H in the single-step procedure. Genetics Selection Evolution 50(1), 16</em>
+</p>
+<p><em>Legarra, A, et al. 2009 A relationship matrix including full pedigree and genomic information. Journal of Dairy Science 92, 4656–4663</em>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(ped.sol)
+data(snp.sol)
+#Computing the numerator relationship matrix 10% of double-reduction
+Amat &lt;- Amatrix(ped.sol, ploidy=4, w = 0.1)
+#Computing the additive relationship matrix based on VanRaden (modified)
+Gmat &lt;- Gmatrix(snp.sol, ploidy=4, 
+                maf=0.05, method="VanRaden")
+Gmat &lt;- round(Gmat,3) #to be easy to invert
+
+#Computing H matrix (Martini)
+Hmat_Martini &lt;- Hmatrix(A=Amat, G=Gmat, method="Martini", 
+                     ploidy=4, 
+                     maf=0.05)
+                     
+#Computing H matrix (Munoz)
+Hmat_Munoz &lt;- Hmatrix(A=Amat, G=Gmat, markers = snp.sol, 
+                      ploidy=4, method="Munoz",
+                      roundVar=2,
+                      maf=0.05)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

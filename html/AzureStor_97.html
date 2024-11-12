@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>do_container_op</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Carry out operations on a storage account container or endpoint</h2>
+
+<h3>Description</h3>
+
+<p>Carry out operations on a storage account container or endpoint
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">do_container_op(container, operation = "", options = list(),
+  headers = list(), http_verb = "GET", ...)
+
+call_storage_endpoint(endpoint, path, options = list(), headers = list(),
+  body = NULL, ..., http_verb = c("GET", "DELETE", "PUT", "POST", "HEAD",
+  "PATCH"), http_status_handler = c("stop", "warn", "message", "pass"),
+  timeout = getOption("azure_storage_timeout"), progress = NULL,
+  return_headers = (http_verb == "HEAD"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>container, endpoint</code></td>
+<td>
+<p>For <code>do_container_op</code>, a storage container object (inheriting from <code>storage_container</code>). For <code>call_storage_endpoint</code>, a  storage endpoint object (inheriting from <code>storage_endpoint</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>operation</code></td>
+<td>
+<p>The container operation to perform, which will form part of the URL path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>A named list giving the query parameters for the operation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>headers</code></td>
+<td>
+<p>A named list giving any additional HTTP headers to send to the host. Note that AzureStor will handle authentication details, so you don't have to specify these here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_verb</code></td>
+<td>
+<p>The HTTP verb as a string, one of <code>GET</code>, <code>DELETE</code>, <code>PUT</code>, <code>POST</code>, <code>HEAD</code> or <code>PATCH</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any additional arguments to pass to <code>httr::VERB</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>The path component of the endpoint call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>The request body for a <code>PUT/POST/PATCH</code> call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>http_status_handler</code></td>
+<td>
+<p>The R handler for the HTTP status code of the response. <code>"stop"</code>, <code>"warn"</code> or <code>"message"</code> will call the corresponding handlers in httr, while <code>"pass"</code> ignores the status code. The latter is primarily useful for debugging purposes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeout</code></td>
+<td>
+<p>Optionally, the number of seconds to wait for a result. If the timeout interval elapses before the storage service has finished processing the operation, it returns an error. The default timeout is taken from the system option <code>azure_storage_timeout</code>; if this is <code>NULL</code> it means to use the service default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>Used by the file transfer functions, to display a progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_headers</code></td>
+<td>
+<p>Whether to return the (parsed) response headers, rather than the body. Ignored if <code>http_status_handler="pass"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions form the low-level interface between R and the storage API. <code>do_container_op</code> constructs a path from the operation and the container name, and passes it and the other arguments to <code>call_storage_endpoint</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Based on the <code>http_status_handler</code> and <code>return_headers</code> arguments. If <code>http_status_handler</code> is <code>"pass"</code>, the entire response is returned without modification.
+</p>
+<p>If <code>http_status_handler</code> is one of <code>"stop"</code>, <code>"warn"</code> or <code>"message"</code>, the status code of the response is checked, and if an error is not thrown, the parsed headers or body of the response is returned. An exception is if the response was written to disk, as part of a file download; in this case, the return value is NULL.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>blob_endpoint, file_endpoint, adls_endpoint
+</p>
+<p>blob_container, file_share, adls_filesystem
+</p>
+<p>httr::GET, httr::PUT, httr::POST, httr::PATCH, httr::HEAD, httr::DELETE
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# get the metadata for a blob
+bl_endp &lt;- blob_endpoint("storage_acct_url", key="key")
+cont &lt;- storage_container(bl_endp, "containername")
+do_container_op(cont, "filename.txt", options=list(comp="metadata"), http_verb="HEAD")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

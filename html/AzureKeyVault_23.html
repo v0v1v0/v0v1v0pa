@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>storage_accounts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Storage accounts in Key Vault</h2>
+
+<h3>Description</h3>
+
+<p>This class represents the collection of storage accounts managed by a vault. It provides methods for adding and removing accounts, and doing backups and restores. For operations with a specific account, see storage.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>This class provides the following methods:</p>
+<pre>add(name, storage_account, key_name, regen_key=TRUE, regen_period=30,
+    attributes=vault_object_attrs(), ...)
+get(name)
+remove(name, confirm=TRUE)
+list()
+backup(name)
+restore(backup)
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: A name by which to refer to the storage account.
+</p>
+</li>
+<li> <p><code>storage_account</code>: The Azure resource ID of the account. This can also be an object of class <code>az_resource</code> or <code>az_storage</code>, as provided by the AzureRMR or AzureStor packages respectively; in this case, the resource ID is obtained from the object.
+</p>
+</li>
+<li> <p><code>key_name</code>: The name of the storage access key that Key Vault will manage.
+</p>
+</li>
+<li> <p><code>regen_key</code>: Whether to automatically regenerate the access key at periodic intervals.
+</p>
+</li>
+<li> <p><code>regen_period</code>: How often to regenerate the access key. This can be a number, which will be interpreted as days; or as an ISO-8601 string denoting a duration, eg "P30D" (30 days).
+</p>
+</li>
+<li> <p><code>attributes</code>: Optional attributes for the secret. A convenient way to provide this is via the vault_object_attrs helper function.
+</p>
+</li>
+<li> <p><code>...</code>: For <code>create</code> and <code>import</code>, other named arguments which will be treated as tags.
+</p>
+</li>
+<li> <p><code>confirm</code>: For <code>remove</code>, whether to ask for confirmation before removing the account.
+</p>
+</li>
+<li> <p><code>backup</code>: For <code>restore</code>, a string representing the backup blob for a key.
+</p>
+</li>
+<li> <p><code>email</code>: For <code>set_contacts</code>, the email addresses of the contacts.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>For <code>get</code> and <code>add</code>, an object of class <code>stored_account</code>, representing the storage account itself.
+</p>
+<p>For <code>list</code>, a vector of account names.
+</p>
+<p>For <code>backup</code>, a string representing the backup blob for a storage account. If the account has multiple versions, the blob will contain all versions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>storage_account, vault_object_attrs
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+vault &lt;- key_vault("mykeyvault")
+
+# get the storage account details
+library(AzureStor)
+stor &lt;- AzureRMR::get_azure_login()$
+    get_subscription("sub_id")$
+    get_resource_group("rgname")$
+    get_storage_account("mystorageacct")
+vault$storage$create("mystor", stor, "key1")
+
+vault$storage$list()
+vault$storage$get("mystor")
+
+# specifying a regeneration period of 6 months
+vault$storage$create("mystor", regen_period="P6M")
+
+# setting management tags
+vault$storage$create("mystor", tag1="a value", othertag="another value")
+
+# backup and restore an account
+bak &lt;- vault$storage$backup("mystor")
+vault$storage$delete("mystor", confirm=FALSE)
+vault$storage$restore(bak)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

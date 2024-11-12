@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>keyword_extract</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract keywords from raw text</h2>
+
+<h3>Description</h3>
+
+<p>When we have raw text like abstract or article but not keywords, we might prefer extracting
+keywords first. The least prerequisite data to be provided are a data.frame with document id and raw text,
+and a user defined dictionary should be provided. One could use <code>make_dict</code> function to construct his(her)
+own dictionary with a character vector containing the vocabularies. If the dictionary is not provided,
+the function would return all the ngram tokens without filtering (not recommended).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">keyword_extract(
+  dt,
+  id = "id",
+  text,
+  dict = NULL,
+  stopword = NULL,
+  n_max = 4,
+  n_min = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>A data.frame containing at least two columns with document ID and text strings for extraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Quoted characters specifying the column name of document ID.Default uses "id".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>Quoted characters specifying the column name of raw text for extraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dict</code></td>
+<td>
+<p>A data.table with two columns,namely "id" and "keyword"(set as key).
+This should be exported by <code>make_dict</code> function. The default uses <code>NULL</code>,
+which means the output keywords are not filtered by the dictionary (usually not recommended).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopword</code></td>
+<td>
+<p>A vector containing the stop words to be used. Default uses <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>The number of words in the n-gram. This must be an integer greater than or equal to 1.
+Default uses 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_min</code></td>
+<td>
+<p>This must be an integer greater than or equal to 1, and less than or equal to n_max.
+Default uses 1.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the procedure of keyword extraction from <span class="pkg">akc</span>,first the raw text would be split
+into independent clause (namely split by puctuations of <code>[,;!?.]</code>). Then the ngrams of the
+clauses would be extracted. Finally, the phrases represented by ngrams should be in the dictionary
+created by the user (using <code>make_dict</code>).The user could also specify the <em>n</em> of ngrams.
+</p>
+<p>This function could take some time if the sample size is large, it is suggested to use system.time to do
+some test first. Nonetheless, it has been optimized by data.table codes already and has good performance for big data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame(tibble) with two columns, namely document ID and extracted keyword.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>make_dict</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ library(akc)
+ library(dplyr)
+
+  bibli_data_table %&gt;%
+    keyword_clean(id = "id",keyword = "keyword") %&gt;%
+    pull(keyword) %&gt;%
+    make_dict -&gt; my_dict
+
+  tidytext::stop_words %&gt;%
+    pull(word) %&gt;%
+    unique() -&gt; my_stopword
+
+ 
+  bibli_data_table %&gt;%
+    keyword_extract(id = "id",text = "abstract",
+    dict = my_dict,stopword = my_stopword)
+ 
+</code></pre>
+
+
+</div>

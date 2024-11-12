@@ -1,0 +1,286 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_geo_multi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Geocoding using the ArcGIS REST API with multi-field query</h2>
+
+<h3>Description</h3>
+
+<p>Geocodes addresses given specific address components.This function returns
+the <code>tibble</code> associated with the query.
+</p>
+<p>For geocoding using a single text string use <code>arc_geo()</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arc_geo_multi(
+  address = NULL,
+  address2 = NULL,
+  address3 = NULL,
+  neighborhood = NULL,
+  city = NULL,
+  subregion = NULL,
+  region = NULL,
+  postal = NULL,
+  postalext = NULL,
+  countrycode = NULL,
+  lat = "lat",
+  long = "lon",
+  limit = 1,
+  full_results = FALSE,
+  return_addresses = TRUE,
+  verbose = FALSE,
+  progressbar = TRUE,
+  outsr = NULL,
+  langcode = NULL,
+  category = NULL,
+  custom_query = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>address, address2, address3, neighborhood, city, subregion</code></td>
+<td>
+<p>Address
+components  (See <strong>Details</strong>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region, postal, postalext, countrycode</code></td>
+<td>
+<p>More address components, see
+(See <strong>Details</strong>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>latitude column name in the output data (default  <code>"lat"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>longitude column name in the output data (default  <code>"lon"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>maximum number of results to return per input address. Note
+that each query returns a maximum of 50 results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_results</code></td>
+<td>
+<p>returns all available data from the API service. This
+is a shorthand of <code style="white-space: pre;">⁠outFields=*⁠</code>. See <strong>References</strong>. If <code>FALSE</code> (default)
+only the default values of the API would be returned. See also
+<code>return_addresses</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_addresses</code></td>
+<td>
+<p>return input addresses with results if <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code> then detailed logs are output to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progressbar</code></td>
+<td>
+<p>Logical. If <code>TRUE</code> displays a progress bar to indicate
+the progress of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outsr</code></td>
+<td>
+<p>The spatial reference of the <code style="white-space: pre;">⁠x,y⁠</code> coordinates returned by a
+geocode request. By default is <code>NULL</code> (i.e. the parameter won't be used in
+the query). See <strong>Details</strong> and arc_spatial_references.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>langcode</code></td>
+<td>
+<p>Sets the language in which reverse-geocoded addresses are
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>category</code></td>
+<td>
+<p>A place or address type that can be used to filter results.
+Several values can be used as well as a vector (i.e.
+<code>c("Cinema", "Museum")</code>). See arc_categories for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_query</code></td>
+<td>
+<p>API-specific parameters to be used, passed as a named
+list.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>More info and valid values in the <a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-find-address-candidates.htm">ArcGIS REST docs</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble</code> object with the results. See the details of the output in  <a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm">ArcGIS REST API Service output</a>.
+</p>
+<p>The resulting output would include also the input parameters (columns with
+prefix <code>q_</code>) for better tracking the results.
+</p>
+
+
+<h3>Address components</h3>
+
+<p>This function allows to perform structured queries by different components of
+an address. At least one field should be different than <code>NA</code> or <code>NULL</code>.
+</p>
+<p>A vector of values can be provided for each parameter for multiple geocoding.
+When using vectors on different parameters, their lengths should be the
+same.
+</p>
+<p>The following list provides a brief description of each parameter:
+</p>
+
+<ul>
+<li> <p><code>address</code>: A string that represents the first line of a street address. In
+most cases it will be the <strong>street name and house number</strong> input, but it
+can also be used to input building name or place-name.
+</p>
+</li>
+<li> <p><code>address2</code>: A string that represents the second line of a street address.
+This can include <strong>street name/house number, building name, place-name, or
+sub unit</strong>.
+</p>
+</li>
+<li> <p><code>address3</code>: A string that represents the third line of a street address.
+This can include <strong>street name/house number, building name, place-name, or
+sub unit</strong>.
+</p>
+</li>
+<li> <p><code>neighborhood</code>: The smallest administrative division associated with an
+address, typically, a <strong>neighborhood</strong> or a section of a larger populated
+place.
+</p>
+</li>
+<li> <p><code>city</code>: The next largest administrative division associated with an
+address, typically, a <strong>city or municipality</strong>.
+</p>
+</li>
+<li> <p><code>subregion</code>: The next largest administrative division associated with an
+address. Depending on the country, a sub region can represent a
+<strong>county, state, or province</strong>.
+</p>
+</li>
+<li> <p><code>region</code>: The largest administrative division associated with an address,
+typically, a <strong>state or province</strong>.
+</p>
+</li>
+<li> <p><code>postal</code>: The <strong>standard postal code</strong> for an address, typically, a
+three– to six-digit alphanumeric code.
+</p>
+</li>
+<li> <p><code>postalext</code>: A <strong>postal code extension</strong>, such as the United States Postal
+Service ZIP+4 code.
+</p>
+</li>
+<li> <p><code>countrycode</code>: A value representing the <strong>country</strong>. Providing this value
+<strong>increases geocoding speed</strong>. Acceptable values include the full country
+name in English or the official language of the country, the two-character
+country code, or the three-character country code.
+</p>
+</li>
+</ul>
+<h3><code>outsr</code></h3>
+
+<p>The spatial reference can be specified as either a well-known ID (WKID). If
+not specified, the spatial reference of the output locations is the same as
+that of the service ( WGS84, i.e. WKID = 4326)).
+</p>
+<p>See arc_spatial_references for values and examples.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-find-address-candidates.htm">ArcGIS REST <code>findAddressCandidates</code></a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tidygeocoder::geo()</code>
+</p>
+<p>Other functions for geocoding: 
+<code>arc_geo()</code>,
+<code>arc_geo_categories()</code>,
+<code>arc_reverse_geo()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+simple &lt;- arc_geo_multi(
+  address = "Plaza Mayor", limit = 10,
+  custom_query = list(outFields = c("LongLabel", "CntryName", "Region"))
+)
+
+library(dplyr)
+
+simple %&gt;%
+  select(lat, lon, CntryName, Region, LongLabel) %&gt;%
+  slice_head(n = 10)
+
+# Restrict search to Spain
+simple2 &lt;- arc_geo_multi(
+  address = "Plaza Mayor", countrycode = "ESP",
+  limit = 10,
+  custom_query = list(outFields = c("LongLabel", "CntryName", "Region"))
+)
+
+simple2 %&gt;%
+  select(lat, lon, CntryName, Region, LongLabel) %&gt;%
+  slice_head(n = 10)
+
+# Restrict to a region
+simple3 &lt;- arc_geo_multi(
+  address = "Plaza Mayor", region = "Segovia",
+  countrycode = "ESP",
+  limit = 10,
+  custom_query = list(outFields = c("LongLabel", "CntryName", "Region"))
+)
+
+simple3 %&gt;%
+  select(lat, lon, CntryName, Region, LongLabel) %&gt;%
+  slice_head(n = 10)
+
+
+</code></pre>
+
+
+</div>

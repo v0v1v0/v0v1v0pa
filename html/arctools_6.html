@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_valid_day_flag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute valid day flag</h2>
+
+<h3>Description</h3>
+
+<p>Compute valid/non-valid day flag (<code>1</code>/<code>0</code>) for each minute of activity
+counts data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_valid_day_flag(wear_flag, validday_nonwear_maximum_window = 144)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wear_flag</code></td>
+<td>
+<p>An integer vector. The vector has value <code>1</code> if a minute
+belongs to a wear time-interval, value <code>0</code> if a minute
+belongs to a non-wear time-interval, and value <code>NA</code> to denote minutes
+before/after data collection started/finished.
+</p>
+<p>Vector <code>wear_flag</code> is assumed
+to be in midnight-to-midnight format, meaning its vector length
+is a multiple of number of minutes in a full day
+(1440).
+See <code>arctools::midnight_to_midnight()</code>,
+<code>arctools::get_wear_flag()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validday_nonwear_maximum_window</code></td>
+<td>
+<p>In integer scalar. Maxmimum number of minutes of non-wear/not
+collecting data so as the day is still considered valid. Default is <code>144</code>
+(10% of 1440 minutes of a full day).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All minute-level observations
+from one day are assigned the same value of valid day flag.
+The flag is <code>1</code> if a day is
+determined to be valid, and <code>0</code> otherwise.
+</p>
+<p>A day is determined to be valid if it has no more than
+<code>validday_nonwear_maximum_window</code> minutes of missing data.
+Data may be missing due to
+identified sensor nonwear or because activity data collection has not started
+yet/has finished already in a particular day.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An integer vector. It has value <code>1</code> if a minute
+belongs to a valid day, and <code>0</code> otherwise.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Read exemplary data
+fpath_i &lt;- system.file("extdata", extdata_fnames[1], package = "arctools")
+dat_i   &lt;- as.data.frame(data.table::fread(fpath_i))
+acc     &lt;- dat_i$vectormagnitude
+acc_ts  &lt;- lubridate::ymd_hms(dat_i$timestamp)
+## Get acc data vector in "midnight_to_midnight" format
+acc &lt;- midnight_to_midnight(acc, acc_ts)
+## Get wear/non-wear flag
+wear_flag &lt;- get_wear_flag(acc)
+## Get valid/non-valid day flag
+valid_day_flag &lt;- get_valid_day_flag(wear_flag)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>raoscott</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test of Proportion Homogeneity using Rao and Scott's Adjustment</h2>
+
+<h3>Description</h3>
+
+<p>Tests the homogeneity of proportions between <code class="reqn">I</code> groups (H0: <code class="reqn">p_1 = p_2 = ... = p_I</code> ) from clustered binomial 
+data <code class="reqn">(n, y)</code> using the adjusted <code class="reqn">\chi^2</code> statistic proposed by Rao and Scott (1993).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">raoscott(formula = NULL, response = NULL, weights = NULL, 
+              group = NULL, data, pooled = FALSE, deff = NULL)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An optional formula where the left-hand side is either a matrix of the form <code>cbind(y, n-y)</code>,
+where the modelled probability is <code>y/n</code>, or a vector of proportions to be modelled (<code>y/n</code>). 
+In both cases, the right-hand side must specify a single grouping variable. When the left-hand side of the formula 
+is a vector of proportions, the argument <code>weight</code> must be used to indicate the denominators of the 
+proportions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>An optional argument: either a matrix of the form <code>cbind(y, n-y)</code>, where the modelled probability 
+is <code>y/n</code>, or a vector of proportions to be modelled (<code>y/n</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>An optional argument used when the left-hand side of <code>formula</code> or <code>response</code> is a vector
+of proportions: <code>weight</code> is the denominator of the proportions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>An optional argument only used when <code>response</code> is used. In this case, this argument is a factor 
+indicating a grouping variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the response (<code>n</code> and <code>y</code>) and the grouping variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pooled</code></td>
+<td>
+<p>Logical indicating if a pooled design effect is estimated over the <code class="reqn">I</code> groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deff</code></td>
+<td>
+<p>A numerical vector of <code class="reqn">I</code> design effects.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The method is based on the concepts of design effect and effective sample size.<br><br>
+The design effect in each group <code class="reqn">i</code> is estimated by <code class="reqn">deff_i = vratio_i / vbin_i</code>, where <code class="reqn">vratio_i</code> is 
+the variance of the ratio estimate of the probability in group <code class="reqn">i</code> (Cochran, 1999, p. 32 and p. 66)
+and <code class="reqn">vbin_i</code> is the standard binomial variance. A pooled design effect (i.e., over the <code class="reqn">I</code> groups)
+is estimated if argument <code>pooled = TRUE</code> (see Rao and Scott, 1993, Eq. 6). Fixed design effects can be specified
+with the argument <code>deff</code>.<br>
+The <code class="reqn">deff_i</code> are used  to compute the effective sample sizes <code class="reqn">nadj_i = n_i / deff_i</code>, the effective numbers
+of successes <code class="reqn">yadj_i = y_i / deff_i</code> in each group <code class="reqn">i</code>, and the overall effective proportion 
+<code class="reqn">padj = \sum_{i} yadj_i / \sum_{i} deff_i</code>.
+The test statistic is obtained by substituting these quantities in the usual <code class="reqn">\chi^2</code> statistic,
+yielding:
+</p>
+<p style="text-align: center;"><code class="reqn">X^2 = \sum_{i}\frac{(yadj_i - nadj_i * padj)^2}{nadj_i * padj * (1 - padj)}</code>
+</p>
+
+<p>which is compared to a <code class="reqn">\chi^2</code> distribution with <code class="reqn">I - 1</code> degrees of freedom.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of formal class “drs”: see <code>drs-class</code> for details. The slot <code>tab</code>
+provides the proportion of successes, the variances of the proportion and the design effect for each group.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthieu Lesnoff <a href="mailto:matthieu.lesnoff@cirad.fr">matthieu.lesnoff@cirad.fr</a>, Renaud Lancelot <a href="mailto:renaud.lancelot@cirad.fr">renaud.lancelot@cirad.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Cochran, W.G., 1999, 2nd ed. <em>Sampling techniques</em>. John Wiley &amp; Sons, New York.<br>
+Rao, J.N.K., Scott, A.J., 1992. <em>A simple method for the analysis of clustered binary data</em>.
+Biometrics 48, 577-585.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>chisq.test</code>, <code>donner</code>, <code>iccbin</code>, <code>drs-class</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(rats)
+  # deff by group
+  raoscott(cbind(y, n - y) ~ group, data = rats)
+  raoscott(y/n ~ group, weights = n, data = rats)
+  raoscott(response = cbind(y, n - y), group = group, data = rats)
+  raoscott(response = y/n, weights = n, group = group, data = rats)
+  # pooled deff
+  raoscott(cbind(y, n - y) ~ group, data = rats, pooled = TRUE)
+  # standard test
+  raoscott(cbind(y, n - y) ~ group, data = rats, deff = c(1, 1))
+  data(antibio)
+  raoscott(cbind(y, n - y) ~ treatment, data = antibio)
+  </code></pre>
+
+
+</div>

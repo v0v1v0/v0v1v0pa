@@ -1,0 +1,260 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adproclus_low_dim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Low dimensional ADPROCLUS</h2>
+
+<h3>Description</h3>
+
+<p>Perform <strong>low dimensional</strong> additive profile clustering (ADPROCLUS) on
+object by variable data. Use case: data to cluster consists of a large set of
+variables, where it can be useful to interpret the cluster profiles in terms
+of a smaller set of components that represent the original variables well.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adproclus_low_dim(
+  data,
+  nclusters,
+  ncomponents,
+  start_allocation = NULL,
+  nrandomstart = 3,
+  nsemirandomstart = 3,
+  save_all_starts = FALSE,
+  seed = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Object-by-variable data matrix of class <code>matrix</code> or
+<code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclusters</code></td>
+<td>
+<p>Number of clusters to be used. Must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomponents</code></td>
+<td>
+<p>Number of components (dimensions) to which the profiles
+should be restricted. Must be a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_allocation</code></td>
+<td>
+<p>Optional matrix of binary values as starting
+allocation for first run. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrandomstart</code></td>
+<td>
+<p>Number of random starts (see <code>get_random</code>).
+Can be zero. Increase for better results, though longer computation time.
+Some research finds 500 starts to be a useful reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsemirandomstart</code></td>
+<td>
+<p>Number of semi-random starts
+(see <code>get_semirandom</code>)). Can be zero.
+Increase for better results, though longer computation time.
+Some research finds 500 starts to be a useful reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_all_starts</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, the results of all algorithm
+starts are returned. By default, only the best solution is retained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer. Seed for the random number generator.
+Default: NULL, meaning no reproducibility</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In this function, an extension by Depril et al. (2012) of
+Mirkins (1987, 1990) additive profile clustering method is used to obtain a
+low dimensional overlapping clustering model of the object by variable data
+provided by <code>data</code>.
+More precisely, the low dimensional ADPROCLUS model approximates an
+<code class="reqn">I \times J</code> object by variable data matrix <code class="reqn">X</code> by an
+<code class="reqn">I \times J</code> model matrix <code class="reqn">M</code>. For <code class="reqn">K</code> overlapping
+clusters, <code class="reqn">M</code> can be decomposed into an <code class="reqn">I \times K</code>
+binary cluster membership matrix <code class="reqn">A</code> and a <code class="reqn">K \times J</code>
+real-valued cluster profile matrix <code class="reqn">P</code> s.t. <code class="reqn">M = AP.</code>
+With the simultaneous dimension reduction, <code class="reqn">P</code> is restricted
+to be of reduced rank <code class="reqn">S &lt; min(K,J)</code>, such that it can be decomposed
+into <code class="reqn">P = CB',</code> with <code class="reqn">C</code> a <code class="reqn">K \times S</code> matrix and
+<code class="reqn">B</code> a <code class="reqn">J \times S</code> matrix. Now, a row in
+<code class="reqn">C</code> represents the profile values associated with the
+respective cluster in terms of the <code class="reqn">S</code> components, while
+the entries of <code class="reqn">B</code> can be used to interpret the components
+in terms of the complete set of variables. In particular, the aim of an
+ADPROCLUS analysis is therefore, given a number of clusters <code class="reqn">K</code> and a
+number of dimensions <code class="reqn">S</code>, to estimate a model matrix <code class="reqn">M</code>
+that reconstructs data matrix
+<code class="reqn">X</code> as close as possible in a least squares sense and
+simultaneously reduce the dimensions of the data.
+For a detailed illustration of the low dimensional ADPROCLUS model and
+associated loss function, see Depril et al. (2012).
+</p>
+<p><strong>Warning:</strong> Computation time increases exponentially with increasing
+number of clusters, <code class="reqn">K</code>. We recommend to determine the computation time
+of a single start for each specific dataset and <code class="reqn">K</code> before increasing the
+number of starts.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>adproclus_low_dim()</code> returns a list with the following
+components, which describe the best model (from the multiple starts):
+</p>
+
+<dl>
+<dt><code>model</code></dt>
+<dd>
+<p>matrix. The obtained overlapping clustering model
+<code class="reqn">M</code> of the same size as <code>data</code>.</p>
+</dd>
+<dt><code>model_lowdim</code></dt>
+<dd>
+<p>matrix. The obtained low dimensional clustering
+model <code class="reqn">AC</code> of size <code class="reqn">I \times S</code></p>
+</dd>
+<dt><code>A</code></dt>
+<dd>
+<p>matrix. The membership matrix <code class="reqn">A</code> of the
+clustering model. Clusters are sorted by size.</p>
+</dd>
+<dt><code>P</code></dt>
+<dd>
+<p>matrix. The profile matrix <code class="reqn">P</code> of the
+clustering model.</p>
+</dd>
+<dt><code>c</code></dt>
+<dd>
+<p>matrix. The profile values in terms of the low dimensional
+components.</p>
+</dd>
+<dt><code>B</code></dt>
+<dd>
+<p>Variables-by-components matrix.
+Base vectors connecting low dimensional components with original variables.
+matrix. Warning: for computing
+<code class="reqn">P</code> use <code class="reqn">B'</code>.</p>
+</dd>
+<dt><code>sse</code></dt>
+<dd>
+<p>numeric. The
+residual sum of squares of the clustering model, which is minimized by the
+ALS algorithm.</p>
+</dd>
+<dt><code>totvar</code></dt>
+<dd>
+<p>numeric. The total sum of squares
+of <code>data</code>.</p>
+</dd>
+<dt><code>explvar</code></dt>
+<dd>
+<p>numeric. The proportion of variance
+in <code>data</code> that is accounted for by the clustering model.</p>
+</dd>
+<dt><code>iterations</code></dt>
+<dd>
+<p>numeric. The number of algorithm iterations
+until convergence of the relevant single start.</p>
+</dd>
+<dt><code>timer_one_run</code></dt>
+<dd>
+<p>numeric. The amount of time (in seconds) the
+relevant single start ran for.</p>
+</dd>
+<dt><code>initial_start</code></dt>
+<dd>
+<p>list. A list containing the initial
+membership matrix, as well as the type of start that was used
+to obtain the clustering solution. (as returned by <code>get_random</code>
+or <code>get_semirandom</code>)</p>
+</dd>
+<dt><code>runs</code></dt>
+<dd>
+<p>list. Each element represents one model obtained
+from one of the multiple starts.
+Each element contains all of the above information.</p>
+</dd>
+<dt><code>parameters</code></dt>
+<dd>
+<p>list. Containing the parameters used for the
+model.</p>
+</dd>
+<dt><code>timer</code></dt>
+<dd>
+<p>numeric. The amount of time (in seconds) the complete
+algorithm ran for.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Depril, D., Van Mechelen, I., &amp; Wilderjans, T. F.
+(2012). Lowdimensional additive overlapping clustering.
+<em>Journal of classification, 29,</em> 297-320.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>adproclus</code></dt>
+<dd>
+<p>for full dimensional ADPROCLUS</p>
+</dd>
+<dt><code>get_random</code></dt>
+<dd>
+<p>for generating random starts</p>
+</dd>
+<dt><code>get_semirandom</code></dt>
+<dd>
+<p>for generating semi-random starts</p>
+</dd>
+<dt><code>get_rational</code></dt>
+<dd>
+<p>for generating rational starts</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Loading a test dataset into the global environment
+x &lt;- stackloss
+
+# Low dimensional clustering with K = 3 clusters
+# where the resulting profiles can be characterized in S = 1 dimensions
+clust &lt;- adproclus_low_dim(x, 3, ncomponents = 1)
+
+</code></pre>
+
+
+</div>

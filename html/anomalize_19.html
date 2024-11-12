@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>time_frequency</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a time series frequency from a periodicity</h2>
+
+<h3>Description</h3>
+
+<p>Generate a time series frequency from a periodicity
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">time_frequency(data, period = "auto", message = TRUE)
+
+time_trend(data, period = "auto", message = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>tibble</code> with a date or datetime index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>Either "auto", a time-based definition (e.g. "14 days"),
+or a numeric number of observations per frequency (e.g. 10).
+See <code>tibbletime::collapse_by()</code> for period notation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>A boolean. If <code>message = TRUE</code>, the frequency used is output
+along with the units in the scale of the data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A frequency is loosely defined as the number of observations that comprise a cycle
+in a data set. The trend is loosely defined as time span that can
+be aggregated across to visualize the central tendency of the data.
+It's often easiest to think of frequency and trend in terms of the time-based units
+that the data is already in. <strong>This is what <code>time_frequency()</code> and <code>time_trend()</code>
+enable: using time-based periods to define the frequency or trend.</strong>
+</p>
+<p><strong>Frequency</strong>:
+</p>
+<p>As an example, a weekly cycle is often 5-days (for working
+days) or 7-days (for calendar days). Rather than specify a frequency of 5 or 7,
+the user can specify <code>period = "1 week"</code>, and
+time_frequency()' will detect the scale of the time series and return 5 or 7
+based on the actual data.
+</p>
+<p>The <code>period</code> argument has three basic options for returning a frequency.
+Options include:
+</p>
+
+<ul>
+<li> <p><code>"auto"</code>: A target frequency is determined using a pre-defined template (see <code>template</code> below).
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠time-based duration⁠</code>: (e.g. "1 week" or "2 quarters" per cycle)
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠numeric number of observations⁠</code>: (e.g. 5 for 5 observations per cycle)
+</p>
+</li>
+</ul>
+<p>The <code>template</code> argument is only used when <code>period = "auto"</code>. The template is a tibble
+of three features: <code>time_scale</code>, <code>frequency</code>, and <code>trend</code>. The algorithm will inspect
+the scale of the time series and select the best frequency that matches the scale and
+number of observations per target frequency. A frequency is then chosen on be the
+best match. The predefined template is stored in a function <code>time_scale_template()</code>.
+However, the user can come up with his or her own template changing the values
+for frequency in the data frame and saving it to <code>anomalize_options$time_scale_template</code>.
+</p>
+<p><strong>Trend</strong>:
+</p>
+<p>As an example, the trend of daily data is often best aggregated by evaluating
+the moving average over a quarter or a month span. Rather than specify the number
+of days in a quarter or month, the user can specify "1 quarter" or "1 month",
+and the <code>time_trend()</code> function will return the correct number of observations
+per trend cycle. In addition, there is an option, <code>period = "auto"</code>, to
+auto-detect an appropriate trend span depending on the data. The <code>template</code>
+is used to define the appropriate trend span.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a scalar numeric value indicating the number of observations in the frequency or trend span.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+data(tidyverse_cran_downloads)
+
+#### FREQUENCY DETECTION ####
+
+# period = "auto"
+tidyverse_cran_downloads %&gt;%
+    filter(package == "tidyquant") %&gt;%
+    ungroup() %&gt;%
+    time_frequency(period = "auto")
+
+time_scale_template()
+
+# period = "1 month"
+tidyverse_cran_downloads %&gt;%
+    filter(package == "tidyquant") %&gt;%
+    ungroup() %&gt;%
+    time_frequency(period = "1 month")
+
+#### TREND DETECTION ####
+
+tidyverse_cran_downloads %&gt;%
+    filter(package == "tidyquant") %&gt;%
+    ungroup() %&gt;%
+    time_trend(period = "auto")
+</code></pre>
+
+
+</div>

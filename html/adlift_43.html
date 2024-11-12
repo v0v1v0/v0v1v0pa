@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PointsUpdatemp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>PointsUpdatemp</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the update lifting step using a given configuration of neighbours and boundary handling.   
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PointsUpdatemp(X, coeff, nbrs, newnbrs, index, remove, pointsin, 
+weights, lengths)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the vector of grid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>the vector of detail and scaling coefficients at that step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbrs</code></td>
+<td>
+<p>the indices (into <span class="env">X</span>) of the neighbours to be used in the lifting step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newnbrs</code></td>
+<td>
+<p>as nbrs, but repeated according to the multiple point structure of the grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>the indices into <span class="env">pointsin</span> of <span class="env">nbrs</span>, the neighbours of <span class="env">remove</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove</code></td>
+<td>
+<p>the index (into <span class="env">X</span>) of the point to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>The indices of gridpoints still to be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the prediction weights obtained from the regression in the prediction step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>the vector of interval lengths at the present step of the transform (to be updated).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The procedure performs a minimum norm update lifting step. Firstly the interval lengths are updated using the coefficients obtained. Secondly, the scaling and detail coefficient list is modified using the new interval lengths.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of (modified) detail and scaling coefficients to be used in the next step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>the vector of interval lengths after the update step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>the index into <span class="env">pointsin</span> of <span class="env">remove</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>length(<span class="env">pointsin</span>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>The regression coefficients used in prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the update weights used to update <span class="env">lengths</span> and <span class="env">coeff</span>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>AdaptNeighmp</code>, <code>AdaptPredmp</code>, <code>CubicPredmp</code>, <code>fwtnpmp</code>, <code>LinearPredmp</code>,
+<code>QuadPredmp</code>, <code>UndoPointsUpdatemp</code>      </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#read in data with multiple values...
+
+data(motorcycledata)
+times&lt;-motorcycledata$time
+accel&lt;-motorcycledata$accel
+
+short&lt;-adjustx(times,accel,"mean")
+X&lt;-short$sepx
+coeff&lt;-short$sepx
+g&lt;-short$g
+
+coefflist&lt;-list()
+for (i in 1:length(g)){
+coefflist[[i]]&lt;-accel[g[[i]]]
+}
+
+I&lt;-intervals(X,"reflect")
+lengths&lt;-lengthintervals(X,I,neighbours=2,closest=TRUE)
+
+#work out neighbours of point to be removed (31)
+
+out&lt;-getnbrs(X,31,order(X),2,TRUE)
+nbrs&lt;-out$n
+
+nbrs
+
+newnbrs&lt;-NULL
+for (i in 1:length(nbrs)){
+newnbrs&lt;-c(newnbrs,rep(nbrs[i],times=length(g[[nbrs[i]]])))
+}
+
+#work out repeated neighbours using g...
+newnbrs
+
+p&lt;-AdaptNeighmp(order(X),X,coefflist,coeff,nbrs,newnbrs,31,TRUE,2,"ave",g)
+
+nbrs&lt;-p$newinfo[[3]]
+nbrs
+newnbrs&lt;-NULL
+for (i in 1:length(nbrs)){
+newnbrs&lt;-c(newnbrs,rep(nbrs[i],times=length(g[[nbrs[i]]])))
+}
+newnbrs
+
+coefflist[[31]]&lt;-p$results[[6]][31]
+
+u&lt;-PointsUpdatemp(X,coefflist,p$newinfo[[2]],newnbrs,p$newinfo[[3]],31,
+order(X),p$results[[4]],lengths)
+#
+#and here is the updated coefficient list...
+u$coeff
+</code></pre>
+
+
+</div>

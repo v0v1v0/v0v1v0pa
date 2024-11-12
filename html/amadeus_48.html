@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>download_modis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Download MODIS product files</h2>
+
+<h3>Description</h3>
+
+<p>Need maintenance for the directory path change
+in NASA EOSDIS. This function first retrieves the all hdf download links
+on a certain day, then only selects the relevant tiles from the retrieved
+links. Download is only done at the queried horizontal-vertical tile number
+combinations. An exception is MOD06_L2 product, which is produced
+every five minutes every day.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">download_modis(
+  product = c("MOD09GA", "MOD11A1", "MOD06_L2", "MCD19A2", "MOD13A2", "VNP46A2"),
+  version = "61",
+  horizontal_tiles = c(7, 13),
+  vertical_tiles = c(3, 6),
+  mod06_links = NULL,
+  nasa_earth_data_token = NULL,
+  date = c("2023-09-01", "2023-09-01"),
+  directory_to_save = NULL,
+  acknowledgement = FALSE,
+  download = FALSE,
+  remove_command = FALSE,
+  hash = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>product</code></td>
+<td>
+<p>character(1).
+One of <code>c("MOD09GA", "MOD11A1", "MOD06_L2", "MCD19A2", "MOD13A2", "VNP46A2")</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>character(1). Default is <code>"61"</code>, meaning v061.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizontal_tiles</code></td>
+<td>
+<p>integer(2). Horizontal tile numbers
+<code>c({start}, {end})</code>. Default is <code>c(7, 13)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vertical_tiles</code></td>
+<td>
+<p>integer(2). Vertical tile numbers
+<code>c({start}, {end})</code>. Default is <code>c(3, 6)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod06_links</code></td>
+<td>
+<p>character(1). CSV file path to MOD06_L2 download links
+from <a href="https://ladsweb.modaps.eosdis.nasa.gov/search/order/2/MOD06_L2--61">NASA LAADS MOD06_L2</a>. Default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nasa_earth_data_token</code></td>
+<td>
+<p>character(1).
+Token for downloading data from NASA. Should be set before
+trying running the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date</code></td>
+<td>
+<p>character(1 or 2). length of 10. Date or start/end dates for downloading data.
+Format "YYYY-MM-DD" (ex. January 1, 2018 = <code>"2018-01-01"</code>). Note: ignored if
+<code>product == "MOD06_L2"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directory_to_save</code></td>
+<td>
+<p>character(1). Directory to save data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acknowledgement</code></td>
+<td>
+<p>logical(1). By setting <code>TRUE</code> the
+user acknowledges that the data downloaded using this function may be very
+large and use lots of machine storage and memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>download</code></td>
+<td>
+<p>logical(1). Download data or only save wget commands.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove_command</code></td>
+<td>
+<p>logical(1). Remove (<code>TRUE</code>) or keep (<code>FALSE</code>)
+the text file containing download commands.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hash</code></td>
+<td>
+<p>logical(1). By setting <code>TRUE</code> the function will return
+an <code>rlang::hash_file()</code> hash character corresponding to the
+downloaded files. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+
+<ul>
+<li>
+<p> For <code>hash = FALSE</code>, NULL
+</p>
+</li>
+<li>
+<p> For <code>hash = TRUE</code>, an <code>rlang::hash_file</code> character.
+</p>
+</li>
+<li>
+<p> HDF (.hdf) files will be stored in year/day_of_year sub-directories within
+<code>directory_to_save</code>.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>Both dates in <code>date</code> should be in the same year.
+Directory structure looks like
+input/modis/raw/{version}/{product}/{year}/{day_of_year}.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mitchell Manware, Insang Song
+</p>
+
+
+<h3>References</h3>
+
+<p>Lyapustin A, Wang Y (2022).
+“MODIS/Terra+Aqua Land Aerosol Optical Depth Daily L2G Global 1km SIN Grid V061.”
+<a href="https://doi.org/10.5067/MODIS/MCD19A2.061">doi:10.5067/MODIS/MCD19A2.061</a>, <a href="https://lpdaac.usgs.gov/products/mcd19a2v061/">https://lpdaac.usgs.gov/products/mcd19a2v061/</a>.
+</p>
+<p>MODIS Atmosphere Science Team (2017).
+“MODIS/Terra Clouds 5-Min L2 Swath 1km and 5km.”
+<a href="https://doi.org/10.5067/MODIS/MOD06_L2.061">doi:10.5067/MODIS/MOD06_L2.061</a>, <a href="https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/MOD06_L2">https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/MOD06_L2</a>.
+</p>
+<p>Vermote E, Wolfe R (2021).
+“MODIS/Terra Surface Reflectance Daily L2G Global 1km and 500m SIN Grid V061.”
+<a href="https://doi.org/10.5067/MODIS/MOD09GA.061">doi:10.5067/MODIS/MOD09GA.061</a>, <a href="https://lpdaac.usgs.gov/products/mod09gav061/">https://lpdaac.usgs.gov/products/mod09gav061/</a>.
+</p>
+<p>Wan Z, Hook S, Hulley G (2021).
+“MODIS/Terra Land Surface Temperature/Emissivity Daily L3 Global 1km SIN Grid V061.”
+<a href="https://doi.org/10.5067/MODIS/MOD11A1.061">doi:10.5067/MODIS/MOD11A1.061</a>, <a href="https://lpdaac.usgs.gov/products/mod11a1v061/">https://lpdaac.usgs.gov/products/mod11a1v061/</a>.
+</p>
+<p>Didan K (2021).
+“MODIS/Terra Vegetation Indices 16-Day L3 Global 1km SIN Grid V061.”
+<a href="https://doi.org/10.5067/MODIS/MOD13A2.061">doi:10.5067/MODIS/MOD13A2.061</a>, <a href="https://lpdaac.usgs.gov/products/mod13a2v061/">https://lpdaac.usgs.gov/products/mod13a2v061/</a>.
+</p>
+<p>Román MO, Wang Z, Sun Q, Kalb V, Miller SD, Molthan A, Schultz L, Bell J, Stokes EC, Pandey B, Seto KC, Hall D, Oda T, Wolfe RE, Lin G, Golpayegani N, Devadiga S, Davidson C, Sarkar S, Praderas C, Schmaltz J, Boller R, Stevens J, Ramos González OM, Padilla E, Alonso J, Detrés Y, Armstrong R, Miranda I, Conte Y, Marrero N, MacManus K, Esch T, Masuoka EJ (2018).
+“NASA's Black Marble nighttime lights product suite.”
+<em>Remote Sensing of Environment</em>, <b>210</b>, 113–143.
+ISSN 00344257, <a href="https://doi.org/10.1016/j.rse.2018.03.017">doi:10.1016/j.rse.2018.03.017</a>, <a href="https://linkinghub.elsevier.com/retrieve/pii/S003442571830110X">https://linkinghub.elsevier.com/retrieve/pii/S003442571830110X</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## NOTE: Examples are wrapped in `/dontrun{}` to avoid sharing sensitive
+##       NASA EarthData tokden information.
+# example with MOD09GA product
+download_modis(
+  product = "MOD09GA",
+  version = "61",
+  horizontal_tiles = c(8, 8),
+  vertical_tiles = c(4, 4),
+  date = "2024-01-01",
+  nasa_earth_data_token = "./pathtotoken/token.txt",
+  directory_to_save = tempdir(),
+  acknowledgement = TRUE,
+  download = FALSE, # NOTE: download skipped for examples,
+  remove_command = TRUE
+)
+# example with MOD06_L2 product
+download_modis(
+  product = "MOD06_L2",
+  version = "61",
+  horizontal_tiles = c(8, 8),
+  vertical_tiles = c(4, 4),
+  date = "2024-01-01",
+  mod06_links =
+    system.file(
+      "extdata", "nasa", "LAADS_query.2024-08-02T12_49.csv",
+      package = "amadeus"
+    ),
+  nasa_earth_data_token = "./pathtotoken/token.txt",
+  directory_to_save = tempdir(),
+  acknowledgement = TRUE,
+  download = FALSE, # NOTE: download skipped for examples,
+  remove_command = TRUE
+)
+# example with VNP46A2 product
+download_modis(
+  product = "VNP46A2",
+  version = "61",
+  horizontal_tiles = c(8, 8),
+  vertical_tiles = c(4, 4),
+  date = "2024-01-01",
+  nasa_earth_data_token = "./pathtotoken/token.txt",
+  directory_to_save = tempdir(),
+  acknowledgement = TRUE,
+  download = FALSE, # NOTE: download skipped for examples,
+  remove_command = TRUE
+)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

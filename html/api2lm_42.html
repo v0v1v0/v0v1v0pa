@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict_adjust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjust prediction intervals for multiple comparisons</h2>
+
+<h3>Description</h3>
+
+<p>A function to produce adjusted confidence/prediction
+intervals for predicted mean/new responses with a
+family-wise confidence level of at least <code>level</code> for
+<code>lm</code> objects (not applicable if no adjustment is
+used). Internally, the function is a slight revision of
+the code used in the <code>predict.lm</code>
+function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predict_adjust(
+  object,
+  newdata,
+  se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
+  interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  type = c("response", "terms"),
+  method = "none",
+  terms = NULL,
+  na.action = stats::na.pass,
+  pred.var = res.var/weights,
+  weights = 1,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class inheriting from <code>"lm"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>An optional data frame in which to look for variables with
+which to predict.  If omitted, the fitted values are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+<p>A switch indicating if standard errors are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>Scale parameter for std.err. calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Degrees of freedom for scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Type of interval calculation.  Can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Tolerance/confidence level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of prediction (response or model term).  Can be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character string indicating the type of
+adjustment to make. The default choice is
+<code>"none"</code>. The other available options are
+<code>"bonferroni"</code>, <code>"wh"</code> (Working-Hotelling),
+and <code>"scheffe"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>If <code>type = "terms"</code>, which terms (default is all
+terms), a <code>character</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>function determining what should be done with missing
+values in <code>newdata</code>.  The default is to predict <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.var</code></td>
+<td>
+<p>the variance(s) for future observations to be assumed
+for prediction intervals.  See ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>variance weights for prediction.  This can be a numeric
+vector or a one-sided model formula.  In the latter case, it is
+interpreted as an expression evaluated in <code>newdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let <code>a = 1 - level</code>. All intervals are computed
+using the formula <code>prediction +/- m * epesd</code>, where
+<code>m</code> is a multiplier and <code>epesd</code> is the
+estimated standard deviation of the prediction error of
+the <code>estimate</code>.
+</p>
+<p><code>method = "none"</code> (no correction) produces the
+standard t-based confidence intervals with multiplier
+<code>stats::qt(1 - a/2, df = object$df.residual)</code>.
+</p>
+<p><code>method = "bonferroni"</code> produces Bonferroni-adjusted
+intervals that use the multiplier <code>m = stats::qt(1 -
+a/(2 * k), df = object$df.residual)</code>, where <code>k</code> is
+the number of intervals being produced.
+</p>
+<p>The Working-Hotelling and Scheffe adjustments are distinct;
+the Working-Hotelling typically is related to a multiple comparisons adjustment
+for confidence intervals of the response mean while the Scheffe adjustment is typically
+related to a multiple comparisons adjustment for prediction intervals
+for a new response. However, references often uses these names
+interchangeably, so we use them equivalently in this function.
+</p>
+<p><code>method = "wh"</code> (Working-Hotelling) or
+<code>method = "scheffe"</code> and <code>interval =
+"confidence"</code> produces Working-Hotelling-adjusted intervals that
+use the multiplier <code>m = sqrt(p * stats::qf(level,
+df1 = p, df2 = object$df.residual))</code>, where <code>p</code> is
+the number of estimated coefficients in the model.
+</p>
+<p><code>method = "wh"</code> (Working-Hotelling) or
+<code>method = "scheffe"</code> and <code>interval =
+"prediction"</code> produces Scheffe-adjusted intervals that
+use the multiplier <code>m = sqrt(k * stats::qf(level,
+df1 = k, df2 = object$df.residual))</code>, where <code>k</code> is
+the number of intervals being produced.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>predict_adjust</code> produces:
+</p>
+<p>A vector of predictions if <code>interval = "none"</code>.
+</p>
+<p>A matrix of predictions and bounds with
+column names <code>fit</code>, <code>lwr</code>, and <code>upr</code> if
+<code>interval</code> is set. For <code>type = "terms"</code> this is
+a matrix with a column per term and may have an attribute
+<code>"constant"</code>.
+</p>
+<p>If <code>se.fit</code> is <code>TRUE</code>, a
+list with the following components is returned:
+</p>
+
+<ul>
+<li>
+<p><code>fit</code>: vector or matrix as above
+</p>
+</li>
+<li>
+<p><code>se.fit</code>: standard error of predicted means
+</p>
+</li>
+<li>
+<p><code>residual.scale</code>: residual standard deviations
+</p>
+</li>
+<li>
+<p><code>df</code>: degrees of freedom for residual
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Bonferroni, C. (1936). Teoria statistica delle classi e
+calcolo delle probabilita. Pubblicazioni del R Istituto
+Superiore di Scienze Economiche e Commericiali di
+Firenze, 8, 3-62.
+</p>
+<p>Working, H., &amp; Hotelling, H. (1929). Applications of the
+theory of error to the interpretation of trends. Journal
+of the American Statistical Association, 24(165A), 73-85.
+doi:10.1080/01621459.1929.10506274
+</p>
+<p>Kutner, M. H., Nachtsheim, C. J., Neter, J., &amp; Li, W.
+(2004). Applied Linear Statistical Models, 5th edition.
+New York: McGraw-Hill/Irwin.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.lm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- lm(100/mpg ~ disp + hp + wt + am, data = mtcars)
+newdata &lt;- as.data.frame(rbind(
+               apply(mtcars, 2, mean),
+               apply(mtcars, 2, median)))
+predict_adjust(fit, newdata = newdata,
+               interval = "confidence",
+               method = "none")
+predict_adjust(fit, newdata = newdata,
+               interval = "confidence",
+               method = "bonferroni")
+predict_adjust(fit, newdata = newdata,
+               interval = "confidence",
+               method = "wh")
+predict_adjust(fit, newdata = newdata,
+               interval = "prediction",
+               method = "scheffe")
+</code></pre>
+
+
+</div>

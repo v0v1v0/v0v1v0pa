@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anova.asterOrReaster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Analysis of Deviance for Reaster Model Fits</h2>
+
+<h3>Description</h3>
+
+<p>Compute an analysis of deviance table for two or more aster model
+fits with or without random effects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asterOrReaster'
+anova(object, ...,
+    tolerance = .Machine$double.eps ^ 0.75)
+anovaAsterOrReasterList(objectlist, tolerance = .Machine$double.eps ^ 0.75)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object, ...</code></td>
+<td>
+<p>objects of class <code>"asterOrReaster"</code>, typically
+the result of a call to <code>aster</code> or <code>reaster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objectlist</code></td>
+<td>
+<p>list of objects of class <code>"asterOrReaster"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>tolerance for comparing nesting of model matrices.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Constructs a table having a row for the
+degrees of freedom and deviance for each model.
+For all but the first model, the change in degrees of freedom and
+deviance is also given, as is the corresponding asymptotic <code class="reqn">P</code>-value.
+</p>
+<p>For objects of class <code>"reaster"</code>, the
+quantity called deviance is only approximate.  See references on
+help for <code>reaster</code>.
+</p>
+<p>When objects of class <code>"reaster"</code> are among those supplied,
+degrees of freedom for fixed effects and degrees of freedom for
+variance components are reported separately, because tests for fixed
+effects are effectively two-tailed and tests for variance components
+are effectively one-tailed.
+</p>
+<p>In case models being compared differ by one variance component, the
+reference distribution is half a chi-square with the fixed effect
+degrees of freedom (difference of number of fixed effects in the two
+models) and half a chi-square with one more degrees of freedom.
+</p>
+<p>In case models being compared differ by two or more variance components,
+we do not know how to how to do the test.  The reference distribution is
+a mixture of chi-squares but the mixing weights are difficult to calculate.
+An error is given in this case.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"anova"</code> inheriting from class <code>"data.frame"</code>.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>The comparison between two or more models by <code>anova</code> or
+<code>anovaAsterOrReasterList</code> will only be valid if they
+are (1) fitted to the same dataset, 
+(2) models are nested,
+(3) have the same
+dependence graph and exponential families.
+Some of this is currently checked.  Some warnings are given.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aster</code>, <code>reaster</code>, <code>anova</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### see package vignette for explanation ###
+library(aster)
+data(echinacea)
+vars &lt;- c("ld02", "ld03", "ld04", "fl02", "fl03", "fl04",
+    "hdct02", "hdct03", "hdct04")
+redata &lt;- reshape(echinacea, varying = list(vars), direction = "long",
+    timevar = "varb", times = as.factor(vars), v.names = "resp")
+redata &lt;- data.frame(redata, root = 1)
+pred &lt;- c(0, 1, 2, 1, 2, 3, 4, 5, 6)
+fam &lt;- c(1, 1, 1, 1, 1, 1, 3, 3, 3)
+hdct &lt;- grepl("hdct", as.character(redata$varb))
+redata &lt;- data.frame(redata, hdct = as.integer(hdct))
+level &lt;- gsub("[0-9]", "", as.character(redata$varb))
+redata &lt;- data.frame(redata, level = as.factor(level))
+aout1 &lt;- aster(resp ~ varb + hdct : (nsloc + ewloc + pop),
+    pred, fam, varb, id, root, data = redata)
+aout2 &lt;- aster(resp ~ varb + level : (nsloc + ewloc) + hdct : pop,
+    pred, fam, varb, id, root, data = redata)
+aout3 &lt;- aster(resp ~ varb + level : (nsloc + ewloc + pop),
+    pred, fam, varb, id, root, data = redata)
+anova(aout1, aout2, aout3)
+
+# now random effects models and models without random effects mixed
+## Not run: 
+### CRAN policy says examples must take &lt; 5 sec.
+### This doesn't (on their computers).
+data(radish)
+pred &lt;- c(0,1,2)
+fam &lt;- c(1,3,2)
+rout2 &lt;- reaster(resp ~ varb + fit : (Site * Region),
+    list(block = ~ 0 + fit : Block, pop = ~ 0 + fit : Pop),
+    pred, fam, varb, id, root, data = radish)
+rout1 &lt;- reaster(resp ~ varb + fit : (Site * Region),
+    list(block = ~ 0 + fit : Block),
+    pred, fam, varb, id, root, data = radish)
+rout0 &lt;- aster(resp ~ varb + fit : (Site * Region),
+    pred, fam, varb, id, root, data = radish)
+anova(rout0, rout1, rout2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

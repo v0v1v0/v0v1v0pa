@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahull_track</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>alpha-convex hull calculation of tracking data</h2>
+
+<h3>Description</h3>
+
+<p>This function approximates the <code class="reqn">\alpha</code>-convex hull of tracking data and returns a list of geom_path objects of the boundary.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahull_track(x, y = NULL, alpha, nps = 10000, sc = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>The <code>x</code> and <code>y</code> arguments provide the <code>x</code> and <code>y</code> coordinates of a set of points. Alternatively, a single argument <code>x</code> can be provided, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value of <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nps</code></td>
+<td>
+<p>Number of points to generate in each segment connecting two locations, see Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sc</code></td>
+<td>
+<p>Scale factor.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An attempt is made to interpret the arguments x and y in a way suitable for computing the <code class="reqn">\alpha</code>-convex hull. Any reasonable way of defining the coordinates is acceptable, see <code>xy.coords</code>. 
+</p>
+<p>Increase <code>nps</code> if the trajectory is not contained in the computed estimator.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of geom_path objects defining the boundary of the <code class="reqn">\alpha</code>-convex
+</p>
+
+
+<h3>References</h3>
+
+<p>Cholaquidis, A., Fraiman, R., Lugosi, G. and Pateiro-Lopez, B. (2014) Set estimation from reflected Brownian motion. <em>arXiv:1411.0433</em>.
+</p>
+<p>Wikelski, M., and Kays, R. (2014). Movebank: archive, analysis and sharing of animal movement data. World Wide Web electronic publication.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(move)
+library(ggmap)
+# Data from Movebank
+# Study Name: Dunn Ranch Bison Tracking Project
+# Principal Investigator: Stephen Blake, Randy Arndt, Doug Ladd
+# Max Planck Institute for Ornithology Radolfzell Germany
+study &lt;- "Dunn Ranch Bison Tracking Project" 
+cainfo &lt;- system.file("CurlSSL", "cacert.pem", package = "RCurl")
+options(RCurlOptions = list(verbose = FALSE, capath = cainfo, ssl.verifypeer = FALSE))
+# Login to movebank (first create the login object) 
+curl &lt;- movebankLogin(username = "xxx", password = "zzz") 
+# Downloads study stored in Movebank
+track &lt;- getMovebankData(study = study, login = curl) 
+dat &lt;- track@data[track@data[, "deployment_id"] == 13848432,]
+# Map of animal locations 
+bbox &lt;- ggmap::make_bbox(dat[,"location_long"], dat[,"location_lat"], f = 0.3) 
+map_loc &lt;- get_map(location = bbox, source = "google", maptype = 'satellite')  
+map &lt;- ggmap(map_loc, extent = 'panel', maprange=FALSE) 
+p &lt;- map + geom_path(data = dat, aes(x = location_long, y = location_lat), col=2, size=0.3)
+p
+ah_gp &lt;- ahull_track(x = dat[, c("location_long", "location_lat")], alpha = 0.005)
+p + ah_gp
+
+## End(Not run)
+</code></pre>
+
+
+</div>

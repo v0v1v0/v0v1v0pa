@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.CBARuleModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply Rule Model</h2>
+
+<h3>Description</h3>
+
+<p>Method that matches rule model against test data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'CBARuleModel'
+predict(
+  object,
+  data,
+  discretize = TRUE,
+  outputFiringRuleIDs = FALSE,
+  outputConfidenceScores = FALSE,
+  confScoreType = "ordered",
+  positiveClass = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a CBARuleModel class instance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame with data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discretize</code></td>
+<td>
+<p>boolean indicating whether the passed data should be discretized
+using information in the passed @cutp slot of the ruleModel argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputFiringRuleIDs</code></td>
+<td>
+<p>if set to TRUE, instead of predictions, the function will return one-based IDs of  rules used to classify each instance (one rule per instance).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputConfidenceScores</code></td>
+<td>
+<p>if set to TRUE, instead of predictions, the function will return confidences of the firing rule</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confScoreType</code></td>
+<td>
+<p>applicable only if 'outputConfidenceScores=TRUE', possible values 'ordered' for confidence computed only for training instances reaching this rule, or 'global' for standard rule confidence computed from the complete training data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positiveClass</code></td>
+<td>
+<p>This setting is only used if 'outputConfidenceScores=TRUE'. It should be used only for binary problems. In this
+case, the confidence values are recalculated so that these are not confidence values of the predicted class (default behaviour of 'outputConfidenceScores=TRUE')
+but rather confidence values associated with the class designated as positive</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments (currently not used)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector with predictions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>cbaIris
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  set.seed(101)
+  allData &lt;- datasets::iris[sample(nrow(datasets::iris)),]
+  trainFold &lt;- allData[1:100,]
+  testFold &lt;- allData[101:nrow(allData),]
+  #increase for more accurate results in longer time
+  target_rule_count &lt;- 1000
+  classAtt &lt;- "Species"
+  rm &lt;- cba(trainFold, classAtt, list(target_rule_count = target_rule_count))
+  prediction &lt;- predict(rm, testFold)
+  acc &lt;- CBARuleModelAccuracy(prediction, testFold[[classAtt]])
+  message(acc)
+  # get rules responsible for each prediction
+  firingRuleIDs &lt;- predict(rm, testFold, outputFiringRuleIDs=TRUE)
+  # show rule responsible for prediction of test instance no. 28
+  inspect(rm@rules[firingRuleIDs[28]])
+  # get prediction confidence (three different versions)
+  rm@rules[firingRuleIDs[28]]@quality$confidence
+  rm@rules[firingRuleIDs[28]]@quality$orderedConf
+  rm@rules[firingRuleIDs[28]]@quality$cumulativeConf
+</code></pre>
+
+
+</div>

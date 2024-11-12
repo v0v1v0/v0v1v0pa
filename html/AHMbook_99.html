@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SwissTits</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Data from the Swiss Breeding Bird Survey for 6 species of tits
+</h2>
+
+<h3>Description</h3>
+
+<p>The Swiss breeding bird survey ("Monitoring Häufige Brutvögel" MHB) has monitored the populations of approximately 150 common species since 1999. The MHB sample consists of 267 1-km squares that are laid out as a grid across Switzerland. Fieldwork is conducted by about 200 skilled birdwatchers annually, most of them volunteers. Avian populations are monitored using a simplified territory mapping protocol (also called spot-mapping West of the Atlantic), where each square is surveyed up to three times during the breeding season (only twice above the tree line around 2000 m elevation). Surveys are conducted along a transect that does not change over the years and is 4-6 kms in length on average.
+</p>
+<p>The list <code>SwissTits</code> has the data for six species of tits from 2004 to 2013. There are some missing values: see Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("SwissTits")</code></pre>
+
+
+<h3>Format</h3>
+
+<p><code>SwissTits</code> is a list with 5 elements:
+</p>
+
+<dl>
+<dt><b>species </b></dt>
+<dd>
+<p>a data frame with a row for each species and the following columns:
+</p>
+
+<ul>
+<li>
+<p> specid : a numeric species ID based on phylogeny.
+</p>
+</li>
+<li>
+<p> latname : a 6-letter abbreviation of the Latin name.
+</p>
+</li>
+<li>
+<p> name : the English name.
+</p>
+</li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt><b>sites </b></dt>
+<dd>
+<p>a data frame with a row for each 1x1 km quadrat and the following columns:
+</p>
+
+<ul>
+<li>
+<p> siteID : an alphanumeric site identifier.
+</p>
+</li>
+<li>
+<p> coordx : the x coordinate of the center of the quadrat; the coordinate reference system intentionally not specified.
+</p>
+</li>
+<li>
+<p> coordy : the y coordinate of the center of the quadrat.
+</p>
+</li>
+<li>
+<p> AQ : an identifier for the 10km x 10km block called "Atlas Quadrat" within which the site falls.
+</p>
+</li>
+<li>
+<p> AQ.coordx : the x coordinate of the center of the AQ.
+</p>
+</li>
+<li>
+<p> AQ.coordy : the y coordinate of the center of the AQ.
+</p>
+</li>
+<li>
+<p> elev : the mean elevation of the quadrat, m.
+</p>
+</li>
+<li>
+<p> rlength : the length of the route walked in the quadrat, km.
+</p>
+</li>
+<li>
+<p> forest : percentage forest cover.
+</p>
+</li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt><b>counts </b></dt>
+<dd>
+<p>a sites x replicates x years x species array of counts</p>
+</dd>
+<dt><b>date </b></dt>
+<dd>
+<p>a sites x replicates x years array with Julian dates of the surveys, 1 April = 1</p>
+</dd>
+<dt><b>dur </b></dt>
+<dd>
+<p>a sites x replicates x years array with the duration of each survey, mins</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>Missing values in the <code>date</code> array indicate that the corresponding survey was not carried out.
+</p>
+<p>On 26 occasions when surveys were carried out, the duration was not recorded, resulting in additional NAs in the <code>dur</code> array.
+</p>
+<p>A new method for recording breeding territories was introduced in 2004, but the old protocol was in use at some sites until 2013. Surveys with the old protocol have the counts shown as NA in the <code>count</code> array.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Sections 6.9.1 and 6.13.1 of the AHM1 book have code to read in data from a CSV file, "SwissTits_mhb_2004_2013.csv". The <code>SwissTits</code> list has all the same data in a more compact format. See Examples for ways to generate the objects used in the book from the list.
+</p>
+
+
+<h3>Source</h3>
+
+<p>Swiss Ornithological Institute
+</p>
+
+
+<h3>References</h3>
+
+<p>Kéry, M. &amp; Royle, J.A. (2016) <em>Applied Hierarchical Modeling in Ecology</em> AHM1 - 6.9.1 and 6.13.1.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(SwissTits)
+str(SwissTits)
+
+# Section 6.9.1, foot of p.257 and top of p.258
+# -------------
+y0 &lt;- SwissTits$counts[, , '2013', 'Great tit']
+( NA.sites &lt;- which(rowSums(is.na(y0)) == 3) ) # Unsurveyed sites
+y &lt;- y0[-NA.sites, ]                 # Drop them from the count data
+tits &lt;- SwissTits$sites[-NA.sites, ] # Also drop from the site covariates
+str(y)
+# Get date and duration data for 2013, without the NA.sites rows:
+date &lt;- SwissTits$date[-NA.sites, , '2013']
+dur &lt;- SwissTits$dur[-NA.sites, , '2013']
+
+# Section 6.13.1, p.303
+# --------------
+# Get the count data for 2013 (all species)
+y0 &lt;- SwissTits$count[, , '2013', ]
+str(y0)
+# We keep the sites with count data, remove those with 3 NAs
+# See which sites have counts in 2013 for (say) Great tits:
+keep &lt;- which(rowSums(is.na(y0[, , "Great tit"])) != 3)
+length(keep)
+y &lt;- y0[keep, , ]
+# Get the covariate data for the 'keep' sites
+elev &lt;- SwissTits$sites$ele[keep]
+route &lt;- SwissTits$sites$rlength[keep]
+forest &lt;- SwissTits$sites$forest[keep]
+date &lt;- SwissTits$date[keep, , '2013']  # Survey date
+dur &lt;- SwissTits$dur[keep, , '2013']    # Survey duration
+
+# Degrade counts to detection/nondetection data
+y3DRN &lt;- y
+y3DRN[y3DRN &gt; 1] &lt;- 1
+str(y3DRN)
+# Final detail...
+( spec.names &lt;- paste0(SwissTits$species$name, "s") )
+</code></pre>
+
+
+</div>

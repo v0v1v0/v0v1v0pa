@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute.threshold.AROC.sp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+AROC-based threshold values.
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates AROC-based threshold values using the semiparametric approach proposed by Janes and Pepe (2009).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute.threshold.AROC.sp(object, newdata, FPF = 0.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class <code>AROC</code> as produced by <code>AROC.sp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data frame with the covariate values at which threshold values are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FPF</code></td>
+<td>
+<p>Numeric vector with the FPF at which to calculate the AROC-based threshold values. Atomic values are also valid.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimation of the covariate-adjusted ROC curve (AROC) using the semiparametric approach proposed by Janes and Pepe (2009) involves the estimation of the conditional distribution function for the diagnostic test outcome in the healthy population
+</p>
+<p style="text-align: center;"><code class="reqn">F_{\bar{D}}(y|\mathbf{X}_{\bar{D}}) = Pr\{Y_{\bar{D}} \leq y | \mathbf{X}_{\bar{D}}\}.</code>
+</p>
+
+<p>This function makes use of this estimate in order to calculate AROC-based threshold values. In particular, for a covariate value <code class="reqn">\mathbf{x}</code> and a FPF = t, the AROC-based threshold value is calculated as follows
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{c}_{\mathbf{x}} = \hat{F}^{-1}_{\bar{D}}(1-t|\mathbf{X}_{\bar{D}} = \mathbf{x}).</code>
+</p>
+  
+
+
+<h3>Value</h3>
+
+<p>A matrix with the computed AROC-based threshold values. The matrix has as many columns as different covariate vector values, and as many rows as different FPFs.</p>
+
+
+<h3>References</h3>
+
+<p>Janes, H., and Pepe, M.S. (2009). Adjusting for covariate effects on classification accuracy using the covariate-adjusted receiver operating characteristic curve. Biometrika, 96(2), 371 - 382.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AROC.sp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AROC)
+data(psa)
+# Select the last measurement
+newpsa &lt;- psa[!duplicated(psa$id, fromLast = TRUE),]
+
+# Log-transform the biomarker
+newpsa$l_marker1 &lt;- log(newpsa$marker1)
+
+m3 &lt;- AROC.sp(formula.healthy = l_marker1 ~ age,
+group = "status", tag.healthy = 0, data = newpsa,
+p = seq(0,1,l=101), B = 500)
+
+FPF = c(0.1, 0.3)
+newdata &lt;- data.frame(age = seq(52, 80, l = 50))
+
+th_sp &lt;- compute.threshold.AROC.sp(m3, newdata, FPF)
+names(th_sp)
+
+
+</code></pre>
+
+
+</div>

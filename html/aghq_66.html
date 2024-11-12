@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>optimize_theta</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Obtain function information necessary for performing quadrature</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the two pieces of information needed about
+the log posterior to do adaptive quadrature: the mode, and the hessian at the mode.
+It is designed for use within <code>aghq::aghq</code>, but is exported in case users
+need to debug the optimization process and documented in case users want to
+write their own optimizations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">optimize_theta(ff, startingvalue, control = default_control(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ff</code></td>
+<td>
+<p>A list with three elements:
+</p>
+
+<ul>
+<li>
+<p><code>fn</code>: function taking argument <code>theta</code> and returning a numeric
+value representing the log-posterior at <code>theta</code>
+</p>
+</li>
+<li>
+<p><code>gr</code>: function taking argument <code>theta</code> and returning a numeric
+vector representing the gradient of the log-posterior at <code>theta</code>
+</p>
+</li>
+<li>
+<p><code>he</code>: function taking argument <code>theta</code> and returning a numeric
+matrix representing the hessian of the log-posterior at <code>theta</code>
+</p>
+</li>
+</ul>
+<p>The user may wish to use <code>numDeriv::grad</code> and/or <code>numDeriv::hessian</code> to
+obtain these. Alternatively, the user may consider the <code>TMB</code> package. This
+list is deliberately formatted to match the output of <code>TMB::MakeADFun</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startingvalue</code></td>
+<td>
+<p>Value to start the optimization. <code>ff$fn(startingvalue)</code>,
+<code>ff$gr(startingvalue)</code>, and <code>ff$he(startingvalue)</code> must all return
+appropriate values without error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list with elements
+</p>
+
+<ul>
+<li>
+<p><code>method</code>: optimization method to use:
+</p>
+
+<ul>
+<li>
+<p>'sparse_trust' (default): <code>trustOptim::trust.optim</code> with <code>method = 'sparse'</code>
+</p>
+</li>
+<li>
+<p>'SR1' (default): <code>trustOptim::trust.optim</code> with <code>method = 'SR1'</code>
+</p>
+</li>
+<li>
+<p>'trust': <code>trust::trust</code>
+</p>
+</li>
+<li>
+<p>'BFGS': <code>optim(...,method = "BFGS")</code>
+</p>
+</li>
+</ul>
+<p>Default is 'sparse_trust'.
+
+</p>
+</li>
+<li>
+<p><code>optcontrol</code>: optional: a list of control parameters to pass to the
+internal optimizer you chose. The <code>aghq</code> package uses sensible defaults.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>ff$fn</code>, <code>ff$gr</code>, and <code>ff$he</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with elements
+</p>
+
+<ul>
+<li>
+<p><code>ff</code>: the function list that was provided
+</p>
+</li>
+<li>
+<p><code>mode</code>: the mode of the log posterior
+</p>
+</li>
+<li>
+<p><code>hessian</code>: the hessian of the log posterior at the mode
+</p>
+</li>
+<li>
+<p><code>convergence</code>: specific to the optimizer used, a message indicating whether it converged
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other quadrature: 
+<code>aghq()</code>,
+<code>get_hessian()</code>,
+<code>get_log_normconst()</code>,
+<code>get_mode()</code>,
+<code>get_nodesandweights()</code>,
+<code>get_numquadpoints()</code>,
+<code>get_opt_results()</code>,
+<code>get_param_dim()</code>,
+<code>laplace_approximation()</code>,
+<code>marginal_laplace_tmb()</code>,
+<code>marginal_laplace()</code>,
+<code>nested_quadrature()</code>,
+<code>normalize_logpost()</code>,
+<code>plot.aghq()</code>,
+<code>print.aghqsummary()</code>,
+<code>print.aghq()</code>,
+<code>print.laplacesummary()</code>,
+<code>print.laplace()</code>,
+<code>print.marginallaplacesummary()</code>,
+<code>summary.aghq()</code>,
+<code>summary.laplace()</code>,
+<code>summary.marginallaplace()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Poisson/Exponential example
+logfteta &lt;- function(eta,y) {
+  sum(y) * eta - (length(y) + 1) * exp(eta) - sum(lgamma(y+1)) + eta
+}
+
+y &lt;- rpois(10,5) # Mode should be (sum(y) + 1) / (length(y) + 1)
+
+objfunc &lt;- function(x) logfteta(x,y)
+funlist &lt;- list(
+  fn = objfunc,
+  gr = function(x) numDeriv::grad(objfunc,x),
+  he = function(x) numDeriv::hessian(objfunc,x)
+)
+
+optimize_theta(funlist,1.5)
+optimize_theta(funlist,1.5,control = default_control(method = "trust"))
+optimize_theta(funlist,1.5,control = default_control(method = "BFGS"))
+
+</code></pre>
+
+
+</div>

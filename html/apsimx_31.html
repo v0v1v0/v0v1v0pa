@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>edit_apsimx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Edit an APSIM-X (JSON) Simulation</h2>
+
+<h3>Description</h3>
+
+<p>This function allows editing of an APSIM-X (JSON) simulation file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">edit_apsimx(
+  file,
+  src.dir = ".",
+  wrt.dir = NULL,
+  node = c("Clock", "Weather", "Soil", "SurfaceOrganicMatter", "MicroClimate", "Crop",
+    "Manager", "Report", "Operations", "Other"),
+  soil.child = c("Metadata", "Water", "SoilWater", "Organic", "Physical", "Analysis",
+    "Chemical", "InitialWater", "Sample", "Solute", "NO3", "NH4", "Urea", "Swim3"),
+  manager.child = NULL,
+  parm = NULL,
+  value = NULL,
+  overwrite = FALSE,
+  edit.tag = "-edited",
+  parm.path = NULL,
+  root = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file ending in .apsimx to be edited (JSON)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src.dir</code></td>
+<td>
+<p>directory containing the .apsimx file to be edited; defaults to the current working directory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wrt.dir</code></td>
+<td>
+<p>should be used if the destination directory is different from the src.dir</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>either ‘Clock’, ‘Weather’, ‘Soil’, 
+‘SurfaceOrganicMatter’, ‘MicroClimate’, ‘Crop’, ‘Manager’, ‘Report’, ‘Operations’ or ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.child</code></td>
+<td>
+<p>specific soil component to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>manager.child</code></td>
+<td>
+<p>specific manager component to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>parameter to be edited. It can be a regular expression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>new values for the parameter to be edited</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the old file is overwritten, a new file is written otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edit.tag</code></td>
+<td>
+<p>if the file is edited a different tag from the default ‘-edited’ can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm.path</code></td>
+<td>
+<p>path to the attribute to edit when node is ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>supply the node position in the case of multiple simulations such as factorials.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>whether to print information about successful edit</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The variables specified by <code>parm</code> within the .apsimx file specified by <code>file</code> 
+in the source directory <code>src.dir</code> are edited. The old values are replaced with <code>value</code>, which
+is a list that has the same number of elements as the length of the vector <code>parm</code>.  The current
+.apsimx file will be overwritten if <code>overwrite</code> is set to <code>TRUE</code>; otherwise the file
+‘file’ <em>-edited.apsimx</em> will be created.  If (verbose = TRUE) then the name
+of the written file is returned. 
+</p>
+<p>When node equals ‘Report’, the editing allows to add variables, but not to remove them at the moment.
+</p>
+<p>When node equals Operations, ‘parm’ should have a list with two elements. The first should be the line(s) to edit and 
+the second should be the component(s) to edit. Either ‘Date’, ‘Action’ or ‘Line’.
+When more than one line is edited, ‘value’ should be a character vector of the same length as the number of
+lines to edit. It is possible to remove, say, line 10 by using ‘parm = list(-10, NA)’. It is safer to remove
+lines at the end of ‘Operations’. To remove several use the following ‘parm = list(-c(10:12), NA)’. 
+This assumes that ‘12’ is the maximum number of lines present. Trying to remove lines in the middle will have 
+unexpected effects. It is possible to create additional lines, but only by using ‘Date’ first. This feature
+has not been tested much so use it carefully.
+</p>
+
+
+<h3>Value</h3>
+
+<p>(when verbose=TRUE) complete file path to edited .apsimx file is returned as a character string.
+As a side effect this function creates a new (JSON) .apsimx file.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## This example will read one of the examples distributed with APSIM-X
+## but write to a temporary directory
+tmp.dir &lt;- tempdir()
+
+## Edit Bulk density
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+bds &lt;- c(1.02, 1.03, 1.09, 1.16, 1.18, 1.19, 1.20)
+edit_apsimx("Wheat.apsimx", src.dir = extd.dir,
+            wrt.dir = tmp.dir,
+            node = "Soil",
+            soil.child = "Physical", 
+            parm = "BD", value = bds,
+            verbose = FALSE)
+## Inspect file
+inspect_apsimx("Wheat-edited.apsimx", src.dir = tmp.dir,
+                node = "Soil", soil.child = "Physical")
+## To delete the file...
+file.remove(file.path(tmp.dir, "Wheat-edited.apsimx"))
+
+## Edit the fertilizer amount in 'Maize.apsimx'
+edit_apsimx("Maize.apsimx", src.dir = extd.dir,
+             wrt.dir = tmp.dir, node = "Manager",
+             manager.child = "SowingFertiliser",
+             parm = "Amount", value = 200, verbose = TRUE)
+             
+## Make sure it worked
+inspect_apsimx("Maize-edited.apsimx", src.dir = tmp.dir, 
+               node = "Manager",
+               parm = list("SowingFertiliser", NA))
+
+## Remove the file
+file.remove(file.path(tmp.dir, "Maize-edited.apsimx"))
+
+
+</code></pre>
+
+
+</div>

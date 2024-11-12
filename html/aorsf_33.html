@@ -1,0 +1,389 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.ObliqueForest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prediction for ObliqueForest Objects</h2>
+
+<h3>Description</h3>
+
+<p>Compute predicted values from an oblique random forest. Predictions
+may be returned in aggregate (i.e., averaging over all the trees)
+or tree-specific.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ObliqueForest'
+predict(
+  object,
+  new_data = NULL,
+  pred_type = NULL,
+  pred_horizon = NULL,
+  pred_aggregate = TRUE,
+  pred_simplify = FALSE,
+  oobag = FALSE,
+  na_action = NULL,
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) a trained oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>a data.frame, tibble, or data.table to compute predictions in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_type</code></td>
+<td>
+<p>(<em>character</em>) the type of predictions to compute. Valid
+options for survival are:
+</p>
+
+<ul>
+<li>
+<p> 'risk' : probability of having an event at or before <code>pred_horizon</code>.
+</p>
+</li>
+<li>
+<p> 'surv' : 1 - risk.
+</p>
+</li>
+<li>
+<p> 'chf': cumulative hazard function
+</p>
+</li>
+<li>
+<p> 'mort': mortality prediction
+</p>
+</li>
+<li>
+<p> 'time': survival time prediction
+</p>
+</li>
+</ul>
+<p>For classification:
+</p>
+
+<ul>
+<li>
+<p> 'prob': probability for each class
+</p>
+</li>
+<li>
+<p> 'class': predicted class
+</p>
+</li>
+</ul>
+<p>For regression:
+</p>
+
+<ul><li>
+<p> 'mean': predicted mean, i.e., the expected value
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_horizon</code></td>
+<td>
+<p>(<em>double</em>) Only relevent for survival forests.
+A value or vector indicating the time(s) that predictions will be
+calibrated to. E.g., if you were predicting risk of incident heart
+failure within the next 10 years, then <code>pred_horizon = 10</code>.
+<code>pred_horizon</code> can be <code>NULL</code> if <code>pred_type</code> is <code>'mort'</code>, since
+mortality predictions are aggregated over all event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_aggregate</code></td>
+<td>
+<p>(<em>logical</em>) If <code>TRUE</code> (the default), predictions
+will be aggregated over all trees by taking the mean. If <code>FALSE</code>, the
+returned output will contain one row per observation and one column
+for each tree. If the length of <code>pred_horizon</code> is two or more and
+<code>pred_aggregate</code> is <code>FALSE</code>, then the result will be a list of such
+matrices, with the i'th item in the list corresponding to the i'th
+value of <code>pred_horizon</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_simplify</code></td>
+<td>
+<p>(<em>logical</em>) If <code>FALSE</code> (the default), predictions
+will always be returned in a numeric matrix or a list of numeric matrices.
+If <code>TRUE</code>, predictions may be simplified to a vector, e.g., if <code>pred_type</code>
+is <code>'mort'</code> for survival or <code>'class'</code> for classification, or an array of
+matrices if <code>length(pred_horizon) &gt; 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oobag</code></td>
+<td>
+<p>(<em>logical</em>) If <code>FALSE</code> (the default), predictions will
+be computed using all trees for each observation. If <code>TRUE</code>, then
+out-of-bag predictions will be computed. This input parameter should
+only be set to <code>TRUE</code> if <code>new_data</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_action</code></td>
+<td>
+<p>(<em>character</em>) what should happen when <code>new_data</code> contains missing values (i.e., <code>NA</code> values). Valid options are:
+</p>
+
+<ul>
+<li>
+<p> 'fail' : an error is thrown if <code>new_data</code> contains <code>NA</code> values
+</p>
+</li>
+<li>
+<p> 'pass' : the output will have <code>NA</code> in all rows where <code>new_data</code> has 1 or more <code>NA</code> value for the predictors used by <code>object</code>
+</p>
+</li>
+<li>
+<p> 'omit' : rows in <code>new_data</code> with incomplete data will be dropped
+</p>
+</li>
+<li>
+<p> 'impute_meanmode' : missing values for continuous and categorical variables in <code>new_data</code> will be imputed using the mean and mode, respectively. To clarify,
+the mean and mode used to impute missing values are from the
+training data of <code>object</code>, not from <code>new_data</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary_checks</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, <code>pred_horizon</code> will be
+checked to make sure the requested values are less than the maximum
+observed time in <code>object</code>'s training data. If <code>FALSE</code>, these checks
+are skipped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_thread</code></td>
+<td>
+<p>(<em>integer</em>) number of threads to use while computing predictions. Default is 0, which allows a suitable number of threads to be used based on availability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress messages are
+printed in the console. If <code>FALSE</code> (the default), nothing is printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>new_data</code> must have the same columns with equivalent types as the data
+used to train <code>object</code>. Also, factors in <code>new_data</code> must not have levels
+that were not in the data used to train <code>object</code>.
+</p>
+<p><code>pred_horizon</code> values should not exceed the maximum follow-up time in
+<code>object</code>'s training data, but if you truly want to do this, set
+<code>boundary_checks = FALSE</code> and you can use a <code>pred_horizon</code> as large
+as you want. Note that predictions beyond the maximum follow-up time
+in the <code>object</code>'s training data are equal to predictions at the
+maximum follow-up time, because <code>aorsf</code> does not estimate survival
+beyond its maximum observed time.
+</p>
+<p>If unspecified, <code>pred_horizon</code> may be automatically specified as the value
+used for <code>oobag_pred_horizon</code> when <code>object</code> was created (see orsf).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a <code>matrix</code> of predictions. Column <code>j</code> of the matrix corresponds
+to value <code>j</code> in <code>pred_horizon</code>. Row <code>i</code> of the matrix corresponds to
+row <code>i</code> in <code>new_data</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<div class="sourceCode r"><pre>library(aorsf)
+</pre></div>
+
+
+<h4>Classification</h4>
+
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_clsf &lt;- orsf(data = penguins_orsf_train, 
+                 formula = species ~ .)
+</pre></div>
+<p>Predict probability for each class or the predicted class:
+</p>
+<div class="sourceCode r"><pre># predicted probabilities, the default
+predict(fit_clsf, 
+        new_data = penguins_orsf_test[1:5, ],
+        pred_type = 'prob')
+</pre></div>
+<div class="sourceCode"><pre>##         Adelie  Chinstrap      Gentoo
+## [1,] 0.9405310 0.04121955 0.018249405
+## [2,] 0.9628988 0.03455909 0.002542096
+## [3,] 0.9032074 0.08510528 0.011687309
+## [4,] 0.9300133 0.05209040 0.017896329
+## [5,] 0.7965703 0.16243492 0.040994821
+</pre></div>
+<div class="sourceCode r"><pre># predicted class (as a matrix by default)
+predict(fit_clsf, 
+        new_data = penguins_orsf_test[1:5, ],
+        pred_type = 'class')
+</pre></div>
+<div class="sourceCode"><pre>##      [,1]
+## [1,]    1
+## [2,]    1
+## [3,]    1
+## [4,]    1
+## [5,]    1
+</pre></div>
+<div class="sourceCode r"><pre># predicted class (as a factor if you use simplify)
+predict(fit_clsf, 
+        new_data = penguins_orsf_test[1:5, ],
+        pred_type = 'class',
+        pred_simplify = TRUE)
+</pre></div>
+<div class="sourceCode"><pre>## [1] Adelie Adelie Adelie Adelie Adelie
+## Levels: Adelie Chinstrap Gentoo
+</pre></div>
+
+
+
+<h4>Regression</h4>
+
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_regr &lt;- orsf(data = penguins_orsf_train, 
+                 formula = bill_length_mm ~ .)
+</pre></div>
+<p>Predict the mean value of the outcome:
+</p>
+<div class="sourceCode r"><pre>predict(fit_regr, 
+        new_data = penguins_orsf_test[1:5, ], 
+        pred_type = 'mean')
+</pre></div>
+<div class="sourceCode"><pre>##          [,1]
+## [1,] 37.74136
+## [2,] 37.42367
+## [3,] 37.04598
+## [4,] 39.89602
+## [5,] 39.14848
+</pre></div>
+
+
+
+<h4>Survival</h4>
+
+<p>Begin by fitting an oblique survival random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(pbc_orsf), 150) 
+
+pbc_orsf_train &lt;- pbc_orsf[index_train, ]
+pbc_orsf_test &lt;- pbc_orsf[-index_train, ]
+
+fit_surv &lt;- orsf(data = pbc_orsf_train, 
+                 formula = Surv(time, status) ~ . - id,
+                 oobag_pred_horizon = 365.25 * 5)
+</pre></div>
+<p>Predict risk, survival, or cumulative hazard at one or several times:
+</p>
+<div class="sourceCode r"><pre># predicted risk, the default
+predict(fit_surv, 
+        new_data = pbc_orsf_test[1:5, ], 
+        pred_type = 'risk', 
+        pred_horizon = c(500, 1000, 1500))
+</pre></div>
+<div class="sourceCode"><pre>##             [,1]        [,2]       [,3]
+## [1,] 0.013648562 0.058393393 0.11184029
+## [2,] 0.003811413 0.026857586 0.04774151
+## [3,] 0.030548361 0.100600301 0.14847107
+## [4,] 0.040381075 0.169596943 0.27018952
+## [5,] 0.001484698 0.006663576 0.01337655
+</pre></div>
+<div class="sourceCode r"><pre># predicted survival, i.e., 1 - risk
+predict(fit_surv, 
+        new_data = pbc_orsf_test[1:5, ], 
+        pred_type = 'surv',
+        pred_horizon = c(500, 1000, 1500))
+</pre></div>
+<div class="sourceCode"><pre>##           [,1]      [,2]      [,3]
+## [1,] 0.9863514 0.9416066 0.8881597
+## [2,] 0.9961886 0.9731424 0.9522585
+## [3,] 0.9694516 0.8993997 0.8515289
+## [4,] 0.9596189 0.8304031 0.7298105
+## [5,] 0.9985153 0.9933364 0.9866235
+</pre></div>
+<div class="sourceCode r"><pre># predicted cumulative hazard function
+# (expected number of events for person i at time j)
+predict(fit_surv, 
+        new_data = pbc_orsf_test[1:5, ], 
+        pred_type = 'chf',
+        pred_horizon = c(500, 1000, 1500))
+</pre></div>
+<div class="sourceCode"><pre>##             [,1]        [,2]       [,3]
+## [1,] 0.015395388 0.067815817 0.14942956
+## [2,] 0.004022524 0.028740305 0.05424314
+## [3,] 0.034832754 0.127687156 0.20899732
+## [4,] 0.059978334 0.233048809 0.42562310
+## [5,] 0.001651365 0.007173177 0.01393016
+</pre></div>
+<p>Predict mortality, defined as the number of events in the forest’s
+population if all observations had characteristics like the current
+observation. This type of prediction does not require you to specify a
+prediction horizon
+</p>
+<div class="sourceCode r"><pre>predict(fit_surv, 
+        new_data = pbc_orsf_test[1:5, ], 
+        pred_type = 'mort')
+</pre></div>
+<div class="sourceCode"><pre>##           [,1]
+## [1,] 23.405016
+## [2,] 15.362916
+## [3,] 26.180648
+## [4,] 36.515629
+## [5,]  5.856674
+</pre></div>
+
+
+
+</div>

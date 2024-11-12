@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.aghq</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary statistics computed using AGHQ</h2>
+
+<h3>Description</h3>
+
+<p>The <code>summary.aghq</code> method computes means, standard deviations, and
+quantiles of the transformed parameter.
+The associated print method
+prints these along with diagnostic and other information about
+the quadrature.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'aghq'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The return value from <code>aghq::aghq</code>. Summaries are computed for
+<code>object$transformation$fromtheta(theta)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of class <code>aghqsummary</code>, which has a print method. Elements:
+</p>
+
+<ul>
+<li>
+<p>mode: the mode of the log posterior
+</p>
+</li>
+<li>
+<p>hessian: the hessian of the log posterior at the mode
+</p>
+</li>
+<li>
+<p>covariance: the inverse of the hessian of the log posterior at the mode
+</p>
+</li>
+<li>
+<p>cholesky: the upper Cholesky triangle of the hessian of the log posterior at the mode
+</p>
+</li>
+<li>
+<p>quadpoints: the number of quadrature points used in each dimension
+</p>
+</li>
+<li>
+<p>dim: the dimension of the parameter space
+</p>
+</li>
+<li>
+<p>summarytable: a table containing the mean, median, mode, standard deviation
+and quantiles of each transformed parameter, computed according to the posterior normalized
+using AGHQ
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other quadrature: 
+<code>aghq()</code>,
+<code>get_hessian()</code>,
+<code>get_log_normconst()</code>,
+<code>get_mode()</code>,
+<code>get_nodesandweights()</code>,
+<code>get_numquadpoints()</code>,
+<code>get_opt_results()</code>,
+<code>get_param_dim()</code>,
+<code>laplace_approximation()</code>,
+<code>marginal_laplace_tmb()</code>,
+<code>marginal_laplace()</code>,
+<code>nested_quadrature()</code>,
+<code>normalize_logpost()</code>,
+<code>optimize_theta()</code>,
+<code>plot.aghq()</code>,
+<code>print.aghqsummary()</code>,
+<code>print.aghq()</code>,
+<code>print.laplacesummary()</code>,
+<code>print.laplace()</code>,
+<code>print.marginallaplacesummary()</code>,
+<code>summary.laplace()</code>,
+<code>summary.marginallaplace()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+funlist2d &lt;- list(
+  fn = objfunc2d,
+  gr = function(x) numDeriv::grad(objfunc2d,x),
+  he = function(x) numDeriv::hessian(objfunc2d,x)
+)
+
+thequadrature &lt;- aghq(funlist2d,3,c(0,0))
+# Summarize and automatically call its print() method when called interactively:
+summary(thequadrature)
+# or, compute the summary and save for further processing:
+ss &lt;- summary(thequadrature)
+str(ss)
+
+</code></pre>
+
+
+</div>

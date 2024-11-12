@@ -1,0 +1,260 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bootstrap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap estimation and errors </h2>
+
+<h3>Description</h3>
+
+<p>Function to calculate bootstrap statistics for transfer function
+models such as bootstrap estimates, model RMSEP, sample specific
+errors for predictions and summary statistics such as bias and
+<code class="reqn">R^2</code> between oberved and estimated
+environment.
+</p>
+<p><code>residuals</code> method for objects of class
+<code>"bootstrap.mat"</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+bootstrap(object, ...)
+
+## Default S3 method:
+bootstrap(object, ...)
+
+## S3 method for class 'mat'
+bootstrap(object, newdata, newenv, k,
+          weighted = FALSE, n.boot = 1000, ...)
+
+## S3 method for class 'bootstrap.mat'
+fitted(object, k, ...)
+
+## S3 method for class 'bootstrap.mat'
+residuals(object, which = c("model", "bootstrap"), ...) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an R object of class <code>"mat"</code> for which bootstrap
+statistics are to be generated, or an object of class
+<code>"bootstrap.mat"</code> from which fitted values or residuals are
+extracted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>a data frame containing samples for which bootstrap
+predictions and sample specific errors are to be generated. May be
+missing — See Details. <code>"newdata"</code> must have the same number
+of columns as the training set data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newenv</code></td>
+<td>
+<p>a vector containing environmental data for samples
+in <code>"newdata"</code>. Used to calculate full suite of errors for new
+data such as a test set with known environmental values. May be
+missing — See Details. <code>"newenv"</code> must have the same number
+of rows as <code>"newdata"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; how many modern analogues to use to generate the
+bootstrap statistics (and, if requested, the predictions), fitted
+values or residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; should the weighted mean of the environment
+for the <code>"k"</code> modern analogues be used instead of the mean?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.boot</code></td>
+<td>
+<p>Number of bootstrap samples to take.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>character; which set of residuals to return, the
+model residuals or the residuals of the bootstrap-derived
+estimates?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>bootstrap</code> is a fairly flexible function, and can be called with
+or without arguments <code>newdata</code> and <code>newenv</code>.
+</p>
+<p>If called with only <code>object</code> specified, then bootstrap estimates
+for the training set data are returned. In this case, the returned
+object will not include component <code>predictions</code>.
+</p>
+<p>If called with both <code>object</code> and <code>newdata</code>, then in addition
+to the above, bootstrap estimates for the new samples are also
+calculated and returned. In this case, component <code>predictions</code>
+will contain the apparent and bootstrap derived predictions and
+sample-specific errors for the new samples.
+</p>
+<p>If called with <code>object</code>, <code>newdata</code> and <code>newenv</code>, then
+the full <code>bootstrap</code> object is returned (as described in the
+Value section below). With environmental data now available for the
+new samples, residuals, RMSE(P) and <code class="reqn">R^2</code> and bias statistics can
+be calculated.
+</p>
+<p>The individual components of <code>predictions</code> are the same as those
+described in the components relating to the training set data. For
+example, <code>returned.object$predictions$bootstrap</code> contains the
+components as <code>returned.object$bootstrap</code>.
+</p>
+<p>It is not usual for environmental data to be available for the new
+samples for which predictions are required. In normal
+palaeolimnological studies, it is more likely that <code>newenv</code> will
+not be available as we are dealing with sediment core samples from the
+past for which environmental data are not available. However, if
+sufficient training set samples are available to justify producing a
+training and a test set, then <code>newenv</code> will be available, and
+<code>bootstrap</code> can accomodate this extra information and calculate
+apparent and bootstrap estimates for the test set, allowing an
+independent assessment of the RMSEP of the model to be performed.
+</p>
+<p>Typical usage of <code>residuals</code> is
+</p>
+<pre>
+    resid(object, which = c("model", "bootstrap"), \dots)</pre>
+
+
+<h3>Value</h3>
+
+<p>For <code>bootstrap.mat</code> an object of class <code>"bootstrap.mat"</code> is
+returned. This is a complex object with many components and is
+described in <code>bootstrapObject</code>.
+</p>
+<p>For <code>residuals</code>, a list containg the requested residuals and
+metadata, with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Leave one out residuals for the MAT-estimated model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>residuals for the bootstrapped MAT model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; indicating the size of model used in estimates and
+predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.boot</code></td>
+<td>
+<p>numeric; the number of bootstrap samples taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto</code></td>
+<td>
+<p>logical; whether <code>"k"</code> was choosen automatically or
+user-selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; whether the weighted mean was used instead of
+the mean of the environment for <em>k</em>-closest analogues.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson </p>
+
+
+<h3>References</h3>
+
+<p>Birks, H.J.B., Line, J.M., Juggins, S., Stevenson, A.C. and ter Braak,
+C.J.F. (1990). Diatoms and pH reconstruction. <em>Philosophical
+Transactions of the Royal Society of London; Series B</em>, <strong>327</strong>;
+263–278.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mat</code>, <code>plot.mat</code>, <code>summary.bootstrap.mat</code>,
+<code>residuals</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Imbrie and Kipp example
+## load the example data
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training and test set on columns
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+V12.122 &lt;- dat[[2]] / 100
+
+## Imbrie and Kipp foraminfera sea-surface temperature 
+## fit the MAT model using the squared chord distance measure
+ik.mat &lt;- mat(ImbrieKipp, SumSST, method = "SQchord")
+
+## bootstrap training set
+## IGNORE_RDIFF_BEGIN
+ik.boot &lt;- bootstrap(ik.mat, n.boot = 100)
+ik.boot
+summary(ik.boot)
+## IGNORE_RDIFF_END
+
+## Bootstrap fitted values for training set
+## IGNORE_RDIFF_BEGIN
+fitted(ik.boot)
+## IGNORE_RDIFF_END
+
+## residuals
+resid(ik.boot) # uses abbreviated form
+
+</code></pre>
+
+
+</div>

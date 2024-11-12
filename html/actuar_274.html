@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rcompound</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation from Compound Models</h2>
+
+<h3>Description</h3>
+
+<p><code>rcompound</code> generates random variates from a compound model.
+</p>
+<p><code>rcomppois</code> is a simplified version for a common case.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rcompound(n, model.freq, model.sev, SIMPLIFY = TRUE)
+
+rcomppois(n, lambda, model.sev, SIMPLIFY = TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of observations. If <code>length(n) &gt; 1</code>, the length is
+taken to be the number required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.freq, model.sev</code></td>
+<td>
+<p>expressions specifying the frequency and
+severity simulation models with the number of variates omitted; see
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Poisson parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SIMPLIFY</code></td>
+<td>
+<p>boolean; if <code>FALSE</code> the frequency and severity
+variates are returned along with the aggregate variates.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>rcompound</code> generates variates from a random variable of the form
+</p>
+<p style="text-align: center;"><code class="reqn">S = X_1 + ... X_N,</code>
+</p>
+
+<p>where <code class="reqn">N</code> is the frequency random variable and <code class="reqn">X_1, X_2,
+    \dots</code> are the severity random variables. The latter are mutually
+independent, identically distributed and independent from <code class="reqn">N</code>.
+</p>
+<p><code>model.freq</code> and <code>model.sev</code> specify the simulation models
+for the frequency and the severity random variables, respectively. A
+model is a complete call to a random number generation function, with
+the number of variates omitted. This is similar to
+<code>rcomphierarc</code>, but the calls need not be wrapped into
+<code>expression</code>. Either argument may also be the name of an
+object containing an expression, in which case the object will be
+evaluated in the parent frame to retrieve the expression.
+</p>
+<p>The argument of the random number generation functions for the number
+of variates to simulate <strong>must</strong> be named <code>n</code>.
+</p>
+<p><code>rcomppois</code> generates variates from the common Compound Poisson
+model, that is when random variable <code class="reqn">N</code> is Poisson distributed
+with mean <code>lambda</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>When <code>SIMPLIFY = TRUE</code>, a vector of aggregate amounts <code class="reqn">S_1,
+  \dots, S_n</code>. 
+</p>
+<p>When <code>SIMPLIFY = FALSE</code>, a list of three elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>aggregate</code></td>
+<td>
+<p>vector of aggregate amounts <code class="reqn">S_1, \dots,
+      S_n</code>;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p>vector of frequencies <code class="reqn">N_1, \dots,
+      N_n</code>;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>severity</code></td>
+<td>
+<p>vector of severities <code class="reqn">X_1, X_2, \dots</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vincent Goulet <a href="mailto:vincent.goulet@act.ulaval.ca">vincent.goulet@act.ulaval.ca</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rcomphierarc</code> to simulate from compound hierarchical models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Compound Poisson model with gamma severity.
+rcompound(10, rpois(2), rgamma(2, 3))
+rcomppois(10, 2, rgamma(2, 3))          # same
+
+## Frequencies and individual claim amounts along with aggregate
+## values.
+rcomppois(10, 2, rgamma(2, 3), SIMPLIFY = FALSE)
+
+## Wrapping the simulation models into expression() is allowed, but
+## not needed.
+rcompound(10, expression(rpois(2)), expression(rgamma(2, 3)))
+
+## Not run: ## Speed comparison between rcompound() and rcomphierarc().
+## [Also note the simpler syntax for rcompound().]
+system.time(rcompound(1e6, rpois(2), rgamma(2, 3)))
+system.time(rcomphierarc(1e6, expression(rpois(2)), expression(rgamma(2, 3))))
+## End(Not run)
+## The severity can itself be a compound model. It makes sense
+## in such a case to use a zero-truncated frequency distribution
+## for the second level model.
+rcomppois(10, 2,
+          rcompound(rztnbinom(1.5, 0.7), rlnorm(1.2, 1)))
+</code></pre>
+
+
+</div>

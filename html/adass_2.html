@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adass-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive smoothing spline estimator for the function-on-function linear regression model</h2>
+
+<h3>Description</h3>
+
+<p>Implements the adaptive smoothing spline estimator for the function-on-function linear regression model described in Centofanti et al. (2023) <a href="https://doi.org/10.1007/s00180-022-01223-6">doi:10.1007/s00180-022-01223-6</a>.
+</p>
+
+
+<h3>Details</h3>
+
+
+<table>
+<tr>
+<td style="text-align: left;">
+Package: </td>
+<td style="text-align: left;"> adass</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Type: </td>
+<td style="text-align: left;"> Package</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Version: </td>
+<td style="text-align: left;"> 1.0.1 </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Date: </td>
+<td style="text-align: left;">  2024-07-16 </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+License: </td>
+<td style="text-align: left;"> GPL (&gt;= 3) + file LICENSE</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Fabio Centofanti, Antonio Lepore, Alessandra Menafoglio, Biagio Palumbo, Simone Vantini
+</p>
+
+
+<h3>References</h3>
+
+<p>Centofanti, F., Lepore, A., Menafoglio, A., Palumbo, B., Vantini, S. (2023).
+Adaptive Smoothing Spline Estimator for the Function-on-Function Linear Regression Model.
+<em>Computational Statistics 38(1), 191–216</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adass.fr</code>,  <code>adass.fr_eaass</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(adass)
+data&lt;-simulate_data("Scenario HAT",n_obs=100)
+X_fd=data$X_fd
+Y_fd=data$Y_fd
+basis_s &lt;- fda::create.bspline.basis(c(0,1),nbasis = 10,norder = 4)
+basis_t &lt;- fda::create.bspline.basis(c(0,1),nbasis = 10,norder = 4)
+mod_smooth &lt;-adass.fr(Y_fd,X_fd,basis_s = basis_s,basis_t = basis_t,tun_par=c(10^-6,10^-6,0,0,0,0))
+grid_s&lt;-seq(0,1,length.out = 10)
+grid_t&lt;-seq(0,1,length.out = 10)
+beta_der_eval_s&lt;-fda::eval.bifd(grid_s,grid_t,mod_smooth$Beta_hat_fd,sLfdobj = 2)
+beta_der_eval_t&lt;-fda::eval.bifd(grid_s,grid_t,mod_smooth$Beta_hat_fd,tLfdobj = 2)
+mod_adsm&lt;-adass.fr_eaass(Y_fd,X_fd,basis_s,basis_t,
+                        beta_ders=beta_der_eval_s, beta_dert=beta_der_eval_t,
+                        rand_search_par=list(c(-8,4),c(-8,4),c(0,0.1),c(0,4),c(0,0.1),c(0,4)),
+                        grid_eval_ders=grid_s, grid_eval_dert=grid_t,
+                        popul_size = 2,ncores=1,iter_num=1)
+
+mod_opt &lt;-adass.fr(Y_fd, X_fd, basis_s = basis_s, basis_t = basis_t,
+                  tun_par=mod_adsm$tun_par_opt,beta_ders = beta_der_eval_s,
+                  beta_dert = beta_der_eval_t,grid_eval_ders=grid_s,grid_eval_dert=grid_t )
+plot(mod_opt)
+
+</code></pre>
+
+
+</div>

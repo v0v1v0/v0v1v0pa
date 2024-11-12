@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SeriesAggreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion of time series to another time step (aggregation only) and regime computation</h2>
+
+<h3>Description</h3>
+
+<p>Conversion of time series to another time step (aggregation only) and regime computation. <br>
+Warning: on the aggregated outputs, the dates correspond to the beginning of the time step <br>
+(e.g. for daily time series 2005-03-01 00:00 = value for period 2005-03-01 00:00 - 2005-03-01 23:59) <br>
+(e.g. for monthly time series 2005-03-01 00:00 = value for period 2005-03-01 00:00 - 2005-03-31 23:59) <br>
+(e.g. for yearly time series 2005-03-01 00:00 = value for period 2005-03-01 00:00 - 2006-02-28 23:59)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'data.frame'
+SeriesAggreg(x,
+             Format,
+             ConvertFun,
+             TimeFormat = NULL,
+             NewTimeFormat = NULL,
+             YearFirstMonth = 1,
+             TimeLag = 0,
+             ...)
+
+## S3 method for class 'list'
+SeriesAggreg(x,
+             Format,
+             ConvertFun,
+             NewTimeFormat = NULL,
+             simplify = FALSE,
+             except = NULL,
+             recursive = TRUE,
+             ...)
+
+## S3 method for class 'InputsModel'
+SeriesAggreg(x, Format, ...)
+
+## S3 method for class 'OutputsModel'
+SeriesAggreg(x, Format, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>[InputsModel], [OutputsModel], [list] or [data.frame] containing the vector of dates (<em>POSIXt</em>) and the time series of numeric values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Format</code></td>
+<td>
+<p>[character] output time step format (i.e. yearly times series: <code>"%Y"</code>, monthly time series: <code>"%Y%m"</code>, daily time series: <code>"%Y%m%d"</code>, monthly regimes: <code>"%m"</code>, daily regimes: <code>"%d"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeFormat</code></td>
+<td>
+<p>(deprecated) [character] input time step format (i.e. <code>"hourly"</code>, <code>"daily"</code>, <code>"monthly"</code> or <code>"yearly"</code>). Use the <code>x</code> argument instead</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NewTimeFormat</code></td>
+<td>
+<p>(deprecated) [character] output time step format (i.e. <code>"hourly"</code>, <code>"daily"</code>, <code>"monthly"</code> or <code>"yearly"</code>). Use the <code>Format</code> argument instead</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ConvertFun</code></td>
+<td>
+<p>[character] names of aggregation functions (e.g. for P[mm], T[degC], Q[mm]: <code>ConvertFun = c("sum", "mean", "sum"</code>)) or name of aggregation function to apply to all elements if the parameter 'x' is a [list] . See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>YearFirstMonth</code></td>
+<td>
+<p>(optional) [numeric] integer used when <code>Format = "%Y"</code> to set when the starting month of the year (e.g. 01 for calendar year or 09 for hydrological year starting in September)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeLag</code></td>
+<td>
+<p>(optional) [numeric] numeric indicating a time lag (in seconds) for the time series aggregation (especially useful to aggregate hourly time series into daily time series)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>(optional) [boolean] if set to <code>TRUE</code>, a <code>data.frame</code> is returned instead of a <code>list</code>. Embedded lists are then ignored. (default = <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>except</code></td>
+<td>
+<p>(optional) [character] the name of the items to skip in the aggregation (default = <code>NULL</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>(optional) [boolean] if set to <code>FALSE</code>, embedded lists and dataframes are not aggregated (default = <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>SeriesAggreg.list</code> and then to <code>SeriesAggreg.data.frame</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>SeriesAggreg.InputsModel</code> and <code>SeriesAggreg.OutputsModel</code>
+call <code>SeriesAggreg.list</code> which itself calls <code>SeriesAggreg.data.frame</code>.
+So, all arguments passed to any <code>SeriesAggreg</code> method will be passed to <code>SeriesAggreg.data.frame</code>.
+</p>
+<p>Argument <code>ConvertFun</code> also supports quantile calculation by using the syntax "Q[nn]" with [nn] the requested percentile.
+E.g. use "Q90" for calculating 90th percentile in the aggregation.
+The formula used is: <code>quantile(x, probs = perc / 100, type = 8, na.rm = TRUE)</code>.
+</p>
+<p>As there are multiple ways to take into account missing values in aggregation functions, <code>NA</code>s are not supported by <code>SeriesAggreg</code> and it provides <code>NA</code> values when <code>NA</code>s are present in the <code>x</code> input.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[POSIXct+numeric] data.frame containing a vector of aggregated dates (POSIXct) and time series values numeric)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olivier Delaigue, David Dorchies
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123002)
+
+## preparation of the initial time series data frame at the daily time step
+TabSeries &lt;- BasinObs[, c("DatesR", "P", "E", "T", "Qmm")]
+
+## monthly time series
+NewTabSeries &lt;- SeriesAggreg(TabSeries,
+                             Format = "%Y%m",
+                             ConvertFun = c("sum", "sum", "mean", "sum"))
+str(NewTabSeries)
+
+## monthly regimes
+NewTabSeries &lt;- SeriesAggreg(TabSeries,
+                             Format = "%m",
+                             ConvertFun = c("sum", "sum", "mean", "sum"))
+str(NewTabSeries)
+
+## conversion of InputsModel
+example("RunModel_GR2M")
+
+## monthly regimes on OutputsModel object
+SimulatedMonthlyRegime &lt;- SeriesAggreg(OutputsModel, Format = "%m")
+str(SimulatedMonthlyRegime)
+
+</code></pre>
+
+
+</div>

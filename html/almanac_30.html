@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cal_events</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calendar events</h2>
+
+<h3>Description</h3>
+
+<p><code>cal_events()</code> returns a data frame of holiday name / event date pairs for
+a calendar. It is similar to <code>alma_events()</code>, but returns information about
+the name of the holiday and has specialized behavior related to observed
+dates when filtering by <code>year</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cal_events(x, ..., year = NULL, observed = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[rcalendar]⁠</code>
+</p>
+<p>An rcalendar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>These dots are for future extensions and must be empty.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[integer]⁠</code>
+</p>
+<p>An integer vector of years to filter for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observed</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[FALSE / TRUE]⁠</code>
+</p>
+<p>When filtering for specific <code>year</code>s, should the <em>observed</em> date of the
+holiday be used for filtering purposes? If <code>FALSE</code>, the <em>actual</em> date of
+the holiday will be used, i.e. the date before any observance adjustments
+created by <code>hol_observe()</code> have been applied, which is typically desired
+when filtering for a year's worth of holidays. See the examples.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A two column data frame:
+</p>
+
+<ul>
+<li> <p><code>name</code> is a character vector of holiday names.
+</p>
+</li>
+<li> <p><code>date</code> is a Date vector of holiday event dates.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">on_weekends &lt;- weekly() %&gt;%
+  recur_on_weekends()
+
+# New Year's Day, observed on the nearest weekday if it falls on a weekend
+on_new_years &lt;- hol_new_years_day() %&gt;%
+  hol_observe(on_weekends, adj_nearest)
+
+# Christmas, observed on the nearest weekday if it falls on a weekend
+on_christmas &lt;- hol_christmas() %&gt;%
+  hol_observe(on_weekends, adj_nearest)
+
+cal &lt;- rcalendar(on_new_years, on_christmas)
+cal
+
+# In 2010, Christmas fell on a Saturday and was adjusted backwards
+cal_events(cal, year = 2010)
+
+# In 2011, New Year's fell on a Saturday and was adjusted backwards.
+# Note that the returned date is in 2010, even though we requested holidays
+# for 2011, because most people would consider the actual New Year's date of
+# 2011-01-01 part of the 2011 set of holidays, even though it was observed in
+# 2010.
+cal_events(cal, year = 2011)
+
+# If you want to filter by the observed date, set `observed = TRUE`, which
+# will move the New Year's Day that was observed in 2010 to the 2010 result
+cal_events(cal, year = 2010, observed = TRUE)
+cal_events(cal, year = 2011, observed = TRUE)
+</code></pre>
+
+
+</div>

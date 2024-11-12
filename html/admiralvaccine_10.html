@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_event_flag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds Flag Variables for an Occurred Event .</h2>
+
+<h3>Description</h3>
+
+<p>Creates two flag variables for the event occurred, one for the event occurred
+within each by group and one to flag if the event occurred or not
+for each day.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_event_flag(
+  dataset,
+  by_vars,
+  aval_cutoff,
+  new_var1 = NULL,
+  new_var2 = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are
+expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The variables to be considered for grouping for creating a new
+variable <code>new_var1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aval_cutoff</code></td>
+<td>
+<p>Cutoff value for <code>AVAL</code>
+</p>
+<p>For <code>TESTCD</code> code list values based on diameter, if <code>AVAL</code> is greater than
+<code>aval_cutoff</code> then the event is considered to have occurred. For example,
+if <code>aval_cutoff</code> = 2.5 then the subjects with <code>AVAL</code> value greater than
+2.5 are considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var1</code></td>
+<td>
+<p>Name of the new flag variable 1
+</p>
+<div class="sourceCode"><pre>A new flag variable will be created with values `Y` or `N`.
+If the event is occurred at least once during a observation period for
+a subject then the new variable will be flagged as `Y` otherwise `N`.
+</pre></div>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var2</code></td>
+<td>
+<p>Name of the new flag variable 2.
+</p>
+<div class="sourceCode"><pre>A new flag variable will be created with values `Y` or `N`.
+If the event is occurred on the particular day then the new variable will
+be flagged as `Y` otherwise `N`.
+</pre></div>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The event is considered to have occurred if <code>AVAL</code> is greater than the <code>aval_cutoff</code>
+or <code>AVALC</code> has values <code>Y</code>, <code>MILD</code>, <code>MODERATE</code>, <code>SEVERE</code>. In all other cases, the
+event is not considered to have occurred.
+</p>
+<p>The names for the new flag variables created will be sponsor specific.
+</p>
+<p>For the <code>new_var1</code> it will flag all observations as "Y" within the by group
+if the event occurred at least once during observation period. If the event
+is not at all occurred during the observation period then all the
+observations within by group will be flagged as "N".
+</p>
+<p>For derived maximum records in <code>FATESTCD</code> , the <code>new_var2</code> will be
+set to <code>NA</code>.
+</p>
+<p>If both <code>new_var1</code> and <code>new_var2</code> are <code>NULL</code>, this function will return the
+input dataset as output dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The dataset with the flag variables added to it.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other der_var: 
+<code>derive_var_aval_adis()</code>,
+<code>derive_vars_crit()</code>,
+<code>derive_vars_max_flag()</code>,
+<code>derive_vars_merged_vaccine()</code>,
+<code>derive_vars_params()</code>,
+<code>derive_vars_vaxdt()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(admiral)
+library(dplyr)
+
+input &lt;- tribble(
+  ~USUBJID, ~FAOBJ, ~ATPTREF, ~AVAL, ~AVALC, ~FATEST, ~FATESTCD, ~FASCAT,
+  "1", "REDNESS", "VAC1", 3.5, "3.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC1", 4.5, "4.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC1", 1.5, "1.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC1", 4.5, "4.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "FATIGUE", "VAC1", 1, "MILD", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC1", 2, "MODERATE", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC1", 0, "NONE", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC1", 2, "MODERATE", "Severity", "SEV", "SYSTEMIC",
+  "1", "REDNESS", "VAC2", 6.5, "6.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC2", 7.5, "7.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC2", 2.5, "2.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "REDNESS", "VAC2", 7.5, "7.5", "Diameter", "DIAMETER", "ADMIN-SITE",
+  "1", "FATIGUE", "VAC2", 1, "MILD", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC2", 2, "MODERATE", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC2", 0, "NONE", "Severity", "SEV", "SYSTEMIC",
+  "1", "FATIGUE", "VAC2", 2, "MODERATE", "Severity", "SEV", "SYSTEMIC",
+)
+
+derive_vars_event_flag(
+  dataset = input,
+  by_vars = exprs(USUBJID, FAOBJ, ATPTREF),
+  aval_cutoff = 2.5,
+  new_var1 = EVENTL,
+  new_var2 = EVENTDL
+)
+
+</code></pre>
+
+
+</div>

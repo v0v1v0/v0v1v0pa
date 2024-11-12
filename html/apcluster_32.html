@@ -1,0 +1,272 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apclusterL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Leveraged Affinity Propagation</h2>
+
+<h3>Description</h3>
+
+<p>Runs leveraged affinity propagation clustering</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'matrix,missing'
+apclusterL(s, x,
+          sel, p=NA, q=NA, maxits=1000, convits=100, lam=0.9,
+          includeSim=FALSE, nonoise=FALSE, seed=NA)
+## S4 method for signature 'character,ANY'
+apclusterL(s, x, 
+          frac, sweeps, p=NA, q=NA, maxits=1000, convits=100, lam=0.9,
+          includeSim=TRUE, nonoise=FALSE, seed=NA, ...)
+## S4 method for signature 'function,ANY'
+apclusterL(s, x,
+          frac, sweeps, p=NA, q=NA, maxits=1000, convits=100, lam=0.9,
+          includeSim=TRUE, nonoise=FALSE, seed=NA, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>an <code class="reqn">l \times length(sel)</code> similarity 
+matrix or a similarity function either specified as the name of 
+a package provided similarity function as character string or a 
+user provided function object for similarity calculation.
+If <code>s</code> is supplied as a similarity matrix, the columns
+must correspond to the same sub-selection of samples as
+specified in the <code>sel</code> argument and must be in the same
+increasing order.
+For a package- or user-defined similarity function, additional 
+parameters can be specified as appropriate for the chosen method 
+and are passed on to the similarity function via the <code>...</code> 
+argument (see below). See the package vignette for a non-trivial 
+example or supplying a user-defined similarity measure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>input data to be clustered; if <code>x</code> is a matrix or data
+frame, rows are interpreted as samples and columns are interpreted 
+as features; apart from matrices or data frames, <code>x</code> may be 
+any other structured data type that contains multiple data items - 
+provided that an appropriate <code>length</code> 
+function is available that returns the number of items</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frac</code></td>
+<td>
+<p>fraction of samples that should be used for leveraged 
+clustering. The similarity matrix will be generated for
+all samples against a random fraction of the samples as 
+specified by this parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sweeps</code></td>
+<td>
+<p>number of sweeps of leveraged clustering performed 
+with changing randomly selected subset of samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sel</code></td>
+<td>
+<p>selected sample indices; a vector containing the 
+sample indices of the sample subset used for leveraged 
+AP clustering in increasing order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>input preference; can be a vector that specifies
+individual preferences for each data point. If scalar,
+the same value is used for all data points. If <code>NA</code>,
+exemplar preferences are initialized according to the
+distribution of non-Inf values in <code>s</code>. How this
+is done is controlled by the parameter <code>q</code>. See also
+<code>apcluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>if <code>p=NA</code>, exemplar preferences are initialized
+according to the distribution of non-Inf values in <code>s</code>.
+If <code>q=NA</code>, exemplar preferences are set to the median
+of non-Inf values in <code>s</code>. If <code>q</code> is a value
+between 0 and 1, the sample quantile with threshold
+<code>q</code> is used, whereas <code>q=0.5</code> again results in
+the median. See also <code>apcluster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxits</code></td>
+<td>
+<p>maximal number of iterations that should be executed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convits</code></td>
+<td>
+<p>the algorithm terminates if the examplars have not
+changed for <code>convits</code> iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lam</code></td>
+<td>
+<p>damping factor; should be a value in the range [0.5, 1);
+higher values correspond to heavy damping which may be needed 
+if oscillations occur</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>includeSim</code></td>
+<td>
+<p>if <code>TRUE</code>, the similarity matrix (either computed
+internally or passed via the <code>s</code> argument) is stored to the
+slot <code>sim</code> of the returned
+<code>APResult</code> object. The default is <code>FALSE</code>
+if <code>apclusterL</code> has been called for a similarity matrix,
+otherwise the default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonoise</code></td>
+<td>
+<p><code>apcluster</code> adds a small amount of noise to
+<code>s</code> to prevent degenerate cases; if <code>TRUE</code>,
+this is disabled</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>for reproducibility, the seed of the random number
+generator can be set to a fixed value before
+adding noise (see above), if <code>NA</code>, the seed remains
+unchanged</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>all other arguments are passed to the selected 
+similarity function as they are; note that possible name conflicts between
+arguments of <code>apcluster</code> and arguments of the similarity
+function may occur; therefore, we recommend to write user-defined
+similarity functions without additional parameters or to use
+closures to fix parameters (such as, in the example below);</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Affinity Propagation clusters data using a set of
+real-valued pairwise similarities as input. Each cluster
+is represented by a representative cluster center (the so-called exemplar). 
+The method is iterative and searches for clusters maximizing
+an objective function called net similarity.
+</p>
+<p>Leveraged Affinity Propagation reduces dynamic and static load for 
+large datasets. Only a subset of the samples are considered
+in the clustering process assuming that they provide already enough
+information about the cluster structure.
+</p>
+<p>When called with input data and the name of a package provided or a user 
+provided similarity function the function selects a random sample subset
+according to the <code>frac</code> parameter, calculates a rectangular 
+similarity matrix of all samples against this subset and repeats 
+affinity propagation <code>sweep</code> times. A new sample subset is used 
+for each repetition. The clustering result of the sweep with the highest 
+net similarity is returned. Any parameters specific to the chosen 
+method of similarity calculation can be passed to <code>apcluster</code> 
+in addition to the parameters described above. The similarity matrix 
+for the best trial is also returned in the result object when requested 
+by the user (argument <code>includeSim</code>).
+</p>
+<p>When called with a rectangular similarity matrix (which represents a 
+column subset of the full similarity matrix) the function performs 
+AP clustering on this similarity matrix. The information 
+about the selected samples is passed to clustering with the 
+parameter <code>sel</code>. This function is only needed when the user needs full
+control of distance calculation or sample subset selection.
+</p>
+<p>Apart from minor adaptations and optimizations, the implementation 
+of the function <code>apclusterL</code>
+is largely analogous to Frey's and Dueck's Matlab code
+(see <a href="https://psi.toronto.edu/research/affinity-propagation-clustering-by-message-passing/">https://psi.toronto.edu/research/affinity-propagation-clustering-by-message-passing/</a>).</p>
+
+
+<h3>Value</h3>
+
+<p>Upon successful completion, both functions returns an
+<code>APResult</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ulrich Bodenhofer, Andreas Kothmeier, and Johannes Palme</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://github.com/UBod/apcluster">https://github.com/UBod/apcluster</a>
+</p>
+<p>Frey, B. J. and Dueck, D. (2007) Clustering by passing messages
+between data points. <em>Science</em> <b>315</b>, 972-976.
+DOI: <a href="https://doi.org/10.1126/science.1136800">doi:10.1126/science.1136800</a>.
+</p>
+<p>Bodenhofer, U., Kothmeier, A., and Hochreiter, S. (2011)
+APCluster: an R package for affinity propagation clustering.
+<em>Bioinformatics</em> <b>27</b>, 2463-2464.
+DOI: <a href="https://doi.org/10.1093/bioinformatics/btr406">doi:10.1093/bioinformatics/btr406</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>APResult</code>, <code>show-methods</code>,
+<code>plot-methods</code>, <code>labels-methods</code>,
+<code>preferenceRange</code>, <code>apcluster-methods</code>,
+<code>apclusterK</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## create two Gaussian clouds
+cl1 &lt;- cbind(rnorm(150, 0.2, 0.05), rnorm(150, 0.8, 0.06))
+cl2 &lt;- cbind(rnorm(100, 0.7, 0.08), rnorm(100, 0.3, 0.05))
+x &lt;- rbind(cl1, cl2)
+
+## leveraged apcluster
+apres &lt;- apclusterL(negDistMat(r=2), x, frac=0.2, sweeps=3, p=-0.2)
+
+## show details of leveraged clustering results
+show(apres)
+
+## plot leveraged clustering result
+plot(apres, x)
+
+## plot heatmap of clustering result
+heatmap(apres)
+
+## show net similarities of single sweeps
+apres@netsimLev
+
+## show samples on which best sweep was based
+apres@sel
+</code></pre>
+
+
+</div>

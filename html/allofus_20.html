@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aou_survey</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to query allofus observation table for survey responses</h2>
+
+<h3>Description</h3>
+
+<p>Extracts survey responses in a tidy format that also includes
+‘skip’ responses and collapses across all versions of the person health /
+personal medical history surveys. Currently responses in the ‘ds_survey’
+table omit skipped responses. Responses are returned as Yes" if the
+respondent answered that the individual had the condition, No" if the
+respondent answered that the individual did not have that condition (or
+omitted it when selecting from related conditions), a skip response if the
+question was skipped, and NA if the respondent did not answer the question.
+Returns a data frame or SQL tbl with the initial cohort table along with a
+column for each question included in questions and answers foreach
+person_id in the cells. To find the desired survey questions, use the all
+of us data dictionary, survey codebook, Athena, data browser, or the
+modified codebook which can be found in the allofus R package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aou_survey(
+  cohort = NULL,
+  questions,
+  question_output = "concept_code",
+  clean_answers = TRUE,
+  collect = FALSE,
+  ...,
+  con = getOption("aou.default.con")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cohort</code></td>
+<td>
+<p>Reference to a remote table or local dataframe with a column
+called "person_id"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>questions</code></td>
+<td>
+<p>either a vector of concept_ids or concept_codes for
+questions to return results</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>question_output</code></td>
+<td>
+<p>how to name the columns. Options include as the text
+of the concept code ("concept_code"), as concept ids preceded by "x_"
+("concept_id"), or using a custom vector of column names matching the
+vector of <code>questions</code>. Defaults to "concept_code".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clean_answers</code></td>
+<td>
+<p>whether to clean the answers to the survey questions.
+Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collect</code></td>
+<td>
+<p>Whether to bring the resulting table into local memory
+(<code>collect = TRUE</code>) as a dataframe or leave as a reference to a database
+table (for continued analysis using, e.g., <code>dbplyr</code>). Defaults to <code>FALSE.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>collect()</code> when <code>collect = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>con</code></td>
+<td>
+<p>connection to the allofus SQL database. Defaults to
+getOption("aou.default.con"), which is created automatically with
+<code>aou_connect()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function will return a dataframe or SQL tbl with the initial
+cohort table along with a column for each question included in <code>questions</code>
+and answers for each person_id in the cells. The column names (questions)
+can be returned as the concept_code or concept_id or by providing new
+column names. For each question, a column with the suffix "_date" is
+included with the date on which the question was answered. When questions
+can have multiple answers ("checkbox"-style questions), answers are
+returned as a comma-separated string.
+</p>
+<p>To find the desired survey questions, use the all of us data dictionary,
+survey codebook, athena, data browser, or the allofus R package modified
+codebook which can be found here:
+https://roux-ohdsi.github.io/allofus/articles/searchable_codebook.html For
+questions regarding an individual's health history or family health
+history, the function requires the specific concept_id (or concept_code)
+for individual in question, whether that is "self" or another relative.
+Responses are returned as "Yes" if the respondent answered that the
+individual had the condition, "No" if the respondent answered that the
+individual did not have that condition (or omitted it when selecting from
+related conditions), a skip response if the question was skipped, and NA if
+the respondent did not answer the question.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe if <code>collect = TRUE</code>; a reference to a remote database
+table if not.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+con &lt;- aou_connect()
+cohort &lt;- dplyr::tbl(con, "person") %&gt;%
+  dplyr::filter(person_id &gt; 5000000) %&gt;%
+  dplyr::select(person_id, year_of_birth, gender_concept_id)
+
+aou_survey(
+  cohort,
+  questions = c(1585375, 1586135),
+  question_output = "concept_code"
+)
+aou_survey(
+  cohort,
+  questions = c(1585811, 1585386),
+  question_output = c("pregnancy", "insurance")
+)
+aou_survey(
+  cohort,
+  questions = c(1585375, 1586135, 1740719, 43529932),
+  question_output = c("income", "birthplace", "grandpa_bowel_obstruction", "t2dm"),
+  collect = FALSE
+)
+
+aou_survey(cohort,
+  questions = 1384452,
+  question_output = "osteoarthritis"
+) %&gt;%
+  dplyr::count(osteoarthritis)
+
+</code></pre>
+
+
+</div>

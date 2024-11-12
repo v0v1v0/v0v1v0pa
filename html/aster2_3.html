@@ -1,0 +1,410 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asterdata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Object Describing Saturated Aster Model</h2>
+
+<h3>Description</h3>
+
+<p>Functions to construct and test conformance to the contract for objects
+of class <code>"asterdata"</code>.  All other functions in this package take
+model descriptions of this form.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asterdata(data, vars, pred, group, code, families, delta,
+  response.name = "resp", varb.name = "varb",
+  tolerance = 8 * .Machine$double.eps)
+validasterdata(object, tolerance = 8 * .Machine$double.eps)
+is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing response and predictor variables for
+the aster model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>a character vector containing names of variables in the data
+frame <code>data</code> that are components of the response vector of the
+aster model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>an integer vector satisfying <code>length(pred) == length(vars)</code>
+specifying the arrows of the subgraph of the aster model corresponding
+to a single individual.  Must be nonnegative and satisfy
+<code>all(pred &lt; seq(along = pred))</code>.
+A zero value of <code>pred[j]</code> indicates the predecessor of node <code>j</code>
+is an initial node (formerly called root node) of the subgraph.
+A nonzero value of <code>pred[j]</code> indicates the predecessor of node
+<code>j</code> is node <code>pred[j]</code>.  In either case there is an arrow in
+the subgraph from predecessor node to successor node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>an integer vector satisfying <code>length(group) == length(vars)</code>
+specifying the lines of the subgraph of the aster model corresponding to
+a single individual, which in turn specify the dependence groups.
+Must be nonnegative and satisfy <code>all(group &lt; seq(along = group))</code>.
+Nonzero elements of <code>group</code> indicate nodes of the subgraph that
+are connected by a line and hence are in the same dependence group:
+nodes <code>j</code> and <code>group[j]</code> are connected by a line.  Since
+nodes in the same dependence group must have the same predecessor,
+this requires <code>pred[group[j]] == pred[j]</code>.  Since
+nodes in the same dependence group must be in the same family,
+this requires <code>code[group[j]] == code[j]</code>.
+It also requires that the dimension of the family specified by
+<code>code[j]</code> be the same as the number of nodes in the dependence
+group.  Zero elements of <code>group</code> indicate nothing about dependence
+groups.
+</p>
+<p>The lines indicate a transitive relation.  If there is a line from
+node <code>j1</code> to node <code>j2</code> and a line from
+node <code>j2</code> to node <code>j3</code> then there is also a line from
+node <code>j1</code> to node <code>j3</code>, but this line need not be specified
+by the <code>group</code> vector, and indeed cannot.  If there is a dependence
+group with <code>d</code> nodes, then there are <code>choose(d, 2)</code> lines
+connecting these nodes, but the <code>group</code> vector can only specify
+<code>d - 1</code> lines which imply the rest.
+</p>
+<p>For example, if nodes <code>j1</code>, <code>j2</code>, <code>j3</code>, and <code>j4</code>
+are to make up a four-dimensional dependence group and <code>j1 &lt; j2</code>,
+<code>j2 &lt; j3</code>, and <code>j3 &lt; j4</code>, we must have <code>group[j1] == 0</code>,
+<code>group[j2] == j1</code>, <code>group[j3] == j2</code>, and
+<code>group[j4] == j3</code>.
+This is forced by the requirement <code>all(group &lt; seq(along = group))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>an integer vector satisfying <code>length(code) == length(vars)</code>
+specifying the families corresponding to the dependence groups.
+This requires </p>
+<pre>all(code %in% seq(along = families)</pre>
+<p>Node <code>j</code> is in a dependence group
+with family described by <code>families[code[j]]</code>.
+</p>
+<p>Note that <code>group[j] == k</code>
+requires <code>families[j] == families[k]</code> when <code>k != 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>families</code></td>
+<td>
+<p>a list of family specifications
+(see <code>families</code>).  Specifications of families not having
+hyperparameters may be abbreviated as character strings, for example,
+<code>"binomial"</code> rather than <code>fam.binomial()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>a numeric vector satisfying <code>length(delta) == length(vars)</code>
+specifying the degeneracies of the aster model for a single individual.
+The model specified is the limit as <code class="reqn">s \to \infty</code> of
+nondegenerate models having conditional canonical parameter vector
+<code class="reqn">\theta + s \delta</code> (note that the conditional
+canonical parameter vector is always used here, regardless of whether
+conditional or unconditional canonical affine submodels are to be used).
+May be missing (and usually is) in which case <code class="reqn">\delta = 0</code>
+is implied, meaning the limit is trivial (same as not taking a limit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.name</code></td>
+<td>
+<p>a character string giving the name of the response
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varb.name</code></td>
+<td>
+<p>a character string giving the name of the factor covariate
+that says which of the variables in the data frame <code>data</code> correspond
+to which components of the response vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>numeric &gt;= 0.  Relative errors smaller
+than <code>tolerance</code> are not considered in checking validity
+of normal location-scale data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>"asterdata"</code>.  The function
+<code>validasterdata</code> always returns <code>TRUE</code> or throws an error with
+an informative message.  The function <code>is.validasterdata</code> never throws
+an error unless <code>object</code> has the wrong class, returning <code>TRUE</code>
+or <code>FALSE</code> according to whether <code>object</code> does or does not
+conform to the contract for class <code>"asterdata"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Response variables in dependence groups are taken to be in the order they
+appear in the response vector.  The first to appear in the response vector
+is the first canonical statistic for the dependence group distribution,
+the second to appear the second canonical statistic, and so forth.
+The number of response variables in the dependence group must match the
+dimension of the dependence group distribution.
+</p>
+<p>This function only handles the usual case where the subgraph for every
+individual is isomorphic to subgraph for every other individual
+and all initial nodes (formerly
+called root nodes) correspond to the constant one.  Each row of <code>data</code>
+is the data for one individual.  The vectors <code>vars</code>, <code>pred</code>,
+<code>group</code>, <code>code</code>, and <code>delta</code> (if not missing) describe
+the subgraph for one individual (which is the same for all individuals).
+</p>
+<p>In other cases for which this function does not have the flexibility to
+construct the appropriate object of class <code>"asterdata"</code>, such an
+object will have to be constructed “by hand” using R statements
+not involving this function or modifying an object produced by this
+function.  See the following section for description of such objects.
+The functions <code>validasterdata</code> and <code>is.validasterdata</code> can be
+used to check whether objects constructed “by hand” have been
+constructed correctly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>"asterdata"</code> is a list containing the
+following components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>redata</code></td>
+<td>
+<p>a data frame having <code>nrow(data) * length(vars)</code> rows
+and containing variables having names
+in <code>setdiff(names(data), vars)</code> and also the names
+<code>"id"</code>, <code>response.name</code>, and <code>varb.name</code>.
+Produced from <code>data</code> using the <code>reshape</code>
+function.  Each variable in <code>setdiff(names(data), vars)</code> is repeated
+<code>length(vars)</code> times.  The variable named <code>response.name</code>
+is the concatenation of the variables in <code>data</code> with names
+in <code>vars</code>.  The variable named <code>varb.name</code> is a factor
+having levels <code>vars</code> that says which of the variables in the data
+frame <code>data</code> correspond to which components of the response vector.
+The variable named <code>"id"</code> is an integer vector that says which of
+the individuals (which rows of <code>data</code>) correspond to which rows
+of <code>redata</code>.  Not all objects of class <code>"asterdata"</code> need
+have an <code>id</code> variable, although all those constructed by this
+function do.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repred</code></td>
+<td>
+<p>an integer vector satisfying
+<code>length(repred) == nrow(redata)</code> specifying the arrows of the
+graph of the aster model for all individuals.
+Must be nonnegative and satisfy <code>all(repred &lt; seq(along = repred))</code>.
+A zero value of <code>repred[j]</code> indicates the predecessor of node
+<code>j</code> is an initial node (formerly called root node) of the graph.
+A nonzero value of <code>repred[j]</code> indicates the predecessor of node
+<code>j</code> is node <code>repred[j]</code>.  In either case there is an arrow in
+the graph from predecessor node to successor node.
+</p>
+<p>Note that
+<code>repred</code> is determined by <code>pred</code> but is quite different from
+it.  Firstly, the lengths differ.  Secondly, <code>repred</code> is not just
+a repetition of <code>pred</code>.  The numbers in <code>pred</code>, if nonzero,
+are indices for the vector <code>vars</code> whereas the numbers
+in <code>repred</code>, if nonzero,
+are row indices for the data frame <code>redata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>a numeric vector specifying constants associated with
+initial nodes (formerly called root nodes) of the graphical model
+for all individuals.  If <code>repred[j] == 0</code> then the predecessor
+of node <code>j</code> is an initial node associated with the constant
+<code>initial[j]</code>, which must be a positive integer unless the
+family associated with the arrow from this initial node to node <code>j</code>
+is infinitely divisible (the only such family currently implemented
+being Poisson), in which case <code>initial[j]</code> must
+be a strictly positive and finite real number.  If <code>repred[j] != 0</code>,
+then <code>initial[j]</code> is ignored and may be any numeric value, including
+<code>NA</code> or <code>NaN</code>.  This function always makes <code>initial</code>
+equal to <code>rep(1, nrow(redata))</code> but the more general description
+above is valid for objects of class <code>"asterdata"</code> constructed
+“by hand”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regroup</code></td>
+<td>
+<p>an integer vector satisfying
+<code>length(regroup) == nrow(redata)</code>
+specifying the lines of the graph of the aster model for all individuals,
+which in turn specify the dependence groups.
+Must be nonnegative
+and satisfy <code>all(regroup &lt; seq(along = regroup))</code>.
+Nonzero elements of <code>regroup</code> indicate nodes of the graph that
+are connected by a line and hence are in the same dependence group:
+nodes <code>j</code> and <code>regroup[j]</code> are connected by a line.  Since
+nodes in the same dependence group must have the same predecessor,
+this requires <code>repred[regroup[j]] == repred[j]</code>.  Since
+nodes in the same dependence group must be in the same family,
+this requires <code>recode[regroup[j]] == recode[j]</code>.
+</p>
+<p>It also requires that the dimension of the family specified by
+<code>recode[j]</code> be the same as the number of nodes in the dependence
+group.  Zero elements of <code>regroup</code> indicate nothing about dependence
+groups.
+</p>
+<p>The lines indicate a transitive relation.  If there is a line from
+node <code>j1</code> to node <code>j2</code> and a line from
+node <code>j2</code> to node <code>j3</code> then there is also a line from
+node <code>j1</code> to node <code>j3</code>, but this line need not be specified
+by the <code>group</code> vector, and indeed cannot.  If there is a dependence
+group with <code>d</code> nodes, then there are <code>choose(d, 2)</code> lines
+connecting these nodes, but the <code>group</code> vector can only specify
+<code>d - 1</code> lines which imply the rest.
+</p>
+<p>For example, if nodes <code>j1</code>, <code>j2</code>, <code>j3</code>, and <code>j4</code>
+are to make up a four-dimensional dependence group and <code>j1 &lt; j2</code>,
+<code>j2 &lt; j3</code>, and <code>j3 &lt; j4</code>, we must have <code>regroup[j1] == 0</code>,
+<code>regroup[j2] == j1</code>, <code>regroup[j3] == j2</code>, and
+<code>regroup[j4] == j3</code>.
+This is forced by the requirement
+<code>all(regroup &lt; seq(along = regroup))</code>.
+</p>
+<p>Note that
+<code>regroup</code> is determined by <code>group</code> but is quite different from
+it.  Firstly, the lengths differ.  Secondly, <code>regroup</code> is not just
+a repetition of <code>group</code>.  The numbers in <code>group</code>, if nonzero,
+are indices for the vector <code>vars</code> whereas the numbers
+in <code>regroup</code>, if nonzero,
+are row indices for the data frame <code>redata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recode</code></td>
+<td>
+<p>an integer vector satisfying
+<code>length(recode) == nrow(redata)</code>
+specifying the families corresponding to the dependence groups.
+This requires </p>
+<pre>all(recode %in% seq(along = families)</pre>
+<p>Node <code>j</code> is in a dependence group
+with family described by <code>families[recode[j]]</code>.
+</p>
+<p>Note that <code>regroup[j] == k</code>
+requires <code>recode[j] == recode[k]</code> when <code>regroup[j] != 0</code>.
+Also note that
+<code>recode</code> is determined by <code>code</code> but is different from
+it.  Firstly, the lengths differ.  Secondly, <code>recode</code> need not be
+just a repetition of <code>code</code>.
+This function always makes <code>recode</code>
+equal to <code>rep(code, each = nrow(redata))</code> but the more general
+description
+above is valid for objects of class <code>"asterdata"</code> constructed
+“by hand”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>families</code></td>
+<td>
+<p>a copy of the argument of the same name of this function
+except that any character string abbreviations are converted to objects
+of class <code>"astfam"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>redelta</code></td>
+<td>
+<p>a numeric vector satisfying
+<code>length(redelta) == nrow(redata)</code>
+specifying the degeneracies of the aster model for all individuals.
+If not the zero vector, the degenerate model
+specified is the limit as <code class="reqn">s \to \infty</code> of
+nondegenerate models having conditional canonical parameter vector
+<code class="reqn">\theta + s \delta</code> (note that the conditional
+canonical parameter vector is always used here, regardless of whether
+conditional or unconditional canonical affine submodels are to be used).
+</p>
+<p>Note that
+<code>redelta</code> is determined by <code>delta</code> but is different from
+it.  Firstly, the lengths differ.  Secondly, <code>redelta</code> need not be
+just a repetition of <code>delta</code>.
+This function always makes <code>redelta</code>
+equal to <code>rep(delta, each = nrow(redata))</code> but the more general
+description
+above is valid for objects of class <code>"asterdata"</code> constructed
+“by hand”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.name</code></td>
+<td>
+<p>a character string giving the name of the response
+variable in <code>redata</code>.  For this function, a copy of the argument
+<code>response.name</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varb.name</code></td>
+<td>
+<p>a character string giving the name of the “varb”
+variable in <code>redata</code>.  For this function, a copy of the argument
+<code>varb.name</code>.</p>
+</td>
+</tr>
+</table>
+<p>In addition an object of class <code>"asterdata"</code> may contain (and those
+constructed by this function do contain) components
+<code>pred</code>, <code>group</code>, and <code>code</code>,
+which are copies of the arguments of the same names of this function.
+Objects of class <code>"asterdata"</code> not constructed by this function need
+not contain these additional components, since they may make no sense if
+the graph for all individuals is not the repetition of isomorphic subgraphs,
+one for each individual.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>families</code> and <code>subset.asterdata</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(test1)
+fred &lt;- asterdata(test1, vars = c("m1", "n1", "n2"), pred = c(0, 1, 1),
+    group = c(0, 0, 2), code = c(1, 2, 2),
+    families = list("bernoulli", "normal.location.scale"))
+is.validasterdata(fred)
+</code></pre>
+
+
+</div>

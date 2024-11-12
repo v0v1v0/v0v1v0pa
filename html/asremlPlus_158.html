@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulate.asreml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Produce sets of simulated data from a multivariate normal distribution and save 
+quantities related to the simulated data</h2>
+
+<h3>Description</h3>
+
+<p>Produce in parallel sets of simulated data corresponding to an <code>asreml</code> model,
+along with its fitted values and residuals. A variance matrix <code>V</code>,
+corresponding to the <code>random</code> and <code>residual</code> models must be 
+supplied. What to save is specified by the <code>which</code> argument.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+simulate(object, nsim=100, seed = NULL, means=NULL, V, tolerance = 1E-10, 
+         update = TRUE, trace = FALSE, which="data", units = "ignore", 
+         ncores = 2, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An <code>asreml</code> object from a call to <code>asreml</code> in which the 
+<code>data</code> argument has been set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>The <code>vector</code> of means to be used in generating simulated data sets. If
+it is <code>NULL</code>, the fitted values based on <code>object</code> are used. 
+It must be the same length as the response variable for <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>The fitted variance <code>matrix</code>, i.e. having the pattern and values that 
+conform to the model fit stored in the supplied <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of data sets to be simulated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A single value, interpreted as an integer, that specifies the 
+starting value of the random number generator. The "L'Ecuyer-CMRG" random 
+generator is used and <code>nextRNGStream</code> is used to seed each core from the
+original <code>seed</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>The value such that eigenvalues less than it are considered to be zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>If <code>TRUE </code>then the arguments <code>R.param</code> 
+and <code>G.param</code> are set to those in the <code>asreml</code> object supplied 
+in <code>object</code> so that the values from the original model are used as 
+starting values. If <code>FALSE</code> then <code>asreml</code> <code>calls</code> are 
+evaluated, the only changes from the previous call being that 
+(i) the model is fitted to simulated data and (ii) modifications 
+specified via <code>...</code> are mode, except that changes cannot be made to 
+any of the models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>If <code>TRUE</code> then partial iteration details are displayed when ASReml-R 
+functions are invoked; if <code>FALSE</code> then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>The quantities from the simulated data set to be stored. Any combination of
+<code>"response"</code>, <code>"residuals"</code> and <code>"fitted"</code>, or <code>"all"</code>. 
+If <code>residuals</code> and/or <code>fitted</code> is specified, those for the 
+analysis stored in <code>object</code> will be added to the <code>data.frame</code> 
+nominated in the <code>data</code> argument of <code>object</code> and the modified 
+<code>data.frame</code> added as a component named <code>data</code> in the <code>list</code> 
+that is the <code>value</code> returned by the <code>function</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+<p>A <code>character</code> indicating whether the BLUPs for <code>units</code> are 
+added to the residuals when this reserved factor is included in the 
+<code>random</code> model. Possible values are <code>addtoresiduals</code> and 
+<code>ignore</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>A <code>numeric</code> specifying the number of cores to use in doing the 
+simulations. In choosing a value for <code>ncores</code>, it is necessary to 
+take into account other processes that are using parallel processing at 
+the same time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that are passed down to the function asreml. Changes to the 
+models are not allowed. Other changes are dangerous and generally should be 
+avoided.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Generate <code>nsim</code> sets of data and analyse them using <code>asreml</code> 
+using the model in <code>object</code>, performing the generation and analysis of several 
+sets in parallel. Note, if the analysis for a data set does 
+not converge in <code>maxiter</code> iterations, it is discarded and 
+a replacement data set generated. The value of <code>maxiter</code> can be specified 
+in the call to <code>simulate.asreml</code>. The fitted values and residuals are extracted 
+as required. If <code>aom = TRUE</code> when the simulated data are analysed, standardised 
+conditional residuals are stored. If <code>which</code> includes <code>residuals</code> or
+<code>fitted</code>, the specified quantities for the observed data are added to the
+<code>data.frame</code> on which the fit in <code>object</code> is based.</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following components whose presence depends on the setting of 
+<code>which</code>:
+</p>
+
+<ol>
+<li>
+<p><b>observed:</b> present if <code>which</code> includes <code>residuals</code> or <code>fitted</code>, 
+in which case it will be the <code>data.frame</code> on which the fit in 
+<code>object</code> is based, with <code>residuals</code> and/or <code>fitted</code>. 
+</p>
+</li>
+<li>
+<p><b>data:</b> present if <code>which</code> includes <code>data</code>, a <code>data.frame</code> 
+containing the simulated data sets.
+</p>
+</li>
+<li>
+<p><b>fitted:</b> present if <code>which</code> includes <code>fitted</code>, a <code>data.frame</code> 
+containing the fitted values from the analyses of the simulated data sets.
+</p>
+</li>
+<li>
+<p><b>residuals:</b> present if <code>which</code> includes <code>residuals</code>, a <code>data.frame</code> 
+containing the residuals from the analyses of the simulated data sets.</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asreml</code>, <code>newfit.asreml</code>, <code>variofaces.asreml</code>, <code>plotVariofaces.data.frame</code>, 
+<code>set.seed</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(Wheat.dat)
+current.asr &lt;- asreml(yield ~ Rep + WithinColPairs + Variety, 
+                      random = ~ Row + Column + units,
+                      residual = ~ ar1(Row):ar1(Column), 
+                      data=Wheat.dat)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+current.asrt &lt;- rmboundary.asrtests(current.asrt)
+# Form variance matrix based on estimated variance parameters
+s2 &lt;- current.asr$sigma2
+gamma.Row &lt;- current.asr$gammas[1]
+gamma.unit &lt;- current.asr$gammas[2]
+rho.r &lt;- current.asr$gammas[4]
+rho.c &lt;- current.asr$gammas[5]
+row.ar1 &lt;- mat.ar1(order=10, rho=rho.r)
+col.ar1 &lt;- mat.ar1(order=15, rho=rho.c)
+V &lt;- gamma.Row * fac.sumop(Wheat.dat$Row) + 
+     gamma.unit * diag(1, nrow=150, ncol=150) + 
+     mat.dirprod(col.ar1, row.ar1)
+V &lt;- s2*V
+
+#Produce residuals from 100 simulated data sets
+resid &lt;- simulate(current.asr, V=V, which="residuals", ncores = parallel::detectCores())
+
+## End(Not run)</code></pre>
+
+
+</div>

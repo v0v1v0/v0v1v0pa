@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>moran.idx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes Moran's index for a variable</h2>
+
+<h3>Description</h3>
+
+<p>This simple function computes Moran's index of autocorrelation given a
+variable and a matrix of proximities among observations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">moran.idx(x, prox, addInfo = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector whose autocorrelation is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prox</code></td>
+<td>
+<p>a matrix of proximities between observations, as computed by the
+<code>proxTips</code>. Off-diagonal terms must be positive or null, while
+diagonal terms must all equal zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addInfo</code></td>
+<td>
+<p>a logical indicating whether supplementary info (null value,
+minimum and maximum values) should be returned (TRUE) or not (FALSE,
+default); if computed, these quantities are returned as attributes.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The numeric value of Moran's index.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:tjombart@imperial.ac.uk">tjombart@imperial.ac.uk</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Moran, P.A.P. (1948) The interpretation of statistical maps.
+<em>Journal of the Royal Statistical Society, B</em> <b>10</b>, 243–251.
+</p>
+<p>Moran, P.A.P. (1950) Notes on continuous stochastic phenomena.
+<em>Biometrika</em>, <b>37</b>, 17–23.
+</p>
+<p>de Jong, P. and Sprenger, C. and van Veen, F. (1984) On extreme values of
+Moran's I and Geary's c. <em>Geographical Analysis</em>, <b>16</b>, 17–24.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>proxTips</code> which computes phylogenetic proximities
+between tips of a phylogeny.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+## use maples dataset
+if(require(ape) &amp;&amp; require(phylobase)){
+data(maples)
+tre &lt;- ape::read.tree(text=maples$tre)
+dom &lt;- maples$tab$Dom
+bif &lt;- maples$tab$Bif
+
+
+## get a proximity matrix between tips 
+W &lt;- proxTips(tre, met="Abouheif")
+
+## compute Moran's I for two traits (dom and bif)
+moran.idx(dom, W)
+moran.idx(bif, W)
+moran.idx(rnorm(nTips(tre)), W)
+
+## build a simple permutation test for 'bif'
+sim &lt;- replicate(499, moran.idx(sample(bif), W)) # permutations
+sim &lt;- c(moran.idx(bif, W), sim)
+
+pval &lt;- mean(sim&gt;=sim[1]) # right-tail p-value
+pval
+
+hist(sim, col="grey", main="Moran's I Monte Carlo test for 'bif'") # plot
+mtext("Histogram of permutations and observation (in red)")
+abline(v=sim[1], col="red", lwd=3)
+}
+
+</code></pre>
+
+
+</div>

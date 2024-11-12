@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update.const_C</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>C update with new observations</h2>
+
+<h3>Description</h3>
+
+<p>Update Constantine's C with new point(s) for a GP
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'const_C'
+update(object, Xnew, Znew, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A const_C object, the result of a call to the C_GP function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xnew</code></td>
+<td>
+<p>matrix (one point per row) corresponding to the new designs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Znew</code></td>
+<td>
+<p>vector of size <code>nrow(Xnew)</code> for the new responses at <code>Xnew</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used (for consistency of update method)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The updated const_C object originally provided.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>C_GP</code> to generate const_C objects from <code>mleHomGP</code> objects; <code>update_C2</code> for an update using faster expressions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+################################################################################
+### Active subspace of a Gaussian process
+################################################################################
+library(hetGP); library(lhs)
+set.seed(42)
+
+nvar &lt;- 2
+n &lt;- 100
+
+# theta gives the subspace direction
+f &lt;- function(x, theta, nugget = 1e-3){
+  if(is.null(dim(x))) x &lt;- matrix(x, 1)
+  xact &lt;- cos(theta) * x[,1] - sin(theta) * x[,2]
+  return(hetGP::f1d(xact) + 
+    rnorm(n = nrow(x), sd = rep(nugget, nrow(x))))
+}
+
+theta_dir &lt;- pi/6
+act_dir &lt;- c(cos(theta_dir), -sin(theta_dir))
+
+# Create design of experiments and initial GP model
+design &lt;- X &lt;- matrix(signif(maximinLHS(n, nvar), 2), ncol = nvar)
+response &lt;- Y &lt;- apply(design, 1, f, theta = theta_dir)
+model &lt;- mleHomGP(design, response, known = list(beta0 = 0))
+
+C_hat &lt;- C_GP(model)
+
+print(C_hat)
+print(subspace_dist(C_hat, matrix(act_dir, nrow = nvar), r = 1))
+
+# New designs
+Xnew &lt;- matrix(runif(2), 1)
+Znew &lt;- f(Xnew, theta_dir)
+
+C_new &lt;- update(C_hat, Xnew, Znew)
+print(C_new)
+subspace_dist(C_new, matrix(act_dir, nrow = nvar), r = 1)
+
+</code></pre>
+
+
+</div>

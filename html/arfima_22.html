@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.arfima</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predicts from a fitted object.</h2>
+
+<h3>Description</h3>
+
+<p>Performs prediction of a fitted <code>arfima</code> object. Includes prediction
+for each mode and exact and limiting prediction error standard deviations.
+<strong>NOTE:  the standard errors in beta are currently not taken into
+account in the prediction intervals shown.  This will be updated as soon
+as possible.</strong>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'arfima'
+predict(
+  object,
+  n.ahead = 1,
+  prop.use = "default",
+  newxreg = NULL,
+  predint = 0.95,
+  exact = c("default", T, F),
+  setmuhat0 = FALSE,
+  cpus = 1,
+  trend = NULL,
+  n.use = NULL,
+  xreg = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fitted <code>arfima</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.ahead</code></td>
+<td>
+<p>The number of steps ahead to predict</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.use</code></td>
+<td>
+<p>The proportion (between 0 and 1) or percentage (between
+&gt;1 and 100) of data points to use for prediction.  Defaults to the string
+"default", which sets the number of data points <code>n.use</code> to the minimum
+of the series length and 1000.  Overriden by <code>n.use</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newxreg</code></td>
+<td>
+<p>If a regression fit, the new regressors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predint</code></td>
+<td>
+<p>The percentile to use for prediction intervals assuming normal
+deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>Controls whether exact (based on the theoretical autocovariance
+matrix) prediction variances are calculated (which is recommended), as well
+as whether the exact prediction formula is used when the process is
+differenced (which can take a fair amount of time if the length of the series
+used to predict is large).  Defaults to the string "default", which is
+<code>TRUE</code> for the first and <code>FALSE</code> for the second.  A Boolean value
+(<code>TRUE</code> or <code>FALSE</code>) will set both to this value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setmuhat0</code></td>
+<td>
+<p>Experimental. Sets muhat equal to zero</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>The number of CPUs to use for prediction. Currently not
+implemented</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend</code></td>
+<td>
+<p>An optional vector the length of <code>n.ahead</code> or longer to
+add to the predictions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.use</code></td>
+<td>
+<p>Directly set the number mentioned in <code>prop.use</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>Alias for newxreg</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional arguments. Currently not used</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of lists, ceiling(prop.use * n)one for each mode with relavent details about the
+prediction
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>JQ (Justin) Veenstra
+</p>
+
+
+<h3>References</h3>
+
+<p>Veenstra, J.Q. Persistence and Antipersistence:  Theory and
+Software (PhD Thesis)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arfima</code>, <code>plot.predarfima</code>,
+<code>print.predarfima</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+set.seed(82365)
+sim &lt;- arfima.sim(1000, model = list(dfrac = 0.4, theta=0.9, dint = 1))
+fit &lt;- arfima(sim, order = c(0, 1, 1), back=TRUE)
+fit
+pred &lt;- predict(fit, n.ahead = 5)
+pred
+plot(pred, numback=50)
+#Predictions aren't really different due to the
+#series.  Let's see what happens when we regress!
+
+set.seed(23524)
+#Forecast 5 ahead as before
+#Note that we need to integrate the regressors, since time series regression
+#usually assumes that regressors are of the same order as the series.
+n.fore &lt;- 5
+X &lt;- matrix(rnorm(3000+3*n.fore), ncol = 3)
+X &lt;- apply(X, 2, cumsum)
+Xnew &lt;- X[1001:1005,]
+X &lt;- X[1:1000,]
+beta &lt;- matrix(c(2, -.4, 6), ncol = 1)
+simX &lt;- sim + as.vector(X%*%beta)
+fitX &lt;- arfima(simX, order = c(0, 1, 1), xreg = X, back=TRUE)
+fitX
+#Let's compare predictions.
+predX &lt;- predict(fitX, n.ahead = n.fore, xreg = Xnew)
+predX
+plot(predX, numback = 50)
+#With the mode we know is really there, it looks better.
+fitX &lt;- removeMode(fitX, 2)
+predXnew &lt;- predict(fitX, n.ahead = n.fore, xreg = Xnew)
+predXnew
+plot(predXnew, numback=50)
+
+
+</code></pre>
+
+
+</div>

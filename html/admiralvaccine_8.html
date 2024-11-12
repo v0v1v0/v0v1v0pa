@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_fever_records</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creating Fever Records</h2>
+
+<h3>Description</h3>
+
+<p>Creating Fever records from the <code>VS</code> SDTM dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_fever_records(dataset, dataset_source, filter_source, faobj)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input Dataset
+Input dataset is expected to have variables <code>USUBJID</code> and <code>FAOBJ</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_source</code></td>
+<td>
+<p>Source Dataset - SDTM Vital Sign (<code>VS</code>)
+Source Dataset (VS) is expected to have temperature records.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_source</code></td>
+<td>
+<p>Filter condition for Source dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>faobj</code></td>
+<td>
+<p>FAOBJ Value for fever records in output dataset.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Check if <code>FAOBJ = FEVER</code> record is present in input dataset,
+if not then use <code>SDTM.VS</code> to get FEVER records.
+With temperature values from <code>VSSTRESN</code> we decide if FEVER has
+occurred or not (<code>FAORRES = "Y"/"N"</code>).
+Since records are derived, these FEVER records are considered <code>DTYPE = "DERIVED"</code>
+if <code>FAOBJ = FEVER</code> record is present, then input dataset will be made as output with no further
+analysis.
+</p>
+<p>The temperature value greater or equal 38° C will be considered as FEVER records.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output dataset contains records with <code>FATESTCD = "OCCUR"</code> for
+<code>FAOBJ = FEVER</code> records.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dhivya Kanagaraj
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other der_rec: 
+<code>derive_diam_to_sev_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr)
+library(admiraldev)
+library(admiral)
+
+input &lt;- tribble(
+  ~USUBJID, ~FAOBJ, ~FATESTCD, ~FACAT, ~FASCAT, ~FATPT,
+  "ABC101", "REDNESS", "SEV", "REACTOGENICITY", "ADMINISTRATIVE SITE", "DAY 1",
+  "ABC101", "REDNESS", "DIAM", "REACTOGENICITY", "ADMINISTRATIVE SITE", "DAY 2",
+  "ABC101", "VOMITTING", "SEV", "REACTOGENICITY", "SYSTEMIC", "DAY 1",
+  "ABC101", "FATIQUE", "OCCUR", "REACTOGENICITY", "SYSTEMIC", "DAY 3"
+)
+
+vs &lt;- tribble(
+  ~USUBJID, ~VSTESTCD, ~VSCAT, ~VSSTRESN, ~VSSTRESU, ~VSTPT,
+  "ABC101", "TEMP", "REACTOGENICITY", 38.3, "C", "DAY 1",
+  "ABC101", "TEMP", "REACTOGENICITY", 38, "C", "DAY 2",
+  "ABC101", "TEMP", "REACTOGENICITY", 36, "C", "DAY 3",
+  "ABC101", "TEMP", "REACTOGENICITY", 37, "C", "DAY 4",
+  "ABC101", "TEMP", "REACTOGENICITY", 39, "C", "DAY 5",
+  "ABC101", "TEMP", "REACTOGENICITY", 39, "C", "DAY 6",
+  "ABC101", "TEMP", "REACTOGENICITY", 38, "C", "DAY 7"
+)
+
+derive_fever_records(
+  dataset = input,
+  dataset_source = vs,
+  filter_source = VSCAT == "REACTOGENICITY" &amp; VSTESTCD == "TEMP",
+  faobj = "FEVER"
+)
+
+</code></pre>
+
+
+</div>

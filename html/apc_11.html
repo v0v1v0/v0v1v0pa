@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apc.forecast.apc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forecast models with APC structure.</h2>
+
+<h3>Description</h3>
+
+<p>Computes forecasts for a model with APC structure.
+Forecasts of the linear predictor are given for all models.
+This is done for the triangle which shares age and cohort indices with the data.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apc.forecast.apc(apc.fit,extrapolation.type="I0",
+suppress.warning=TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apc.fit</code></td>
+<td>
+<p>List. Output from <code>apc.fit.model</code>.
+Note: apc.fit.model should be run with APC structure so that 
+<code>apc.fit$model.design=="APC"</code>.
+Point forecasts of the response are only provided for a Poisson response model where
+<code>apc.fit$model.family=="poisson.response"</code>
+and for an over-disperse Poisson response model where
+<code>apc.fit$model.family=="od.poisson.response"</code>.
+For other models only point forecasts of the linear predictor are provided, that is
+the first two values <code>linear.predictors.forecast</code> and <code>index.trap.J</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extrapolation.type</code></td>
+<td>
+<p>Character.  Choices for extrapolating the differenced period parameter ("Delta.beta_per").
+Default is "I0".
+</p>
+
+<dl>
+<dt>"I2"</dt>
+<dd>
+<p>Extrapolates future DDbeta by 0.</p>
+</dd>
+<dt>"I1"</dt>
+<dd>
+<p>Extrapolates future DDbeta as follows.
+Compute Dbeta=cumsum(DDbeta) for j=3,...,J.  
+This determines Dbeta upto arbitrary level.   
+Compute average mean(Dbeta).                  
+Forecast DDbeta[J+1]=mean(Dbeta)-Dbeta[J].    
+Forecast DDbeta[J+h]=0 for h&gt;1.
+This forecast is invariant to arbitrary level.</p>
+</dd>
+<dt>"I0"</dt>
+<dd>
+<p>Extrapolates future DDbeta as follows.
+Compute beta=cumsum(cumsum(DDbeta)) for j=3,...,J.                 
+This determines beta upto arbitrary linear trend.                  
+Regress on 1 and demeaned trend=j-(n+1)/2                          
+giving estimates mu1 and mu2.                                      
+Forecast beta[J+1]=mu1 + mu2*(n+1-(n+1)/2).                        
+Forecast beta[J+2]=mu1 + mu2*(n+2-(n+1)/2).                        
+Forecast DDbeta[J+h]=beta[J+h]-2*beta[J+h-1]+beta[J+h-2] for h=1,2.
+Forecast DDbeta[J+h]=0 for h&gt;2.                                    
+This forecast is invariant to arbitrary linear trend.</p>
+</dd>             
+</dl>
+<p>All methods are invariant to ad hoc identification of the implied period time effect, by
+following the ideas put forward in
+Kuang, Nielsen and Nielsen (2008b).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warning</code></td>
+<td>
+<p>Logical. If true, suppresses warnings from <code>apc.data.list.subset</code>, which is called internally. Default is "TRUE".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The example below is based on the smaller data reserving sets
+<code>data.loss.TA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>linear.predictors.forecast</code></td>
+<td>
+<p>Vector. Linear predictors for forecast area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index.trap.J</code></td>
+<td>
+<p>Matrix. age-coh coordinates for vector. Similar structure to
+<code>index.trap</code> in <code>apc.index</code>, see <code>apc.get.index</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trap.response.forecast</code></td>
+<td>
+<p>Matrix. Includes data and point forecasts. Forecasts in lower right triangle. Trapezoid format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.cell</code></td>
+<td>
+<p>Matrix. 4 columns.
+1: Point forecasts.
+2: corresponding forecast standard errors
+3: process standard errors
+4: estimation standard errors
+Note that the square of column 2 equals the sums of squares of columns 3 and 4
+Note that <code>index.trap.J</code> gives the age-coh coordinates for each entry.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.age</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>age</code> cumulated over period/cohort.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.per</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>per</code> cumulated over age/cohort.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.coh</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts by <code>coh</code> cumulated over age/period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response.forecast.all</code></td>
+<td>
+<p>Same as <code>response.forecast.cell</code>,
+but point forecasts cumulated by <code>age</code> and <code>coh</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi.per.dd.extrapolated</code></td>
+<td>
+<p>The extrapolated double differences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi.extrapolated</code></td>
+<td>
+<p>The extrapolated parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Bent Nielsen &lt;bent.nielsen@nuffield.ox.ac.uk&gt; 10 Sep 2016</p>
+
+
+<h3>References</h3>
+
+<p>Kuang, D., Nielsen, B. and Nielsen, J.P. (2008b) Forecasting with the age-period-cohort model and the extended chain-ladder model. Biometrika 95, 987-991. <em>Download</em>: <a href="https://doi.org/10.1093/biomet/asn038">Article</a>; Earlier version <a href="http://www.nuffield.ox.ac.uk/economics/papers/2008/w9/KuangNielsenNielsen_Forecast.pdf">Nuffield DP</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The example below uses Taylor and Ashe reserving see <code>data.loss.TA</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#####################
+#  EXAMPLE with reserving data: data.loss.TA()
+
+data	&lt;- data.loss.TA()
+fit.apc	&lt;- apc.fit.model(data,"poisson.response","APC")
+forecast	&lt;- apc.forecast.apc(fit.apc)
+
+#	forecasts by "policy-year"
+forecast$response.forecast.coh
+#	         forecast
+#	coh_2    91718.82
+#	coh_3   464661.38
+#	coh_4   704591.94
+#	coh_5  1025337.23
+#	coh_6  1503253.81
+#	coh_7  2330768.44
+#	coh_8  4115906.56
+#	coh_9  4257958.30
+#	coh_10 4567231.84
+#	forecasts of "cash-flow"
+forecast$response.forecast.per
+#	        forecast
+#	per_11 5274762.58
+#	per_12 4213526.23
+#	per_13 3188451.80
+#	per_14 2210649.45
+#	per_15 1644203.06
+#	per_16 1236495.32
+#	per_17  764552.75
+#	per_18  444205.71
+#	per_19   84581.44
+#	forecast  of "total reserve"
+forecast$response.forecast.all
+#	    forecast
+#	all 19061428
+</code></pre>
+
+
+</div>

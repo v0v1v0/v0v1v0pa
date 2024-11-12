@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahull</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>alpha-convex hull calculation</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the <code class="reqn">\alpha</code>-convex hull of a given sample of points in the plane for <code class="reqn">\alpha&gt;0</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahull(x, y = NULL, alpha)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>The <code>x</code> and <code>y</code> arguments provide the <code>x</code> and <code>y</code> coordinates of a set of points. Alternatively, a single argument <code>x</code> can be provided, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value of <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An attempt is made to interpret the arguments x and y in a way suitable for computing the <code class="reqn">\alpha</code>-convex hull. Any reasonable way of defining the coordinates is acceptable, see <code>xy.coords</code>. 
+</p>
+<p>The <code class="reqn">\alpha</code>-convex hull is defined for any finite number of points. However, since the algorithm is based on the Delaunay triangulation, at least three non-collinear points are required. 
+</p>
+<p>If <code>y</code> is NULL and <code>x</code> is an object of class <code>"delvor"</code>, then the <code class="reqn">\alpha</code>-convex hull is computed with no need to invoke again the function <code>delvor</code> (it reduces the computational cost). 
+</p>
+<p>The complement of the <code class="reqn">\alpha</code>-convex hull can be written as the union of <code class="reqn">O(n)</code> open balls and halfplanes, see <code>complement</code>. 
+The boundary of the <code class="reqn">\alpha</code>-convex hull is formed by arcs of open balls of radius <code class="reqn">\alpha</code> (besides possible isolated sample points). The arcs are determined by the intersections of some of the balls that define the complement of the <code class="reqn">\alpha</code>-convex hull. The extremes of an arc are given by <code class="reqn">c+rA_\theta v</code> and <code class="reqn">c+rA_{-\theta}v</code> where <code class="reqn">c</code> and <code class="reqn">r</code> represent the center and radius of the arc, repectively, and <code class="reqn">A_\theta v</code> represents the clockwise rotation of angle <code class="reqn">\theta</code> of the unitary vector <code class="reqn">v</code>. Joining the end points of adjacent arcs we can define polygons that help us to determine the area of the estimator , see <code>areaahull</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>arcs</code></td>
+<td>
+<p>For each arc in the boundary of the <code class="reqn">\alpha</code>-convex hull, the columns of the matrix <code>arcs</code> store the center <code class="reqn">c</code> and radius <code class="reqn">r</code> of the arc, the unitary vector <code class="reqn">v</code>, the angle <code class="reqn">\theta</code> that define the arc and the indices of the end points, see Details. The coordinates of the end points of the arcs are stored in <code>xahull</code>. For isolated points in the boundary of the <code class="reqn">\alpha</code>-convex hull, columns 3 to 6 of the matrix <code>arcs</code> are equal to zero. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xahull</code></td>
+<td>
+<p>A 2-column matrix with the coordinates of the original set of points besides possible new end points of the arcs in the boundary of the <code class="reqn">\alpha</code>-convex hull.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length</code></td>
+<td>
+<p>Length of the boundary of the <code class="reqn">\alpha</code>-convex hull, see <code>lengthahull</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complement</code></td>
+<td>
+<p>Output matrix from <code>complement</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value of <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ashape.obj</code></td>
+<td>
+<p>Object of class <code>"ashape"</code> returned by the function <code>ashape</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Edelsbrunner, H., Kirkpatrick, D.G. and Seidel, R. (1983). On the shape of a set of points in the plane. <em>IEEE Transactions on Information Theory</em>, 29(4), pp.551-559.
+</p>
+<p>Rodriguez-Casal, R. (2007). Set estimation under convexity type assumptions. <em>Annales de l'I.H.P.- Probabilites &amp; Statistiques</em>, 43, pp.763-774.
+</p>
+<p>Pateiro-Lopez, B. (2008). <em>Set estimation under convexity type restrictions</em>. Phd. Thesis. Universidad de Santiago de Compostela. ISBN 978-84-9887-084-8.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.ahull</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Random sample in the unit square
+x &lt;- matrix(runif(100), nc = 2)
+# Value of alpha
+alpha &lt;- 0.2
+# Alpha-convex hull
+ahull.obj &lt;- ahull(x, alpha = alpha)
+plot(ahull.obj)
+
+# Uniform sample of size n=300 in the annulus B(c,0.5)\B(c,0.25), 
+# with c=(0.5,0.5). 
+n &lt;- 300
+theta&lt;-runif(n,0,2*pi)
+r&lt;-sqrt(runif(n,0.25^2,0.5^2))
+x&lt;-cbind(0.5+r*cos(theta),0.5+r*sin(theta))
+# Value of alpha
+alpha &lt;- 0.1
+# Alpha-convex hull
+ahull.obj &lt;- ahull(x, alpha = alpha)
+# The arcs defining the boundary of the alpha-convex hull are ordered
+plot(x)
+for (i in 1:dim(ahull.obj$arcs)[1]){
+arc(ahull.obj$arcs[i,1:2],ahull.obj$arcs[i,3],ahull.obj$arcs[i,4:5],
+ahull.obj$arcs[i,6],col=2)
+Sys.sleep(0.5)
+}
+
+# Random sample  from a uniform distribution on a Koch snowflake 
+# with initial side length 1 and 3 iterations
+x &lt;- rkoch(2000, side = 1, niter = 3)
+# Value of alpha
+alpha &lt;- 0.05
+# Alpha-convex hull
+ahull.obj &lt;- ahull(x, alpha = alpha)
+plot(ahull.obj)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

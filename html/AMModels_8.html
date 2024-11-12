@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create An <code>amModel</code> Object That Pairs Models With Their Metadata</h2>
+
+<h3>Description</h3>
+
+<p>Creates an object of class <code>amModel</code>, which is a fitted model object (or similar) with mandatory metadata.
+</p>
+<p>An S4 class to store models with descriptive metadata.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">amModel(model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A model fit object or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Named metadata elements, either supplied individually and coerced to list or supplied as a named list.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>amModel</code> suitable for inclusion in an <code>amModelLib</code>.
+</p>
+
+
+<h3>Slots</h3>
+
+
+<dl>
+<dt><code>model</code></dt>
+<dd>
+<p>A model fit object, e.g. from <code>lm</code> or any single object containing the means to predict values from data.</p>
+</dd>
+<dt><code>metadata</code></dt>
+<dd>
+<p>A named list of length 1 character vectors that form name:value pairs, e.g. the analyst, the project, the data used, etc. The metadata name <code>data</code> can be used to link the model with the name of a data object, and when manipulated in the <code>amModelLib</code> an effort will be made to keep the model and data together. When embedded in an <code>amModelLib</code>, model metadata may be retrieved or set with <code>modelMeta</code>.</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p>Other amModelLib: <code>AMModels</code>,
+<code>amData</code>, <code>amModelLib</code>,
+<code>getters</code>, <code>grepAMModelLib</code>,
+<code>insertAMModelLib</code>, <code>lsModels</code>,
+<code>rmModel</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# run models from from lm helpfile
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+lm.D9 &lt;- lm(weight ~ group)
+lm.D90 &lt;- lm(weight ~ group - 1) # omitting intercept
+
+# note the original class of models is 'lm'
+class(lm.D9)
+
+# wrap lm.D9 in an amModel object
+mod1 &lt;- amModel(model = lm.D9, comment='example from lm')
+
+# summarize mod1; summary for the original object class, plus the metadata
+summary(mod1)
+
+# convert lm.D90 to an amModel object
+mod2 &lt;- amModel(model = lm.D90, comment='second example from lm')
+
+# use the function, amModelLib, to create a new amModelLib that includes both models
+# the models must be supplied as a named list
+mymodels &lt;- amModelLib(
+    models = list(
+        mod1 = mod1, 
+        mod2 = mod2
+    ), 
+    description = "This amModelLib stores linear models from the lm helpfile."
+)
+
+# list the models of the amModelLib
+lsModels(mymodels)
+
+# the modelMeta function can be used to retrieve model metadata
+modelMeta(mymodels, 'mod1')
+
+# the modelMeta function can also be used to set model metadata
+modelMeta(mymodels, 'mod1') &lt;- list(
+    url = "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html"
+)
+modelMeta(amml = mymodels, 'mod1')
+
+# use getAMModel to extract the model by  name
+getAMModel(amml = mymodels, 'mod2', as.list = FALSE)
+
+# notice the retrieved model is returned in its original class
+class(getAMModel(amml = mymodels, 'mod2', as.list = FALSE))
+
+# create a new empty amModelLib called mymodels2
+mymodels2 &lt;- amModelLib(description = "A second amModelLib called mymodels2.")
+
+# use insertAMModelLib to insert amModel objects to an existing amModelLib
+mymodels2 &lt;- insertAMModelLib(models = list(mod1 = mod1, mod2 = mod2))
+ 
+# use rmModel to remove an amModel object from an amModelLib
+rmModel('mod2', amml = mymodels2)
+</code></pre>
+
+
+</div>

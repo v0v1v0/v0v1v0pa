@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_tmb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bayesian inference of a TMB model using the no-U-turn sampler.</h2>
+
+<h3>Description</h3>
+
+<p>Draw Bayesian posterior samples from a Template Model Builder (TMB)
+model using an MCMC algorithm. This function generates posterior samples
+from which inference can be made. Adaptation schemes are used so
+specification tuning parameters are not necessary, and parallel
+execution reduces overall run time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_tmb(
+  obj,
+  iter = 2000,
+  init,
+  chains = 3,
+  seeds = NULL,
+  warmup = floor(iter/2),
+  lower = NULL,
+  upper = NULL,
+  thin = 1,
+  parallel = FALSE,
+  cores = NULL,
+  path = NULL,
+  algorithm = "NUTS",
+  laplace = FALSE,
+  control = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>A TMB model object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>The number of samples to draw.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>A list of lists containing the initial parameter
+vectors, one for each chain or a function. It is strongly
+recommended to initialize multiple chains from dispersed
+points. A of NULL signifies to use the starting values
+present in the model (i.e., <code>obj$par</code>) for all chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chains</code></td>
+<td>
+<p>The number of chains to run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seeds</code></td>
+<td>
+<p>A vector of seeds, one for each chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmup</code></td>
+<td>
+<p>The number of warmup iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>A vector of lower bounds for parameters. Allowed values are
+-Inf and numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>A vector of upper bounds for parameters. Allowed values are
+Inf and numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thin</code></td>
+<td>
+<p>The thinning rate to apply to samples. Typically
+not used with NUTS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>A deprecated argument, use cores=1 for serial
+execution or cores&gt;1 for parallel (default is to parallel
+with cores equal to the available-1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallel
+execution. Default is number available in the system minus
+1. If <code>cores=1</code>, serial execution occurs (even if
+<code>chains&gt;1</code>), otherwise parallel execution via package
+snowfall is used. For slow analyses it is recommended to set
+<code>chains</code>&lt;=<code>cores</code> so each core needs to run only a
+single chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Path to model executable. Defaults to working
+directory. Often best to have model files in a separate
+subdirectory, particularly for parallel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>The algorithm to use. NUTS is the default and
+recommended one, but "RWM" for the random walk Metropolis sampler and
+"HMC" for the static HMC sampler are available. These last two are
+deprecated but may be of use in some situations. These algorithms
+require different arguments; see their help files for more
+information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>laplace</code></td>
+<td>
+<p>Whether to use the Laplace approximation if some
+parameters are declared as random. Default is to turn off this
+functionality and integrate across all parameters with MCMC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list to control the sampler. See details for
+further use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to samplers</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements algorithm 6 of Hoffman and Gelman (2014),
+and loosely follows package <code>rstan</code>. The step size can be
+adapted or specified manually. The metric (i.e., mass matrix) can be
+unit diagonal, adapted diagonal (default and recommended), or a dense
+matrix specified by the user. Further control of algorithms can be
+specified with the <code>control</code> argument.  Elements are:
+</p>
+
+<dl>
+<dt>adapt_delta</dt>
+<dd>
+<p>The target acceptance rate.</p>
+</dd>
+<dt>metric</dt>
+<dd>
+<p>The mass metric to use. Options are: "unit" for a unit diagonal
+matrix; "diag" to estimate a diagonal matrix during warmup; a matrix
+to be used directly (in untransformed space).</p>
+</dd>
+<dt>adapt_engaged</dt>
+<dd>
+<p>Whether adaptation of step size and metric is turned on.</p>
+</dd>
+<dt>max_treedepth</dt>
+<dd>
+<p>Maximum treedepth for the NUTS algorithm.</p>
+</dd>
+<dt>stepsize</dt>
+<dd>
+<p>The stepsize for the NUTS algorithm. If <code>NULL</code> it
+will be adapted during warmup.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>A list containing the samples, and properties of the sampler
+useful for diagnosing behavior and efficiency.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>This is deprecated and will cease to exist
+in future releases
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Cole Monnahan
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>extract_samples</code> to extract samples and
+<code>launch_shinytmb</code> to explore the results graphically which
+is a wrapper for the <code>launch_shinystan</code> function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Build a fake TMB object with objective &amp; gradient functions and some
+## other flags
+## Not run: 
+f &lt;- function(x, order=0){
+  if(order != 1) # negative log density
+    -sum(dnorm(x=x, mean=0, sd=1, log=TRUE))
+  else x # gradient of negative log density
+}
+init &lt;- function() rnorm(2)
+obj &lt;- list(env=list(DLL='demo', last.par.best=c(x=init()), f=f,
+  beSilent=function() NULL))
+## Run NUTS for this object
+fit &lt;- sample_tmb(obj, iter=1000, chains=3, init=init)
+## Check basic diagnostics
+mon &lt;- rstan::monitor(fit$samples, print=FALSE)
+Rhat &lt;- mon[,"Rhat"]
+max(Rhat)
+ess &lt;- mon[, 'n_eff']
+min(ess)
+## Or do it interactively with ShinyStan
+launch_shinytmb(fit)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

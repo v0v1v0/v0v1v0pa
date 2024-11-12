@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MLEPO</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Proportional Odds (PO) model.</h2>
+
+<h3>Description</h3>
+
+<p>Tractable Parametric Proportional Odds (PO) model's maximum likelihood estimation, log-likelihood, and information criterion.
+Baseline hazards: NGLL,GLL,MLL,PGW, GG, EW, MKW, LL, TLL, SLL,CLL,SCLL,ATLL, and ASLL
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MLEPO(
+  init,
+  times,
+  status,
+  n,
+  basehaz,
+  z,
+  method = "BFGS",
+  hessian = TRUE,
+  conf.int = 0.95,
+  maxit = 1000,
+  log = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>: initial points for optimisation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>: survival times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p>: vital status (1 - dead, 0 - alive)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>: The number of the data set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basehaz</code></td>
+<td>
+<p>: baseline hazard structure including baseline (New generalized log-logistic proportional odds "NGLLPO" model,  generalized log-logisitic proportional odds "GLLPO" model, modified log-logistic proportional odds "MLLPO" model,
+exponentiated Weibull proportional odds "EWPO" model, power generalized weibull proportional odds "PGWPO" model, generalized gamma proportional odds "GGPO" model,
+modified kumaraswamy Weibull proportional odds "MKWPO" model, log-logistic proportional odds "PO" model,
+tangent-log-logistic proportional odds "TLLPO" model, sine-log-logistic proportional odds "SLLPO" model, cosine log-logistic proportional odds "CLLPO" model,
+secant-log-logistic proportional odds "SCLLPO" model, arcsine-log-logistic proportional odds "ASLLPO" model, and arctangent-log-logistic proportional odds "ATLLPO" model,
+Weibull proportional odds "WPO" model, gamma proportional odds "GPO" model, and log-normal proportional odds "LNPO" model.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>: design matrix for covariates (p x n), p &gt;= 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>:"optim" or a method from "nlminb".The methods supported are: BFGS (default), "L-BFGS", "Nelder-Mead", "SANN", "CG", and "Brent".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>:A function to return (as a matrix) the hessian for those methods that can use this information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p>: confidence level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>:The maximum number of iterations. Defaults to 1000</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>:log scale (TRUE or FALSE)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list containing the output of the optimisation (OPT) and the log-likelihood function (loglik)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Abdisalam Hassan Muse, Samuel Mwalili, Oscar Ngesa, Christophe Chesneau  <a href="mailto:abdisalam.hassan@amoud.edu.so">abdisalam.hassan@amoud.edu.so</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#Example #1
+data(alloauto)
+time&lt;-alloauto$time
+delta&lt;-alloauto$delta
+z&lt;-alloauto$type
+MLEPO(init = c(1.0,0.40,1.0,0.50),times = time,status = delta,n=nrow(z),
+basehaz = "GLLPO",z = z,method = "BFGS",hessian=TRUE, conf.int=0.95,maxit = 1000,log=FALSE)
+
+#Example #2
+data(bmt)
+time&lt;-bmt$Time
+delta&lt;-bmt$Status
+z&lt;-bmt$TRT
+MLEPO(init = c(1.0,1.0,0.5),times = time,status = delta,n=nrow(z),
+basehaz = "SLLPO",z = z,method = "BFGS",hessian=TRUE, conf.int=0.95,maxit = 1000,log=FALSE)
+
+#Example #3
+data("gastric")
+time&lt;-gastric$time
+delta&lt;-gastric$status
+z&lt;-gastric$trt
+MLEPO(init = c(1.0,0.50,1.0,0.75),times = time,status = delta,n=nrow(z),
+basehaz = "PGWPO",z = z,method = "BFGS",hessian=TRUE, conf.int=0.95,maxit = 1000,
+log=FALSE)
+
+#Example #4
+data("larynx")
+time&lt;-larynx$time
+delta&lt;-larynx$delta
+larynx$age&lt;-as.numeric(scale(larynx$age))
+larynx$diagyr&lt;-as.numeric(scale(larynx$diagyr))
+larynx$stage&lt;-as.factor(larynx$stage)
+z&lt;-model.matrix(~ stage+age+diagyr, data = larynx)
+MLEPO(init = c(1.0,1.0,0.5,0.5,0.5,0.5,0.5,0.5),times = time,status = delta,n=nrow(z),
+basehaz = "ATLLPO",z = z,method = "BFGS",hessian=TRUE, conf.int=0.95,maxit = 1000,log=FALSE)
+
+</code></pre>
+
+
+</div>

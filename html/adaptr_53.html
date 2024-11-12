@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>run_trials</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate multiple trials</h2>
+
+<h3>Description</h3>
+
+<p>This function conducts multiple simulations using a trial specification as
+specified by <code>setup_trial()</code>, <code>setup_trial_binom()</code> or <code>setup_trial_norm()</code>.
+This function essentially manages random seeds and runs multiple simulation
+using <code>run_trial()</code> - additional details on individual simulations are
+provided in that function's description. This function allows simulating
+trials in parallel using multiple cores, automatically saving and re-loading
+saved objects, and "growing" already saved simulation files (i.e., appending
+additional simulations to the same file).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">run_trials(
+  trial_spec,
+  n_rep,
+  path = NULL,
+  overwrite = FALSE,
+  grow = FALSE,
+  cores = NULL,
+  base_seed = NULL,
+  sparse = TRUE,
+  progress = NULL,
+  version = NULL,
+  compress = TRUE,
+  export = NULL,
+  export_envir = parent.frame()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trial_spec</code></td>
+<td>
+<p><code>trial_spec</code> object, generated and validated by the
+<code>setup_trial()</code>, <code>setup_trial_binom()</code> or <code>setup_trial_norm()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_rep</code></td>
+<td>
+<p>single integer; the number of simulations to run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>single character string; if specified (defaults to <code>NULL</code>), files
+will be written to and  loaded from this path using the <code>saveRDS()</code> /
+<code>readRDS()</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>single logical; defaults to <code>FALSE</code>, in which case previous
+simulations saved in the same <code>path</code> will be re-loaded (if the same trial
+specification was used). If <code>TRUE</code>, the previous file is overwritten (even
+if the the same trial specification was not used). If <code>grow</code> is <code>TRUE</code>,
+this argument must be set to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grow</code></td>
+<td>
+<p>single logical; defaults to <code>FALSE</code>. If <code>TRUE</code> and a valid <code>path</code>
+to a valid previous file containing less simulations than <code>n_rep</code>, the
+additional number of simulations will be run (appropriately re-using the
+same <code>base_seed</code>, if specified) and appended to the same file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p><code>NULL</code> or single integer. If <code>NULL</code>, a default value/cluster set
+by <code>setup_cluster()</code> will be used to control whether simulations are run in
+parallel on a default cluster or sequentially in the main process; if a
+cluster/value has not been specified by <code>setup_cluster()</code>, <code>cores</code> will
+then be set to the value stored in the global <code>"mc.cores"</code> option (if
+previously set by <code style="white-space: pre;">⁠options(mc.cores = &lt;number of cores&gt;⁠</code>), and <code>1</code> if that
+option has not been specified.<br>
+If the resulting number of <code>cores = 1</code>, computations will be run
+sequentially in the primary process, and if <code>cores &gt; 1</code>, a new parallel
+cluster will be setup using the <code>parallel</code> library and removed once the
+function completes. See <code>setup_cluster()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base_seed</code></td>
+<td>
+<p>single integer or <code>NULL</code> (default); a random seed used as
+the basis for simulations. Regardless of whether simulations are run
+sequentially or in parallel, random number streams will be identical and
+appropriate (see <code>setup_cluster()</code> for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>single logical, as described in <code>run_trial()</code>; defaults to
+<code>TRUE</code> when running multiple simulations, in which case only the data
+necessary to summarise all simulations are saved for each simulation.
+If <code>FALSE</code>, more detailed data for each simulation is saved, allowing more
+detailed printing of individual trial results and plotting using
+<code>plot_history()</code> (<code>plot_status()</code> does not require non-sparse results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>single numeric <code style="white-space: pre;">⁠&gt; 0⁠</code> and <code style="white-space: pre;">⁠&lt;= 1⁠</code> or <code>NULL</code>. If <code>NULL</code>
+(default), no progress is printed to the console. Otherwise, progress
+messages are printed to the control at intervals proportional to the value
+specified by progress.<br><strong>Note:</strong> as printing is not possible from within clusters on multiple
+cores, the function conducts batches of simulations on multiple cores (if
+specified), with intermittent printing of statuses. Thus, all cores have to
+finish running their current assigned batches before the other cores may
+proceed with the next batch. If there are substantial differences in the
+simulation speeds across cores, using <code>progress</code> may thus increase total
+run time (especially with small values).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>passed to <code>saveRDS()</code> when saving simulations, defaults to
+<code>NULL</code> (as in <code>saveRDS()</code>), which means that the current default version is
+used. Ignored if simulations are not saved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>passed to <code>saveRDS()</code> when saving simulations, defaults to
+<code>TRUE</code> (as in <code>saveRDS()</code>), see <code>saveRDS()</code> for other options. Ignored if
+simulations are not saved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export</code></td>
+<td>
+<p>character vector of names of objects to export to each
+parallel core when running in parallel; passed as the <code>varlist</code> argument to
+<code>parallel::clusterExport()</code>. Defaults to <code>NULL</code> (no objects exported),
+ignored if <code>cores == 1</code>. See <strong>Details</strong> below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_envir</code></td>
+<td>
+<p><code>environment</code> where to look for the objects defined
+in <code>export</code> when running in parallel and <code>export</code> is not <code>NULL</code>. Defaults
+to the environment from where the function is called.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Exporting objects when using multiple cores</strong>
+</p>
+<p>If <code>setup_trial()</code> is used to define a trial specification with custom
+functions (in the <code>fun_y_gen</code>, <code>fun_draws</code>, and <code>fun_raw_est</code> arguments of
+<code>setup_trial()</code>) and <code>run_trials()</code> is run with <code>cores &gt; 1</code>, it is necessary
+to export additional functions or objects used by these functions and defined
+by the user outside the function definitions provided. Similarly, functions
+from external packages loaded using <code>library()</code> or <code>require()</code> must be
+exported or called prefixed with the namespace, i.e., <code style="white-space: pre;">⁠package::function⁠</code>.
+The <code>export</code> and <code>export_envir</code> arguments are used to export objects calling
+the <code>parallel::clusterExport()</code>-function. See also <code>setup_cluster()</code>, which
+may be used to setup a cluster and export required objects only once per
+session.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of a special class <code>"trial_results"</code>, which contains the
+<code>trial_results</code> (results from all simulations; note that <code>seed</code> will be
+<code>NULL</code> in the individual simulations), <code>trial_spec</code> (the trial
+specification), <code>n_rep</code>, <code>base_seed</code>, <code>elapsed_time</code> (the total simulation
+run time), <code>sparse</code> (as described above) and <code>adaptr_version</code> (the version
+of the <code>adaptr</code> package used to run the simulations). These results may be
+extracted, summarised, and plotted using the <code>extract_results()</code>,
+<code>check_performance()</code>, <code>summary()</code>, <code>print.trial_results()</code>,
+<code>plot_convergence()</code>, <code>check_remaining_arms()</code>, <code>plot_status()</code>, and
+<code>plot_history()</code> functions. See the definitions of these functions for
+additional details and details on additional arguments used to select arms
+in simulations not ending in superiority and other summary choices.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup a trial specification
+binom_trial &lt;- setup_trial_binom(arms = c("A", "B", "C", "D"),
+                                 true_ys = c(0.20, 0.18, 0.22, 0.24),
+                                 data_looks = 1:20 * 100)
+
+# Run 10 simulations with a specified random base seed
+res &lt;- run_trials(binom_trial, n_rep = 10, base_seed = 12345)
+
+# See ?extract_results, ?check_performance, ?summary and ?print for details
+# on extracting resutls, summarising and printing
+
+</code></pre>
+
+
+</div>

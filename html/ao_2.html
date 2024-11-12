@@ -1,0 +1,435 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ao</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Alternating Optimization</h2>
+
+<h3>Description</h3>
+
+<p>Alternating optimization is an iterative procedure for optimizing a
+real-valued function jointly over all its parameters by alternating
+restricted optimization over parameter partitions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ao(
+  f,
+  initial,
+  target = NULL,
+  npar = NULL,
+  gradient = NULL,
+  ...,
+  partition = "sequential",
+  new_block_probability = 0.3,
+  minimum_block_number = 2,
+  minimize = TRUE,
+  lower = -Inf,
+  upper = Inf,
+  iteration_limit = Inf,
+  seconds_limit = Inf,
+  tolerance_value = 1e-06,
+  tolerance_parameter = 1e-06,
+  tolerance_parameter_norm = function(x, y) sqrt(sum((x - y)^2)),
+  tolerance_history = 1,
+  base_optimizer = Optimizer$new("stats::optim", method = "L-BFGS-B"),
+  verbose = FALSE,
+  hide_warnings = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>(<code>function</code>)<br>
+A <code>function</code> to be optimized, returning a single <code>numeric</code> value.
+</p>
+<p>The first argument of <code>f</code> should be a <code>numeric</code> of the same length
+as <code>initial</code>, optionally followed by any other arguments specified by
+the <code>...</code> argument.
+</p>
+<p>If <code>f</code> is to be optimized over an argument other than the first, or more
+than one argument, this has to be specified via the <code>target</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>(<code>numeric()</code> or <code>list()</code>)<br>
+The starting parameter values for the target argument(s).
+</p>
+<p>This can also be a <code>list</code> of multiple starting parameter values, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>(<code>character()</code> or <code>NULL</code>)<br>
+The name(s) of the argument(s) over which <code>f</code> gets optimized.
+</p>
+<p>This can only be <code>numeric</code> arguments.
+</p>
+<p>Can be <code>NULL</code> (default), then it is the first argument of <code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>(<code>integer()</code>)<br>
+The length of the target argument(s).
+</p>
+<p>Must be specified if more than two target arguments are specified via
+the <code>target</code> argument.
+</p>
+<p>Can be <code>NULL</code> if there is only one target argument, in which case <code>npar</code> is
+set to be <code>length(initial)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>(<code>function</code> or <code>NULL</code>)<br>
+A <code>function</code> that returns the gradient of <code>f</code>.
+</p>
+<p>The function call of <code>gradient</code> must be identical to <code>f</code>.
+</p>
+<p>Can be <code>NULL</code>, in which case a finite-difference approximation will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>f</code> (and <code>gradient</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition</code></td>
+<td>
+<p>(<code>character(1)</code> or <code>list()</code>)<br>
+Defines the parameter partition, and can be either
+</p>
+
+<ul>
+<li> <p><code>"sequential"</code> for treating each parameter separately,
+</p>
+</li>
+<li> <p><code>"random"</code> for a random partition in each iteration,
+</p>
+</li>
+<li> <p><code>"none"</code> for no partition (which is equivalent to joint optimization),
+</p>
+</li>
+<li>
+<p> or a <code>list</code> of vectors of parameter indices, specifying a custom
+partition for the alternating optimization process.
+</p>
+</li>
+</ul>
+<p>This can also be a <code>list</code> of multiple partition definitions, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_block_probability</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br>
+Only relevant if <code>partition = "random"</code>.
+</p>
+<p>The probability for a new parameter block when creating a random
+partitions.
+</p>
+<p>Values close to 0 result in larger parameter blocks, values close to 1
+result in smaller parameter blocks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum_block_number</code></td>
+<td>
+<p>(<code>integer(1)</code>)<br>
+Only relevant if <code>partition = "random"</code>.
+</p>
+<p>The minimum number of blocks in random partitions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimize</code></td>
+<td>
+<p>(<code>logical(1)</code>)<br>
+Whether to minimize during the alternating optimization process.
+</p>
+<p>If <code>FALSE</code>, maximization is performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p>(<code>numeric()</code>)<br>
+Optionally lower and upper parameter bounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iteration_limit</code></td>
+<td>
+<p>(<code>integer(1)</code> or <code>Inf</code>)<br>
+The maximum number of iterations through the parameter partition before
+the alternating optimization process is terminated.
+</p>
+<p>Can also be <code>Inf</code> for no iteration limit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seconds_limit</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br>
+The time limit in seconds before the alternating optimization process is
+terminated.
+</p>
+<p>Can also be <code>Inf</code> for no time limit.
+</p>
+<p>Note that this stopping criteria is only checked <em>after</em> a sub-problem is
+solved and not <em>within</em> solving a sub-problem, so the actual process time can
+exceed this limit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance_value</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br>
+A non-negative tolerance value. The alternating optimization terminates
+if the absolute difference between the current function value and the one
+before <code>tolerance_history</code> iterations is smaller than
+<code>tolerance_value</code>.
+</p>
+<p>Can be <code>0</code> for no value threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance_parameter</code></td>
+<td>
+<p>(<code>numeric(1)</code>)<br>
+A non-negative tolerance value. The alternating optimization terminates if
+the distance between the current estimate and the before
+<code>tolerance_history</code> iterations is smaller than
+<code>tolerance_parameter</code>.
+</p>
+<p>Can be <code>0</code> for no parameter threshold.
+</p>
+<p>By default, the distance is measured using the euclidean norm, but another
+norm can be specified via the <code>tolerance_parameter_norm</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance_parameter_norm</code></td>
+<td>
+<p>(<code>function</code>)<br>
+The norm that measures the distance between the current estimate and the
+one from the last iteration. If the distance is smaller than
+<code>tolerance_parameter</code>, the procedure is terminated.
+</p>
+<p>It must be of the form <code>function(x, y)</code> for two vector inputs
+<code>x</code> and <code>y</code>, and return a single <code>numeric</code> value.
+By default, the euclidean norm <code>function(x, y) sqrt(sum((x - y)^2))</code>
+is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance_history</code></td>
+<td>
+<p>(<code>integer(1)</code>)<br>
+The number of iterations to look back to determine whether
+<code>tolerance_value</code> or <code>tolerance_parameter</code> has been reached.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base_optimizer</code></td>
+<td>
+<p>(<code>Optimizer</code> or <code>list()</code>)<br>
+An <code>Optimizer</code> object, which can be created via
+<code>Optimizer</code>. It numerically solves the sub-problems.
+</p>
+<p>By default, the <code>optim</code> optimizer is used. If another
+optimizer is specified, the arguments <code>gradient</code>, <code>lower</code>, and
+<code>upper</code> are ignored.
+</p>
+<p>This can also be a <code>list</code> of multiple base optimizers, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(<code>logical(1)</code>)<br>
+Whether to print tracing details during the alternating optimization
+process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide_warnings</code></td>
+<td>
+<p>(<code>logical(1)</code>)<br>
+Whether to hide warnings during the alternating optimization process.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Multiple threads</h4>
+
+<p>Alternating optimization can suffer from local optima. To increase the
+likelihood of reaching the global optimum, you can specify:
+</p>
+
+<ul>
+<li>
+<p> multiple starting parameters
+</p>
+</li>
+<li>
+<p> multiple parameter partitions
+</p>
+</li>
+<li>
+<p> multiple base optimizers
+</p>
+</li>
+</ul>
+<p>Use the <code>initial</code>, <code>partition</code>, and/or <code>base_optimizer</code> arguments to provide
+a <code>list</code> of possible values for each parameter. Each combination of initial
+values, parameter partitions, and base optimizers will create a separate
+alternating optimization thread.
+</p>
+
+
+<h5>Output value</h5>
+
+<p>In the case of multiple threads, the output changes slightly in comparison
+to the standard case. It is still a <code>list</code> with the following elements:
+</p>
+
+<ul>
+<li> <p><code>estimate</code> is the optimal parameter vector over all threads.
+</p>
+</li>
+<li> <p><code>value</code> is the optimal function value over all threads.
+</p>
+</li>
+<li> <p><code>details</code> combines details of the single threads and has an additional
+column <code>thread</code> with an index for the different threads.
+</p>
+</li>
+<li> <p><code>seconds</code> gives the computation time in seconds for each thread.
+</p>
+</li>
+<li> <p><code>stopping_reason</code> gives the termination message for each thread.
+</p>
+</li>
+<li> <p><code>threads</code> give details how the different threads were specified.
+</p>
+</li>
+</ul>
+<h5>Parallel computation</h5>
+
+<p>By default, threads run sequentially. However, since they are independent,
+they can be parallelized. To enable parallel computation, use the
+<a href="https://future.futureverse.org/"><code>{future}</code> framework</a>. For example, run the
+following <em>before</em> the <code>ao()</code> call:
+</p>
+<pre>
+future::plan(future::multisession, workers = 4)
+</pre>
+
+
+
+<h5>Progress updates</h5>
+
+<p>When using multiple threads, setting <code>verbose = TRUE</code> to print tracing
+details during alternating optimization is not supported. However, you can
+still track the progress of threads using the
+<a href="https://progressr.futureverse.org/"><code>{progressr}</code> framework</a>. For example,
+run the following <em>before</em> the <code>ao()</code> call:
+</p>
+<pre>
+progressr::handlers(global = TRUE)
+progressr::handlers(
+  progressr::handler_progress(":percent :eta :message")
+)
+</pre>
+
+
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following elements:
+</p>
+
+<ul>
+<li> <p><code>estimate</code> is the parameter vector at termination.
+</p>
+</li>
+<li> <p><code>value</code> is the function value at termination.
+</p>
+</li>
+<li> <p><code>details</code> is a <code>data.frame</code> with full information about the procedure:
+For each iteration (column <code>iteration</code>) it contains the function value
+(column <code>value</code>), parameter values (columns starting with <code>p</code> followed by
+the parameter index), the active parameter block (columns starting with <code>b</code>
+followed by the parameter index, where <code>1</code> stands for a parameter contained
+in the active parameter block and <code>0</code> if not), and computation times in
+seconds (column <code>seconds</code>)
+</p>
+</li>
+<li> <p><code>seconds</code> is the overall computation time in seconds.
+</p>
+</li>
+<li> <p><code>stopping_reason</code> is a message why the procedure has terminated.
+</p>
+</li>
+</ul>
+<p>In the case of multiple threads, the output changes slightly, see details.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: Minimization of Himmelblau's function --------------------------
+
+himmelblau &lt;- function(x) (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2
+ao(f = himmelblau, initial = c(0, 0))
+
+# Example 2: Maximization of 2-class Gaussian mixture log-likelihood --------
+
+# target arguments:
+# - class means mu (2, unrestricted)
+# - class standard deviations sd (2, must be non-negative)
+# - class proportion lambda (only 1 for identification, must be in [0, 1])
+
+normal_mixture_llk &lt;- function(mu, sd, lambda, data) {
+  c1 &lt;- lambda * dnorm(data, mu[1], sd[1])
+  c2 &lt;- (1 - lambda) * dnorm(data, mu[2], sd[2])
+  sum(log(c1 + c2))
+}
+
+ao(
+  f = normal_mixture_llk,
+  initial = c(2, 4, 1, 1, 0.5),
+  target = c("mu", "sd", "lambda"),
+  npar = c(2, 2, 1),
+  data = datasets::faithful$eruptions,
+  partition = "random",
+  minimize = FALSE,
+  lower = c(-Inf, -Inf, 0, 0, 0),
+  upper = c(Inf, Inf, Inf, Inf, 1)
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>time_decompose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Decompose a time series in preparation for anomaly detection</h2>
+
+<h3>Description</h3>
+
+<p>Decompose a time series in preparation for anomaly detection
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">time_decompose(
+  data,
+  target,
+  method = c("stl", "twitter"),
+  frequency = "auto",
+  trend = "auto",
+  ...,
+  merge = FALSE,
+  message = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>tibble</code> or <code>tbl_time</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>A column to apply the function to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The time series decomposition method. One of <code>"stl"</code> or <code>"twitter"</code>.
+The STL method uses seasonal decomposition (see <code>decompose_stl()</code>).
+The Twitter method uses <code>trend</code> to remove the trend (see <code>decompose_twitter()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p>Controls the seasonal adjustment (removal of seasonality).
+Input can be either "auto", a time-based definition (e.g. "1 week"),
+or a numeric number of observations per frequency (e.g. 10).
+Refer to <code>time_frequency()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend</code></td>
+<td>
+<p>Controls the trend component
+For stl, the trend controls the sensitivity of the lowess smoother, which is used to remove the remainder.
+For twitter, the trend controls the period width of the median, which are used to remove the trend and center the remainder.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to the underlying method functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge</code></td>
+<td>
+<p>A boolean. <code>FALSE</code> by default. If <code>TRUE</code>, will append results to the original data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>A boolean. If <code>TRUE</code>, will output information related to <code>tbl_time</code> conversions, frequencies,
+and trend / median spans (if applicable).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>time_decompose()</code> function generates a time series decomposition on
+<code>tbl_time</code> objects. The function is "tidy" in the sense that it works
+on data frames. It is designed to work with time-based data, and as such
+must have a column that contains date or datetime information. The function
+also works with grouped data. The function implements several methods
+of time series decomposition, each with benefits.
+</p>
+<p><strong>STL</strong>:
+</p>
+<p>The STL method (<code>method = "stl"</code>) implements time series decomposition using
+the underlying <code>decompose_stl()</code> function. If you are familiar with <code>stats::stl()</code>,
+the function is a "tidy" version that is designed to work with <code>tbl_time</code> objects.
+The decomposition separates the "season" and "trend" components from
+the "observed" values leaving the "remainder" for anomaly detection.
+The user can control two parameters: <code>frequency</code> and <code>trend</code>.
+The <code>frequency</code> parameter adjusts the "season" component that is removed
+from the "observed" values. The <code>trend</code> parameter adjusts the
+trend window (<code>t.window</code> parameter from <code>stl()</code>) that is used.
+The user may supply both <code>frequency</code>
+and <code>trend</code> as time-based durations (e.g. "90 days") or numeric values
+(e.g. 180) or "auto", which predetermines the frequency and/or trend
+based on the scale of the time series.
+</p>
+<p><strong>Twitter</strong>:
+</p>
+<p>The Twitter method (<code>method = "twitter"</code>) implements time series decomposition using
+the methodology from the Twitter <a href="https://github.com/twitter/AnomalyDetection">AnomalyDetection</a> package.
+The decomposition separates the "seasonal" component and then removes
+the median data, which is a different approach than the STL method for removing
+the trend. This approach works very well for low-growth + high seasonality data.
+STL may be a better approach when trend is a large factor.
+The user can control two parameters: <code>frequency</code> and <code>trend</code>.
+The <code>frequency</code> parameter adjusts the "season" component that is removed
+from the "observed" values. The <code>trend</code> parameter adjusts the
+period width of the median spans that are used. The user may supply both <code>frequency</code>
+and <code>trend</code> as time-based durations (e.g. "90 days") or numeric values
+(e.g. 180) or "auto", which predetermines the frequency and/or median spans
+based on the scale of the time series.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>tbl_time</code> object.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li>
+<p> CLEVELAND, R. B., CLEVELAND, W. S., MCRAE, J. E., AND TERPENNING, I.
+STL: A Seasonal-Trend Decomposition Procedure Based on Loess. Journal of Official Statistics, Vol. 6, No. 1 (1990), pp. 3-73.
+</p>
+</li>
+<li> <p><a href="https://www.usenix.org/system/files/conference/hotcloud14/hotcloud14-vallis.pdf">Owen S. Vallis, Jordan Hochenbaum and Arun Kejariwal (2014). A Novel Technique for Long-Term Anomaly Detection in the Cloud. Twitter Inc.</a>
+</p>
+</li>
+<li> <p><a href="https://github.com/twitter/AnomalyDetection">Owen S. Vallis, Jordan Hochenbaum and Arun Kejariwal (2014). AnomalyDetection: Anomaly Detection Using Seasonal Hybrid Extreme Studentized Deviate Test. R package version 1.0.</a>
+</p>
+</li>
+</ol>
+<h3>See Also</h3>
+
+<p>Decomposition Methods (Powers <code>time_decompose</code>)
+</p>
+
+<ul>
+<li> <p><code>decompose_stl()</code>
+</p>
+</li>
+<li> <p><code>decompose_twitter()</code>
+</p>
+</li>
+</ul>
+<p>Time Series Anomaly Detection Functions (anomaly detection workflow):
+</p>
+
+<ul>
+<li> <p><code>anomalize()</code>
+</p>
+</li>
+<li> <p><code>time_recompose()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+data(tidyverse_cran_downloads)
+
+# Basic Usage
+tidyverse_cran_downloads %&gt;%
+    time_decompose(count, method = "stl")
+
+# twitter
+tidyverse_cran_downloads %&gt;%
+    time_decompose(count,
+                   method       = "twitter",
+                   frequency    = "1 week",
+                   trend        = "2 months",
+                   merge        = TRUE,
+                   message      = FALSE)
+
+</code></pre>
+
+
+</div>

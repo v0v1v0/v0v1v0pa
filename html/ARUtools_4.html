@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_sites</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add site-level data to the metadata</h2>
+
+<h3>Description</h3>
+
+<p>Uses dates to join site-level data (coordinates and site ids) to the meta
+data. If the site data have only single dates, then a buffer before and after
+is used to determine which recordings belong to that site observation. Can
+join by site ids alone if set <code>by_date = NULL</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_sites(
+  meta,
+  sites,
+  buffer_before = 0,
+  buffer_after = NULL,
+  by = c("site_id", "aru_id"),
+  by_date = "date_time",
+  quiet = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>meta</code></td>
+<td>
+<p>Data frame. Recording metadata. Output of <code>clean_metadata()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sites</code></td>
+<td>
+<p>Data frame. Site-level data from <code>clean_site_index()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer_before</code></td>
+<td>
+<p>Numeric. Number of hours before a deployment in which to
+include recordings. <code>NULL</code> means include the time up to the last
+deployment. Coupled with <code>buffer_after</code>, this creates a window around a
+date/time in which to join recordings to the site-level data. Ignored if
+<code>sites</code> has both a start and end column for date/times. Default 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer_after</code></td>
+<td>
+<p>Numeric. Number of hours after the deployment in which to
+include recordings. <code>NULL</code> means include the time up to the next
+deployment. Coupled with <code>buffer_before</code>, creates a window around a
+date/time in which to join recordings to the site-level data. Ignored if
+<code>sites</code> has both a start and end column for date/times. Default <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Character. Columns which identify a deployment in <code>sites</code> as well
+as <code>meta</code>, besides date/time, which are used to join the data. Default is
+<code>site_id</code> and <code>aru_id</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_date</code></td>
+<td>
+<p>Character. Date/time type to join data by. <code>date</code> is faster
+but <code>date_time</code> is more precise. Default <code>date_time</code>. <code>NULL</code> means ignore
+dates and join only with <code>by</code> columns (<code>dplyr::left_join()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical. Whether to suppress progress messages and other
+non-essential updates.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame of metadata with site-level data joined in.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">m &lt;- clean_metadata(project_files = example_files)
+s &lt;- clean_site_index(example_sites_clean,
+  name_date = c("date_time_start", "date_time_end")
+)
+m &lt;- add_sites(m, s)
+
+# Without dates (by site only)
+m &lt;- clean_metadata(project_files = example_files)
+eg &lt;- dplyr::select(example_sites_clean, -date_time_start, -date_time_end)
+s &lt;- clean_site_index(eg, name_date_time = NULL)
+m &lt;- add_sites(m, s, by_date = NULL)
+
+</code></pre>
+
+
+</div>

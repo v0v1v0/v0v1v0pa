@@ -1,0 +1,364 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pickle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalized Quasi-Likelihood for Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Evaluates an approximation to minus the log likelihood for an
+aster model with random effects.  Uses Laplace approximation to
+integrate out the random effects analytically.
+The “quasi” in the title is a misnomer in the context of aster
+models but the acronym PQL for this procedure is well-established in
+the generalized linear mixed models literature.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pickle(sigma, parm, fixed, random, obj, y, origin, cache, ...)
+makezwz(sigma, parm, fixed, random, obj, y, origin)
+pickle1(sigma, parm, fixed, random, obj, y, origin, cache, zwz,
+    deriv = 0, ...)
+pickle2(alphasigma, parm, fixed, random, obj, y, origin, cache, zwz,
+    deriv = 0, ...)
+pickle3(alphaceesigma, fixed, random, obj, y, origin, zwz, deriv = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>vector of square roots of variance components,
+one component for each group of random effects.  Negative values are
+allowed; the vector of variance components is <code>sigma^2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>starting value for inner optimization.  Ignored if
+<code>cache$parm</code> exists, in which case the latter is used.
+For <code>pickle</code> and <code>pickle1</code>, length
+is number of effects (fixed and random).
+For <code>pickle2</code>, length
+is number of random effects.   For all, random effects are rescaled,
+divided by the corresponding component of <code>sigma</code> if that is
+nonzero and equal to zero otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphasigma</code></td>
+<td>
+<p>the concatenation of the vector of fixed effects
+and the vector of square roots of variance components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphaceesigma</code></td>
+<td>
+<p>the concatenation of the vector of fixed effects,
+the vector of rescaled random effects,
+and the vector of square roots of variance components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the model matrix for fixed effects.  The number of rows
+is <code>nrow(obj$data)</code>.  The number of columns is the number of fixed
+effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>the model matrix or matrices for random effects.
+The number of rows is <code>nrow(obj$data)</code>.  The number of columns
+is the number of random effects in a group.  Either a matrix or a list
+each element of which is a matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>aster model object, the result of a call to <code>aster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response vector.  May be omitted, in which case <code>obj$x</code>
+is used.  If supplied, must be a matrix of the same dimensions as
+<code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>origin of aster model.  May be omitted, in which case
+default origin (see <code>aster</code>) is used.  If supplied, must be
+a matrix of the same dimensions <code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>If not missing, an environment in which to cache the value
+of <code>parm</code> found during previous evaluations.  If supplied <code>parm</code>
+is taken from <code>cache</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zwz</code></td>
+<td>
+<p>A possible value of <code class="reqn">Z^T W Z</code>, where <code class="reqn">Z</code> is the
+model matrix for all random effects and <code class="reqn">W</code> is the variance matrix of
+the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>Number of derivatives wanted.  For <code>pickle1</code>
+or <code>pickle2</code>, either zero or one.  For <code>pickle3</code>,
+zero, one or two.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>trust</code>, which
+is used to maximize the penalized log likelihood.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Define
+</p>
+<p style="text-align: center;"><code class="reqn">p(\alpha, c, \sigma) = m(a + M \alpha + Z A c) + c^T c / 2 + \log \det[A Z^T \widehat{W} Z A + I] / 2</code>
+</p>
+
+<p>where <code class="reqn">m</code> is minus the log likelihood function of a saturated aster model,
+<code class="reqn">a</code> is a known vector (the <em>offset vector</em> in the terminology
+of <code>glm</code> but the <em>origin</em> in the terminology
+of <code>aster</code>), <code class="reqn">M</code> is a known matrix, the model matrix for
+fixed effects (the argument <code>fixed</code> of these functions),
+<code class="reqn">Z</code> is a known matrix, the model matrix for random effects
+(either the argument <code>random</code> of these functions if it is a matrix or
+<code>Reduce(cbind, random)</code> if <code>random</code> is a list of matrices),
+<code class="reqn">A</code> is a diagonal matrix whose diagonal is the vector
+<code>rep(sigma, times = nrand)</code>
+where <code>nrand</code> is <code>sapply(random, ncol)</code>
+when <code>random</code> is a list of
+matrices and <code>ncol(random)</code> when <code>random</code> is a matrix,
+<code class="reqn">\widehat{W}</code> is any symmetric positive semidefinite matrix
+(more on this below),
+and <code class="reqn">I</code> is the identity matrix.
+Note that <code class="reqn">A</code> is a function of <code class="reqn">\sigma</code> although the
+notation does not explicitly indicate this.
+</p>
+<p>Let <code class="reqn">c^*</code> denote the minimizer of
+<code class="reqn">p(\alpha, c, \sigma)</code> considered as a function of <code class="reqn">c</code>
+for fixed <code class="reqn">\alpha</code> and <code class="reqn">\sigma</code>,
+and let <code class="reqn">\tilde{\alpha}</code> and <code class="reqn">\tilde{c}</code>
+denote the (joint) minimizers of <code class="reqn">p(\alpha, c, \sigma)</code> considered as
+a function of <code class="reqn">\alpha</code> and <code class="reqn">c</code> for fixed <code class="reqn">\sigma</code>.
+Note that <code class="reqn">c^*</code> is a function of <code class="reqn">\alpha</code>
+and <code class="reqn">\sigma</code> although the notation does not explicitly
+indicate this.
+Note that <code class="reqn">\tilde{\alpha}</code> and <code class="reqn">\tilde{c}</code>
+are functions of <code class="reqn">\sigma</code> (only) although the notation
+does not explicitly indicate this.
+Now define
+</p>
+<p style="text-align: center;"><code class="reqn">q(\alpha, \sigma) = p(\alpha, c^*, \sigma)</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">r(\sigma) = p(\tilde{\alpha}, \tilde{c}, \sigma)</code>
+</p>
+
+<p>Then <code>pickle1</code> evaluates <code class="reqn">r(\sigma)</code>,
+<code>pickle2</code> evaluates <code class="reqn">q(\alpha, \sigma)</code>, and
+<code>pickle3</code> evaluates <code class="reqn">p(\alpha, c, \sigma)</code>,
+where <code class="reqn">Z^T \widehat{W} Z</code> in the formulas above is
+specified by the argument <code>zwz</code> of these functions.
+All of these functions supply derivative (gradient) vectors if
+<code>deriv = 1</code> is specified, and <code>pickle3</code> supplies the
+second derivative (Hessian) matrix if <code>deriv = 2</code> is specified.
+</p>
+<p>Let <code class="reqn">W</code> denote the second derivative function of <code class="reqn">m</code>, that is,
+<code class="reqn">W(\varphi)</code> is the second derivative matrix of the function
+<code class="reqn">m</code> evaluated at the point <code class="reqn">\varphi</code>.  The idea is that
+<code class="reqn">\widehat{W}</code> should be approximately the value of
+<code class="reqn">W(a + M \hat{\alpha} + Z \widehat{A} \hat{c})</code>,
+where <code class="reqn">\hat{\alpha}</code>, <code class="reqn">\hat{c}</code>,
+and <code class="reqn">\hat{\sigma}</code> are the (joint) minimizers of <code class="reqn">p(\alpha, c, \sigma)</code>
+and <code class="reqn">\widehat{A} = A(\hat{\sigma})</code>.
+In aid of this, the function <code>makezwz</code>
+evaluates
+<code class="reqn">Z^T W(a + M \alpha + Z A c) Z</code>
+for any <code class="reqn">\alpha</code>, <code class="reqn">c</code>, and <code class="reqn">\sigma</code>.
+</p>
+<p><code>pickle</code> evaluates the function
+</p>
+<p style="text-align: center;"><code class="reqn">s(\sigma) = m(a + M \tilde{\alpha} + Z A \tilde{c}) + \tilde{c}^T \tilde{c} / 2 + \log \det[A Z^T W(a + M \tilde{\alpha} + Z A \tilde{c}) Z A + I]</code>
+</p>
+
+<p>no derivatives can be computed because no derivatives of the function
+<code class="reqn">W</code> are computed for aster models.
+</p>
+<p>The general idea is the one uses <code>pickle</code> with a no-derivative
+optimizer, such as the <code>"Nelder-Mead"</code> method of the <code>optim</code>
+function to get a crude estimate of <code class="reqn">\hat{\sigma}</code>.
+Then one uses <code>trust</code> with objective
+function <code>penmlogl</code> to estimate the corresponding
+<code class="reqn">\hat{\alpha}</code> and <code class="reqn">\hat{c}</code> (example below).
+Then one use <code>makezwz</code> to produce the corresponding <code>zwz</code>
+(example below).
+These estimates can be improved using <code>trust</code> with objective
+function <code>pickle3</code> using this <code>zwz</code> (example below), and this
+step may be iterated until convergence.
+Finally, <code>optim</code> is used with objective function <code>pickle2</code>
+to estimate the Hessian matrix of <code class="reqn">q(\alpha, \sigma)</code>,
+which is approximate observed information because
+<code class="reqn">q(\alpha, \sigma)</code> is approximate minus log likelihood.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>pickle</code>, a scalar, minus the
+(PQL approximation of) the log likelihood.
+For <code>pickle1</code> and <code>pickle2</code>, a list having components <code>value</code>
+and <code>gradient</code> (present only when <code>deriv = 1</code>).
+For <code>pickle3</code>, a list having components <code>value</code>,
+<code>gradient</code> (present only when <code>deriv &gt;= 1</code>),
+and <code>hessian</code> (present only when <code>deriv = 2</code>).
+</p>
+
+
+<h3>Note</h3>
+
+<p>Not intended for use by naive users.  Use <code>reaster</code>,
+which calls them.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(radish)
+library(trust)
+
+pred &lt;- c(0,1,2)
+fam &lt;- c(1,3,2)
+
+### need object of type aster to supply to penmlogl and pickle
+
+aout &lt;- aster(resp ~ varb + fit : (Site * Region + Block + Pop),
+    pred, fam, varb, id, root, data = radish)
+
+### model matrices for fixed and random effects
+
+modmat.fix &lt;- model.matrix(resp ~ varb + fit : (Site * Region),
+    data = radish)
+modmat.blk &lt;- model.matrix(resp ~ 0 + fit:Block, data = radish)
+modmat.pop &lt;- model.matrix(resp ~ 0 + fit:Pop, data = radish)
+
+rownames(modmat.fix) &lt;- NULL
+rownames(modmat.blk) &lt;- NULL
+rownames(modmat.pop) &lt;- NULL
+
+idrop &lt;- match(aout$dropped, colnames(modmat.fix))
+idrop &lt;- idrop[! is.na(idrop)]
+modmat.fix &lt;- modmat.fix[ , - idrop]
+
+nfix &lt;- ncol(modmat.fix)
+nblk &lt;- ncol(modmat.blk)
+npop &lt;- ncol(modmat.pop)
+
+### try penmlogl
+
+sigma.start &lt;- c(1, 1)
+
+alpha.start &lt;- aout$coefficients[match(colnames(modmat.fix),
+    names(aout$coefficients))]
+parm.start &lt;- c(alpha.start, rep(0, nblk + npop))
+
+tout &lt;- trust(objfun = penmlogl, parm.start, rinit = 1, rmax = 10,
+    sigma = sigma.start, fixed = modmat.fix,
+    random = list(modmat.blk, modmat.pop), obj = aout)
+tout$converged
+
+### crude estimate of variance components
+
+eff.blk &lt;- tout$argument[seq(nfix + 1, nfix + nblk)]
+eff.pop &lt;- tout$argument[seq(nfix + nblk + 1, nfix + nblk + npop)]
+sigma.crude &lt;- sqrt(c(var(eff.blk), var(eff.pop)))
+
+### try optim and pickle
+
+cache &lt;- new.env(parent = emptyenv())
+oout &lt;- optim(sigma.crude, pickle, parm = tout$argument,
+    fixed = modmat.fix, random = list(modmat.blk, modmat.pop),
+    obj = aout, cache = cache)
+oout$convergence == 0
+### estimated variance components
+oout$par^2
+
+### get estimates of fixed and random effects
+
+tout &lt;- trust(objfun = penmlogl, tout$argument, rinit = 1, rmax = 10,
+    sigma = oout$par, fixed = modmat.fix,
+    random = list(modmat.blk, modmat.pop), obj = aout, fterm = 0)
+tout$converged
+
+sigma.better &lt;- oout$par
+alpha.better &lt;- tout$argument[1:nfix]
+c.better &lt;- tout$argument[- (1:nfix)]
+zwz.better &lt;- makezwz(sigma.better, parm = c(alpha.better, c.better),
+    fixed = modmat.fix, random = list(modmat.blk, modmat.pop), obj = aout)
+
+### get better estimates
+
+objfun &lt;- function(alphaceesigma, zwz)
+    pickle3(alphaceesigma, fixed = modmat.fix,
+    random = list(modmat.blk, modmat.pop), obj = aout, zwz = zwz, deriv = 2)
+tout &lt;- trust(objfun, c(alpha.better, c.better, sigma.better),
+    rinit = 1, rmax = 10, zwz = zwz.better)
+tout$converged
+alpha.mle &lt;- tout$argument[1:nfix]
+c.mle &lt;- tout$argument[nfix + 1:(nblk + npop)]
+sigma.mle &lt;- tout$argument[nfix + nblk + npop + 1:2]
+zwz.mle &lt;- makezwz(sigma.mle, parm = c(alpha.mle, c.mle),
+    fixed = modmat.fix, random = list(modmat.blk, modmat.pop), obj = aout)
+### estimated variance components
+sigma.mle^2
+
+### preceding step can be iterated "until convergence"
+
+### get (approximate) Fisher information
+
+objfun &lt;- function(alphasigma) pickle2(alphasigma, parm = c.mle,
+    fixed = modmat.fix, random = list(modmat.blk, modmat.pop),
+    obj = aout, zwz = zwz.mle)$value
+gradfun &lt;- function(alphasigma) pickle2(alphasigma, parm = c.mle,
+    fixed = modmat.fix, random = list(modmat.blk, modmat.pop),
+    obj = aout, zwz = zwz.mle, deriv = 1)$gradient
+oout &lt;- optim(c(alpha.mle, sigma.mle), objfun, gradfun, method = "BFGS",
+    hessian = TRUE)
+oout$convergence == 0
+fish &lt;- oout$hessian
+</code></pre>
+
+
+</div>

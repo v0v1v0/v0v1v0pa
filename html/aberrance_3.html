@@ -1,0 +1,282 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>detect_ac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Detect answer copying</h2>
+
+<h3>Description</h3>
+
+<p>Detect answer copying for all possible source-copier pairs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">detect_ac(
+  method,
+  psi,
+  xi = NULL,
+  x = NULL,
+  d = NULL,
+  r = NULL,
+  interval = c(-4, 4),
+  alpha = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The answer copying statistic(s) to compute. Options for
+score-based statistics are:
+</p>
+
+<ul>
+<li> <p><code>"OMG_S"</code> for the conditional <code class="reqn">\omega</code> statistic (Wollack, 1997).
+</p>
+</li>
+<li> <p><code>"GBT_S"</code> for the conditional <code class="reqn">GBT</code> statistic (van der Linden &amp;
+Sotaridona, 2006).
+</p>
+</li>
+</ul>
+<p>Options for score and distractor-based statistics are:
+</p>
+
+<ul>
+<li> <p><code>"OMG_SD"</code> for the conditional <code class="reqn">\omega</code> statistic (Wollack, 1997).
+</p>
+</li>
+<li> <p><code>"GBT_SD"</code> for the conditional <code class="reqn">GBT</code> statistic (van der Linden &amp;
+Sotaridona, 2006).
+</p>
+</li>
+</ul>
+<p>Options for response-based statistics are:
+</p>
+
+<ul>
+<li> <p><code>"OMG_R"</code> for the conditional <code class="reqn">\omega</code> statistic (Wollack, 1997).
+</p>
+</li>
+<li> <p><code>"GBT_R"</code> for the conditional <code class="reqn">GBT</code> statistic (van der Linden &amp;
+Sotaridona, 2006).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+<p>A matrix of item parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>A matrix of person parameters. If <code>NULL</code> (default), person
+parameters are estimated using maximum likelihood estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x, d, r</code></td>
+<td>
+<p>Matrices of raw data. <code>x</code> is for the item scores, <code>d</code> the item
+distractors, and <code>r</code> the item responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>The interval to search for the person parameters. Default is
+<code>c(-4, 4)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value(s) between 0 and 1 indicating the significance level(s)
+used for flagging. Default is <code>0.05</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list is returned with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>A matrix of answer copying statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval</code></td>
+<td>
+<p>A matrix of <em>p</em>-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag</code></td>
+<td>
+<p>An array of flagging results. The first dimension corresponds to
+source-copier pairs, the second dimension to methods, and the third
+dimension to significance levels.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>van der Linden, W. J., &amp; Sotaridona, L. (2006). Detecting answer copying when
+the regular response process follows a known response model. <em>Journal of
+Educational and Behavioral Statistics</em>, <em>31</em>(3), 283–304.
+</p>
+<p>Wollack, J. A. (1997). A nominal response model approach for detecting answer
+copying. <em>Applied Psychological Measurement</em>, <em>21</em>(4), 307–320.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>detect_as()</code> to detect answer similarity.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup for Examples 1 to 3 -------------------------------------------------
+
+# Settings
+set.seed(0)     # seed for reproducibility
+N &lt;- 50         # number of persons
+n &lt;- 40         # number of items
+
+# Randomly select 10% sources and 10% copiers
+s &lt;- sample(1:N, size = N * 0.10)
+c &lt;- sample(setdiff(1:N, s), size = N * 0.10)
+
+# Create vector of indicators (1 = copying pair, 0 = non-copying pair)
+pair &lt;- t(combn(N, 2))
+pair &lt;- rbind(pair, pair[, 2:1])
+ind &lt;- ifelse(1:nrow(pair) %in% apply(
+  rbind(cbind(s, c), cbind(c, s)), 1, function(p)
+  which(pair[, 1] == p[1] &amp; pair[, 2] == p[2])), 1, 0)
+names(ind) &lt;- paste(pair[, 1], pair[, 2], sep = "-")
+
+# Example 1: Item Scores ----------------------------------------------------
+
+# Generate person parameters for the 3PL model
+xi &lt;- cbind(theta = rnorm(N, mean = 0.00, sd = 1.00))
+
+# Generate item parameters for the 3PL model
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  b = rnorm(n, mean = 0.00, sd = 1.00),
+  c = runif(n, min = 0.05, max = 0.30)
+)
+
+# Simulate uncontaminated data
+x &lt;- sim(psi, xi)$x
+
+# Modify contaminated data by replacing 40% of the copier scores with source
+# scores
+for (v in 1:length(c)) {
+  ci &lt;- sample(1:n, size = n * 0.40)
+  x[c[v], ci] &lt;- x[s[v], ci]
+}
+
+# Detect answer copying
+out &lt;- detect_ac(
+  method = c("OMG_S", "GBT_S"),
+  psi = psi,
+  x = x
+)
+
+# Example 2: Item Scores and Distractors ------------------------------------
+
+# Generate person parameters for the nested logit model
+xi &lt;- MASS::mvrnorm(
+  N,
+  mu = c(theta = 0.00, eta = 0.00),
+  Sigma = matrix(c(1.00, 0.80, 0.80, 1.00), ncol = 2)
+)
+
+# Generate item parameters for the nested logit model
+psi &lt;- cbind(
+  a = rlnorm(n, meanlog = 0.00, sdlog = 0.25),
+  b = rnorm(n, mean = 0.00, sd = 1.00),
+  c = runif(n, min = 0.05, max = 0.30),
+  lambda1 = rnorm(n, mean = 0.00, sd = 1.00),
+  lambda2 = rnorm(n, mean = 0.00, sd = 1.00),
+  lambda3 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta1 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta2 = rnorm(n, mean = 0.00, sd = 1.00),
+  zeta3 = rnorm(n, mean = 0.00, sd = 1.00)
+)
+
+# Simulate uncontaminated data
+dat &lt;- sim(psi, xi)
+x &lt;- dat$x
+d &lt;- dat$d
+
+# Modify contaminated data by replacing 40% of the copier scores and
+# distractors with source scores and distractors
+for (v in 1:length(c)) {
+  ci &lt;- sample(1:n, size = n * 0.40)
+  x[c[v], ci] &lt;- x[s[v], ci]
+  d[c[v], ci] &lt;- d[s[v], ci]
+}
+
+# Detect answer copying
+out &lt;- detect_ac(
+  method = c("OMG_S", "GBT_S", "OMG_SD", "GBT_SD"),
+  psi = psi,
+  x = x,
+  d = d
+)
+
+# Example 3: Item Responses -------------------------------------------------
+
+# Generate person parameters for the nominal response model
+xi &lt;- cbind(eta = rnorm(N, mean = 0.00, sd = 1.00))
+
+# Generate item parameters for the nominal response model
+psi &lt;- cbind(
+  lambda1 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda2 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda3 = rnorm(n, mean = -0.50, sd = 0.50),
+  lambda4 = rnorm(n, mean = 1.50, sd = 0.50),
+  zeta1 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta2 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta3 = rnorm(n, mean = -0.50, sd = 0.50),
+  zeta4 = rnorm(n, mean = 1.50, sd = 0.50)
+)
+
+# Simulate uncontaminated data
+r &lt;- sim(psi, xi)$r
+
+# Modify contaminated data by replacing 40% of the copier responses with
+# source responses
+for (v in 1:length(c)) {
+  ci &lt;- sample(1:n, size = n * 0.40)
+  r[c[v], ci] &lt;- r[s[v], ci]
+}
+
+# Detect answer copying
+out &lt;- detect_ac(
+  method = c("OMG_R", "GBT_R"),
+  psi = psi,
+  r = r
+)
+</code></pre>
+
+
+</div>

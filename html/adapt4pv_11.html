@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lasso_bic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fit a lasso regression and use standard BIC for variable selection</h2>
+
+<h3>Description</h3>
+
+<p>Fit a lasso regression and use the Bayesian Information Criterion (BIC)
+to select a subset of selected covariates.
+Can deal with very large sparse data matrices.
+Intended for binary reponse only (option <code>family = "binomial"</code> is forced).
+Depends on the <code>glmnet</code> and <code>relax.glmnet</code> functions from the package <code>glmnet</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lasso_bic(x, y, maxp = 50, path = TRUE, betaPos = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix, of dimension nobs x nvars. Each row is an observation
+vector. Can be in sparse matrix format (inherit from class
+<code>"sparseMatrix"</code> as in package <code>Matrix</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Binary response variable, numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxp</code></td>
+<td>
+<p>A limit on how many relaxed coefficients are allowed.
+Default is 50, in <code>glmnet</code> option default is 'n-3', where 'n' is the sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Since <code>glmnet</code> does not do stepsize optimization, the Newton
+algorithm can get stuck and not converge, especially with relaxed fits. With <code>path=TRUE</code>,
+each relaxed fit on a particular set of variables is computed pathwise using the original sequence
+of lambda values (with a zero attached to the end). Default is <code>path=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betaPos</code></td>
+<td>
+<p>Should the covariates selected by the procedure be
+positively associated with the outcome ? Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments that can be passed to <code>glmnet</code> from package
+<code>glmnet</code> other than <code>family</code>, <code>maxp</code>
+and <code>path</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each tested penalisation parameter <code class="reqn">\lambda</code>, a standard version of the BIC
+is implemented.
+</p>
+<p style="text-align: center;"><code class="reqn">BIC_\lambda = - 2 l_\lambda + df(\lambda) * ln (N)</code>
+</p>
+
+<p>where <code class="reqn">l_\lambda</code> is the log-likelihood of the non-penalized multiple logistic
+regression model that includes the set of covariates with a non-zero coefficient
+in the penalised regression coefficient vector associated to <code class="reqn">\lambda</code>,
+and  <code class="reqn">df(\lambda)</code> is the number of covariates with a non-zero coefficient
+in the penalised regression coefficient vector associated to <code class="reqn">\lambda</code>,
+The optimal set of covariates according to this approach is the one associated with
+the classical multiple logistic regression model which minimizes the BIC.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"log.lasso"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Numeric vector of regression coefficients in the lasso.
+In <code>lasso_bic</code> function, the regression coefficients are UNPENALIZED.
+Length equal to nvars.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selected_variables</code></td>
+<td>
+<p>Character vector, names of variable(s) selected with the
+lasso-bic approach.
+If <code>betaPos = TRUE</code>, this set is the covariates with a positive regression
+coefficient in <code>beta</code>.
+Else this set is the covariates with a non null regression coefficient in <code>beta</code>.
+Covariates are ordering according to the p-values (two-sided if <code>betaPos = FALSE</code> ,
+one-sided if <code>betaPos = TRUE</code>) in the classical multiple logistic regression
+model that minimzes the BIC.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Emeline Courtois <br> Maintainer: Emeline Courtois
+<a href="mailto:emeline.courtois@inserm.fr">emeline.courtois@inserm.fr</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(15)
+drugs &lt;- matrix(rbinom(100*20, 1, 0.2), nrow = 100, ncol = 20)
+colnames(drugs) &lt;- paste0("drugs",1:ncol(drugs))
+ae &lt;- rbinom(100, 1, 0.3)
+lb &lt;- lasso_bic(x = drugs, y = ae, maxp = 20)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,463 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_control</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Oblique random forest control</h2>
+
+<h3>Description</h3>
+
+<p>Oblique random forest control
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_control(
+  tree_type,
+  method,
+  scale_x,
+  ties,
+  net_mix,
+  target_df,
+  max_iter,
+  epsilon,
+  ...
+)
+
+orsf_control_classification(
+  method = "glm",
+  scale_x = TRUE,
+  net_mix = 0.5,
+  target_df = NULL,
+  max_iter = 20,
+  epsilon = 1e-09,
+  ...
+)
+
+orsf_control_regression(
+  method = "glm",
+  scale_x = TRUE,
+  net_mix = 0.5,
+  target_df = NULL,
+  max_iter = 20,
+  epsilon = 1e-09,
+  ...
+)
+
+orsf_control_survival(
+  method = "glm",
+  scale_x = TRUE,
+  ties = "efron",
+  net_mix = 0.5,
+  target_df = NULL,
+  max_iter = 20,
+  epsilon = 1e-09,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree_type</code></td>
+<td>
+<p>(<em>character</em>) the type of tree. Valid options are
+</p>
+
+<ul>
+<li>
+<p> "classification", i.e., categorical outcomes
+</p>
+</li>
+<li>
+<p> "regression", i.e., continuous outcomes
+</p>
+</li>
+<li>
+<p> "survival", i.e., time-to event outcomes
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>(<em>character</em> or <em>function</em>) how to identify linear
+linear combinations of predictors. If <code>method</code> is a character value,
+it must be one of:
+</p>
+
+<ul>
+<li>
+<p> 'glm': linear, logistic, and cox regression
+</p>
+</li>
+<li>
+<p> 'net': same as 'glm' but with penalty terms
+</p>
+</li>
+<li>
+<p> 'pca': principal component analysis
+</p>
+</li>
+<li>
+<p> 'random': random draw from uniform distribution
+</p>
+</li>
+</ul>
+<p>If <code>method</code> is a <em>function</em>, it will be used to identify  linear
+combinations of predictor variables. <code>method</code> must in this case accept
+three inputs named <code>x_node</code>, <code>y_node</code> and <code>w_node</code>, and should expect
+the following types and dimensions:
+</p>
+
+<ul>
+<li> <p><code>x_node</code> (<em>matrix</em>; <code>n</code> rows, <code>p</code> columns)
+</p>
+</li>
+<li> <p><code>y_node</code> (<em>matrix</em>; <code>n</code> rows, <code>2</code> columns)
+</p>
+</li>
+<li> <p><code>w_node</code> (<em>matrix</em>; <code>n</code> rows, <code>1</code> column)
+</p>
+</li>
+</ul>
+<p>In addition, <code>method</code> must return a matrix with p rows and 1 column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_x</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, values of predictors will be
+scaled prior to each instance of finding a linear combination of
+predictors, using summary values from the data in the current node
+of the decision tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>(<em>character</em>) a character string specifying the method
+for tie handling. Only relevant when modeling survival outcomes
+and using a method that engages with tied outcome times.
+If there are no ties, all the methods are equivalent. Valid options
+are 'breslow' and 'efron'. The Efron approximation is the default
+because it is more accurate when dealing with tied event times and
+has similar computational efficiency compared to the Breslow method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>net_mix</code></td>
+<td>
+<p>(<em>double</em>) The elastic net mixing parameter. A value of 1
+gives the lasso penalty, and a value of 0 gives the ridge penalty. If
+multiple values of alpha are given, then a penalized model is fit using
+each alpha value prior to splitting a node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_df</code></td>
+<td>
+<p>(<em>integer</em>) Preferred number of variables used in each
+linear combination. For example, with <code>mtry</code> of 5 and <code>target_df</code> of 3,
+we sample 5 predictors and look for the best linear combination using
+3 of them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>(<em>integer</em>) iteration continues until convergence
+(see <code>eps</code> above) or the number of attempted iterations is equal to
+<code>iter_max</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>(<em>double</em>) When using most modeling based method,
+iteration continues in the algorithm until the relative change in
+some kind of objective is less than <code>epsilon</code>, or the absolute
+change is less than <code>sqrt(epsilon)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Adjust <code>scale_x</code> <em>at your own risk</em>. Setting <code>scale_x = FALSE</code> will
+reduce computation time but will also make the <code>orsf</code> model dependent
+on the scale of your data, which is why the default value is <code>TRUE</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>'orsf_control'</code>, which should be used as
+an input for the <code>control</code> argument of orsf. Components are:
+</p>
+
+<ul>
+<li> <p><code>tree_type</code>: type of trees to fit
+</p>
+</li>
+<li> <p><code>lincomb_type</code>: method for linear combinations
+</p>
+</li>
+<li> <p><code>lincomb_eps</code>: epsilon for convergence
+</p>
+</li>
+<li> <p><code>lincomb_iter_max</code>: max iterations
+</p>
+</li>
+<li> <p><code>lincomb_scale</code>: to scale or not.
+</p>
+</li>
+<li> <p><code>lincomb_alpha</code>: mixing parameter
+</p>
+</li>
+<li> <p><code>lincomb_df_target</code>: target degrees of freedom
+</p>
+</li>
+<li> <p><code>lincomb_ties_method</code>: method for ties in survival time
+</p>
+</li>
+<li> <p><code>lincomb_R_function</code>: R function for custom splits
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<p>First we load some relevant packages
+</p>
+<div class="sourceCode r"><pre>set.seed(329730)
+suppressPackageStartupMessages({
+ library(aorsf)
+ library(survival)
+ library(ranger)
+ library(riskRegression)
+})
+</pre></div>
+
+
+<h4>Accelerated linear combinations</h4>
+
+<p>The accelerated ORSF ensemble is the default because it has a nice
+balance of computational speed and prediction accuracy. It runs a single
+iteration of Newton Raphson scoring on the Cox partial likelihood
+function to find linear combinations of predictors.
+</p>
+<div class="sourceCode r"><pre>fit_accel &lt;- orsf(pbc_orsf, 
+                  control = orsf_control_survival(),
+                  formula = Surv(time, status) ~ . - id,
+                  tree_seeds = 329)
+</pre></div>
+
+
+
+<h4>Linear combinations with Cox regression</h4>
+
+<p>Setting inputs in <code>orsf_control_survival</code> to scale the X matrix and
+repeat iterations until convergence allows you to run Cox regression in
+each non-terminal node of each survival tree, using the regression
+coefficients to create linear combinations of predictors:
+</p>
+<div class="sourceCode r"><pre>control_cph &lt;- orsf_control_survival(method = 'glm', 
+                                     scale_x = TRUE, 
+                                     max_iter = 20)
+
+fit_cph &lt;- orsf(pbc_orsf, 
+                control = control_cph,
+                formula = Surv(time, status) ~ . - id,
+                tree_seeds = 329)
+</pre></div>
+
+
+
+<h4>Linear combinations with penalized cox regression</h4>
+
+<p>Setting <code>method == 'net'</code> runs penalized Cox regression in each
+non-terminal node of each survival tree. This can be really helpful if
+you want to do feature selection within the node, but it is a lot slower
+than the <code>'glm'</code> option.
+</p>
+<div class="sourceCode r"><pre># select 3 predictors out of 5 to be used in
+# each linear combination of predictors.
+
+control_net &lt;- orsf_control_survival(method = 'net', target_df = 3)
+
+fit_net &lt;- orsf(pbc_orsf, 
+                control = control_net,
+                formula = Surv(time, status) ~ . - id,
+                tree_seeds = 329)
+</pre></div>
+
+
+
+<h4>Linear combinations with your own function</h4>
+
+<p>In addition to the built-in methods, customized functions can be used to
+identify linear combinations of predictors. We’ll demonstrate a few
+here.
+</p>
+
+<ul><li>
+<p> The first uses random coefficients
+</p>
+</li></ul>
+<div class="sourceCode r"><pre>f_rando &lt;- function(x_node, y_node, w_node){
+ matrix(runif(ncol(x_node)), ncol=1) 
+}
+</pre></div>
+
+<ul><li>
+<p> The second derives coefficients from principal component analysis
+</p>
+</li></ul>
+<div class="sourceCode r"><pre>f_pca &lt;- function(x_node, y_node, w_node) { 
+ 
+ # estimate two principal components.
+ pca &lt;- stats::prcomp(x_node, rank. = 2)
+ # use the second principal component to split the node
+ pca$rotation[, 1L, drop = FALSE]
+ 
+}
+</pre></div>
+
+<ul><li>
+<p> The third uses <code>ranger()</code> inside of <code>orsf()</code>. This approach is very
+similar to a method known as reinforcement learning trees (see the
+<code>RLT</code> package), although our method of “muting” is very crude compared
+to the method proposed by Zhu et al. 
+</p>
+</li></ul>
+<div class="sourceCode r"><pre>f_rlt &lt;- function(x_node, y_node, w_node){
+ 
+ colnames(y_node) &lt;- c('time', 'status')
+ colnames(x_node) &lt;- paste("x", seq(ncol(x_node)), sep = '')
+ 
+ data &lt;- as.data.frame(cbind(y_node, x_node))
+ 
+ if(nrow(data) &lt;= 10) 
+  return(matrix(runif(ncol(x_node)), ncol = 1))
+ 
+ fit &lt;- ranger::ranger(data = data, 
+                       formula = Surv(time, status) ~ ., 
+                       num.trees = 25, 
+                       num.threads = 1,
+                       min.node.size = 5,
+                       importance = 'permutation')
+ 
+ out &lt;- sort(fit$variable.importance, decreasing = TRUE)
+ 
+ # "mute" the least two important variables
+ n_vars &lt;- length(out)
+ if(n_vars &gt; 4){
+   out[c(n_vars, n_vars-1)] &lt;- 0
+ }
+ 
+ # ensure out has same variable order as input
+ out &lt;- out[colnames(x_node)]
+ 
+ # protect yourself
+ out[is.na(out)] &lt;- 0
+ 
+ matrix(out, ncol = 1)
+ 
+}
+</pre></div>
+<p>We can plug these functions into <code>orsf_control_custom()</code>, and then pass
+the result into <code>orsf()</code>:
+</p>
+<div class="sourceCode r"><pre>fit_rando &lt;- orsf(pbc_orsf,
+                  Surv(time, status) ~ . - id,
+                  control = orsf_control_survival(method = f_rando),
+                  tree_seeds = 329)
+
+fit_pca &lt;- orsf(pbc_orsf,
+                Surv(time, status) ~ . - id,
+                control = orsf_control_survival(method = f_pca),
+                tree_seeds = 329)
+
+fit_rlt &lt;- orsf(pbc_orsf, time + status ~ . - id, 
+                control = orsf_control_survival(method = f_rlt),
+                tree_seeds = 329)
+</pre></div>
+<p>So which fit seems to work best in this example? Let’s find out by
+evaluating the out-of-bag survival predictions.
+</p>
+<div class="sourceCode r"><pre>risk_preds &lt;- list(
+ accel = fit_accel$pred_oobag,
+ cph   = fit_cph$pred_oobag,
+ net   = fit_net$pred_oobag,
+ rando = fit_rando$pred_oobag,
+ pca   = fit_pca$pred_oobag,
+ rlt   = fit_rlt$pred_oobag
+)
+
+sc &lt;- Score(object = risk_preds, 
+            formula = Surv(time, status) ~ 1, 
+            data = pbc_orsf, 
+            summary = 'IPA',
+            times = fit_accel$pred_horizon)
+</pre></div>
+<p>The AUC values, from highest to lowest:
+</p>
+<div class="sourceCode r"><pre>sc$AUC$score[order(-AUC)]
+</pre></div>
+<div class="sourceCode"><pre>##     model times       AUC         se     lower     upper
+##    &lt;fctr&gt; &lt;num&gt;     &lt;num&gt;      &lt;num&gt;     &lt;num&gt;     &lt;num&gt;
+## 1:    net  1788 0.9151649 0.02025057 0.8754745 0.9548553
+## 2:    rlt  1788 0.9119200 0.02090107 0.8709547 0.9528854
+## 3:  accel  1788 0.9095628 0.02143250 0.8675558 0.9515697
+## 4:    cph  1788 0.9095628 0.02143250 0.8675558 0.9515697
+## 5:  rando  1788 0.9062197 0.02148854 0.8641029 0.9483365
+## 6:    pca  1788 0.8999479 0.02226683 0.8563057 0.9435901
+</pre></div>
+<p>And the indices of prediction accuracy:
+</p>
+<div class="sourceCode r"><pre>sc$Brier$score[order(-IPA), .(model, times, IPA)]
+</pre></div>
+<div class="sourceCode"><pre>##         model times       IPA
+##        &lt;fctr&gt; &lt;num&gt;     &lt;num&gt;
+## 1:        net  1788 0.4905777
+## 2:      accel  1788 0.4806649
+## 3:        cph  1788 0.4806649
+## 4:        rlt  1788 0.4675228
+## 5:        pca  1788 0.4383995
+## 6:      rando  1788 0.4302814
+## 7: Null model  1788 0.0000000
+</pre></div>
+<p>From inspection,
+</p>
+
+<ul>
+<li> <p><code>net</code>, <code>accel</code>, and <code>rlt</code> have high discrimination and index of
+prediction accuracy.
+</p>
+</li>
+<li> <p><code>rando</code> and <code>pca</code> do less well, but they aren’t bad.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>linear combination control functions
+<code>orsf_control_cph()</code>,
+<code>orsf_control_custom()</code>,
+<code>orsf_control_fast()</code>,
+<code>orsf_control_net()</code>
+</p>
+
+
+</div>

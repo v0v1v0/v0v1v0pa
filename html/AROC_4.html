@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AROC.bsp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Semiparametric Bayesian inference of the covariate-adjusted ROC curve (AROC).
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the covariate-adjusted ROC curve (AROC) using the semiparametric Bayesian normal linear regression model discussed in Inacio de Carvalho and Rodriguez-Alvarez (2018).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AROC.bsp(formula.healthy, group, tag.healthy, data, scale = TRUE, 
+  p = seq(0, 1, l = 101), paauc = paauccontrol(),
+  compute.lpml = FALSE, compute.WAIC = FALSE, 
+  m0, S0, nu, Psi, a = 2, b = 0.5, nsim = 5000, nburn = 1500)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula.healthy</code></td>
+<td>
+<p>A <code>formula</code> object specifying the Bayesian normal linear regression model for the estimation of the conditional distribution function for the diagnostic test outcome in the healthy population (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>A character string with the name of the variable that distinguishes healthy from diseased individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tag.healthy</code></td>
+<td>
+<p>The value codifying the healthy individuals in the variable <code>group</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame representing the data and containing all needed variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A logical value. If TRUE the test outcomes are scaled, i.e., are divided by the standard deviation. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Set of false positive fractions (FPF) at which to estimate the covariate-adjusted ROC curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute.lpml</code></td>
+<td>
+<p>A logical value. If TRUE, the log pseudo marginal likelihood (LPML, Geisser and Eddy, 1979) and the conditional predictive ordinates (CPO) are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paauc</code></td>
+<td>
+<p>A list of control values to replace the default values returned by the function <code>paauccontrol</code>. This argument is used to indicate whether the partial area under the covariate-adjusted ROC curve (pAAUC) should be computed and at which FPF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute.WAIC</code></td>
+<td>
+<p>A logical value. If TRUE, the widely applicable information criterion (WAIC, Gelman et al., 2014; Watanabe, 2010) is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m0</code></td>
+<td>
+<p>A numeric vector.  Hyperparameter; mean vector of the (multivariate) normal distribution for the mean of the regression coefficients. If missing, it is set to a vector of zeros of length <code>p+1</code> (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S0</code></td>
+<td>
+<p>A numeric matrix. Hyperprior. If missing, it is set to a diagonal matrix of dimension <code>(p+1)</code>x<code>(p+1)</code> with 100 in the diagonal (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>A numeric value. Hyperparameter; degrees of freedom of the Wishart distribution for the precision matrix of the regression coefficients. If missing, it is set to <code>p + 3</code> (see Details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psi</code></td>
+<td>
+<p>A numeric matrix. Hyperparameter; scale matrix of the Wishart distribution for the precision matrix of the regression coefficients. If missing, it is set to an identity matrix of dimension <code>(p+1)</code>x<code>(p+1)</code> (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>A numeric value. Hyperparameter; shape parameter of the gamma distribution for the precision (inverse variance). The default is 2 (scaled data) (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>A numeric value. Hyperparameter; rate parameter of the gamma distribution for the precision (inverse variance). The default is 0.5 (scaled data) (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>A numeric value. Total number of Gibbs sampler iterates (including the burn-in). The default is 5000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nburn</code></td>
+<td>
+<p>A numeric value. Number of burn-in iterations. The default is 1500.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimates the covariate-adjusted ROC curve (AROC) defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AROC\left(t\right) = Pr\{1 - F_{\bar{D}}(Y_D | \mathbf{X}_{D}) \leq t\},</code>
+</p>
+
+<p>where <code class="reqn">F_{\bar{D}}(\cdot|\mathbf{X}_{\bar{D}})</code> denotes the conditional distribution function for <code class="reqn">Y_{\bar{D}}</code> conditional on the vector of covariates <code class="reqn">X_{\bar{D}}</code>. In particular, the method implemented in this function combines a Bayesian normal linear regression model to estimate <code class="reqn">F_{\bar{D}}(\cdot|\mathbf{X}_{\bar{D}})</code> and the Bayesian bootstrap (Rubin, 1981) to estimate the outside probability. More precisely, and letting <code class="reqn">\{(\mathbf{x}_{\bar{D}i},y_{\bar{D}i})\}_{i=1}^{n_{\bar{D}}}</code> be a random sample from the nondiseased population
+</p>
+<p style="text-align: center;"><code class="reqn">F_{\bar{D}}(y_{\bar{D}i}|\mathbf{X}_{\bar{D}}=\mathbf{x}_{\bar{D}i}) = \Phi(y_{\bar{D}i}\mid \mathbf{x}_{\bar{D}i}^{*T}\mathbf{\beta}^{*},\sigma^2),</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{x}_{\bar{D}i}^{*T} = (1, \mathbf{x}_{\bar{D}i}^{T})</code>, <code class="reqn">\mathbf{\beta}^{*}\sim N_{p+1} (\mathbf{m},\mathbf{S})</code> and <code class="reqn">\sigma^{-2}\sim\Gamma(a,b)</code>. It is assumed that <code class="reqn">\mathbf{m} \sim N_{p+1}(\mathbf{m}_0,\mathbf{S}_0)</code> and <code class="reqn">\mathbf{S}^{-1}\sim W(\nu,(\nu\Psi)^{-1})</code>, where <code class="reqn">p+1</code> denotes the number of columns of the design matrix <code class="reqn">\mathbf{X}_{\bar{D}}^{*}</code>. Here <code class="reqn">W(\nu,(\nu\Psi)^{-1})</code> denotes a Wishart distribution with <code class="reqn">\nu</code> degrees of freedom and expectation <code class="reqn">\Psi^{-1}</code>. For a detailed description, we refer to Inacio de Carvalho and Rodriguez-Alvarez (2018). 
+</p>
+
+
+<h3>Value</h3>
+
+<p>As a result, the function provides a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Set of false positive fractions (FPF) at which the pooled ROC curve has been estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROC</code></td>
+<td>
+<p>Estimated covariate-adjusted ROC curve (AROC) (posterior mean), and 95% pointwise posterior credible band.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AUC</code></td>
+<td>
+<p>Estimated area under the covariate-adjusted ROC curve (AAUC) (posterior mean), and 95% pointwise posterior credible band.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pAUC</code></td>
+<td>
+<p>If required in the call to the function, estimated partial area under the covariate-adjusted ROC curve (pAAUC) (posterior mean), and 95% pointwise posterior credible band.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpml</code></td>
+<td>
+<p>If required, list with two components: the log pseudo marginal likelihood (LPML) and the conditional predictive ordinates (CPO).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WAIC</code></td>
+<td>
+<p>If required, widely applicable information criterion (WAIC).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Results of the fitting process. It is a list with the following components: (1) <code>mm</code>: information needed to construct the model matrix associated with the B-splines dependent Dirichlet process mixture model. (2) <code>beta</code>: matrix of dimension <code>N</code>x<code>p+1</code> with the sampled regression coefficients. Here, <code>N</code> is the number of Gibbs sampler iterates after burn-in, and <code>p+1</code> the number of columns of the design matrix (see also Details). (3) <code>sd</code>: vector of length <code>N</code> with the sampled variances (see also Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_model</code></td>
+<td>
+<p>List with the data used in the fit: observed diagnostic test outcome and B-spline design matrices, separately for the healthy and diseased groups.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Inacio de Carvalho, V., and Rodriguez-Alvarez, M. X. (2018). Bayesian nonparametric inference for the covariate-adjusted ROC curve. arXiv preprint arXiv:1806.00473.
+</p>
+<p>Rubin, D. B. (1981). The Bayesian bootstrap. The Annals of Statistics, 9(1), 130-134.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AROC.bnp</code>, <code>AROC.bsp</code>, <code>AROC.sp</code>, <code>AROC.kernel</code>, <code>pooledROC.BB</code> or <code>pooledROC.emp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AROC)
+data(psa)
+# Select the last measurement
+newpsa &lt;- psa[!duplicated(psa$id, fromLast = TRUE),]
+
+# Log-transform the biomarker
+newpsa$l_marker1 &lt;- log(newpsa$marker1)
+
+m1 &lt;- AROC.bsp(formula.healthy = l_marker1 ~ age,
+group = "status", tag.healthy = 0, data = newpsa, scale = TRUE,
+p = seq(0,1,l=101), compute.lpml = TRUE, compute.WAIC = TRUE,
+a = 2, b = 0.5, nsim = 5000, nburn = 1500)
+
+summary(m1)
+
+plot(m1)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CBA_ruleset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Constructor for Objects for Classifiers Based on Association Rules</h2>
+
+<h3>Description</h3>
+
+<p>Objects for classifiers based on association rules have class <code>CBA</code>.
+A creator function <code>CBA_ruleset()</code> and several methods are provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CBA_ruleset(
+  formula,
+  rules,
+  default,
+  method = "first",
+  weights = NULL,
+  bias = NULL,
+  model = NULL,
+  discretization = NULL,
+  description = "Custom rule set",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A symbolic description of the model to be fitted. Has to be
+of form <code>class ~ .</code>. The class is the variable name (part of the item
+label before <code>=</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>A set of class association rules mined with <code>mineCARs()</code> or
+<code>arules::apriori()</code> (from <span class="pkg">arules</span>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default</code></td>
+<td>
+<p>Default class. If not specified then objects that are
+not matched by rules are classified as <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Classification method <code>"first"</code> found rule or <code>"majority"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Rule weights for the majority voting method. Either a quality measure
+available in the classification rule set or a numeric vector of the same length are
+the classification rule set can be specified. If missing, then equal weights are used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias</code></td>
+<td>
+<p>Class bias vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>An optional list with model information (e.g., parameters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discretization</code></td>
+<td>
+<p>A list with discretization information used by <code>predict()</code> to discretize data
+supplied as a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Description field used when the classifier is printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments added as list elements to the CBA object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>CBA_ruleset()</code> creates a new object of class <code>CBA</code> using the
+provides rules as the rule base.  For method <code>"first"</code>, the user needs
+to make sure that the rules are predictive and sorted from most to least
+predictive.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A object of class <code>CBA</code> representing the trained classifier with fields:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>used formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>the classifier rule base.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default</code></td>
+<td>
+<p>default class label (uses partial matching against the class labels).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>classification method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>rule weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias</code></td>
+<td>
+<p>class bias vector if available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>list with model description.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discretization</code></td>
+<td>
+<p>discretization information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>description in human readable form.</p>
+</td>
+</tr>
+</table>
+<p><code>rules</code> returns the rule base.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mineCARs()</code>
+</p>
+<p>Other classifiers: 
+<code>CBA()</code>,
+<code>CBA_helpers</code>,
+<code>FOIL()</code>,
+<code>LUCS_KDD_CBA</code>,
+<code>RCAR()</code>,
+<code>RWeka_CBA</code>
+</p>
+<p>Other preparation: 
+<code>discretizeDF.supervised()</code>,
+<code>mineCARs()</code>,
+<code>prepareTransactions()</code>,
+<code>transactions2DF()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: create a first-matching-rule classifier with non-redundant rules
+##  sorted by confidence.
+data("iris")
+
+# discretize and create transactions
+iris.disc &lt;- discretizeDF.supervised(Species ~., iris)
+trans &lt;- as(iris.disc, "transactions")
+
+# create rule base with CARs
+cars &lt;- mineCARs(Species ~ ., trans, parameter = list(support = .01, confidence = .8))
+
+cars &lt;- cars[!is.redundant(cars)]
+cars &lt;- sort(cars, by = "conf")
+
+# create classifier and use the majority class as the default if no rule matches.
+cl &lt;- CBA_ruleset(Species ~ .,
+  rules = cars,
+  default = uncoveredMajorityClass(Species ~ ., trans, cars),
+  method = "first")
+cl
+
+# look at the rule base
+inspect(cl$rules)
+
+# make predictions
+prediction &lt;- predict(cl, trans)
+table(prediction, response(Species ~ ., trans))
+accuracy(prediction, response(Species ~ ., trans))
+
+# Example 2: use weighted majority voting.
+cl &lt;- CBA_ruleset(Species ~ .,
+  rules = cars,
+  default = uncoveredMajorityClass(Species ~ ., trans, cars),
+  method = "majority", weights = "lift")
+cl
+
+prediction &lt;- predict(cl, trans)
+table(prediction, response(Species ~ ., trans))
+accuracy(prediction, response(Species ~ ., trans))
+
+## Example 3: Create a classifier with no rules that always predicts
+##  the majority class. Note, we need cars for the structure and subset it
+##  to leave no rules.
+cl &lt;- CBA_ruleset(Species ~ .,
+  rules = cars[NULL],
+  default = majorityClass(Species ~ ., trans))
+cl
+
+prediction &lt;- predict(cl, trans)
+table(prediction, response(Species ~ ., trans))
+accuracy(prediction, response(Species ~ ., trans))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_rroc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regression Receiver Operating Characteristic (RROC)</h2>
+
+<h3>Description</h3>
+
+<p>The basic idea of the ROC curves for regression is to show model asymmetry.
+The RROC is a plot where on the x-axis we depict total over-estimation and on the y-axis total
+under-estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_rroc(object, ...)
+
+plotRROC(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object of class <code>auditor_model_residual</code> created with <code>model_residual</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other <code>auditor_model_residual</code> objects to be plotted together.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For RROC curves we use a shift, which is an equivalent to the threshold for ROC curves.
+For each observation we calculate new prediction: <code class="reqn">\hat{y}'=\hat{y}+s</code> where s is the shift.
+Therefore, there are different error values for each shift: <code class="reqn">e_i = \hat{y_i}' - y_i</code>
+</p>
+<p>Over-estimation is calculated as: <code class="reqn">OVER= \sum(e_i|e_i&gt;0)</code>.
+</p>
+<p>Under-estimation is calculated as: <code class="reqn">UNDER = \sum(e_i|e_i&lt;0)</code>.
+</p>
+<p>The shift equals 0 is represented by a dot.
+</p>
+<p>The Area Over the RROC Curve (AOC) equals to the variance of the errors multiplied by <code class="reqn">frac{n^2}{2}</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot object.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hernández-Orallo, José. 2013. "ROC Curves for Regression". Pattern Recognition 46 (12): 3395–3411.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code> plot_roc, plot_rec</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dragons &lt;- DALEX::dragons[1:100, ]
+
+# fit a model
+model_lm &lt;- lm(life_length ~ ., data = dragons)
+
+lm_audit &lt;- audit(model_lm, data = dragons, y = dragons$life_length)
+
+# validate a model with auditor
+mr_lm &lt;- model_residual(lm_audit)
+
+# plot results
+plot_rroc(mr_lm)
+plot(mr_lm, type = "rroc")
+
+library(randomForest)
+model_rf &lt;- randomForest(life_length~., data = dragons)
+rf_audit &lt;- audit(model_rf, data = dragons, y = dragons$life_length)
+mr_rf &lt;- model_residual(rf_audit)
+plot_rroc(mr_lm, mr_rf)
+plot(mr_lm, mr_rf, type="rroc")
+
+</code></pre>
+
+
+</div>

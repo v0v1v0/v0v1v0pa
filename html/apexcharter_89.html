@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>set_input_export</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve chart's base64 dataURI.</h2>
+
+<h3>Description</h3>
+
+<p>Retrieve chart's base64 dataURI.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">set_input_export(ax, inputId, session = shiny::getDefaultReactiveDomain())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ax</code></td>
+<td>
+<p>An <code>apexchart()</code> <code>htmlwidget</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputId</code></td>
+<td>
+<p>The id that will be used server-side for retrieving data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session</code></td>
+<td>
+<p>The Shiny session.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>apexchart()</code> <code>htmlwidget</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(shiny)
+library(apexcharter)
+
+ui &lt;- fluidPage(
+  fluidRow(
+    column(
+      width = 8, offset = 2,
+      tags$h2("Export PNG"),
+      actionButton("redraw", "Redraw chart"),
+      apexchartOutput("chart"),
+      verbatimTextOutput("result"),
+      uiOutput(outputId = "image")
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  
+  output$chart &lt;- renderApexchart({
+    input$redraw
+    apexchart() %&gt;%
+      ax_chart(type = "bar") %&gt;%
+      ax_series(
+        list(
+          name = "Example",
+          data = sample(1:100, 5)
+        )
+      ) %&gt;%
+      ax_xaxis(
+        categories = LETTERS[1:5]
+      ) %&gt;% 
+      set_input_export("export")
+  })
+  
+  output$result &lt;- renderPrint({
+    input$export
+  })
+
+  output$image &lt;- renderUI({
+    tags$img(src = input$export)
+  })
+  
+}
+
+if (interactive())
+  shinyApp(ui, server)
+
+</code></pre>
+
+
+</div>

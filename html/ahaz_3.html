@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahaz.partial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partial calculation of estimating quantities used by ahaz</h2>
+
+<h3>Description</h3>
+
+<p>Partial calculation of the quantities used in the estimating equations for
+ahaz.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahaz.partial(surv, X, weights, idx)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censored
+and counting process format (left-truncation) is supported. Tied
+survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1
+for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>Vector of indices of covariates to use in the calculations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function is intended mainly for <strong>programming use</strong> when a
+very large number of covariates are considered and direct application of
+<code>ahaz</code> is unfeasible.
+</p>
+<p>The estimating equations for the semiparametric additive hazards model
+are of the form <code class="reqn">D\beta=d</code> with <code class="reqn">D</code> a quadratic matrix with
+number of columns equal to the number of covariates. The present
+function returns <code>d[idx]</code>, <code>D[idx,]</code>, and <code>B[idx,]</code>;
+the latter a matrix such that <code class="reqn">D^{-1} B
+  D^{-1}</code> estimates the
+covariance matrix of the regression coefficients.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idx</code></td>
+<td>
+<p>A copy of the argument <code>idx</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>Number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvars</code></td>
+<td>
+<p>Number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Vector of length <code>length(idx)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Matrix of size <code>length(idx) x nvars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Matrix of size <code>length(idx) x nvars</code>.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>ahaz</code>, <code>ahaz.adjust</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Get D for the first 10 covariates only
+a&lt;-ahaz.partial(surv,X,idx=1:10)
+pD1 &lt;- a$D
+
+# Equivalent to the (slower) solution
+b &lt;- ahaz(surv,X)
+pD2 &lt;- b$D[1:10,]
+max(abs(pD1-pD2))
+
+</code></pre>
+
+
+</div>

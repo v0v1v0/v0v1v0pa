@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SV.mcmc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Bayesian Stochastic Volatility Model
+</h2>
+
+<h3>Description</h3>
+
+<p>Fits a stochastic volatility model to a univariate time series of returns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SV.mcmc(y, nmcmc = 1000, burnin = 100, init = NULL, hyper = NULL, tuning = NULL, 
+         sigma_MH = NULL, npart = NULL, mcmseed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>single time series of returns
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmcmc</code></td>
+<td>
+
+<p>number of iterations for the MCMC procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+
+<p>number of iterations to discard for the MCMC procedure
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+<p>initial values of (phi, sigma, beta) -  default is <code>c(0.9, 0.5, .1)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hyper</code></td>
+<td>
+
+<p>hyperparameters for bivariate normal distribution of (phi, sigma); user inputs (mu_phi, mu_q, sigma_phi, sigma_q, rho) - 
+default is <code>c(0.9, 0.5, 0.075, 0.3, -0.25)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuning</code></td>
+<td>
+
+<p>tuning parameter -  default is <code>.03</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma_MH</code></td>
+<td>
+
+<p>covariance matrix used for random walk Metropolis; it will be scaled by <code>tuning</code> in the script - default is 
+<code>matrix(c(1,-.25,-.25,1), nrow=2, ncol=2)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npart</code></td>
+<td>
+
+<p>number of particles used in particle filter - default is <code>10</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcmseed</code></td>
+<td>
+
+<p>seed for mcmc - default is <code>90210</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The log-volatility process is <code class="reqn">x_t</code> and the returns are <code class="reqn">y_t</code>. The SV model is
+</p>
+<p style="text-align: center;"><code class="reqn">x_t = \phi x_{t-1} + \sigma w_t \qquad y_t = \beta \exp\{\frac{1}{2} x_t\}\epsilon_t</code>
+</p>
+
+<p>where <code class="reqn">w_t</code> and <code class="reqn">\epsilon_t</code> are independent standard normal white noise.
+</p>
+<p>The model is fit using a technique described in the paper listed below (in the Source section) where the state
+parameters <code class="reqn">(\phi, \sigma)</code> are sampled simultaneously with a bivariate normal prior specified
+in the arguments <code>init</code> and <code>hyper</code>.
+</p>
+<p>Two graphics are returned: (1) the three parameter traces with the posterior mean highlighted,
+their ACFs [with effective sample sizes (ESS)], and their histograms with the .025, .5, and .975 quantiles displayed, 
+and (2) the log-volatility posterior mean along with corresponding .95 credible intervals.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returned invisibly:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>phi </code></td>
+<td>
+<p>vector of sampled state AR parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma </code></td>
+<td>
+<p>vector of sampled state error stnd deviation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta </code></td>
+<td>
+<p>vector of sampled observation error scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.vol </code></td>
+<td>
+<p>matrix of sampled log-volatility</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options </code></td>
+<td>
+<p>values of the input arguments</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Except for the data, all the other inputs have defaults.  The time to run and the acceptance rate are returned at the end of the analysis.  The acceptance rate should be around 30% and this is easily adjusted using the tuning parameter.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.S. Stoffer
+</p>
+
+
+<h3>Source</h3>
+
+<p>Gong &amp; Stoffer (2021). A note on efficient fitting of stochastic volatility models. <em>Journal of Time Series Analysis</em>, 42(2), 186-200.  <a href="https://github.com/nickpoison/Stochastic-Volatility-Models">https://github.com/nickpoison/Stochastic-Volatility-Models</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>You can find demonstrations of  astsa capabilities at 
+<a href="https://github.com/nickpoison/astsa/blob/master/fun_with_astsa/fun_with_astsa.md">FUN WITH ASTSA</a>.
+</p>
+<p>The most recent version of the package can be found  at <a href="https://github.com/nickpoison/astsa/">https://github.com/nickpoison/astsa/</a>.
+</p>
+<p>In addition, the News and ChangeLog files are at  <a href="https://github.com/nickpoison/astsa/blob/master/NEWS.md">https://github.com/nickpoison/astsa/blob/master/NEWS.md</a>.
+</p>
+<p>The webpages for the texts and some help on using R for time series analysis can be found at
+<a href="https://nickpoison.github.io/">https://nickpoison.github.io/</a>. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SV.mle</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#--   A minimal example  --##
+myrun &lt;- SV.mcmc(sp500w)   # results in object myrun - don't forget it 
+
+str(myrun)                 # an easy way to see the default input options
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,403 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monmonier</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Boundary detection using Monmonier algorithm</h2>
+
+<h3>Description</h3>
+
+<p>The Monmonier's algorithm detects boundaries among vertices of a
+valuated graph. This is achieved by finding the path
+exhibiting the largest distances between connected vertices.<br></p>
+<p>The highest distance between two connected vertices (i.e. neighbours) is
+found, giving the starting point of the path. Then, the algorithm
+seeks the highest distance between immediate neighbours, and so on
+until a threshold value is attained.
+This threshold can be chosen from the plot of sorted distances between
+connected vertices: a boundary will likely result in an abrupt decrease
+of these values.<br></p>
+<p>When several paths are looked for, the previous paths are taken into
+account, and cannot be either crossed or redrawn. Monmonier's
+algorithm can be used to assess the boundaries between patches of
+homogeneous observations.<br></p>
+<p>Although Monmonier algorithm was initially designed for Voronoi
+tesselation, this implementation generalizes this algorithm to different
+connection networks. The <code>optimize.monmonier</code> function produces a
+<code>monmonier</code> object by trying several starting points, and
+returning the best boundary (i.e. largest sum of local distances). This
+is designed to avoid the algorithm to be trapped by a single strong
+local difference inside an homogeneous patch.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monmonier(xy, dist, cn, threshold=NULL, bd.length=NULL, nrun=1,
+skip.local.diff=rep(0,nrun),scanthres=is.null(threshold), allowLoop=TRUE)
+
+optimize.monmonier(xy, dist, cn, ntry=10, bd.length=NULL, return.best=TRUE,
+display.graph=TRUE, threshold=NULL, scanthres=is.null(threshold), allowLoop=TRUE)
+
+## S3 method for class 'monmonier'
+plot(x, variable=NULL,
+displayed.runs=1:x$nrun, add.arrows=TRUE,
+col='blue', lty=1, bwd=4, clegend=1, csize=0.7,
+method=c('squaresize','greylevel'), sub='', csub=1, possub='topleft',
+cneig=1, pixmap=NULL, contour=NULL, area=NULL, add.plot=FALSE, ...)
+
+## S3 method for class 'monmonier'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>a matrix yielding the spatial coordinates of the objects, with two columns respectively giving X and Y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>an object of class <code>dist</code>, giving the distances between the objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cn</code></td>
+<td>
+<p>a connection network of class <code>nb</code> (package <code>spdep</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>a number giving the minimal distance between two
+neighbours crossed by the path; by default, this is the third quartile of all the distances between neighbours</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bd.length</code></td>
+<td>
+<p>an optional integer giving the requested length of
+the boundaries (in number of local differences)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrun</code></td>
+<td>
+<p>is a integer giving the number of runs of the algorithm, that is, the number of paths to search, being one by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip.local.diff</code></td>
+<td>
+<p>is a vector of integers, whose length is the number of paths (<code>nrun</code>); each integer gives the number of starting point to skip, to avoid being stuck in a local difference between two neighbours into an homogeneous patch; none are skipped by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scanthres</code></td>
+<td>
+<p>a logical stating whether the threshold sould be
+chosen from the barplot of sorted distances between neighbours</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allowLoop</code></td>
+<td>
+<p>a logical specifying whether the boundary can loop
+(TRUE, default) or not (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntry</code></td>
+<td>
+<p>an integer giving the number of different starting points
+tried.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.best</code></td>
+<td>
+<p>a logical stating whether the best monmonier object
+should be returned (TRUE, default) or not (FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>display.graph</code></td>
+<td>
+<p>a logical whether the scores of each try should
+be plotted (TRUE, default) or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a monmonier object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>a variable to be plotted using <code>s.value</code> (package
+<code>ade4</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>displayed.runs</code></td>
+<td>
+<p>an integer vector giving the rank of the paths to represent</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.arrows</code></td>
+<td>
+<p>a logical, stating whether arrows should indicate the direction of the path (TRUE) or not (FALSE, used by default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>a characters vector giving the colors to be used for each boundary; recycled is needed; 'blue' is used by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lty</code></td>
+<td>
+<p>a characters vector giving the type of line to be used for each boundary; 1 is used by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bwd</code></td>
+<td>
+<p>a number giving the boundary width factor, applying to every segments of the paths; 4 is used by default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clegend</code></td>
+<td>
+<p>like in <code>s.value</code>, the size factor of the legend if a variable is represented</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csize</code></td>
+<td>
+<p>like in <code>s.value</code>, the size factor of the squares used to represent a variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>like in <code>s.value</code>, a character giving the method to be used to represent the variable, either 'squaresize' (by default) or 'greylevel'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>a string of characters giving the subtitle of the plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csub</code></td>
+<td>
+<p>the size factor of the subtitle</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>possub</code></td>
+<td>
+<p>the position of the subtitle; available choices are 'topleft' (by default), 'topright', 'bottomleft', and 'bottomright'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cneig</code></td>
+<td>
+<p>the size factor of the connection network</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pixmap</code></td>
+<td>
+<p>an object of the class <code>pixmap</code> displayed in the map background</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contour</code></td>
+<td>
+<p> a data frame with 4 columns to plot the contour of the map: each row gives a segment (x1,y1,x2,y2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>a data frame of class 'area' to plot a set of surface units in contour</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.plot</code></td>
+<td>
+<p>a logical stating whether the plot should be added to the current one (TRUE), or displayed in a new window (FALSE, by default)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to other methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>monmonier</code> returns a list of the class <code>monmonier</code>, which contains the general informations about the algorithm, and about each run.
+When displayed, the width of the boundaries reflects their 'strength'.
+Let a segment MN be part of the path, M being the middle of AB, N of CD.
+Then the boundary width for MN is proportionnal to (d(AB)+d(CD))/2.<br></p>
+<p>As there is no perfect method to display graphically a quantitative
+variable (see for instance the differences between the two methods of
+<code>s.value</code>), the boundaries provided by this algorithm seem
+sometimes more reliable than the boundaries our eyes perceive (or miss).<br></p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>monmonier</code>, which contains the following elements :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>run1 (run2, ...)</code></td>
+<td>
+<p>for each run, a list containing a dataframe giving the path coordinates, and a vector of the distances between neighbours of the path</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrun</code></td>
+<td>
+<p>the number of runs performed, i.e. the number of boundaries in the monmonier object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>the threshold value, minimal distance between
+neighbours accounted for by the algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>the matrix of spatial coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cn</code></td>
+<td>
+<p>the connection network of class <code>nb</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the call of the function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a></p>
+
+
+<h3>References</h3>
+
+<p>Monmonier, M. (1973) Maximum-difference barriers: an alternative numerical regionalization method. <em>Geographic Analysis</em>, <b>3</b>, 245–261.
+</p>
+<p>Manni, F., Guerard, E. and Heyer, E. (2004) Geographic patterns of (genetic, morphologic, linguistic) variation: how barriers can be detected by "Monmonier's algorithm". <em>Human Biology</em>, <b>76</b>, 173–190
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spca</code>,<code>edit.nb</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require(spdep)){
+
+### non-interactive example
+
+# est-west separation
+load(system.file("files/mondata1.rda",package="adegenet"))
+cn1 &lt;- chooseCN(mondata1$xy,type=2,ask=FALSE)
+mon1 &lt;- monmonier(mondata1$xy,dist(mondata1$x1),cn1,threshold=2)
+plot(mon1,mondata1$x1)
+plot(mon1,mondata1$x1,met="greylevel",add.arr=FALSE,col="red",bwd=6,lty=2)
+
+# square in the middle
+load(system.file("files/mondata2.rda",package="adegenet"))
+cn2 &lt;- chooseCN(mondata2$xy,type=1,ask=FALSE)
+mon2 &lt;- monmonier(mondata2$xy,dist(mondata2$x2),cn2,threshold=2)
+plot(mon2,mondata2$x2,method="greylevel",add.arr=FALSE,bwd=6,col="red",csize=.5)
+
+### genetic data example
+## Not run: 
+data(sim2pop)
+
+if(require(hierfstat)){
+## try and find the Fst
+fstat(sim2pop,fst=TRUE)
+# Fst = 0.038
+}
+
+## run monmonier algorithm
+
+# build connection network
+gab &lt;- chooseCN(sim2pop@other$xy,ask=FALSE,type=2)
+
+# filter random noise 
+pca1 &lt;- dudi.pca(sim2pop@tab,scale=FALSE, scannf=FALSE, nf=1)
+
+# run the algorithm
+mon1 &lt;- monmonier(sim2pop@other$xy,dist(pca1$l1[,1]),gab,scanthres=FALSE)
+
+# graphical display 
+plot(mon1,var=pca1$l1[,1])
+temp &lt;- sim2pop@pop
+levels(temp) &lt;- c(17,19)
+temp &lt;- as.numeric(as.character(temp))
+plot(mon1)
+points(sim2pop@other$xy,pch=temp,cex=2)
+legend("topright",leg=c("Pop A", "Pop B"),pch=c(17,19))
+
+
+### interactive example
+
+# north-south separation
+xy &lt;- matrix(runif(120,0,10), ncol=2)
+x1 &lt;- rnorm(60)
+x1[xy[,2] &gt; 5] &lt;- x1[xy[,2] &gt; 5]+3
+cn1 &lt;- chooseCN(xy,type=1,ask=FALSE)
+mon1 &lt;- optimize.monmonier(xy,dist(x1)^2,cn1,ntry=10)
+
+# graphics
+plot(mon1,x1,met="greylevel",csize=.6)
+
+# island in the middle
+x2 &lt;- rnorm(60)
+sel &lt;- (xy[,1]&gt;3.5 &amp; xy[,2]&gt;3.5 &amp; xy[,1]&lt;6.5 &amp; xy[,2]&lt;6.5)
+x2[sel] &lt;- x2[sel]+4
+cn2 &lt;- chooseCN(xy,type=1,ask=FALSE)
+mon2 &lt;- optimize.monmonier(xy,dist(x2)^2,cn2,ntry=10)
+
+# graphics
+plot(mon2,x2,method="greylevel",add.arr=FALSE,bwd=6,col="red",csize=.5)
+
+## End(Not run)
+}
+</code></pre>
+
+
+</div>

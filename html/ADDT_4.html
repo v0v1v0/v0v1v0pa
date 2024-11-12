@@ -1,0 +1,251 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addt.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+ADDT Model Fitting
+</h2>
+
+<h3>Description</h3>
+
+<p>Fits degradation data using the least-squares, maximum likelihood, and semiparametric methods and estimates the thermal indices (TI).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addt.fit(formula, data, initial.val = 100, proc = "All",
+    failure.threshold, time.rti = 1e+05, method = "Nelder-Mead",
+    subset, na.action, starts = NULL, fail.thres.vec = c(70, 80),
+    semi.control = list(cor = F,...),...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>A formula of type <em>Response~Time+Temperature</em>. The order of <em>Time</em> and <em>Temperature</em> cannot be changed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data frame contains the ADDT data to be analyzed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.val</code></td>
+<td>
+
+<p>We need response measurements at time point 0 to compute the initial degradation level in the model. If the data does not contain that information, user must supply the initial.value. Otherwise, the function will give an error message.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proc</code></td>
+<td>
+
+<p>The type of analysis to be performed which can be "LS" (least squares), "ML" (maximum likelihood), "SemiPara" (semiparametric), or "All" (the least-squares, maximum likelihood and semiparametric methods).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>failure.threshold</code></td>
+<td>
+
+<p>The value below which a soft failure occurs. Must be in the form of a percent of the initial value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.rti</code></td>
+<td>
+
+<p>The time associated with the thermal index (TI) or relative thermal index (RTI). Typically 100,000 hours.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>An argument passed to optim specifying the optimization procedure. Default is <code>Nelder-Mead</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>An optional statement that allows the use of only part of the dataset.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>Indicates the action required when data contain missing values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starts</code></td>
+<td>
+
+<p>A vector of starting values for the maximum likelihood procedure.
+See <code>fail.thres.vec</code> for alternative.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fail.thres.vec</code></td>
+<td>
+
+<p>If the user does not specify <em>“starts”</em> argument, the user may specify a vector of two different <em>failure.thresholds</em>. The least-squares procedure is then used for the two different <em>failure.thresholds</em> to produce starting values for the maximum likelihood procedure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>semi.control</code></td>
+<td>
+<p><em>list=(cor=F,...)</em>, control parameters related to the semiparametric method. If not specified, default is no correlation. When <em>cor = T</em> in the list is specified, model assumes a correlation term.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A thermal index (TI) or relative thermal index (RTI) is often used to evaluate long-term performance of polymeric materials. Accelerated destructive degradation testing (ADDT) is widely used to calculate the TI of certain polymeric materials.
+</p>
+<p>The dataset considered in addt.fit function contain repeated measurements of a response, say tensile strength, at some combinations of time and temperature.
+</p>
+<p>The least squares procedure aggregates data into the average of measurements at each combination of time and temperature. Then, polynominal regression is used to interpolate the failure time for each combination. A least squares line is fitted to the failure time data and the TI is then obtained by
+</p>
+<p style="text-align: center;"><code class="reqn">TI=\frac{beta1}{log10(time.rti)-beta0}-273.16.</code>
+</p>
+<p> It is important to note that observations are required after failure in order for this procedure to be successful.
+</p>
+<p>The maximum likelihood procedure assumes a degradation path dependent on time and temperature. An example of a parametric form for this path can be found in Vaca-Trigo and Meeker (2009) and is the form currently used here. The error term is assumed to follow a multivariate normal distribution. A TI can be directly estimated from the parameter estimates for the degradation path. The <code>addt.fit</code> function will be generalized to allow other parametric forms of the mean function, and/or other non-Guassian distribution in later versions.
+</p>
+<p>The semiparametric model assembles both parametric model like Arrhenius model for degradation variable extrapolation as well as non-parametric model in order to be more compatible for various materials.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "addt.fit", which is a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>LS.obj</code></td>
+<td>
+<p>If least-squares approach is used, a LS.obj will returned. It contains estimates of coefficients in the TI formula, estimated TI, a matrix contains the failure time by polynomial interpolation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ML.obj</code></td>
+<td>
+<p>A ML.obj object is returned if maximum likelihood approach is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SemiPara.obj</code></td>
+<td>
+<p>A SemiPara.obj is returned if SemiPara approach is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>The data set used in least square/maximum likelihood approaches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.rti</code></td>
+<td>
+<p>An argument stored to be used for functions related to "addt.fit" object. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.val</code></td>
+<td>
+<p>An argument stored to be used for functions related to "addt.fit" object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>failure.threshold</code></td>
+<td>
+<p>An argument stored to be used for functions related to "addt.fit" object.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Y. Hong, C. B. King, Y. Xie, J. H. Van Mullekom, S. P. Dehart, and P. A. DeFeo (2014). “A Comparison of Least Squares and Maximum Likelihood Approaches to Estimating Thermal Indices for Polymeric Materials,”  Journal of Quality Technology, in press, 2016.
+</p>
+<p>I. Vaca-Trigoand, W. Q. Meeker, “A statistical model for linking field and laboratory exposure results for a model coating,” in Service Life Prediction of Polymeric Materials, J. Martin, R. A. Ryntz, J. Chin, and R. A. Dickie, Eds. NY: New York: Springer, 2009, ch. 2.
+</p>
+<p>Y. Xie, C. B. King, Y. Hong, and Q. Yang, “Semi-parametric models for accelerated destructive
+degradation test data analysis,” Preprint: arXiv:1512.03036, 2015.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>plot.addt.fit, summary.addt.fit
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(AdhesiveBondB)
+
+## Least Squares
+addt.fit.lsa&lt;-addt.fit(Response~TimeH+TempC,data=AdhesiveBondB,proc="LS",
+failure.threshold=70)
+
+## Maximum Likelihood
+addt.fit.mla&lt;-addt.fit(Response~TimeH+TempC,data=AdhesiveBondB,proc="ML",
+failure.threshold=70)
+
+## Semiparametric
+## Not run: addt.fit.semi&lt;-addt.fit(Response~TimeH+TempC,data=AdhesiveBondB,proc="SemiPara",
+failure.threshold=70)
+## End(Not run)
+
+## All LS, ML and Semi-Parametric procedures
+## Not run: addt.fit.all&lt;-addt.fit(Response~TimeH+TempC,data=AdhesiveBondB,proc="All",
+failure.threshold=70)
+## End(Not run)
+
+summary(addt.fit.lsa)
+summary(addt.fit.mla)
+## Not run: summary(addt.fit.semi)
+## Not run: summary(addt.fit.all)
+
+## Not run: plot(addt.fit.all, type="data")
+## Not run: plot(addt.fit.all, type="LS")
+## Not run: plot(addt.fit.all, type="ML")
+## Not run: plot(addt.fit.semi, type="SEMI")
+
+## Not run: addt.confint.ti.mle(addt.fit.mla,conflevel=0.95)
+</code></pre>
+
+
+</div>

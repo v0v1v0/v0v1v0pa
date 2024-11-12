@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>assert_symbol</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Is an Argument a Symbol?</h2>
+
+<h3>Description</h3>
+
+<p>Checks if an argument is a symbol
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">assert_symbol(
+  arg,
+  optional = FALSE,
+  arg_name = gsub("^enexpr\\((.*)\\)$", "\\1", rlang::caller_arg(arg)),
+  message = NULL,
+  class = "assert_symbol",
+  call = parent.frame()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>arg</code></td>
+<td>
+<p>A function argument to be checked. Must be a <code>symbol</code>. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optional</code></td>
+<td>
+<p>Is the checked argument optional? If set to <code>FALSE</code> and <code>arg</code>
+is <code>NULL</code> then an error is thrown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arg_name</code></td>
+<td>
+<p>By default the expression specified for <code>arg</code> is used. If it is
+of the form <code style="white-space: pre;">⁠enexpr(&lt;argument name&gt;)⁠</code>, the <code>enexpr()</code> part is removed. For example
+if <code>arg = enexpr(filter_add)</code> is specified, <code>arg_name</code> defaults to <code>"filter_add"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>string passed to <code>cli::cli_abort(message)</code>.
+When <code>NULL</code>, default messaging is used (see examples for default messages).
+<code>"{arg_name}"</code> can be used in messaging.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>Subclass of the condition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The execution environment of a currently running
+function, e.g. <code>call = caller_env()</code>. The corresponding function
+call is retrieved and mentioned in error messages as the source
+of the error.
+</p>
+<p>You only need to supply <code>call</code> when throwing a condition from a
+helper function which wouldn't be relevant to mention in the
+message.
+</p>
+<p>Can also be <code>NULL</code> or a defused function call to
+respectively not display any call or hard-code a code to display.
+</p>
+<p>For more information about error calls, see Including function calls in error messages.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function throws an error if <code>arg</code> is not a symbol and returns the input
+invisibly otherwise.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Checks for valid input and returns warning or errors messages: 
+<code>assert_atomic_vector()</code>,
+<code>assert_character_scalar()</code>,
+<code>assert_character_vector()</code>,
+<code>assert_data_frame()</code>,
+<code>assert_date_vector()</code>,
+<code>assert_expr()</code>,
+<code>assert_expr_list()</code>,
+<code>assert_filter_cond()</code>,
+<code>assert_function()</code>,
+<code>assert_integer_scalar()</code>,
+<code>assert_list_element()</code>,
+<code>assert_list_of()</code>,
+<code>assert_logical_scalar()</code>,
+<code>assert_named()</code>,
+<code>assert_numeric_vector()</code>,
+<code>assert_one_to_one()</code>,
+<code>assert_param_does_not_exist()</code>,
+<code>assert_s3_class()</code>,
+<code>assert_same_type()</code>,
+<code>assert_unit()</code>,
+<code>assert_vars()</code>,
+<code>assert_varval_list()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+library(rlang)
+dm &lt;- dplyr::tribble(
+  ~DOMAIN,      ~USUBJID,
+  "DM",    "01-701-1015",
+  "DM",    "01-701-1016",
+)
+example_fun &lt;- function(dat, var) {
+  var &lt;- assert_symbol(enexpr(var))
+  select(dat, !!var)
+}
+
+example_fun(dm, USUBJID)
+
+try(example_fun(dm))
+
+try(example_fun(dm, "USUBJID"))
+
+try(example_fun(dm, toupper(PARAMCD)))
+</code></pre>
+
+
+</div>

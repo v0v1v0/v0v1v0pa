@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_dy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Relative Day Variables</h2>
+
+<h3>Description</h3>
+
+<p>Adds relative day variables (<code>--DY</code>) to the dataset, e.g., <code>ASTDY</code> and
+<code>AENDY</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_dy(dataset, reference_date, source_vars)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>reference_date</code> and <code>source_vars</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_date</code></td>
+<td>
+<p>A date or date-time column, e.g., date of first treatment
+or date-time of last exposure to treatment.
+</p>
+<p>Refer to <code>derive_vars_dt()</code> to impute and derive a date from a date
+character vector to a date object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_vars</code></td>
+<td>
+<p>A list of datetime or date variables created using
+<code>exprs()</code> from which dates are to be extracted. This can either be a list of
+date(time) variables or named <code>--DY</code> variables and corresponding –DT(M)
+variables e.g. <code>exprs(TRTSDTM, ASTDTM, AENDT)</code> or <code>exprs(TRTSDT, ASTDTM, AENDT, DEATHDY = DTHDT)</code>. If the source variable does not end in –DT(M), a
+name for the resulting <code>--DY</code> variable must be provided.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The relative day is derived as number of days from the reference
+date to the end date. If it is nonnegative, one is added. I.e., the
+relative day of the reference date is 1. Unless a name is explicitly
+specified, the name of the resulting relative day variable is generated
+from the source variable name by replacing DT (or DTM as appropriate) with
+DY.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with <code>--DY</code> corresponding to the <code>--DTM</code> or <code>--DT</code>
+source variable(s) added
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Date/Time Derivation Functions that returns variable appended to dataset: 
+<code>derive_var_trtdurd()</code>,
+<code>derive_vars_dt()</code>,
+<code>derive_vars_dtm()</code>,
+<code>derive_vars_dtm_to_dt()</code>,
+<code>derive_vars_dtm_to_tm()</code>,
+<code>derive_vars_duration()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(lubridate)
+library(dplyr, warn.conflicts = FALSE)
+
+datain &lt;- tribble(
+  ~TRTSDTM, ~ASTDTM, ~AENDT,
+  "2014-01-17T23:59:59", "2014-01-18T13:09:O9", "2014-01-20"
+) %&gt;%
+  mutate(
+    TRTSDTM = as_datetime(TRTSDTM),
+    ASTDTM = as_datetime(ASTDTM),
+    AENDT = ymd(AENDT)
+  )
+
+derive_vars_dy(
+  datain,
+  reference_date = TRTSDTM,
+  source_vars = exprs(TRTSDTM, ASTDTM, AENDT)
+)
+
+# specifying name of new variables
+datain &lt;- tribble(
+  ~TRTSDT, ~DTHDT,
+  "2014-01-17", "2014-02-01"
+) %&gt;%
+  mutate(
+    TRTSDT = ymd(TRTSDT),
+    DTHDT = ymd(DTHDT)
+  )
+
+derive_vars_dy(
+  datain,
+  reference_date = TRTSDT,
+  source_vars = exprs(TRTSDT, DEATHDY = DTHDT)
+)
+</code></pre>
+
+
+</div>

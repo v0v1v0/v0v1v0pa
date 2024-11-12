@@ -1,0 +1,226 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_images</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add, list and remove images for a project</h2>
+
+<h3>Description</h3>
+
+<p>Add, list and remove images for a project
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_images(project, ...)
+
+## S3 method for class 'classification_project'
+add_images(project, images, tags = NULL, ...)
+
+## S3 method for class 'object_detection_project'
+add_images(project, images, regions = NULL, ...)
+
+list_images(project, include = c("all", "tagged", "untagged"),
+  as = c("ids", "dataframe", "list"), iteration = NULL)
+
+remove_images(project, image_ids = list_images(project, "untagged", as =
+  "ids"), confirm = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>project</code></td>
+<td>
+<p>A Custom Vision project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to lower-level functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>images</code></td>
+<td>
+<p>For <code>add_images</code>, the images to add (upload) to the project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tags</code></td>
+<td>
+<p>Optional tags to add to the images. Only for classification projects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regions</code></td>
+<td>
+<p>Optional list of regions in the images that contain objects. Only for object detection projects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>For <code>list_images</code>, which images to include in the list: untagged, tagged, or both (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as</code></td>
+<td>
+<p>For <code>list_images</code>, the return value: a vector of image IDs, a data frame of image metadata, or a list of metadata.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iteration</code></td>
+<td>
+<p>For <code>list_images</code>, the iteration ID (roughly, which model generation to use). Defaults to the latest iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>image_ids</code></td>
+<td>
+<p>For <code>remove_images</code>, the IDs of the images to remove from the project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>For <code>remove_images</code>, whether to ask for confirmation first.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The images to be uploaded can be specified as:
+</p>
+
+<ul>
+<li>
+<p> A vector of local filenames. JPG, PNG and GIF file formats are supported.
+</p>
+</li>
+<li>
+<p> A vector of publicly accessible URLs.
+</p>
+</li>
+<li>
+<p> A raw vector, or a list of raw vectors, holding the binary contents of the image files.
+</p>
+</li>
+</ul>
+<p>Uploaded images can also have <em>tags</em> added (for a classification project) or <em>regions</em> (for an object detection project). Classification tags can be specified in the following ways:
+</p>
+
+<ul>
+<li>
+<p> For a regular classification project (one tag per image), as a vector of strings. The tags will be applied to the images in order. If the length of the vector is 1, it will be recycled to the length of <code>image_ids</code>.
+</p>
+</li>
+<li>
+<p> For a multilabel classification project (multiple tags per image), as a <em>list</em> of vectors of strings. Each vector in the list contains the tags to be assigned to the corresponding image. If the length of the list is 1, it will be recycled to the length of <code>image_ids</code>.
+</p>
+</li>
+</ul>
+<p>If the length of the vector is 1, it will be recycled to the length of <code>image_ids</code>.
+</p>
+<p>Object detection projects also have tags, but they are specified as part of the <code>regions</code> argument. The regions to add should be specified as a list of data frames, with one data frame per image. Each data frame should have one row per region, and the following columns:
+</p>
+
+<ul>
+<li> <p><code>left</code>, <code>top</code>, <code>width</code>, <code>height</code>: the location and dimensions of the region bounding box, normalised to be between 0 and 1.
+</p>
+</li>
+<li> <p><code>tag</code>: the name of the tag to associate with the region.
+</p>
+</li>
+</ul>
+<p>Any other columns in the data frame will be ignored. If the length of the list is 1, it will be recycled to the length of <code>image_ids</code>.
+</p>
+<p>Note that once uploaded, images are identified only by their ID; there is no general link back to the source filename or URL. If you don't include tags or regions in the <code>add_images</code> call, be sure to save the returned IDs and then call <code>add_image_tags</code> or <code>add_image_regions</code> as appropriate.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>add_images</code>, the vector of IDs of the uploaded images.
+</p>
+<p>For <code>list_images</code>, based on the value of the <code>as</code> argument. The default is a vector of image IDs; <code>as="list"</code> returns a (nested) list of image metadata with one component per image; and <code>as="dataframe"</code> returns the same metadata but reshaped into a data frame.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>add_image_tags</code> and <code>add_image_regions</code> to add tags and regions to images, if not done at upload time
+</p>
+<p><code>add_tags</code>, <code>list_tags</code>, <code>remove_tags</code>
+</p>
+<p><code>customvision_project</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- customvision_training_endpoint(url="endpoint_url", key="key")
+
+# classification
+proj1 &lt;- create_classification_project(endp, "myproject")
+list_images(proj1)
+imgs &lt;- dir("path/to/images", full.names=TRUE)
+
+# recycling: apply one tag to all images
+add_images(proj1, imgs, tags="mytag")
+list_images(proj1, include="tagged", as="dataframe")
+
+# different tags per image
+add_images(proj1, c("cat.jpg", "dog.jpg", tags=c("cat", "dog"))
+
+# adding online images
+host &lt;- "https://mysite.example.com/"
+img_urls &lt;- paste0(host, c("img1.jpg", "img2.jpg", "img3.jpg"))
+add_images(proj1, img_urls, tags="mytag")
+
+# multiple label classification
+proj2 &lt;- create_classification_project(endp, "mymultilabelproject", multiple_tags=TRUE)
+
+add_images(proj2, imgs, tags=list(c("tag1", "tag2")))
+add_images(proj2, c("catanddog.jpg", "cat.jpg", "dog.jpg"),
+    tags=list(
+        c("cat", "dog"),
+        "cat",
+        "dog"
+    )
+)
+
+# object detection
+proj3 &lt;- create_object_detection_project(endp, "myobjdetproj")
+
+regions &lt;- list(
+    data.frame(
+        tag=c("cat", "dog"),
+        left=c(0.1, 0.5),
+        top=c(0.25, 0.28),
+        width=c(0.24, 0.21),
+        height=c(0.7, 0.6)
+    ),
+    data.frame(
+        tag="cat", left=0.5, top=0.35, width=0.25, height=0.62
+    ),
+    data.frame(
+        tag="dog", left=0.07, top=0.12, width=0.79, height=0.5
+    )
+)
+add_images(proj3, c("catanddog.jpg", "cat.jpg", "dog.jpg"), regions=regions)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

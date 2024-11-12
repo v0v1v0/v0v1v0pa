@@ -1,0 +1,447 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_merged</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add New Variable(s) to the Input Dataset Based on Variables from Another
+Dataset</h2>
+
+<h3>Description</h3>
+
+<p>Add new variable(s) to the input dataset based on variables from another
+dataset. The observations to merge can be selected by a condition
+(<code>filter_add</code> argument) and/or selecting the first or last observation for
+each by group (<code>order</code> and <code>mode</code> argument).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_merged(
+  dataset,
+  dataset_add,
+  by_vars,
+  order = NULL,
+  new_vars = NULL,
+  filter_add = NULL,
+  mode = NULL,
+  match_flag,
+  exist_flag = NULL,
+  true_value = "Y",
+  false_value = NA_character_,
+  missing_values = NULL,
+  check_type = "warning",
+  duplicate_msg = NULL,
+  relationship = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_add</code></td>
+<td>
+<p>Additional dataset
+</p>
+<p>The variables specified by the <code>by_vars</code>, the <code>new_vars</code>, and the <code>order</code>
+argument are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>The input dataset and the selected observations from the additional dataset
+are merged by the specified variables.
+</p>
+<p>Variables can be renamed by naming the element, i.e.
+<code style="white-space: pre;">⁠by_vars = exprs(&lt;name in input dataset&gt; = &lt;name in additional dataset&gt;)⁠</code>, similar to the <code>dplyr</code> joins.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If the argument is set to a non-null value, for each by group the first or
+last observation from the additional dataset is selected with respect to the
+specified order.
+</p>
+<p>Variables defined by the <code>new_vars</code> argument can be used in the sort order.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values</em>: list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code> or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>Variables to add
+</p>
+<p>The specified variables from the additional dataset are added to the output
+dataset. Variables can be renamed by naming the element, i.e., <code style="white-space: pre;">⁠new_vars = exprs(&lt;new name&gt; = &lt;old name&gt;)⁠</code>.
+</p>
+<p>For example <code>new_vars = exprs(var1, var2)</code> adds variables <code>var1</code> and <code>var2</code>
+from <code>dataset_add</code> to the input dataset.
+</p>
+<p>And <code>new_vars = exprs(var1, new_var2 = old_var2)</code> takes <code>var1</code> and
+<code>old_var2</code> from <code>dataset_add</code> and adds them to the input dataset renaming
+<code>old_var2</code> to <code>new_var2</code>.
+</p>
+<p>Values of the added variables can be modified by specifying an expression.
+For example, <code>new_vars = LASTRSP = exprs(str_to_upper(AVALC))</code> adds the
+variable <code>LASTRSP</code> to the dataset and sets it to the upper case value of
+<code>AVALC</code>.
+</p>
+<p>If the argument is not specified or set to <code>NULL</code>, all variables from the
+additional dataset (<code>dataset_add</code>) are added.
+</p>
+<p><em>Permitted Values</em>: list of variables or named expressions created by <code>exprs()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_add</code></td>
+<td>
+<p>Filter for additional dataset (<code>dataset_add</code>)
+</p>
+<p>Only observations fulfilling the specified condition are taken into account
+for merging. If the argument is not specified, all observations are
+considered.
+</p>
+<p>Variables defined by the <code>new_vars</code> argument can be used in the filter
+condition.
+</p>
+<p><em>Permitted Values</em>: a condition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode
+</p>
+<p>Determines if the first or last observation is selected. If the <code>order</code>
+argument is specified, <code>mode</code> must be non-null.
+</p>
+<p>If the <code>order</code> argument is not specified, the <code>mode</code> argument is ignored.
+</p>
+<p><em>Permitted Values</em>: <code>"first"</code>, <code>"last"</code>, <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match_flag</code></td>
+<td>
+<p>Match flag
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated"><img src="../help/figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> Please use <code>exist_flag</code> instead.
+</p>
+<p>If the argument is specified (e.g., <code>match_flag = FLAG</code>), the specified
+variable (e.g., <code>FLAG</code>) is added to the input dataset. This variable will
+be <code>TRUE</code> for all selected records from <code>dataset_add</code> which are merged into
+the input dataset, and <code>NA</code> otherwise.
+</p>
+<p><em>Permitted Values</em>: Variable name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exist_flag</code></td>
+<td>
+<p>Exist flag
+</p>
+<p>If the argument is specified (e.g., <code>exist_flag = FLAG</code>), the specified
+variable (e.g., <code>FLAG</code>) is added to the input dataset. This variable will
+be the value provided in <code>true_value</code> for all selected records from <code>dataset_add</code>
+which are merged into the input dataset, and the value provided in <code>false_value</code> otherwise.
+</p>
+<p><em>Permitted Values</em>: Variable name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_value</code></td>
+<td>
+<p>True value
+</p>
+<p>The value for the specified variable <code>exist_flag</code>, applicable to
+the first or last observation (depending on the mode) of each by group.
+</p>
+<p>Permitted Values: An atomic scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>false_value</code></td>
+<td>
+<p>False value
+</p>
+<p>The value for the specified variable <code>exist_flag</code>, NOT applicable to
+the first or last observation (depending on the mode) of each by group.
+</p>
+<p>Permitted Values: An atomic scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_values</code></td>
+<td>
+<p>Values for non-matching observations
+</p>
+<p>For observations of the input dataset (<code>dataset</code>) which do not have a
+matching observation in the additional dataset (<code>dataset_add</code>) the values
+of the specified variables are set to the specified value. Only variables
+specified for <code>new_vars</code> can be specified for <code>missing_values</code>.
+</p>
+<p><em>Permitted Values</em>: named list of expressions, e.g.,
+<code>exprs(BASEC = "MISSING", BASE = -1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the (restricted) additional dataset are not unique
+with respect to the by variables and the order.
+</p>
+<p>If the <code>order</code> argument is not specified, the <code>check_type</code> argument is ignored:
+if the observations of the (restricted) additional dataset are not unique with respect
+to the by variables, an error is issued.
+</p>
+<p><em>Permitted Values</em>: <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>duplicate_msg</code></td>
+<td>
+<p>Message of unique check
+</p>
+<p>If the uniqueness check fails, the specified message is displayed.
+</p>
+<p><em>Default</em>:
+</p>
+<div class="sourceCode r"><pre>paste(
+  "Dataset {.arg dataset_add} contains duplicate records with respect to",
+  "{.var {vars2chr(by_vars)}}."
+)
+</pre></div>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relationship</code></td>
+<td>
+<p>Expected merge-relationship between the <code>by_vars</code>
+variable(s) in <code>dataset</code> (input dataset) and the <code>dataset_add</code> (additional dataset)
+containing the additional <code>new_vars</code>.
+</p>
+<p>This argument is passed to the <code>dplyr::left_join()</code> function. See
+<a href="https://dplyr.tidyverse.org/reference/mutate-joins.html#arguments">https://dplyr.tidyverse.org/reference/mutate-joins.html#arguments</a> for
+more details.
+</p>
+<p><strong>Permitted Values:</strong> <code>"one-to-one"</code>, <code>"many-to-one"</code>, <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The new variables (<code>new_vars</code>) are added to the additional dataset
+(<code>dataset_add</code>).
+</p>
+</li>
+<li>
+<p> The records from the additional dataset (<code>dataset_add</code>) are restricted
+to those matching the <code>filter_add</code> condition.
+</p>
+</li>
+<li>
+<p> If <code>order</code> is specified, for each by group the first or last observation
+(depending on <code>mode</code>) is selected.
+</p>
+</li>
+<li>
+<p> The variables specified for <code>new_vars</code> are merged to the input dataset
+using <code>left_join()</code>. I.e., the output dataset contains all observations
+from the input dataset. For observations without a matching observation in
+the additional dataset the new variables are set as specified by
+<code>missing_values</code> (or to <code>NA</code> for variables not in <code>missing_values</code>).
+Observations in the additional dataset which have no matching observation
+in the input dataset are ignored.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The output dataset contains all observations and variables of the
+input dataset and additionally the variables specified for <code>new_vars</code> from
+the additional dataset (<code>dataset_add</code>).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>General Derivation Functions for all ADaMs that returns variable appended to dataset:
+<code>derive_var_extreme_flag()</code>,
+<code>derive_var_joined_exist_flag()</code>,
+<code>derive_var_merged_ef_msrc()</code>,
+<code>derive_var_merged_exist_flag()</code>,
+<code>derive_var_merged_summary()</code>,
+<code>derive_var_obs_number()</code>,
+<code>derive_var_relative_flag()</code>,
+<code>derive_vars_computed()</code>,
+<code>derive_vars_joined()</code>,
+<code>derive_vars_merged_lookup()</code>,
+<code>derive_vars_transposed()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+vs &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~VSTESTCD,      ~VISIT, ~VSSTRESN, ~VSSTRESU,       ~VSDTC,
+  "PILOT01",    "VS", "01-1302",  "HEIGHT", "SCREENING",     177.8,      "cm", "2013-08-20",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT", "SCREENING",     81.19,      "kg", "2013-08-20",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",  "BASELINE",      82.1,      "kg", "2013-08-29",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",    "WEEK 2",     81.19,      "kg", "2013-09-15",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",    "WEEK 4",     82.56,      "kg", "2013-09-24",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",    "WEEK 6",     80.74,      "kg", "2013-10-08",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",    "WEEK 8",      82.1,      "kg", "2013-10-22",
+  "PILOT01",    "VS", "01-1302",  "WEIGHT",   "WEEK 12",      82.1,      "kg", "2013-11-05",
+  "PILOT01",    "VS", "17-1344",  "HEIGHT", "SCREENING",     163.5,      "cm", "2014-01-01",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT", "SCREENING",     58.06,      "kg", "2014-01-01",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT",  "BASELINE",     58.06,      "kg", "2014-01-11",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT",    "WEEK 2",     58.97,      "kg", "2014-01-24",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT",    "WEEK 4",     57.97,      "kg", "2014-02-07",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT",    "WEEK 6",     58.97,      "kg", "2014-02-19",
+  "PILOT01",    "VS", "17-1344",  "WEIGHT",    "WEEK 8",     57.79,      "kg", "2014-03-14"
+)
+
+dm &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~AGE,   ~AGEU,
+  "PILOT01",    "DM", "01-1302",   61, "YEARS",
+  "PILOT01",    "DM", "17-1344",   64, "YEARS"
+)
+
+
+# Merging all dm variables to vs
+derive_vars_merged(
+  vs,
+  dataset_add = select(dm, -DOMAIN),
+  by_vars = exprs(STUDYID, USUBJID)
+) %&gt;%
+  select(STUDYID, USUBJID, VSTESTCD, VISIT, VSSTRESN, AGE, AGEU)
+
+
+# Merge last weight to adsl
+adsl &lt;- tribble(
+  ~STUDYID,   ~USUBJID, ~AGE,   ~AGEU,
+  "PILOT01", "01-1302",   61, "YEARS",
+  "PILOT01", "17-1344",   64, "YEARS"
+)
+
+
+derive_vars_merged(
+  adsl,
+  dataset_add = vs,
+  by_vars = exprs(STUDYID, USUBJID),
+  order = exprs(convert_dtc_to_dtm(VSDTC)),
+  mode = "last",
+  new_vars = exprs(LASTWGT = VSSTRESN, LASTWGTU = VSSTRESU),
+  filter_add = VSTESTCD == "WEIGHT",
+  exist_flag = vsdatafl
+) %&gt;%
+  select(STUDYID, USUBJID, AGE, AGEU, LASTWGT, LASTWGTU, vsdatafl)
+
+
+# Derive treatment start datetime (TRTSDTM)
+ex &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~EXSTDY, ~EXENDY,     ~EXSTDTC,     ~EXENDTC,
+  "PILOT01",    "EX", "01-1302",       1,      18, "2013-08-29", "2013-09-15",
+  "PILOT01",    "EX", "01-1302",      19,      69, "2013-09-16", "2013-11-05",
+  "PILOT01",    "EX", "17-1344",       1,      14, "2014-01-11", "2014-01-24",
+  "PILOT01",    "EX", "17-1344",      15,      63, "2014-01-25", "2014-03-14"
+)
+## Impute exposure start date to first date/time
+ex_ext &lt;- derive_vars_dtm(
+  ex,
+  dtc = EXSTDTC,
+  new_vars_prefix = "EXST",
+  highest_imputation = "M",
+)
+## Add first exposure datetime and imputation flags to adsl
+derive_vars_merged(
+  select(dm, STUDYID, USUBJID),
+  dataset_add = ex_ext,
+  by_vars = exprs(STUDYID, USUBJID),
+  new_vars = exprs(TRTSDTM = EXSTDTM, TRTSDTF = EXSTDTF, TRTSTMF = EXSTTMF),
+  order = exprs(EXSTDTM),
+  mode = "first"
+)
+
+# Derive treatment end datetime (TRTEDTM)
+## Impute exposure end datetime to last time, no date imputation
+ex_ext &lt;- derive_vars_dtm(
+  ex,
+  dtc = EXENDTC,
+  new_vars_prefix = "EXEN",
+  time_imputation = "last",
+)
+## Add last exposure datetime and imputation flag to adsl
+derive_vars_merged(
+  select(adsl, STUDYID, USUBJID),
+  dataset_add = ex_ext,
+  filter_add = !is.na(EXENDTM),
+  by_vars = exprs(STUDYID, USUBJID),
+  new_vars = exprs(TRTEDTM = EXENDTM, TRTETMF = EXENTMF),
+  order = exprs(EXENDTM),
+  mode = "last"
+)
+# Modify merged values and set value for non matching observations
+adsl &lt;- tribble(
+  ~USUBJID, ~SEX, ~COUNTRY,
+  "ST42-1", "F",  "AUT",
+  "ST42-2", "M",  "MWI",
+  "ST42-3", "M",  "NOR",
+  "ST42-4", "F",  "UGA"
+)
+
+advs &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~AVISIT,    ~AVISITN, ~AVAL,
+  "ST42-1", "WEIGHT", "BASELINE",        0,    66,
+  "ST42-1", "WEIGHT", "WEEK 2",          1,    68,
+  "ST42-2", "WEIGHT", "BASELINE",        0,    88,
+  "ST42-3", "WEIGHT", "WEEK 2",          1,    55,
+  "ST42-3", "WEIGHT", "WEEK 4",          2,    50
+)
+
+derive_vars_merged(
+  adsl,
+  dataset_add = advs,
+  by_vars = exprs(USUBJID),
+  new_vars = exprs(
+    LSTVSCAT = if_else(AVISIT == "BASELINE", "BASELINE", "POST-BASELINE")
+  ),
+  order = exprs(AVISITN),
+  mode = "last",
+  missing_values = exprs(LSTVSCAT = "MISSING")
+)
+</code></pre>
+
+
+</div>

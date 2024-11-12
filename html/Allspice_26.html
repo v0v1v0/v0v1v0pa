@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nomenclature&lt;-,Asset-method</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Variable names
+</h2>
+
+<h3>Description</h3>
+
+<p>Conversion table between variable naming schemes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nomenclature(obj) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+
+<p>An object of the class Asset.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+
+<p>A data frame, see details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data frame should contain character columns of variable names
+with each column representing a spefic naming scheme from which
+the variables are translated into the row names of the data frame.
+</p>
+<p>For example, to convert gene symbols into Ensemble codes, a data frame
+with the gene symbols as row names and one column of ensemble codes
+is needed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Updates the Asset object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Import nomenclature from a system file.
+base &lt;- system.file(package = "Allspice")
+fname &lt;- file.path(base, "subtypes", "nomenclature.txt")
+info &lt;- read.delim(fname, stringsAsFactors = FALSE)
+
+# Set ENSEMBLE identities as row names.
+rownames(info) &lt;- info$ENSEMBL
+info$ENSEMBL &lt;- NULL
+print(head(info))
+
+# Create a new asset and set nomenclature.
+a &lt;- asset()
+nomenclature(a) &lt;- info
+
+# Prepare training data.
+simu &lt;- bcellALL(200)
+materials &lt;- list(title="Simutypes")
+materials$dat &lt;- simu$counts
+materials$covariates &lt;- simu$metadata[,c("MALE","AGE")]
+materials$bits &lt;- simu$metadata[,"SUBTYPE",drop=FALSE]
+
+# Assemble classification asset.
+assemble(a) &lt;- materials
+
+# Check that nomenclature was set.
+simu &lt;- bcellALL(5)
+expres &lt;- normalize(a, dat = simu$counts)
+print(head(simu$counts))
+print(head(expres))
+</code></pre>
+
+
+</div>

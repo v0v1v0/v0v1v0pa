@@ -1,0 +1,260 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cv4postpr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Leave-one-our cross validation for model selection ABC
+</h2>
+
+<h3>Description</h3>
+
+<p>This function performs a leave-one-out cross validation for model
+selection with ABC via subsequent calls to the function
+<code>postpr</code>. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cv4postpr(index, sumstat, postpr.out = NULL, nval, tols, method,
+subset = NULL, kernel = "epanechnikov", numnet = 10, sizenet = 5, lambda
+= c(0.0001,0.001,0.01), trace = FALSE, maxit = 500, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p> a vector of model indices. It can be character or
+numeric and will be coerced to factor. It must have the same length
+as the number of rows in <code>sumstat</code> to indicate which row of
+<code>sumstat</code> belong to which model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstat</code></td>
+<td>
+
+<p>a vector, matrix or data frame of the simulated summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>postpr.out</code></td>
+<td>
+
+<p>an object of class <code>"postpr"</code>, optional. If supplied, all arguments
+passed to <code>postpr</code> are extracted from this object,
+except for <code>sumstat</code>, <code>index</code>, and <code>tols</code>, which
+always have to be supplied as arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nval</code></td>
+<td>
+
+<p>the size of the cross-validation sample for each model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tols</code></td>
+<td>
+
+<p>a single tolerance rate or a vector of tolerance rates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string indicating the type of simulation required.
+Possible values are <code>"rejection"</code>, <code>"mnlogistic"</code>,
+<code>"neuralnet"</code>. See <code>postpr</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>a logical expression indicating elements or rows to keep. Missing
+values in <code>index</code> and/or <code>sumstat</code> are taken as
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+
+<p>a character string specifying the kernel to be used when
+<code>method</code> is <code>"loclinear"</code> or <code>"neuralnet"</code>. Defaults
+to <code>"epanechnikov"</code>. See <code>density</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numnet</code></td>
+<td>
+
+<p>the number of neural networks when <code>method</code> is
+<code>"neuralnet"</code>. Defaults to 10. It indicates the number of times
+the function <code>nnet</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizenet</code></td>
+<td>
+
+<p>the number of units in the hidden layer. Defaults to 5. Can be zero
+if there are no skip-layer units. See <code>nnet</code> for more
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a numeric vector or a single value indicating the weight decay when
+<code>method</code> is <code>"neuralnet"</code>. See <code>nnet</code> for more
+details. By default, 0.0001, 0.001, or 0.01 is randomly chosen for
+each of the networks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>logical, <code>TRUE</code> switches on tracing the optimization of
+<code>nnet</code>. Applies only when <code>method</code> is
+<code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>numeric, the maximum number of iterations. Defaults to 500. Applies
+only when <code>method</code> is <code>"neuralnet"</code>. See also
+<code>nnet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other arguments passed to <code>nnet</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each model, a simulation is selected repeatedly to be a validation
+simulation, while the other simulations are used as training
+simulations. Each time the function <code>postpr</code> is called to
+estimate the parameter(s).
+</p>
+<p>Ideally, we want <code>nval</code> to be equal to the number of simulations
+for each model, however, this might take too much time. Users are
+warned not to choose a too large number of simulations (especially
+when the neural networks are used). Beware that the actual number of
+cross-validation estimation steps that need to be performed is
+<code>nval</code>*the number of models.
+</p>
+<p>The arguments for the function <code>postpr</code> can be supplied in
+two ways. First, simply give them as arguments when calling this
+function, in which case <code>postpr.out</code> can be <code>NULL</code>. Second,
+via an existing object of class <code>"postpr"</code>, here
+<code>postpr.out</code>. WARNING: when <code>postpr.out</code> is supplied, the
+same <code>sumstat</code> and <code>param</code> objects have to be used as in the
+original call to <code>postpr</code>. Column names of <code>sumstat</code>
+and <code>param</code> are checked for match.
+</p>
+<p>See <code>summary.cv4postpr</code> for calculating the prediction
+error from an object of class <code>"cv4postpr"</code> and
+<code>plot.cv4postpr</code> for visualizing the misclassification of
+the models using barplots.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"cv4postpr"</code>, which is a list with the following
+elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The original calls to <code>postpr</code> for each tolerance
+rates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvsamples</code></td>
+<td>
+<p>Numeric vector of length <code>nval</code>*the number of
+models, indicating which rows of <code>sumstat</code> were used as
+validation values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tols</code></td>
+<td>
+<p>The tolerance rates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true</code></td>
+<td>
+<p>The true models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estim</code></td>
+<td>
+<p>The estimated model probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names</code></td>
+<td>
+<p>A list of two elements: <code>model</code> contains the model names,
+and <code>statistics.names</code> the names of the summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The value of <code>.Random.seed</code> when <code>cv4postpr</code> is
+called.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>postpr</code>, <code>summary.cv4postpr</code>, <code>plot.cv4postpr</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(abc.data)
+data(human)
+###Reduce the sample size of the simulations to reduce the running time.
+###Do not do that with your own data!
+ss&lt;-c(1:1000,50001:51000,100001:101000)
+cv.modsel &lt;- cv4postpr(models[ss], stat.3pops.sim[ss,], nval=5, tols=c(.05,.1), method="rejection") 
+summary(cv.modsel)
+plot(cv.modsel, names.arg=c("Bottleneck", "Constant", "Exponential"))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Archive tables from a database as flat files</h2>
+
+<h3>Description</h3>
+
+<p>Archive tables from a database as flat files
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ark(
+  db_con,
+  dir,
+  streamable_table = streamable_base_tsv(),
+  lines = 50000L,
+  compress = c("bzip2", "gzip", "xz", "none"),
+  tables = list_tables(db_con),
+  method = c("keep-open", "window", "window-parallel", "sql-window"),
+  overwrite = "ask",
+  filter_statement = NULL,
+  filenames = NULL,
+  callback = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>db_con</code></td>
+<td>
+<p>a database connection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>a directory where we will write the compressed text files output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>streamable_table</code></td>
+<td>
+<p>interface for serializing/deserializing in chunks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lines</code></td>
+<td>
+<p>the number of lines to use in each single chunk</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>file compression algorithm. Should be one of "bzip2" (default),
+"gzip" (faster write times, a bit less compression), "xz", or "none", for
+no compression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tables</code></td>
+<td>
+<p>a list of tables from the database that should be
+archived.  By default, will archive all tables. Table list should specify
+schema if appropriate, see examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method to use to query the database, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>should any existing text files of the same name be overwritten?
+default is "ask", which will ask for confirmation in an interactive session, and
+overwrite in a non-interactive script.  TRUE will always overwrite, FALSE will
+always skip such tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_statement</code></td>
+<td>
+<p>Typically an SQL "WHERE" clause, specific to your
+dataset. (e.g., <code style="white-space: pre;">⁠WHERE year = 2013⁠</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filenames</code></td>
+<td>
+<p>An optional vector of names that will be used to name the
+files instead of using the tablename from the <code>tables</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>callback</code></td>
+<td>
+<p>An optional function that acts on the data.frame before it is
+written to disk by <code>streamable_table</code>. It is recommended to use this on a single
+table at a time. Callback functions must return a data.frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>ark</code> will archive tables from a database as (compressed) tsv files.
+Or other formats that have a <code style="white-space: pre;">⁠streamtable_table method⁠</code>, like parquet.
+<code>ark</code> does this by reading only chunks at a time into memory, allowing it to
+process tables that would be too large to read into memory all at once (which
+is probably why you are using a database in the first place!)  Compressed
+text files will likely take up much less space, making them easier to store and
+transfer over networks.  Compressed plain-text files are also more archival
+friendly, as they rely on widely available and long-established open source compression
+algorithms and plain text, making them less vulnerable to loss by changes in
+database technology and formats.
+</p>
+<p>In almost all cases, the default method should be the best choice.
+If the <code>DBI::dbSendQuery()</code> implementation for your database platform returns the
+full results to the client immediately rather than supporting chunking with <code>n</code>
+parameter, you may want to use "window" method, which is the most generic.  The
+"sql-window" method provides a faster alternative for databases like PostgreSQL that
+support windowing natively (i.e. <code>BETWEEN</code> queries). Note that "window-parallel"
+only works with <code>streamable_parquet</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the path to <code>dir</code> where output files are created (invisibly), for piping.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# setup
+library(dplyr)
+dir &lt;- tempdir()
+db &lt;- dbplyr::nycflights13_sqlite(tempdir())
+
+## And here we go:
+ark(db, dir)
+
+## Not run: 
+
+## For a Postgres DB with schema, we can append schema names first
+## to each of the table names, like so:
+schema_tables &lt;- dbGetQuery(db, sqlInterpolate(db,
+  "SELECT table_name FROM information_schema.tables
+WHERE table_schema = ?schema",
+  schema = "schema_name"
+))
+
+ark(db, dir, tables = paste0("schema_name", ".", schema_tables$table_name))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

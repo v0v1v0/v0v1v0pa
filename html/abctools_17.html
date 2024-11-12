@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>recalibrationABC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+ABC inference with a recalibration adjustment
+</h2>
+
+<h3>Description</h3>
+
+<p>This function post-processes ABC output with the aim of calibrating
+its credible intervals to have the correct probabilities. The approach
+can be thought of as extending coverage tests to correct deviations
+from the desired posterior. See the reference for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  recalibrationABC(target, param, sumstat, eps, tol, method="rejection",
+  multicore=FALSE, cores=NULL, abc.p.options=list(method="loclinear"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+
+<p>A vector of the observed summary statistics.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+
+<p>A data frame of the simulated parameter values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstat</code></td>
+<td>
+
+<p>A data frame of the simulated summary statistics.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>The ABC acceptance threshold i.e. max acceptable distance. This or
+<code>tol</code> must be specified (but not both).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>The ABC acceptance tolerance i.e. proportion of simulations to
+accept. This or <code>eps</code> must be specified (but not both).    
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>A character string indicating the type of ABC algorithm to be
+applied. Possible values are "rejection", "loclinear",
+"neuralnet" and "ridge".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multicore</code></td>
+<td>
+
+<p>Whether to use the <code>parallel</code> package to perform
+analyses of test datasets in parallel.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+
+<p>Number of cores to use when <code>multicore==TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abc.p.options</code></td>
+<td>
+
+<p>A list of further arguments to be supplied to the <code>abc</code> command
+when applying regression correction to the p-values based on the
+summary statistics.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments to be supplied to the <code>abc</code> command when
+performing inference for each simulated data set. Typically these will
+control regression correction. If omitted no correction is performed.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components is returned.
+</p>
+<p><code>sample.abc</code> is the ordinary ABC output sample (with any
+regression correction requested). The rows represent accepted samples
+and the columns represent the parameters.
+</p>
+<p><code>sample.recal</code> is the ABC output sample following
+recalibration. The rows are Monte Carlo draws from an approximation to
+the posterior and the columns represent the parameters.
+</p>
+<p><code>sample.regrecal</code> is the ABC output sample following coverage
+correction including regression correction of p-values. It has a
+similar form to <code>sample.recal</code>.
+</p>
+<p><code>weights</code> are weights for the ABC output. These apply to all
+types of ABC.
+</p>
+<p>Each row of <code>pvalues</code> corresponds to a particular accepted
+dataset. It gives the p-values of the true parameters within the ABC
+sample generated from this data.
+</p>
+<p>Each row of <code>pvalues.reg</code> corresponds to <code>pvalues</code> after
+a regression-adjustment has been performed on them.
+</p>
+<p><code>svalues</code> is a subset of the rows of <code>sumstat</code> corresponding
+to accepted datasets. These can be used in conjunction with
+<code>pvalues</code> to perform a recalibration correction manually.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dennis Prangle and Guilherme Rodrigues
+</p>
+
+
+<h3>References</h3>
+
+<p>G. S. Rodrigues, D. Prangle and S. A. Sisson (2017)
+Recalibration: A post-processing method for approximate Bayesian
+computation. <em>In submission</em>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+  data(musigma2)
+  P &lt;- data.frame(par.sim)
+  S &lt;- data.frame(stat.sim)
+  out &lt;- recalibrationABC(target=stat.obs, param=P, sumstat=S, tol=0.3)
+  plot(rbind(out$sample.plain[1:500,], out$sample.recal[1:500,]),
+  col=c(rep("red",500), rep("blue", 500)))
+  ##Red shows plain ABC sample, blue shows recalibrated output
+
+## End(Not run)
+</code></pre>
+
+
+</div>

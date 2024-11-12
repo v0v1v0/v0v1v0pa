@@ -1,0 +1,300 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AvoPhylo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AvoPhylo: Building phylogenies based on the AvoTrex extinct bird trait
+database and BirdTree backbone</h2>
+
+<h3>Description</h3>
+
+<p>Grafting extinct species onto BirdTree phylogenies using the AvoTrex database
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AvoPhylo(ctrees, avotrex, tax, PER = 0.2, PER_FIXED = 0.75, mindist =
+  0.1, ord = FALSE, Ntree, n.cores = 1, cluster.ips = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ctrees</code></td>
+<td>
+<p>Either (i) object (of class multiPhylo) containing multiple
+BirdTree phylogenies. Individual trees within the multiPhylo object must be
+of class 'phylo', see the <code>ape</code> package. Or (ii) an individual tree
+object of class 'phylo'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avotrex</code></td>
+<td>
+<p>The AvoTrex extinct species phylogeny database. This database
+contains the information and commands required to graft the extinct species
+on to the BirdTree trees. If edited, column names must remain unchanged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tax</code></td>
+<td>
+<p>The Jetz et al. (2012) BirdTree taxonomy .csv. Supplied as data
+within the package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PER</code></td>
+<td>
+<p>Percentage/fraction for branch truncation based on random grafting
+(see <code>AvoBind</code> for more details). Can be left at the default
+value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PER_FIXED</code></td>
+<td>
+<p>Point along a branch (expressed as a fraction
+of the branch length, rootward) to graft the species in the
+phylogeny database (<code>avotrex</code> argument) which are set
+to TRUE in the per_fixed column (to reduce very short branch
+lengths) (see <code>AvoBind</code> for more details). Can
+be left at the default value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mindist</code></td>
+<td>
+<p>When fixing the grafting of a given species at
+a specific time point, but the provided grafting time point
+is too old (i.e., older than the parent node) or too young
+(i.e., younger than the child node) relative to the focal
+branch, grafting will occur <code>mindist</code> below the parent
+node or above the child node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ord</code></td>
+<td>
+<p>Should the trees within <code>ctrees</code> be kept in
+order (TRUE) and all used (i.e., the output list of trees is
+in the same order as <code>ctrees</code>) in the grafting, or
+should trees be randomly sampled from <code>ctrees</code> (FALSE;
+the default) prior to grafting. If <code>ord == TRUE</code>,
+<code>Ntree</code> must equal the length of <code>ctrees</code>. If only
+a single tree is provided, this argument does nothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ntree</code></td>
+<td>
+<p>The number of trees to sample from the supplied
+number of BirdTree trees (i.e., <code>ctrees</code>), if <code>ord
+  == FALSE</code>. Value must be greater or equal to the number of
+supplied trees (<code>length(ctrees))</code>. If <code>ord ==
+  TRUE</code>, <code>Ntree</code> must equal the length of <code>ctrees</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>Number of cores used to build the phylogeny.
+Default is one (will run with parallel processing)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.ips</code></td>
+<td>
+<p>Cluster location. Keep as default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function to build phylogenies incorporating the extinct species from the
+AvoTrex extinct birds database (Sayol et al.). AvoTrex provides data on
+geographical location, island endemicity, volancy, body size and standard
+external and skeleton morphological measurements for 610 extinct bird
+species. The AvoPhylo function provides a pipeline to incorporate the extinct
+species from AvoTrex into the "BirdTree" phylogenies of extant birds (Jetz et
+al. 2012). Utilising codes assigned to each species based on their known
+taxonomic affinities, the function binds each species in turn to a provided
+BirdTree phylogeny. Input phylogenies (i.e., BirdTree trees) must be of class
+'phylo', see <code>phylo</code>.
+</p>
+<p>BirdTree phylogenies can be sourced from: https://birdtree.org/
+</p>
+<p>As certain species need to be grafted onto the tree before
+other species, a number of the species are grafted in a set
+order. This ordering is controlled through the “sp_id”,
+“phylo_id” and “group” columns in the extinct species
+phylogeny database. Before grafting, the database is ordered
+by the “sp_id” column, with the “phylo_id” and “group” columns
+used to filter out particular groups of species (i.e., those
+classified as "xS" in the "phylo_id" column) to be grafted in
+different orders (i.e., either a randomised order within
+groups, or a fixed order within groups). See the package
+vignette, as  well as Sayol et al. and Matthews et al., for
+further details.
+</p>
+<p>For a subset of species (primarily those in older clades), we
+have constrained the grafting to take place at a specific time
+point (value in the 'time_fixed' column) along a given branch,
+rather than at a randomly selected point. If, due to the
+topology of the underlying BirdTree tree, it is not possible
+to undertake this grafting along a given branch (i.e., the
+time point for grafting is either older than the parent node
+or younger than the child node, in respect to a given focal
+branch), we graft the species just below the parent node or
+just above the child node (using a branch length set by
+<code>mindist</code> - if <code>mindist</code> is longer than the focal
+branch in a given grafting event, it is adjusted accordingly).
+</p>
+<p>As some of the grafting codes (see table below) randomly place
+the given species within a group of species, a genus, or a
+family, and some species groups are randomised before grafting
+(see above), it is useful to run the grafting procedure over a
+a number of trees to average out the randomisation. Therefore,
+the function can be run in parallel using the argument
+<code>n.cores</code>. Note that the function will run on one core as
+default and if only one tree is supplied. Trees for grafting
+can be randomly selected from a number of input trees by
+giving the function a group of input trees using the argument
+<code>ctrees</code> and then defining a smaller number using
+<code>Ntree</code>. If the maximum number of input trees is to be
+used, <code>Ntree</code> should equal <code>length(ctrees)</code>. If you
+want the outputted list of trees to match the order of trees
+in <code>ctrees</code>, set <code>ord = TRUE</code>.
+</p>
+<p>If <code>Ntree</code> &gt; 1, a progress bar will be displayed.
+</p>
+<p>A variety of different plotting options are available, see
+the <code>plot.avophylo</code> documentation.</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   Codes </td>
+<td style="text-align: left;"> Full name </td>
+<td style="text-align: left;"> Definition </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   S </td>
+<td style="text-align: left;"> Sister </td>
+<td style="text-align: left;"> Grafted as a sister to a known extant or extinct species already in the tree </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SSG </td>
+<td style="text-align: left;"> Sister species group </td>
+<td style="text-align: left;"> Grafted as a sister to a group of extant and/or extinct species already in the tree </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SGG </td>
+<td style="text-align: left;"> Sister genus group </td>
+<td style="text-align: left;"> Grafted as a sister to an entire extant or extinct genus (i.e., for the first grafted representative of an extinct genus) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SGG2 </td>
+<td style="text-align: left;"> Sister genus group 2 </td>
+<td style="text-align: left;"> Grafted as sister to multiple genera. This was for when a species was sister to a subfamily or some other large specific clade </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SFG </td>
+<td style="text-align: left;"> Sister family group </td>
+<td style="text-align: left;"> Grafted as a sister to an entire extant or extinct family already present in the  tree (i.e., for the first grafted representative of an extinct family) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   SOG </td>
+<td style="text-align: left;"> Sister order group </td>
+<td style="text-align: left;"> Grafted as a sister to an entire order already present in the tree (i.e., for the first grafted representative of an extinct order) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RSG </td>
+<td style="text-align: left;"> Random species group </td>
+<td style="text-align: left;"> Grafted to a randomly selected species from a pre-defined group of species (i.e., from which is believed to have close affinities </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RGG </td>
+<td style="text-align: left;"> Random genus group </td>
+<td style="text-align: left;"> Grafted to a randomly selected species from a given genus. For example, if an  extinct species was believed to be a finch derived from a European finch species, but the exact sister species is unknown. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RGG2 </td>
+<td style="text-align: left;"> Random genus group 2 </td>
+<td style="text-align: left;"> Grafted to a randomly selected species from a group of genera (e.g. when all that is known is that the species is from a specific subfamily). Currently not used in the database, but the relevant functionality has been kept in the R script, as it could be useful for future studies. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RFG </td>
+<td style="text-align: left;"> Random family group </td>
+<td style="text-align: left;"> Grafted to a randomly selected species from a given family </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RSGG </td>
+<td style="text-align: left;"> Random sister genus group </td>
+<td style="text-align: left;"> Grafted as sister to a randomly selected genus from a pre-defined group of genera </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   RSGG2 </td>
+<td style="text-align: left;"> Random sister genus group 2 </td>
+<td style="text-align: left;"> Grafted as sister to a randomly selected genus from a pre-defined family </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function returns an object of class
+'multiAvophylo', which is a list consisting of N trees (each
+of class 'avophylo' and 'phylo') that were selected from the
+supplied set of input trees. These ouput trees have all had
+the extinct species from AvoTrex grafted on.
+</p>
+
+
+<h3>References</h3>
+
+<p>Matthews et al. (IN REVIEW) The global loss of avian functional and phylogenetic diversity from extinctions in
+the Holocene and Late Pleistocene
+</p>
+<p>Sayol et al. (IN PREP) The global loss of avian functional and phylogenetic diversity
+from extinctions in the Holocene and Late Pleistocene
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># data(BirdTree_trees)
+# data(BirdTree_tax)
+# data(AvotrexPhylo)
+# trees &lt;- AvoPhylo(ctrees = BirdTree_trees,
+# avotrex = AvotrexPhylo, PER = 0.2, PER_FIXED = 0.75,
+# mindist = 0.1, ord = FALSE, 
+# tax = BirdTree_tax, Ntree = 1, n.cores = 1, cluster.ips = NULL)
+# class(trees)
+# trees[[1]]
+# class(trees[[1]])
+
+#See the plot.avophylo documentation for the different available
+#plotting options.
+</code></pre>
+
+
+</div>

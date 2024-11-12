@@ -1,0 +1,271 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateInputsModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creation of the InputsModel object required to the RunModel functions</h2>
+
+<h3>Description</h3>
+
+<p>Creation of the <em>InputsModel</em> object required to the <code>RunModel*</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateInputsModel(FUN_MOD, DatesR, Precip, PrecipScale = TRUE, PotEvap = NULL,
+                  TempMean = NULL, TempMin = NULL, TempMax = NULL,
+                  ZInputs = NULL, HypsoData = NULL, NLayers = 5,
+                  Qupstream = NULL, LengthHydro = NULL, BasinAreas = NULL,
+                  QupstrUnit = "mm", verbose = TRUE)
+
+## S3 method for class 'InputsModel'
+x[i]
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>FUN_MOD</code></td>
+<td>
+<p>[function] hydrological model function (e.g. <code>RunModel_GR4J</code>, <code>RunModel_CemaNeigeGR4J</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DatesR</code></td>
+<td>
+<p>[POSIXt] vector of dates required to create the GR model and CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Precip</code></td>
+<td>
+<p>[numeric] time series of total precipitation (catchment average) [mm/time step], required to create the GR model and CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PrecipScale</code></td>
+<td>
+<p>(optional) [boolean] indicating if the mean of the precipitation interpolated on the elevation layers must be kept or not, required to create CemaNeige module inputs, default = <code>TRUE</code> (the mean of the precipitation is kept to the original value)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PotEvap</code></td>
+<td>
+<p>[numeric] time series of potential evapotranspiration (catchment average) [mm/time step], required to create the GR model inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TempMean</code></td>
+<td>
+<p>(optional) [numeric] time series of mean air temperature [°C], required to create the CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TempMin</code></td>
+<td>
+<p>(optional) [numeric] time series of min air temperature [°C], possibly used to create the CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TempMax</code></td>
+<td>
+<p>(optional) [numeric] time series of max air temperature [°C], possibly used to create the CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZInputs</code></td>
+<td>
+<p>(optional) [numeric] real giving the mean elevation of the Precip and Temp series (before extrapolation) [m], possibly used to create the CemaNeige module inputs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HypsoData</code></td>
+<td>
+<p>(optional) [numeric] vector of 101 reals: min, q01 to q99 and max of catchment elevation distribution [m], if not defined a single elevation is used for CemaNeige</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NLayers</code></td>
+<td>
+<p>(optional) [numeric] integer giving the number of elevation layers requested [-], required to create CemaNeige module inputs, default=5</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the function is run in verbose mode or not, default = <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qupstream</code></td>
+<td>
+<p>(optional) [numerical matrix] time series of upstream flows (catchment average), its unit is defined by the <code>QupstrUnit</code> parameter, required to create the SD model inputs. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LengthHydro</code></td>
+<td>
+<p>(optional) [numeric] real giving the distance between the downstream outlet and each upstream inlet of the sub-catchment [km], required to create the SD model inputs . See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BasinAreas</code></td>
+<td>
+<p>(optional) [numeric] real giving the area of each upstream sub-catchment [km2] and the area of the downstream sub-catchment in the last item, required to create the SD model inputs . See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>QupstrUnit</code></td>
+<td>
+<p>(optional) [character] unit of the flow in the argument <code>Qupstream</code>, available units are: "mm" for mm/time-step (default), "m3" for m3/time-step, "m3/s" and "l/s". See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>[InputsModel] object of class InputsModel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>[integer] of the indices to subset a time series or [character] names of the elements to extract</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Users wanting to use <code>FUN_MOD</code> functions that are not included in
+the package must create their own InputsModel object accordingly. <br>
+Please note that if CemaNeige is used, and <code>ZInputs</code> is different than <code>HypsoData</code>, then precipitation and temperature are interpolated with the <code>DataAltiExtrapolation_Valery</code> function.
+</p>
+<p>Users wanting to use a semi-distributed (SD) model should provide valid <code>Qupstream</code>, <code>LengthHydro</code>, and <code>BasinAreas</code> arguments. Each upstream sub-catchment is described by an upstream flow time series (one column in <code>Qupstream</code> matrix), a distance between the downstream outlet and the upstream inlet (one item in <code>LengthHydro</code>) and an area (one item in <code>BasinAreas</code>).
+The order of the columns or of the items should be consistent for all these parameters.
+<code>BasinAreas</code> should contain one extra information (stored in the last item) which is the area of the downstream sub-catchment.
+Upstream flows that are not related to a sub-catchment such as release or withdraw spots are identified by an area equal to <code>NA</code>, and if <code>unit="mm"</code> the upstream flow must be expressed in m3/time step instead of mm/time step which is not possible in absence of a related area.
+Please note that the use of SD model requires to use the <code>RunModel</code> function instead of <code>RunModel_GR4J</code> or the other <code>RunModel_*</code> functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[list] object of class <em>InputsModel</em> containing the data required to evaluate the model outputs; it can include the following:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <em>$DatesR              </em> </td>
+<td style="text-align: left;"> [POSIXlt] vector of dates </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$Precip              </em> </td>
+<td style="text-align: left;"> [numeric] time series of total precipitation (catchment average) [mm/time step] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$PotEvap             </em> </td>
+<td style="text-align: left;"> [numeric] time series of potential evapotranspiration (catchment average) [mm/time step], </td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"> defined if FUN_MOD includes GR4H, GR5H, GR4J, GR5J, GR6J, GR2M or GR1A </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$LayerPrecip         </em> </td>
+<td style="text-align: left;"> [list] list of time series of precipitation (layer average) [mm/time step], </td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"> defined if <code>FUN_MOD</code> includes CemaNeige </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$LayerTempMean       </em> </td>
+<td style="text-align: left;"> [list] list of time series of mean air temperature (layer average) [°C], </td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"> defined if <code>FUN_MOD</code> includes CemaNeige </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>$LayerFracSolidPrecip</em> </td>
+<td style="text-align: left;"> [list] list of time series of solid precipitation fraction (layer average) [-], </td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"> defined if <code>FUN_MOD</code> includes CemaNeige </td>
+</tr>
+<tr>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+         </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Laurent Coron
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RunModel</code>, <code>CreateRunOptions</code>, <code>CreateInputsCrit</code>,
+<code>CreateCalibOptions</code>, <code>DataAltiExtrapolation_Valery</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 734.568, X2 = -0.840, X3 = 109.809, X4 = 1.971)
+OutputsModel &lt;- RunModel(InputsModel = InputsModel,
+                         RunOptions = RunOptions, Param = Param,
+                         FUN_MOD = RunModel_GR4J)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+## efficiency criterion: Nash-Sutcliffe Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                                RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

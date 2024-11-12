@@ -1,0 +1,505 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anticlustering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Anticlustering</h2>
+
+<h3>Description</h3>
+
+<p>Partition a pool of elements into groups (i.e., anticlusters) with
+the aim of creating high within-group heterogeneity and high
+between-group similarity.  Anticlustering is accomplished by
+maximizing instead of minimizing a clustering objective function.
+Implements anticlustering methods as described in Papenberg and
+Klau (2021; &lt;doi:10.1037/met0000301&gt;), Brusco et al. 
+(2020; &lt;doi:10.1111/bmsp.12186&gt;), and Papenberg (2024; 
+&lt;doi:10.1111/bmsp.12315&gt;).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anticlustering(
+  x,
+  K,
+  objective = "diversity",
+  method = "exchange",
+  preclustering = FALSE,
+  categories = NULL,
+  repetitions = NULL,
+  standardize = FALSE,
+  cannot_link = NULL,
+  must_link = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The data input. Can be one of two structures: (1) A
+feature matrix where rows correspond to elements and columns
+correspond to variables (a single numeric variable can be
+passed as a vector). (2) An N x N matrix dissimilarity matrix;
+can be an object of class <code>dist</code> (e.g., returned by
+<code>dist</code> or <code>as.dist</code>) or a <code>matrix</code>
+where the entries of the upper and lower triangular matrix
+represent pairwise dissimilarities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>How many anticlusters should be created. Alternatively:
+(a) A vector describing the size of each group, or (b) a vector
+of length <code>nrow(x)</code> describing how elements are assigned
+to anticlusters before the optimization starts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>The objective to be maximized. The options
+"diversity" (default; previously called "distance", which is
+still supported), "average-diversity", "variance", "kplus" and "dispersion" are
+natively supported. May also be a user-defined function. See
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>One of "exchange" (default) , "local-maximum",
+"brusco", or "ilp".  See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preclustering</code></td>
+<td>
+<p>Boolean. Should a preclustering be conducted
+before anticlusters are created? Defaults to <code>FALSE</code>. See
+Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categories</code></td>
+<td>
+<p>A vector, data.frame or matrix representing one
+or several categorical variables whose distribution should be similar 
+between groups. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repetitions</code></td>
+<td>
+<p>The number of times a search heuristic is
+initiated when using <code>method = "exchange"</code>, <code>method =
+"local-maximum"</code>, or <code>method = "brusco"</code>. In the end, the
+best objective found across the repetitions is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Boolean. If <code>TRUE</code> and <code>x</code> is a
+feature matrix, the data is standardized through a call to
+<code>scale</code> before the optimization starts. This
+argument is silently ignored if <code>x</code> is a distance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cannot_link</code></td>
+<td>
+<p>A 2 column matrix where each row has the indices 
+of two elements that must not be assigned to the same anticluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>must_link</code></td>
+<td>
+<p>A numeric vector of length <code>nrow(x)</code>. Elements having 
+the same value in this vector are assigned to the same anticluster.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is used to solve anticlustering. That is, the data
+input is divided into <code>K</code> groups in such a way that elements
+within groups are heterogeneous and the different groups are
+similar. Anticlustering is accomplished by maximizing instead of
+minimizing a clustering objective function. The maximization of
+five objectives is natively supported (other
+functions can also defined by the user as described below):
+</p>
+
+<ul>
+<li>
+<p>the diversity, setting 
+<code>objective = "diversity"</code> (this is the default objective)
+</p>
+</li>
+<li>
+<p>the average diversity, which normalizes the diversity by cluster size, 
+setting <code>objective = "average-diversity"</code>
+</p>
+</li>
+<li>
+<p>the k-means (or "variance") objective, setting <code>objective = "variance"</code>
+</p>
+</li>
+<li>
+<p>the k-plus objective, an extension of the k-means objective,
+setting <code>objective = "kplus"</code>
+</p>
+</li>
+<li>
+<p>the dispersion, which is the minimum distance between 
+any two elements within the same cluster (setting 
+<code>objective = "dispersion"</code>)
+</p>
+</li>
+</ul>
+<p>The k-means objective is the within-group variance—that is, the
+sum of the squared distances between each element and its cluster
+center (see <code>variance_objective</code>). K-means
+anticlustering focuses on minimizing differences with regard to the
+means of the input variables (that is, the columns in <code>x</code>), but it ignores any other distribution
+characterstics such as the variance / standard deviation. K-plus anticlustering
+(using <code>objective = "kplus"</code>) is an extension of the k-means criterion that also
+minimizes differences with regard to the standard
+deviations between groups (for details see <code>kplus_anticlustering</code>). K-plus
+anticlustering can also be extended towards higher order moments such as skew and kurtosis; 
+to consider these additional distribution characteristics, use the function
+<code>kplus_anticlustering</code>. Setting <code>objective = "kplus"</code> in 
+<code>anticlustering</code> function will only consider means 
+and standard deviations (in my experience, this is what users usually want). 
+It is strongly recommended to set the argument <code>standardize = TRUE</code> 
+when using the k-plus objective.
+</p>
+<p>The "diversity" objective is the sum of pairwise
+distances of elements within the same groups (see
+<code>diversity_objective</code>). Hence, anticlustering using the diversity 
+criterion maximizes between-group similarity
+by maximizing within-group heterogeneity (represented as the sum of all pairwise distances). 
+If it is computed on the basis of the Euclidean distance (which is the default
+behaviour if <code>x</code> is a feature matrix), the diversity is an all rounder objective that 
+tends to equate all distribution 
+characteristics between groups (such as means, variances, ...). 
+Note that the equivalence of within-group heterogeneity and between-group similarity only
+holds for equal-sized groups. For unequal-sized groups, it is recommended to
+use a different objective when striving for overall between-group similarity,
+e.g., the k-plus objective or the <code>"average-diversity"</code>. The average diversity
+was introduced in version 0.8.6, and it is more useful if groups are not 
+equal-sized. The average diversity normalizes the sum of intra-cluster distances 
+by group size. If all groups are equal-sized, it is equivalent to the 
+regular diversity. In the publication that introduces
+the <code>anticlust</code> package (Papenberg &amp; Klau, 2021), we used the term "anticluster 
+editing" to refer to the maximization of the diversity, because the reversed 
+procedure - minimizing the diversity - is also known as "cluster editing". 
+</p>
+<p>The "dispersion" is the minimum distance between any two elements
+that are part of the same cluster; maximization of this objective
+ensures that any two elements within the same group are as
+dissimilar from each other as possible. Applications that require
+high within-group heterogeneity often require to maximize the
+dispersion. Oftentimes, it is useful to also consider the diversity
+and not only the dispersion; to optimize both objectives at the
+same time, see the function
+<code>bicriterion_anticlustering</code>.
+</p>
+<p>If the data input <code>x</code> is a feature matrix (that is: each row
+is a "case" and each column is a "variable") and the option
+<code>objective = "diversity"</code> or <code>objective = "dispersion"</code> is used, 
+the Euclidean distance is computed as the basic unit of the objectives. If
+a different measure of dissimilarity is preferred, you may pass a
+self-generated dissimilarity matrix via the argument <code>x</code>.
+</p>
+<p>In the standard case, groups of equal size are generated. Adjust
+the argument <code>K</code> to create groups of different size (see
+Examples).
+</p>
+<p><strong>Algorithms for anticlustering</strong>
+</p>
+<p>By default, a heuristic method is employed for anticlustering: the
+exchange method (<code>method = "exchange"</code>). First, elements are
+randomly assigned to anticlusters (It is also possible to
+explicitly specify the initial assignment using the argument
+<code>K</code>; in this case, <code>K</code> has length <code>nrow(x)</code>.) Based
+on the initial assignment, elements are systematically swapped
+between anticlusters in such a way that each swap improves the
+objective value. For an element, each possible swap with elements
+in other clusters is simulated; then, the one swap is performed
+that improves the objective the most, but a swap is only conducted
+if there is an improvement at all. This swapping procedure is
+repeated for each element. When using <code>method =
+"local-maximum"</code>, the exchange method does not terminate after the
+first iteration over all elements; instead, the swapping continues
+until a local maximum is reached. This method corresponds to the algorithm 
+"LCW" by Weitz and Lakshminarayanan (1998). This means that after the
+exchange process has been conducted once for each data point, the
+algorithm restarts with the first element and proceeds to conduct
+exchanges until the objective cannot be improved.
+</p>
+<p>When setting <code>preclustering = TRUE</code>, only the <code>K - 1</code>
+most similar elements serve as exchange partners for each element,
+which can speed up the optimization (more information
+on the preclustering heuristic follows below). If the <code>categories</code> argument
+is used, only elements having the same value in <code>categories</code> serve as exchange
+partners.
+</p>
+<p>Using <code>method = "brusco"</code> implements the local bicriterion
+iterated local search (BILS) heuristic by Brusco et al. (2020) and
+returns the partition that best optimized either the diversity or
+the dispersion during the optimization process. The function
+<code>bicriterion_anticlustering</code> can also be used to run
+the algorithm by Brusco et al., but it returns multiple partitions
+that approximate the optimal pareto efficient set according to both
+objectives (diversity and dispersion). Thus, to fully utilize the
+BILS algorithm, use the function
+<code>bicriterion_anticlustering</code>.
+</p>
+<p><strong>Optimal anticlustering</strong>
+</p>
+<p>Usually, heuristics are employed to tackle anticlustering problems,
+and their performance is generally very satisfying.  However,
+heuristics do not investigate all possible group assignments and
+therefore do not (necessarily) find the
+"globally optimal solution", i.e., a partitioning that has the best
+possible value with regard to the objective that is optimized.  Enumerating
+all possible partitions in order to find the best solution,
+however, quickly becomes impossible with increasing N, and
+therefore it is not possible to find a global optimum this
+way. Because all anticlustering problems considered here are also
+NP-hard, there is also no (known) clever algorithm that might
+identify the best solution without considering all possibilities -
+at least in the worst case. Integer linear programming (ILP) is an
+approach for tackling NP hard problems that nevertheless tries to
+be clever when finding optimal solutions: It does not necessarily
+enumerate all possibilities but is still guaranteed to return the
+optimal solution. Still, for NP hard problems such as
+anticlustering, ILP methods will also fail at some point (i.e.,
+when N increases).
+</p>
+<p><code>anticlust</code> implements optimal solution algorithms via integer
+linear programming. In order to use the ILP methods, set
+<code>method = "ilp"</code>. The integer linear program optimizing the
+diversity was described in Papenberg &amp; Klau, (2021; (8) -
+(12)). It can also be used to optimize the k-means and k-plus objectives,
+but you actually have to use the function <code>optimal_anticlustering</code>
+for these objectives. The documentation of the function
+<code>optimal_dispersion</code> and <code>optimal_anticlustering</code>
+contain more information on the optimal anticlustering algorithms.
+</p>
+<p><strong>Categorical variables</strong>
+</p>
+<p>There are two ways to balance categorical variables among anticlusters (also 
+see the package vignette "Using categorical variables with anticlustering").
+The first way is to treat them as "hard constraints" via the argument 
+<code>categories</code> (see Papenberg &amp; Klau, 2021). If done so, balancing the 
+categorical variable is accomplished via <code>categorical_sampling</code> through
+a stratified split before the anticlustering optimization. After that, the 
+balance is never changed when the algorithm runs (hence, it is a "hard constraint"). 
+When <code>categories</code> has multiple columns (i.e., there are multiple 
+categorical variables), each combination of categories is treated as a
+distinct category by the exchange method (i.e., the multiple columns
+are "merged" into a single column). This behaviour may lead
+to less than optimal results on the level of each single categorical variable.
+In this case, it may be useful to treat the categorical variables as part of 
+the numeric data, i.e., the first argument <code>x</code> via binary coding 
+(e.g. using <code>categories_to_binary</code>). The examples show how to do this 
+when using the bicriterion algorithm by Bruso et al. Using the argument 
+<code>categories</code> is only available for the classical exchange procedures, 
+that is, for <code>method = "exchange"</code> and <code>method = "local-maximum"</code>. 
+</p>
+<p><strong>Anticlustering with constraints</strong>
+</p>
+<p>Versions 0.8.6 and 0.8.7 of anticlust introduced the possibility to induce
+cannot-link and must-link constraints with anticlustering with 
+the arguments <code>cannot_link</code> and <code>must_link</code>, respectively.
+Cannot-link constraints ensure that pairs of items are assigned to different
+clusters. They are given as a 2-column matrix, where each row has the indices
+of two elements, which must not be assigned to the same cluster. It is possible
+that a set of cannot-link constraints cannot be fulfilled. To verify whether
+the constraints cannot be fulfilled (and to actually assign elements 
+while respecting the constraints), a graph coloring algorithm algorithm is used.
+This algorithm is is actually the same method as used in <code>optimal_dispersion</code>. 
+The graph coloring algorithm uses an ILP solver and it greatly profits (that is,
+it may be much faster) from the Rsymphony package, which is not installed as 
+a necessary dependency with anticlust. It is therefore recommended to 
+manually install the Rsymphony package, which is then automatically 
+selected as solver when using the <code>must_link</code> argument. 
+</p>
+<p>Must-link constraints are passed as a single vector of length <code>nrow(x)</code>.
+Positions that have the same numeric index are assigned to the same anticluster 
+(if the constraints can be fulfilled).
+</p>
+<p>The examples illustrate the usage of the <code>must_link</code> and <code>cannot_link</code>
+arguments. Currently, the different kinds of constraints (arguments <code>must_link</code>, 
+<code>cannot_link</code>, and <code>categories</code>) cannot be used together, but this 
+may change in future versions. 
+</p>
+<p><strong>Preclustering</strong>
+</p>
+<p>A useful heuristic for anticlustering is to form small groups of
+very similar elements and assign these to different groups. This
+logic is used as a preprocessing when setting <code>preclustering =
+TRUE</code>. That is, before the anticlustering objective is optimized, a
+cluster analysis identifies small groups of similar elements (pairs
+if <code>K = 2</code>, triplets if <code>K = 3</code>, and so forth). The
+optimization of the anticlustering objective is then conducted
+under the constraint that these matched elements cannot be assigned
+to the same group. When using the exchange algorithm, preclustering
+is conducted using a call to <code>matching</code>. When using
+<code>method = "ilp"</code>, the preclustering optimally finds groups of
+minimum pairwise distance by solving the integer linear program
+described in Papenberg and Klau (2021; (8) - (10), (12) - (13)).
+Note that when combining preclustering restrictions with <code>method = "ilp"</code>,
+the anticlustering result is no longer guaranteed to be globally optimal, but
+only optimal given the preclustering restrictions.
+</p>
+<p><strong>Optimize a custom objective function</strong>
+</p>
+<p>It is possible to pass a <code>function</code> to the argument
+<code>objective</code>. See <code>dispersion_objective</code> for an
+example. If <code>objective</code> is a function, the exchange method
+assigns elements to anticlusters in such a way that the return
+value of the custom function is maximized (hence, the function
+should return larger values when the between-group similarity is
+higher). The custom function has to take two arguments: the first
+is the data argument, the second is the clustering assignment. That
+is, the argument <code>x</code> will be passed down to the user-defined
+function as first argument. <strong>However, only after</strong>
+<code>as.matrix</code> has been called on <code>x</code>. This implies
+that in the function body, columns of the data set cannot be
+accessed using <code>data.frame</code> operations such as
+<code>$</code>. Objects of class <code>dist</code> will be converted to matrix
+as well.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of length N that assigns a group (i.e, a number
+between 1 and <code>K</code>) to each input element.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Papenberg <a href="mailto:martin.papenberg@hhu.de">martin.papenberg@hhu.de</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Brusco, M. J., Cradit, J. D., &amp; Steinley, D. (2020). Combining
+diversity and dispersion criteria for anticlustering: A bicriterion
+approach. British Journal of Mathematical and Statistical
+Psychology, 73, 275-396. https://doi.org/10.1111/bmsp.12186
+</p>
+<p>Papenberg, M., &amp; Klau, G. W. (2021). Using anticlustering to partition 
+data sets into equivalent parts. Psychological Methods, 26(2), 
+161–174. https://doi.org/10.1037/met0000301.
+</p>
+<p>Papenberg, M. (2024). K-plus Anticlustering: An Improved k-means Criterion for 
+Maximizing Between-Group Similarity. British Journal of Mathematical and 
+Statistical Psychology, 77(1), 80-102. https://doi.org/10.1111/bmsp.12315
+</p>
+<p>Späth, H. (1986). Anticlustering: Maximizing the variance criterion.
+Control and Cybernetics, 15, 213-218.
+</p>
+<p>Weitz, R. R., &amp; Lakshminarayanan, S. (1998). An empirical comparison of 
+heuristic methods for creating maximally diverse groups. Journal of the 
+Operational Research Society, 49(6), 635-646. https://doi.org/10.1057/palgrave.jors.2600510
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Use default method ("exchange") and the default diversity criterion, also include
+# a categorical variable via argument `categories`:
+anticlusters &lt;- anticlustering(
+  schaper2019[, 3:6],
+  K = 3,
+  categories = schaper2019$room
+)
+# Compare feature means and standard deviations by anticluster
+mean_sd_tab(schaper2019[, 3:6], anticlusters)
+# Verify that the "room" is balanced across anticlusters:
+table(anticlusters, schaper2019$room)
+
+# Use multiple starts of the algorithm to improve the objective and
+# optimize the k-means criterion ("variance")
+anticlusters &lt;- anticlustering(
+  schaper2019[, 3:6],
+  objective = "variance",
+  K = 3,
+  categories = schaper2019$room,
+  method = "local-maximum", # better search algorithm
+  repetitions = 20 # multiple restarts of the algorithm 
+)
+# Compare means and standard deviations by anticluster
+mean_sd_tab(schaper2019[, 3:6], anticlusters)
+
+# Use different group sizes and optimize the extended k-means
+# criterion ("kplus")
+anticlusters &lt;- anticlustering(
+  schaper2019[, 3:6],
+  objective = "kplus",
+  K = c(24, 24, 48),
+  categories = schaper2019$room,
+  repetitions = 20,
+  method = "local-maximum",
+  standardize = TRUE # ususally recommended
+)
+
+# Use cannot_link constraints: Element 1 must not be linked with elements 2 to 10:
+cl_matrix &lt;- matrix(c(rep(1, 9), 2:10), ncol = 2)
+cl &lt;- anticlustering(
+  schaper2019[, 3:6],
+  K = 10,
+  cannot_link = cl_matrix
+)
+all(cl[1] != cl[2:10])
+
+# Use cannot_link constraints: Element 1 must be linked with elements 2 to 10.
+# Element 11 must be linked with elements 12-20.
+must_link &lt;- rep(NA, nrow(schaper2019))
+must_link[1:10] &lt;- 1
+must_link[11:20] &lt;- 2
+cl &lt;- anticlustering(
+  schaper2019[, 3:6],
+  K = 3,
+  must_link = must_link
+)
+cl[1:10]
+cl[11:20]
+
+# Use the heuristic by Brusco et al. (2020) for k-plus anticlustering
+# Include categorical variable as part of the optimization criterion rather 
+# than the argument categories!
+anticlusters &lt;- anticlustering(
+  cbind(
+    kplus_moment_variables(schaper2019[, 3:6], 2), 
+    categories_to_binary(schaper2019$room)
+  ),
+  objective = "variance", # k-plus anticlustering because of the input above!
+  K = 3,
+  repetitions = 20,
+  method = "brusco"
+)
+
+mean_sd_tab(schaper2019[, 3:6], anticlusters)
+table(anticlusters, schaper2019$room)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anomalize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Detect anomalies using the tidyverse</h2>
+
+<h3>Description</h3>
+
+<p>The <code>anomalize()</code> function is used to detect outliers in a distribution
+with no trend or seasonality present. It takes the output of <code>time_decompose()</code>,
+which has be de-trended and applies anomaly detection methods to identify outliers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anomalize(
+  data,
+  target,
+  method = c("iqr", "gesd"),
+  alpha = 0.05,
+  max_anoms = 0.2,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>tibble</code> or <code>tbl_time</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>A column to apply the function to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The anomaly detection method. One of <code>"iqr"</code> or <code>"gesd"</code>.
+The IQR method is faster at the expense of possibly not being quite as accurate.
+The GESD method has the best properties for outlier detection, but is loop-based
+and therefore a bit slower.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Controls the width of the "normal" range.
+Lower values are more conservative while higher values are less prone
+to incorrectly classifying "normal" observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_anoms</code></td>
+<td>
+<p>The maximum percent of anomalies permitted to be identified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A boolean. If <code>TRUE</code>, will return a list containing useful information
+about the anomalies. If <code>FALSE</code>, just returns the data expanded with the anomalies and
+the lower (l1) and upper (l2) bounds.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The return has three columns:
+"remainder_l1" (lower limit for anomalies), "remainder_l2" (upper limit for
+anomalies), and "anomaly" (Yes/No).
+</p>
+<p>Use <code>time_decompose()</code> to decompose a time series prior to performing
+anomaly detection with <code>anomalize()</code>.  Typically, <code>anomalize()</code> is
+performed on the "remainder" of the time series decomposition.
+</p>
+<p>For non-time series data (data without trend), the <code>anomalize()</code> function can
+be used without time series decomposition.
+</p>
+<p>The <code>anomalize()</code> function uses two methods for outlier detection
+each with benefits.
+</p>
+<p><strong>IQR</strong>:
+</p>
+<p>The IQR Method uses an innerquartile range of 25% and 75% to establish a baseline distribution around
+the median. With the default <code>alpha = 0.05</code>, the limits are established by expanding
+the 25/75 baseline by an IQR Factor of 3 (3X). The IQR Factor = 0.15 / alpha (hense 3X with alpha = 0.05).
+To increase the IQR Factor controling the limits, decrease the alpha, which makes
+it more difficult to be an outlier. Increase alpha to make it easier to be an outlier.
+</p>
+<p>The IQR method is used in <a href="https://github.com/robjhyndman/forecast"><code>forecast::tsoutliers()</code></a>.
+</p>
+<p><strong>GESD</strong>:
+</p>
+<p>The GESD Method (Generlized Extreme Studentized Deviate Test) progressively
+eliminates outliers using a Student's T-Test comparing the test statistic to a critical value.
+Each time an outlier is removed, the test statistic is updated. Once test statistic
+drops below the critical value, all outliers are considered removed. Because this method
+involves continuous updating via a loop, it is slower than the IQR method. However, it
+tends to be the best performing method for outlier removal.
+</p>
+<p>The GESD method is used in <a href="https://github.com/twitter/AnomalyDetection"><code>AnomalyDection::AnomalyDetectionTs()</code></a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>tibble</code> / <code>tbl_time</code> object or list depending on the value of <code>verbose</code>.
+</p>
+
+
+<h3>References</h3>
+
+
+<ol>
+<li> <p><a href="https://stats.stackexchange.com/questions/69874/how-to-correct-outliers-once-detected-for-time-series-data-forecasting">How to correct outliers once detected for time series data forecasting? Cross Validated, https://stats.stackexchange.com</a>
+</p>
+</li>
+<li> <p><a href="https://stats.stackexchange.com/questions/1142/simple-algorithm-for-online-outlier-detection-of-a-generic-time-series?">Cross Validated: Simple algorithm for online outlier detection of a generic time series. Cross Validated, https://stats.stackexchange.com</a>
+</p>
+</li>
+<li> <p><a href="https://www.usenix.org/system/files/conference/hotcloud14/hotcloud14-vallis.pdf">Owen S. Vallis, Jordan Hochenbaum and Arun Kejariwal (2014). A Novel Technique for Long-Term Anomaly Detection in the Cloud. Twitter Inc.</a>
+</p>
+</li>
+<li> <p><a href="https://github.com/twitter/AnomalyDetection">Owen S. Vallis, Jordan Hochenbaum and Arun Kejariwal (2014). AnomalyDetection: Anomaly Detection Using Seasonal Hybrid Extreme Studentized Deviate Test. R package version 1.0.</a>
+</p>
+</li>
+<li>
+<p> Alex T.C. Lau (November/December 2015). GESD - A Robust and Effective Technique for Dealing with Multiple Outliers. ASTM Standardization News. www.astm.org/sn
+</p>
+</li>
+</ol>
+<h3>See Also</h3>
+
+<p>Anomaly Detection Methods (Powers <code>anomalize</code>)
+</p>
+
+<ul>
+<li> <p><code>iqr()</code>
+</p>
+</li>
+<li> <p><code>gesd()</code>
+</p>
+</li>
+</ul>
+<p>Time Series Anomaly Detection Functions (anomaly detection workflow):
+</p>
+
+<ul>
+<li> <p><code>time_decompose()</code>
+</p>
+</li>
+<li> <p><code>time_recompose()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(dplyr)
+
+# Needed to pass CRAN check / This is loaded by default
+set_time_scale_template(time_scale_template())
+
+data(tidyverse_cran_downloads)
+
+tidyverse_cran_downloads %&gt;%
+    time_decompose(count, method = "stl") %&gt;%
+    anomalize(remainder, method = "iqr")
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

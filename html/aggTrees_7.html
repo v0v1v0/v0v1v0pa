@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate_rpart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>GATE Estimation with rpart Objects</h2>
+
+<h3>Description</h3>
+
+<p>Replaces node predictions of an <code>rpart</code> object using external data to estimate the group average treatment
+effects (GATEs).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate_rpart(tree, Y, D, X, method = "aipw", scores = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>An <code>rpart</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Outcome vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>Treatment assignment vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Covariate matrix (no intercept).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either <code>"raw"</code> or <code>"aipw"</code>, controls how node predictions are replaced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Optional, vector of scores to be used in replacing node predictions. Useful to save computational time if scores have already been estimated. Ignored if <code>method == "raw"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>method == "raw"</code>, <code>estimate_rpart</code> replaces node predictions with the differences between the sample average
+of the observed outcomes of treated units and the sample average of the observed outcomes of control units in each node,
+which is an unbiased estimator of the GATEs if the assignment to treatment is randomized.<br></p>
+<p>If <code>method == "aipw"</code>, <code>estimate_rpart</code> replaces node predictions with sample averages of doubly-robust
+scores in each node. This is a valid estimator of the GATEs in observational studies. Honest regression forests
+and 5-fold cross fitting are used to estimate the propensity score and the conditional mean function of the outcome
+(unless the user specifies the argument <code>scores</code>).<br></p>
+<p><code>estimate_rpart</code> allows the user to implement "honest" estimation. If observations in <code>y</code>, <code>D</code> and <code>X</code>
+have not been used to construct the <code>tree</code>, then the new predictions are honest in the sense of Athey and Imbens (2016).
+To get standard errors for the tree's estimates, please use <code>causal_ols_rpart</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A tree with node predictions replaced, as an <code>rpart</code> object, and the scores (if <code>method == "raw"</code>,
+this is <code>NULL</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Riccardo Di Francesco
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p> Di Francesco, R. (2022). Aggregation Trees. CEIS Research Paper, 546. <a href="https://doi.org/10.2139/ssrn.4304256">doi:10.2139/ssrn.4304256</a>.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>causal_ols_rpart</code> <code>avg_characteristics_rpart</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate data.
+set.seed(1986)
+
+n &lt;- 1000
+k &lt;- 3
+
+X &lt;- matrix(rnorm(n * k), ncol = k)
+colnames(X) &lt;- paste0("x", seq_len(k))
+D &lt;- rbinom(n, size = 1, prob = 0.5)
+mu0 &lt;- 0.5 * X[, 1]
+mu1 &lt;- 0.5 * X[, 1] + X[, 2]
+Y &lt;- mu0 + D * (mu1 - mu0) + rnorm(n)
+
+## Split the sample.
+splits &lt;- sample_split(length(Y), training_frac = 0.5)
+training_idx &lt;- splits$training_idx
+honest_idx &lt;- splits$honest_idx
+
+Y_tr &lt;- Y[training_idx]
+D_tr &lt;- D[training_idx]
+X_tr &lt;- X[training_idx, ]
+
+Y_hon &lt;- Y[honest_idx]
+D_hon &lt;- D[honest_idx]
+X_hon &lt;- X[honest_idx, ]
+
+## Construct a tree using training sample.
+library(rpart)
+tree &lt;- rpart(Y ~ ., data = data.frame("Y" = Y_tr, X_tr), maxdepth = 2)
+
+## Estimate GATEs in each node (internal and terminal) using honest sample.
+new_tree &lt;- estimate_rpart(tree, Y_hon, D_hon, X_hon, method = "raw")
+new_tree$tree
+
+</code></pre>
+
+
+</div>

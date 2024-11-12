@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crossval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation of palaeoecological transfer function models</h2>
+
+<h3>Description</h3>
+
+<p>Performs leave-one-out, <em>k</em>-fold, <em>n</em> <em>k</em>-fold and
+bootstrap cross-validation of palaeoecological transfer function models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">crossval(obj, ...)
+
+## S3 method for class 'wa'
+crossval(obj, method = c("LOO","kfold","bootstrap"),
+         nboot = 100, nfold = 10, folds = 5,
+         verbose = getOption("verbose"), ...)
+
+## S3 method for class 'pcr'
+crossval(obj, method = c("LOO","kfold","bootstrap"),
+         ncomp, nboot = 100, nfold = 10, folds = 5,
+         verbose = getOption("verbose"), ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>A fitted transfer function model. Currently, only objects
+of class <code>wa</code> and <code>pcr</code> are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; type of cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>numeric; number of components to fit, as in models with
+<code>1:ncomp</code> components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>numeric; number of bootstrap samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+<p>numeric; number of chunks into which the training data
+are split. The <em>k</em> in <em>k</em>-fold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>numeric; the number of times <em>k</em>-fold CV is
+performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical; should progress of the CV be displayed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of class <code>"crossval"</code>, a list with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>numeric vector; the cross-validated estimates of
+the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>numeric vector; residuals computed from the
+cross-validated estimates of the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>performance</code></td>
+<td>
+<p>data frame; cross-validation performance statistics
+for the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CVparams</code></td>
+<td>
+<p>list; parameters holding details of the
+cross-validation process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>See Also</h3>
+
+<p><code>wa</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Load the Imbrie &amp; Kipp data and
+## summer sea-surface temperatures
+data(ImbrieKipp)
+data(SumSST)
+     
+## fit the WA model
+mod &lt;- wa(SumSST ~., data = ImbrieKipp)
+mod
+
+## Leave one out CV
+cv.loo &lt;- crossval(mod)
+cv.loo
+
+## k-fold CV (k == 10)
+cv.kfold &lt;- crossval(mod, method = "kfold", kfold = 10, folds = 1)
+cv.kfold
+
+## n k-fold CV (k == 10, n = 10)
+cv.nkfold &lt;- crossval(mod, method = "kfold", kfold = 10, folds = 10)
+cv.nkfold
+
+## bootstrap with 100 bootstrap samples
+cv.boot &lt;- crossval(mod, method = "bootstrap", nboot = 100)
+cv.boot
+
+## extract fitted values and residuals
+fitted(cv.boot)
+resid(cv.boot)
+
+## Principal Components Regression
+mpcr &lt;- pcr(SumSST ~., data = ImbrieKipp, ncomp = 10)
+crossval(mpcr, method = "kfold", kfold = 10, folds = 2, ncomp = 10)
+
+crossval(mpcr, method = "bootstrap", nboot = 100, ncomp = 10)
+</code></pre>
+
+
+</div>

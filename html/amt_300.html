@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update_distr_man</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Manually update <code>amt_distr</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Functions to update <code>amt_distr</code> from iSSF coefficients
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">update_gamma(dist, beta_sl, beta_log_sl)
+
+update_exp(dist, beta_sl)
+
+update_hnorm(dist, beta_sl_sq)
+
+update_lnorm(dist, beta_log_sl, beta_log_sl_sq)
+
+update_vonmises(dist, beta_cos_ta)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[amt_distr]⁠</code> The tentative distribution to be updated
+respective distributions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_sl</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> <br> The estimate of the coefficient of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_log_sl</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> <br> The estimate of the coefficient of the log of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_sl_sq</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the square of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_log_sl_sq</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> <br> The name of the coefficient of the square of log of the step length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_cos_ta</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> <br> The estimate of the coefficient of cosine of the turning angle.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions are called internally by
+<code>update_sl_distr()</code> and <code>update_ta_distr()</code>.
+However, those simple functions assume that the selection-free step-length
+and turn-angle distributions are constant (i.e., they do not depend on
+covariates). In the case of interactions between movement parameters and
+covariates, the user will want to manually access these functions to update
+their selection-free movement distributions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A distribution
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#  sh_forest &lt;- get_sh_forest()
+#  # Fit an SSF, then update movement parameters.
+#
+#   #Prepare data for SSF
+#  ssf_data &lt;- deer |&gt;
+#    steps_by_burst() |&gt;
+#    random_steps(n = 15) |&gt;
+#    extract_covariates(sh_forest) |&gt;
+#    mutate(forest = factor(forest, levels = 1:0,
+#                      labels = c("forest", "non-forest")),
+#    cos_ta_ = cos(ta_),
+#    log_sl_ = log(sl_))
+#
+#  # Check tentative distributions
+#  #    Step length
+#  attr(ssf_data, "sl_")
+#  #    Turning angle
+#  attr(ssf_data, "ta_")
+#
+#  # Fit an iSSF (note model = TRUE necessary for predict() to work)
+#  m1 &lt;- ssf_data |&gt;
+#    fit_issf(case_ ~ forest * (sl_ + log_sl_ + cos_ta_) +
+#                 strata(step_id_), model = TRUE)
+#
+#  # Update forest step lengths (the reference level)
+#  forest_sl &lt;- update_gamma(m1$sl_,
+#                            beta_sl = m1$model$coefficients["sl_"],
+#                            beta_log_sl = m1$model$coefficients["log_sl_"])
+#
+#  # Update non-forest step lengths
+#  nonforest_sl &lt;- update_gamma(m1$sl_,
+#                               beta_sl = m1$model$coefficients["sl_"] +
+#                                 m1$model$coefficients["forestnon-forest:sl_"],
+#                               beta_log_sl = m1$model$coefficients["log_sl_"] +
+#                                 m1$model$coefficients["forestnon-forest:log_sl_"])
+#
+#  # Update forest turn angles (the reference level)
+#  forest_ta &lt;- update_vonmises(m1$ta_,
+#                               beta_cos_ta = m1$model$coefficients["cos_ta_"])
+#
+#  # Update non-forest turn angles
+#  nonforest_ta &lt;- update_vonmises(m1$ta_,
+#                                  beta_cos_ta = m1$model$coefficients["cos_ta_"] +
+#                                    m1$model$coefficients["forestnon-forest:cos_ta_"])
+#
+</code></pre>
+
+
+</div>

@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adass.fr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive smoothing spline estimator for the function-on-function linear regression model</h2>
+
+<h3>Description</h3>
+
+<p>The adaptive smoothing spline (AdaSS) estimator for the function-on-function linear regression proposed in Centofanti et al., 2020.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adass.fr(
+  Y_fd,
+  X_fd,
+  basis_s,
+  basis_t,
+  beta_ders = NULL,
+  beta_dert = NULL,
+  grid_eval_ders = NULL,
+  grid_eval_dert = NULL,
+  tun_par = c(lambda_s = 10^4, lambda_t = 10^4, delta_s = 0, gamma_s = 1, delta_t = 0,
+    delta_t = 1),
+  CV = FALSE,
+  K = 10,
+  X_fd_test = NULL,
+  Y_fd_test = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y_fd</code></td>
+<td>
+<p>An object of class fd corresponding to the response functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X_fd</code></td>
+<td>
+<p>An object of class fd corresponding to the covariate functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis_s</code></td>
+<td>
+<p>B-splines basis along the <code>s</code>-direction of class basisfd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis_t</code></td>
+<td>
+<p>B-splines basis along the <code>t</code>-direction of class basisfd.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_ders</code></td>
+<td>
+<p>Initial estimate of the partial derivative of the coefficient function along the <code>s</code>-direction.
+Either a matrix or a class basisfd object. If NULL no adaptive penalty is  used along the <code>s</code>-direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_dert</code></td>
+<td>
+<p>Initial estimate of the partial derivative of the coefficient function along the <code>t</code>-direction.
+Either a matrix or a class basisfd object. If NULL no adaptive penalty is used along the <code>t</code>-direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_eval_ders</code></td>
+<td>
+<p>Grid of evaluation of the partial derivatives along the <code>s</code>-direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_eval_dert</code></td>
+<td>
+<p>Grid of evaluation of the partial derivatives along the <code>t</code>-direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tun_par</code></td>
+<td>
+<p>Vector of tuning parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CV</code></td>
+<td>
+<p>If TRUE the <code>K</code>-fold cross-validation prediction error is calculated. Default is FALSE.
+If <code>X_fd_test</code> and <code>Y_fd_test</code> are both provided the prediction error on the test set is calculated in place of the cross-validation prediction error when <code>CV</code> is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Number of folds. Default is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X_fd_test</code></td>
+<td>
+<p>Test set covariate functions. Default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y_fd_test</code></td>
+<td>
+<p>Test set response functions. Default is NULL.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following arguments:
+</p>
+
+<ul>
+<li> <p><code>B</code>: The basis coefficients matrix estimate of the coefficient function.
+</p>
+</li>
+<li> <p><code>Beta_hat_fd</code>: The coefficient function estimate of class bifd.
+</p>
+</li>
+<li> <p><code>alpha</code>: The intercept function estimate.
+</p>
+</li>
+<li> <p><code>tun_par</code>: Vector of tuning parameters.
+</p>
+</li>
+<li> <p><code>CV</code>: Estimated prediction error.
+</p>
+</li>
+<li> <p><code>CV_sd</code>: Standard error of the estimated prediction error.
+</p>
+</li>
+<li> <p><code>Y_fd</code>: The response functions.
+</p>
+</li>
+<li> <p><code>X_fd</code>: The covariate functions.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Centofanti, F., Lepore, A., Menafoglio, A., Palumbo, B., Vantini, S. (2023).
+Adaptive Smoothing Spline Estimator for the Function-on-Function Linear Regression Model.
+<em>Computational Statistics 38(1), 191–216</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adass.fr_eaass</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(adass)
+data&lt;-simulate_data("Scenario HAT",n_obs=100)
+X_fd=data$X_fd
+Y_fd=data$Y_fd
+basis_s &lt;- fda::create.bspline.basis(c(0,1),nbasis = 10,norder = 4)
+basis_t &lt;- fda::create.bspline.basis(c(0,1),nbasis = 10,norder = 4)
+mod_smooth &lt;-adass.fr(Y_fd,X_fd,basis_s = basis_s,basis_t = basis_t,tun_par=c(10^-6,10^-6,0,0,0,0))
+grid_s&lt;-seq(0,1,length.out = 10)
+grid_t&lt;-seq(0,1,length.out = 10)
+beta_der_eval_s&lt;-fda::eval.bifd(grid_s,grid_t,mod_smooth$Beta_hat_fd,sLfdobj = 2)
+beta_der_eval_t&lt;-fda::eval.bifd(grid_s,grid_t,mod_smooth$Beta_hat_fd,tLfdobj = 2)
+mod_adass &lt;-adass.fr(Y_fd, X_fd, basis_s = basis_s, basis_t = basis_t,
+                     tun_par=c(10^-6,10^-6,0,1,0,1),beta_ders = beta_der_eval_s,
+                     beta_dert = beta_der_eval_t,grid_eval_ders=grid_s,grid_eval_dert=grid_t )
+</code></pre>
+
+
+</div>

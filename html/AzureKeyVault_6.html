@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>certificates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Certificates in Key Vault</h2>
+
+<h3>Description</h3>
+
+<p>This class represents the collection of certificates stored in a vault. It provides methods for managing certificates, including creating, importing and deleting certificates, and doing backups and restores. For operations with a specific certificate, see certificate.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>This class provides the following methods:</p>
+<pre>create(name, subject, x509=cert_x509_properties(), issuer=cert_issuer_properties(),
+       key=cert_key_properties(), format=c("pem", "pkcs12"),
+       expiry_action=cert_expiry_action(),
+       attributes=vault_object_attrs(),
+       ..., wait=TRUE)
+import(name, value, pwd=NULL,
+       attributes=vault_object_attrs(),
+       ..., wait=TRUE)
+get(name)
+delete(name, confirm=TRUE)
+list()
+backup(name)
+restore(backup)
+get_contacts()
+set_contacts(email)
+add_issuer(issuer, provider, credentials=NULL, details=NULL)
+remove_issuer(issuer)
+get_issuer(issuer)
+list_issuers()
+</pre>
+
+
+<h3>Arguments</h3>
+
+
+<ul>
+<li> <p><code>name</code>: The name of the certificate.
+</p>
+</li>
+<li> <p><code>subject</code>: For <code>create</code>, The subject or X.500 distinguished name for the certificate.
+</p>
+</li>
+<li> <p><code>x509</code>: Other X.509 properties for the certificate, such as the domain name(s) and validity period. A convenient way to provide this is via the cert_x509_properties helper function.
+</p>
+</li>
+<li> <p><code>issuer</code>: Issuer properties for the certificate. A convenient way to provide this is via the cert_issuer_properties helper function. The default is to specify a self-signed certificate.
+</p>
+</li>
+<li> <p><code>key</code>: Key properties for the certificate. A convenient way to provide this is via the cert_key_properties helper function.
+</p>
+</li>
+<li> <p><code>format</code>: The format to store the certificate in. Can be either PEM or PFX, aka PKCS#12. This also determines the format in which the certificate will be exported (see certificate).
+</p>
+</li>
+<li> <p><code>expiry_action</code>: What Key Vault should do when the certificate is about to expire. A convenient way to provide this is via the cert_expiry_action helper function.
+</p>
+</li>
+<li> <p><code>attributes</code>: Optional attributes for the secret. A convenient way to provide this is via the vault_object_attrs helper function.
+</p>
+</li>
+<li> <p><code>value</code>: For <code>import</code>, the certificate to import. This can be the name of a PFX file, or a raw vector with the contents of the file.
+</p>
+</li>
+<li> <p><code>pwd</code>: For <code>import</code>, the password if the imported certificate is password-protected.
+</p>
+</li>
+<li> <p><code>...</code>: For <code>create</code> and <code>import</code>, other named arguments which will be treated as tags.
+</p>
+</li>
+<li> <p><code>wait</code>: For <code>create</code> and <code>import</code>, whether to wait until the certificate has been created before returning. If FALSE, you can check on the status of the certificate via the returned object's <code>sync</code> method.
+</p>
+</li>
+<li> <p><code>backup</code>: For <code>restore</code>, a string representing the backup blob for a key.
+</p>
+</li>
+<li> <p><code>email</code>: For <code>set_contacts</code>, the email addresses of the contacts.
+</p>
+</li>
+<li> <p><code>issuer</code>: For the issuer methods, the name by which to refer to an issuer.
+</p>
+</li>
+<li> <p><code>provider</code>: For <code>add_issuer</code>, the provider name as a string.
+</p>
+</li>
+<li> <p><code>credentials</code>: For <code>add_issuer</code>, the credentials for the issuer, if required. Should be a list containing the components <code>account_id</code> and <code>password</code>.
+</p>
+</li>
+<li> <p><code>details</code>: For <code>add_issuer</code>, the organisation details, if required. See the <a href="https://docs.microsoft.com/en-us/rest/api/keyvault/setcertificateissuer/setcertificateissuer#administratordetails">Azure docs</a> for more information.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>For <code>get</code>, <code>create</code> and <code>import</code>, an object of class <code>stored_certificate</code>, representing the certificate itself.
+</p>
+<p>For <code>list</code>, a vector of key names.
+</p>
+<p>For <code>add_issuer</code> and <code>get_issuer</code>, an object representing an issuer. For <code>list_issuers</code>, a vector of issuer names.
+</p>
+<p>For <code>backup</code>, a string representing the backup blob for a certificate. If the certificate has multiple versions, the blob will contain all versions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>certificate, cert_key_properties, cert_x509_properties, cert_issuer_properties, vault_object_attrs
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+vault &lt;- key_vault("mykeyvault")
+
+vault$certificates$create("mynewcert", "CN=mydomain.com")
+vault$certificates$list()
+vault$certificates$get("mynewcert")
+
+# specifying some domain names
+vault$certificates$create("mynewcert", "CN=mydomain.com",
+    x509=cert_x509_properties(dns_names=c("mydomain.com", "otherdomain.com")))
+
+# specifying a validity period of 2 years (24 months)
+vault$certificates$create("mynewcert", "CN=mydomain.com",
+    x509=cert_x509_properties(validity_months=24))
+
+# setting management tags
+vault$certificates$create("mynewcert", "CN=mydomain.com", tag1="a value", othertag="another value")
+
+# importing a cert from a PFX file
+vault$certificates$import("importedcert", "mycert.pfx")
+
+# backup and restore a cert
+bak &lt;- vault$certificates$backup("mynewcert")
+vault$certificates$delete("mynewcert", confirm=FALSE)
+vault$certificates$restore(bak)
+
+# set a contact
+vault$certificates$set_contacts("username@mydomain.com")
+vault$certificates$get_contacts()
+
+# add an issuer and then obtain a cert
+# this can take a long time, so set wait=FALSE to return immediately
+vault$certificates$add_issuer("newissuer", provider="OneCert")
+vault$certificates$create("issuedcert", "CN=mydomain.com",
+    issuer=cert_issuer_properties("newissuer"),
+    wait=FALSE)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

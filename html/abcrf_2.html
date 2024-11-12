@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abcrf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an ABC-RF object: a classification random forest from a reference table towards performing an ABC model choice</h2>
+
+<h3>Description</h3>
+
+<p><code>abcrf</code> constructs a random forest from a reference table towards performing
+an ABC model choice. Basically, the reference table (i.e. the dataset that will
+be treated with the present package) includes a column with the index
+of the models to be compared and additional columns corresponding
+to the values of the simulated summary statistics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'formula'
+abcrf(formula, data, group=list(), lda=TRUE, ntree=500, sampsize=min(1e5, nrow(data)),
+paral=FALSE, ncores= if(paral) max(detectCores()-1,1) else 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula: left of ~, variable representing
+the model index; right of ~, summary statistics of the reference table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the reference table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>a list containing groups (at least 2) of model(s)
+on which the model choice will be performed. This is not necessarily a partition,
+one or more models can be excluded from the elements of the list and
+by default no grouping is done.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lda</code></td>
+<td>
+<p>should LDA scores be added to the list of summary statistics?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntree</code></td>
+<td>
+<p>number of trees to grow in the forest, by default 500 trees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampsize</code></td>
+<td>
+<p>size of the sample from the reference table to grow a tree
+of the classification forest, by default the minimum between the number of elements of the reference table and 100,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paral</code></td>
+<td>
+<p>a boolean that indicates if the calculations of the classification random forest
+(forest used to assign a model to the observed dataset) should be parallelized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>the number of CPU cores to use. If paral=TRUE, it is used the number of CPU cores minus 1. If ncores is not specified and <code>detectCores</code> does not detect the number of CPU cores with success then 1 core is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed on to <code>ranger</code> used to construct the classification random forest that preditcs the selected model.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>abcrf</code>, which is a list with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the original call to <code>abcrf</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lda</code></td>
+<td>
+<p>a boolean indicating if LDA scores have been added to the list of summary statistics,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>the formula used to construct the classification random forest,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>a list contining the groups of model(s) used. This list is empty if no grouping has been performed,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.rf</code></td>
+<td>
+<p>an object of class <code>randomForest</code> containing the trained forest with the reference table,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.lda</code></td>
+<td>
+<p>an object of class <code>lda</code> containing the Linear Discriminant Analysis based on the reference table,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.err</code></td>
+<td>
+<p>prior error rates of model selection on the reference table, estimated with the "out-of-bag" error of the forest.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Pudlo P., Marin J.-M., Estoup A., Cornuet J.-M., Gautier M. and Robert, C. P. (2016)
+<em>Reliable ABC model choice via random forests</em> Bioinformatics
+<a href="https://doi.org/10.1093/bioinformatics/btv684">doi:10.1093/bioinformatics/btv684</a>
+</p>
+<p>Estoup A., Raynal L., Verdu P. and Marin J.-M. (2018)
+<em>Model choice using Approximate Bayesian Computation and Random Forests: analyses based on model grouping to make inferences about the genetic history of Pygmy human populations</em> Jounal de la Société Française de Statistique
+<a href="http://journal-sfds.fr/article/view/709">http://journal-sfds.fr/article/view/709</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.abcrf</code>,
+<code>predict.abcrf</code>,
+<code>err.abcrf</code>,
+<code>ranger</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(snp)
+modindex &lt;- snp$modindex[1:500]
+sumsta &lt;- snp$sumsta[1:500,]
+data1 &lt;- data.frame(modindex, sumsta)
+model.rf1 &lt;- abcrf(modindex~., data = data1, ntree=100)
+model.rf1
+model.rf2 &lt;- abcrf(modindex~., data = data1, group = list(c("1","2"),"3"), ntree=100)
+model.rf2
+</code></pre>
+
+
+</div>

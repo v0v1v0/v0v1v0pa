@@ -1,0 +1,281 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CreateRunOptions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creation of the RunOptions object required to the RunModel functions</h2>
+
+<h3>Description</h3>
+
+<p>Creation of the RunOptions object required to the <code>RunModel*</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CreateRunOptions(FUN_MOD, InputsModel,
+                 IndPeriod_WarmUp = NULL, IndPeriod_Run,
+                 IniStates = NULL, IniResLevels = NULL, Imax = NULL,
+                 Outputs_Cal = NULL, Outputs_Sim = "all",
+                 MeanAnSolidPrecip = NULL, IsHyst = FALSE,
+                 warnings = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>FUN_MOD</code></td>
+<td>
+<p>[function] hydrological model function (e.g. <code>RunModel_GR4J</code>, <code>RunModel_CemaNeigeGR4J</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <em>InputsModel</em>] see <code>CreateInputsModel</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IndPeriod_WarmUp</code></td>
+<td>
+<p>(optional) [numeric] index of period to be used for the model warm-up [-]. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IndPeriod_Run</code></td>
+<td>
+<p>[numeric] index of period to be used for the model run [-]. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IniStates</code></td>
+<td>
+<p>(optional) [numeric] object of class <code>IniStates</code> [mm and °C], see <code>CreateIniStates</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IniResLevels</code></td>
+<td>
+<p>(optional) [numeric] vector of initial fillings for the GR stores (4 values; use NA when not relevant for a given model) [- and/or mm]. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Imax</code></td>
+<td>
+<p>(optional) [numeric] an atomic vector of the maximum capacity of the GR5H interception store [mm]; see <code>RunModel_GR5H</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outputs_Cal</code></td>
+<td>
+<p>(optional) [character] vector giving the outputs needed for the calibration <br> (e.g. c("Qsim")), the fewer outputs
+the faster the calibration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Outputs_Sim</code></td>
+<td>
+<p>(optional) [character] vector giving the requested outputs <br> (e.g. c(<code>"DatesR"</code>, <code>"Qsim"</code>, <code>"SnowPack"</code>)), default = <code>"all"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MeanAnSolidPrecip</code></td>
+<td>
+<p>(optional) [numeric] vector giving the annual mean of average solid precipitation for each layer (computed from InputsModel if not defined) [mm/y]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IsHyst</code></td>
+<td>
+<p>[boolean] boolean indicating if the hysteresis version of CemaNeige is used. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings</code></td>
+<td>
+<p>(optional) [boolean]  boolean indicating if the warning messages are shown, default = <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>(optional) [boolean] boolean indicating if the function is run in verbose mode or not, default = <code>TRUE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Users wanting to use <code>FUN_MOD</code> functions that are not included in
+the package must create their own <code>RunOptions</code> object accordingly.
+</p>
+<p>## — IndPeriod_WarmUp and IndPeriod_Run
+</p>
+<p>Since the hydrological models included in airGR are continuous models, meaning that internal states of the models are propagated to the next time step, <code>IndPeriod_WarmUp</code> and <code>IndPeriod_Run</code> must be continuous periods, represented by continuous indices values; no gaps are allowed. To calculate criteria or to calibrate a model over discontinuous periods, please see the <code>Bool_Crit</code> argument of the <code>CreateInputsCrit</code> function.
+</p>
+<p>## — Initialisation options
+</p>
+<p>The model initialisation options can either be set to a default configuration or be defined by the user.
+</p>
+<p>This is done via three vectors: <br><code>IndPeriod_WarmUp</code>, <code>IniStates</code>, <code>IniResLevels</code>. <br>
+A default configuration is used for initialisation if these vectors are not defined.
+</p>
+<p>(1) Default initialisation options:
+</p>
+
+<ul>
+<li> <p><code>IndPeriod_WarmUp</code> default setting ensures a one-year warm-up using the time steps preceding the <code>IndPeriod_Run</code>.
+The actual length of this warm-up might be shorter depending on data availability (no missing value of climate inputs being allowed in model input series).
+</p>
+</li>
+<li> <p><code>IniStates</code> and <code>IniResLevels</code> are automatically set to initialise all the model states at 0, except for the production and routing stores levels which are respectively initialised at 30 % and 50 % of their capacity. In case GR5H is used with an interception store, the intercetion store level is initialised by default with 0 mm. In case GR6J is used, the exponential store level is initialised by default with 0 mm. This initialisation is made at the very beginning of the model call (i.e. at the beginning of <code>IndPeriod_WarmUp</code> or at the beginning of <code>IndPeriod_Run</code> if the warm-up period is disabled).
+</p>
+</li>
+</ul>
+<p>(2) Customisation of initialisation options:
+</p>
+
+<ul>
+<li> <p><code>IndPeriod_WarmUp</code> can be used to specify the indices of the warm-up period (within the time series prepared in InputsModel).
+</p>
+
+<ul>
+<li>
+<p> remark 1:	for most common cases, indices corresponding to one or several years preceding <code>IndPeriod_Run</code> are used (e.g. <code>IndPeriod_WarmUp = 1000:1365</code> and <code>IndPeriod_Run = 1366:5000)</code>. <br>
+However, it is also possible to perform a long-term initialisation if other indices than the warm-up ones are set in <code>IndPeriod_WarmUp</code> (e.g. <code>IndPeriod_WarmUp = c(1:5000, 1:5000, 1:5000, 1000:1365)</code>). <br></p>
+</li>
+<li>
+<p> remark 2:	it is also possible to completely disable the warm-up period when using <code>IndPeriod_WarmUp = 0L</code>. This is necessary if you want <code>IniStates</code> and/or <code>IniResLevels</code> to be the actual initial values of the model variables from your simulation (e.g. to perform a forecast form a given initial state).
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>IniStates</code> and <code>IniResLevels</code> can be used to specify the initial model states.
+</p>
+
+<ul>
+<li>
+<p> remark 1: <code>IniStates</code> and <code>IniResLevels</code> can not be used with GR1A. <br></p>
+</li>
+<li>
+<p> remark 2:	if <code>IniStates</code> is used, two possibilities are offered:<br>
+- <code>IniStates</code> can be set to the <em>$StateEnd</em> output of a previous <code>RunModel</code> call, as <em>$StateEnd</em> already respects the correct format; <br>
+- <code>IniStates</code> can be created with the <code>CreateIniStates</code> function.
+</p>
+</li>
+<li>
+<p> remark 3:	in addition to <code>IniStates</code>, <code>IniResLevels</code> allows to set the filling rate of the production and routing stores for the GR models. For instance for GR4J and GR5J: <code>IniResLevels = c(0.3, 0.5, NA, NA)</code> should be used to obtain initial fillings of 30 % and 50 % for the production and routing stores, respectively. For GR6J, <code>IniResLevels = c(0.3, 0.5, 0, NA)</code> should be used to obtain initial fillings of 30 % and 50 % for the production and routing stores levels and 0 mm for the exponential store level, respectively. For GR5H with an interception store, <code>IniResLevels = c(0.3, 0.5, NA, 0.4)</code> should be used to obtain initial fillings of 30 %, 50 % and 40 % for the production, routing and interception stores levels, respectively. <code>IniResLevels</code> is optional and can only be used if <code>IniStates</code> is also defined (the state values corresponding to these two other stores in <code>IniStates</code> are not used in such case).
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>## — CemaNeige version
+</p>
+<p>If <code>IsHyst = FALSE</code>, the original CemaNeige version from Valéry et al. (2014) is used.  <br>
+If <code>IsHyst = TRUE</code>, the CemaNeige version from Riboust et al. (2019) is used. Compared to the original version, this version of CemaNeige needs two more parameters and it includes a representation of the hysteretic relationship between the Snow Cover Area (SCA) and the Snow Water Equivalent (SWE) in the catchment. The hysteresis included in airGR is the Modified Linear hysteresis (LH*); it is represented on panel b) of Fig. 3 in Riboust et al. (2019). Riboust et al. (2019) advise to use the LH* version of CemaNeige with parameters calibrated using an objective function combining 75 % of KGE calculated on discharge simulated from a rainfall-runoff model compared to observed discharge and 5 % of KGE calculated on SCA on 5 CemaNeige elevation bands compared to satellite (e.g. MODIS) SCA (see Eq. (18), Table 3 and Fig. 6). Riboust et al. (2019)'s tests were realized with GR4J as the chosen rainfall-runoff model. <br></p>
+
+
+<h3>Value</h3>
+
+<p>[list] object of class <em>RunOptions</em> containing the data required to evaluate the model outputs; it can include the following:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+    <em>IndPeriod_WarmUp </em> </td>
+<td style="text-align: left;"> [numeric] index of period to be used for the model warm-up [-] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>IndPeriod_Run    </em> </td>
+<td style="text-align: left;"> [numeric] index of period to be used for the model run [-] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>IniStates        </em> </td>
+<td style="text-align: left;"> [numeric] vector of initial model states [mm and °C] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>IniResLevels     </em> </td>
+<td style="text-align: left;"> [numeric] vector of initial filling rates for production and routing stores [-] and level for the exponential store for GR6J [mm]</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>Outputs_Cal      </em> </td>
+<td style="text-align: left;"> [character] character vector giving only the outputs needed for the calibration </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>Outputs_Sim      </em> </td>
+<td style="text-align: left;"> [character] character vector giving the requested outputs </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>Imax             </em> </td>
+<td style="text-align: left;"> [numeric] vector giving the maximal capacity of the GR5H interception store </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    <em>MeanAnSolidPrecip</em> </td>
+<td style="text-align: left;"> [numeric] vector giving the annual mean of average solid precipitation for each layer [mm/y] </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  </td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Olivier Delaigue, Guillaume Thirel
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RunModel</code>, <code>CreateInputsModel</code>, <code>CreateInputsCrit</code>,
+<code>CreateCalibOptions</code>, <code>CreateIniStates</code>, <code>Imax</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 734.568, X2 = -0.840, X3 = 109.809, X4 = 1.971)
+OutputsModel &lt;- RunModel(InputsModel = InputsModel,
+                         RunOptions = RunOptions, Param = Param,
+                         FUN_MOD = RunModel_GR4J)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+## efficiency criterion: Nash-Sutcliffe Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                                RunOptions = RunOptions,
+                                Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

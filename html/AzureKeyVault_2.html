@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>az_key_vault</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Key vault resource class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing a key vault, exposing methods for working with it.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_resource class:
+</p>
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new key vault object. See 'Initialization'.
+</p>
+</li>
+<li> <p><code>add_principal(principal, ...)</code>: Add an access policy for a user or service principal. See 'Access policies' below.
+</p>
+</li>
+<li> <p><code>get_principal(principal)</code>: Retrieve an access policy for a user or service principal.
+</p>
+</li>
+<li> <p><code>remove_principal(principal)</code>: Remove access for a user or service principal.
+</p>
+</li>
+<li> <p><code>get_endpoint()</code>: Return the vault endpoint. See 'Endpoint' below.
+</p>
+</li>
+</ul>
+<h3>Initialization</h3>
+
+<p>Initializing a new object of this class can either retrieve an existing key vault, or create a new vault on the host. The recommended way to initialize an object is via the <code>get_key_vault</code>, <code>create_key_vault</code> or <code>list_key_vaults</code> methods of the az_resource_group class, which handle the details automatically.
+</p>
+
+
+<h3>Access policies</h3>
+
+<p>Client access to a key vault is governed by its access policies, which are set on a per-principal basis. Each principal (user or service) can have different permissions granted, for keys, secrets, certificates, and storage accounts.
+</p>
+<p>To grant access, use the <code>add_principal</code> method. This has signature</p>
+<pre>add_principal(principal, tenant = NULL,
+              key_permissions = "all",
+              secret_permissions = "all",
+              certificate_permissions = "all",
+              storage_permissions = "all")
+</pre>
+<p>The <code>principal</code> can be a GUID, an object of class <code>vault_access_policy</code>, or a user, app or service principal object from the AzureGraph package. Note that the app ID of a registered app is not the same as the ID of its service principal.
+</p>
+<p>The tenant must be a GUID; if this is NULL, it will be taken from the tenant of the key vault resource.
+</p>
+<p>Here are the possible permissions for keys, secrets, certificates, and storage accounts. The permission "all" means to grant all permissions.
+</p>
+
+<ul>
+<li>
+<p> Keys: "get", "list", "update", "create", "import", "delete", "recover", "backup", "restore", "decrypt", "encrypt", "unwrapkey", "wrapkey", "verify", "sign", "purge"
+</p>
+</li>
+<li>
+<p> Secrets: "get", "list", "set", "delete", "recover", "backup", "restore", "purge"
+</p>
+</li>
+<li>
+<p> Certificates: "get", "list", "update", "create", "import", "delete", "recover", "backup", "restore", "managecontacts", "manageissuers", "getissuers", "listissuers", "setissuers", "deleteissuers", "purge"
+</p>
+</li>
+<li>
+<p> Storage accounts: "get", "list", "update", "set", "delete", "recover", "backup", "restore", "regeneratekey", "getsas", "listsas", "setsas", "deletesas", "purge"
+</p>
+</li>
+</ul>
+<p>To revoke access, use the <code>remove_principal</code> method. To view the current access policy, use <code>get_principal</code> or <code>list_principals</code>.
+</p>
+
+
+<h3>Endpoint</h3>
+
+<p>The client-side interaction with a key vault is via its <em>endpoint</em>, which is usually at the URL <code style="white-space: pre;">⁠https://[vaultname].vault.azure.net⁠</code>. The <code>get_endpoint</code> method returns an R6 object of class <code>key_vault</code>, which represents the endpoint. Authenticating with the endpoint is done via an OAuth token; the necessary credentials are taken from the current Resource Manager client in use, or you can supply your own.</p>
+<pre>get_endpoint(tenant = self$token$tenant,
+             app = self$token$client$client_id,
+             password = self$token$client$client_secret, ...)
+</pre>
+<p>To access the key vault independently of Resource Manager (for example if you are a user without admin or owner access to the vault resource), use the key_vault function.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>vault_access_policy, key_vault
+create_key_vault, get_key_vault, delete_key_vault,
+AzureGraph::get_graph_login, AzureGraph::az_user, AzureGraph::az_app, AzureGraph::az_service_principal
+</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/key-vault/">Azure Key Vault documentation</a>,
+<a href="https://docs.microsoft.com/en-us/rest/api/keyvault">Azure Key Vault API reference</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# recommended way of retrieving a resource: via a resource group object
+kv &lt;- resgroup$get_key_vault("mykeyvault")
+
+# list principals that have access to the vault
+kv$list_principals()
+
+# grant a user full access (the default)
+usr &lt;- AzureGraph::get_graph_login()$
+    get_user("username@aadtenant.com")
+kv$add_principal(usr)
+
+# grant a service principal read access to keys and secrets only
+svc &lt;- AzureGraph::get_graph_login()$
+    get_service_principal(app_id="app_id")
+kv$add_principal(svc,
+    key_permissions=c("get", "list"),
+    secret_permissions=c("get", "list"),
+    certificate_permissions=NULL,
+    storage_permissions=NULL)
+# alternatively, supply a vault_access_policy with the listed permissions
+pol &lt;- vault_access_policy(svc,
+    key_permissions=c("get", "list"),
+    secret_permissions=c("get", "list"),
+    certificate_permissions=NULL,
+    storage_permissions=NULL)
+kv$add_principal(pol)
+
+# revoke access
+kv$remove_access(svc)
+
+# get the endpoint object
+vault &lt;- kv$get_endpoint()
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

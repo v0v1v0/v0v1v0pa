@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filter_pd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter up to First PD (Progressive Disease) Date</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>filter_pd()</code> function has been
+superseded in favor of <code>filter_relative()</code>.
+</p>
+<p>Filter a dataset to only include the source parameter records up to and
+including the first PD (progressive disease). These records are passed to
+downstream derivations regarding responses such as BOR (best overall
+response).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filter_pd(
+  dataset,
+  filter,
+  source_pd,
+  source_datasets,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables <code>ADT</code> and those specified by <code>subject_keys</code> are expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Filter condition for restricting the input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_pd</code></td>
+<td>
+<p>A <code>admiral::date_source()</code> object providing the date of first PD
+</p>
+<p>For each subject the first date (<code>date</code> field) in the provided dataset
+(<code>dataset_name</code> field) restricted by <code>filter</code> field is considered as first
+PD date.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>A named list of data sets is expected.
+</p>
+<p>The name must match the name provided by the <code>dataset_name</code> field of the
+<code>admiral::date_source()</code> object specified for <code>source_pd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of symbols created using <code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> The input dataset (<code>dataset</code>) is restricted by <code>filter</code>.
+</p>
+</li>
+<li>
+<p> For each subject the first PD date is derived as the first date
+(<code>source_pd$date</code>) in the source pd dataset
+(<code>source_datasets[[source_pd$dataset_name]]</code>) restricted by
+<code>source_pd$filter</code>.
+</p>
+</li>
+<li>
+<p> The restricted input dataset is restricted to records up to first PD date.
+Records matching first PD date are included. For subject without any first PD
+date, all records are included.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>A subset of the input dataset
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Teckla Akinyi, Stefan Bundfuss
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other superseded: 
+<code>derive_param_bor()</code>,
+<code>derive_param_clinbenefit()</code>,
+<code>derive_param_confirmed_bor()</code>,
+<code>derive_param_confirmed_resp()</code>,
+<code>derive_param_response()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(lubridate)
+library(admiral)
+library(admiralonco)
+
+# Filter OVR records up to first PD, first PD date provided in separate BDS dataset (adevent)
+adrs &lt;- tibble::tribble(
+  ~STUDYID,       ~USUBJID,      ~PARAMCD, ~AVALC, ~ADT,         ~ANL01FL,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1015", "OVR",    "SD",   "2016-02-22", NA_character_,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "PD",   "2016-02-22", "Y",
+  "CDISCPILOT01", "01-701-1015", "BOR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "BOR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "SD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "PR",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "BOR",    "PR",   "2016-06-25", "Y"
+) %&gt;% mutate(
+  ADT = as_date(ADT)
+)
+
+adevent &lt;- tibble::tribble(
+  ~STUDYID,       ~USUBJID,      ~PARAMCD, ~AVALC, ~ADT,
+  "CDISCPILOT01", "01-701-1015", "PD",     "Y",    "2016-02-22",
+  "CDISCPILOT01", "01-701-1034", "PD",     "Y",    "2016-04-25"
+) %&gt;% mutate(
+  ADT = as_date(ADT)
+)
+
+pd &lt;- date_source(
+  dataset_name = "adevent",
+  date = ADT,
+  filter = PARAMCD == "PD"
+)
+
+filter_pd(
+  dataset = adrs,
+  filter = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd,
+  source_datasets = list(adevent = adevent)
+)
+
+# Filter OVR records up to first PD, first PD date provided in ADSL dataset
+adsl &lt;- tibble::tribble(
+  ~STUDYID,       ~USUBJID,      ~PDDT,
+  "CDISCPILOT01", "01-701-1015", "2016-02-22",
+  "CDISCPILOT01", "01-701-1034", "2016-04-25",
+  "CDISCPILOT01", "01-701-1035", ""
+) %&gt;% mutate(
+  PDDT = as_date(PDDT)
+)
+
+pd &lt;- date_source(
+  dataset_name = "adsl",
+  date = PDDT
+)
+
+filter_pd(
+  dataset = adrs,
+  filter = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd,
+  source_datasets = list(adsl = adsl)
+)
+
+# Filter OVR records up to first PD, first PD date provided in input dataset (PD parameter)
+adrs &lt;- tibble::tribble(
+  ~STUDYID,       ~USUBJID,      ~PARAMCD, ~AVALC, ~ADT,         ~ANL01FL,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1015", "OVR",    "SD",   "2016-02-22", NA_character_,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "PD",   "2016-02-22", "Y",
+  "CDISCPILOT01", "01-701-1015", "BOR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "BOR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "SD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "PR",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "BOR",    "PR",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1015", "PD",     "Y",    "2016-02-22", "Y",
+  "CDISCPILOT01", "01-701-1034", "PD",     "Y",    "2016-04-25", "Y"
+) %&gt;% mutate(
+  ADT = as_date(ADT)
+)
+
+pd &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == "PD"
+)
+
+filter_pd(
+  dataset = adrs,
+  filter = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd,
+  source_datasets = list(adrs = adrs)
+)
+
+# Filter OVR records up to first PD, first PD date derived from OVR records
+adrs &lt;- tibble::tribble(
+  ~STUDYID,       ~USUBJID,      ~PARAMCD, ~AVALC, ~ADT,         ~ANL01FL,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1015", "OVR",    "SD",   "2016-02-22", NA_character_,
+  "CDISCPILOT01", "01-701-1015", "OVR",    "PD",   "2016-02-22", "Y",
+  "CDISCPILOT01", "01-701-1015", "BOR",    "CR",   "2016-01-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "OVR",    "PD",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1034", "BOR",    "SD",   "2015-12-07", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "SD",   "2016-04-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "OVR",    "PR",   "2016-06-25", "Y",
+  "CDISCPILOT01", "01-701-1035", "BOR",    "PR",   "2016-06-25", "Y"
+) %&gt;% mutate(
+  ADT = as_date(ADT)
+)
+
+pd &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == "OVR" &amp; ANL01FL == "Y" &amp; AVALC == "PD"
+)
+
+filter_pd(
+  dataset = adrs,
+  filter = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd,
+  source_datasets = list(adrs = adrs)
+)
+</code></pre>
+
+
+</div>

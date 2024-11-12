@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>stepar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stepwise Autoregressive Model</h2>
+
+<h3>Description</h3>
+
+<p>Fit a stepwise autoregressive model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">stepar(y, xreg = NULL, trend = c("linear", "quadratic", "constant"),
+  order = NULL, lead = 0, newx = NULL, output = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>a numeric vector or matrix of exogenous input variables. The default is
+<code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend</code></td>
+<td>
+<p>the type of trend with respective to time. The default is <code>linear</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>the order to fit the AR model for residuals. The default is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lead</code></td>
+<td>
+<p>the number of steps ahead for which prediction is required.
+The default is <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newx</code></td>
+<td>
+<p>a matrix of new data of <code>xreg</code> for predictions. The default is
+<code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>a logical value indicating to print the results in R console. The default is
+<code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments for <code>ar</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The stewise autoregressive model uses a two-stage procedure to fit time series.
+The first stage is to fit a (<code>constant</code>,<code>linear</code>,<code>quadratic</code>)
+model with respective to time sequence:
+<code class="reqn">t = (1:n)/n</code>, where <code class="reqn">n = length(y)</code>. If <code>xreg</code> is supplied,
+the fitted model is updated by
+</p>
+<p style="text-align: center;"><code class="reqn">y = \mu + \beta*xreg + e[t] </code>
+</p>
+
+<p>for <code>trend = "constant"</code>, and
+</p>
+<p style="text-align: center;"><code class="reqn">y = \mu + \beta*xreg + \alpha*t + e[t]</code>
+</p>
+
+<p>for <code>trend = "linear"</code>, and
+</p>
+<p style="text-align: center;"><code class="reqn">y = \mu + \beta*xreg + \alpha[1]*t + \alpha[2]*t^2 + e[t]</code>
+</p>
+
+<p>for <code>trend = "quadratic"</code>.
+The second stage is to fit an autoregressive process to the residuals of the fitted
+model obtained in the first stage, which is accomplished by using <code>ar</code> function
+in <code>stats</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with class "<code>stepar</code>" containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>a estimated coefficient matrix including the t-test results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>the square root of the estimated variance of the random error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R.squared</code></td>
+<td>
+<p>the R^2 for fitted model in the first stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>the predictions, only available for <code>lead</code> &gt; 0.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If <code>lead</code> &gt; 0 and <code>xreg</code> is supplied, <code>newx</code> must also be
+supplied in order to make a prediction. The <code>newx</code> must be a matrix with
+the same number of columns as <code>xreg</code> and the number of rows being
+equal to <code>lead</code>. The predictions should be used with cautions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Debin Qiu
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- 5*(1:100)/100
+x &lt;- x + arima.sim(list(order = c(1,0,0),ar = 0.4),n = 100)
+stepar(x)
+stepar(x,order = 1)
+
+# with xreg supplied
+X &lt;- matrix(rnorm(200),100,2)
+y &lt;- 0.1*X[,1] + 1.2*X[,2] + rnorm(100)
+stepar(y,X)
+# make a prediction with lead = 1; used with caution.
+newdat1 &lt;- matrix(rnorm(2),nrow = 1)
+fit1 &lt;- stepar(y,X,lead = 1,newx = newdat1,output = FALSE)
+# make a prediction with lead = 2; used with caution.
+newdat2 &lt;- matrix(rnorm(4),nrow = 2)
+fit2 &lt;- stepar(y,X,lead = 2,newx = newdat2,output = FALSE)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>unpencoxIC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Performing unpenalized nonparametric maximum likelihood estimation for interval censored and possibly left truncated data</h2>
+
+<h3>Description</h3>
+
+<p>The <code>unpencoxIC</code> function performs unpenalized nonparametric maximum likelihood estimation. The function provides unpenalized nonparametric maximum likelihood estimates, standard errors, and 95% confidence intervals. The full details are available in Li et al. (2019).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## Default S3 method:
+unpencoxIC(lowerIC, upperIC, X, trunc = NULL,
+normalize.X = TRUE, covmat = TRUE, cl = NULL, tol = 0.001,
+niter = 1e+05, string.cen = Inf, string.missing = NA, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>for S4 method only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowerIC</code></td>
+<td>
+<p>A numeric vector for the lower limit of the censoring interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upperIC</code></td>
+<td>
+<p>A numeric vector for the upper limit of the censoring interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A numeric matrix for the covariates that will be used for variable selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trunc</code></td>
+<td>
+<p>A numeric vector for left truncated time. If supplied, the function performs the variable selection for interval censored and left truncated data. If <code>trunc</code> is missing, the data will be considered as interval censored data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize.X</code></td>
+<td>
+<p>A logical value: if <code>normalize.X</code> = <code>TRUE</code>, the covariate matrix <code>X</code> will be normalized before fitting models. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covmat</code></td>
+<td>
+<p>Controlling the estimation of the covariance matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>A cluster object created by <code>makeCluster</code> in the <code>parallel</code> package. If <code>NULL</code>, no parallel computing is used by default. See details below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A numeric value for the absolute iteration convergence tolerance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>A numeric value for the maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>string.cen</code></td>
+<td>
+<p>A string indicating right censoring for <code>upperIC</code>. Default is <code>Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>string.missing</code></td>
+<td>
+<p>A string indicating missing value. Default is <code>NA</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The cluster object, created by <code>makeCluster</code> in the <code>parallel</code> package, can be supplied with the <code>cl</code> argument to reduce computation time via parallel computing. The parallel computing will be used when calculating the hessian matrix of the estimates. How to use the parallel computing is illustrated in one of the examples given below.
+</p>
+<p>Use the <code>baseline</code> function and the <code>plot</code> function to extract and plot the estimate of the baseline cumulative hazard function, respectively, from the object returned by the <code>unpencoxIC</code>. The <code>plot</code> function also provides the plot for estimated baseline survival function. See the usages in the examples given below.
+</p>
+
+
+<h3>References</h3>
+
+<p>Li, C., Pak, D., &amp; Todem, D. (2019). Adaptive lasso for the Cox regression with interval censored and possibly left truncated data. Statistical methods in medical research. doi: <a href="https://doi.org/10.1177/0962280219856238">10.1177/0962280219856238</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>alacoxIC</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ALassoSurvIC)
+
+### Getting the unpenalized NPMLE for interval censored data
+data(ex_IC)
+lowerIC &lt;- ex_IC$lowerIC
+upperIC &lt;- ex_IC$upperIC
+X &lt;- ex_IC[, -c(1:2)]
+system.time(result &lt;- unpencoxIC(lowerIC, upperIC, X))
+
+result           # main result
+baseline(result) # obtaining the baseline cumulative hazard estimate
+plot(result)     # plotting the estimated baseline cumulative hazard function by default
+plot(result, what = "survival")  # plotting the estimated baseline survival function
+
+## Use the parallel computing to reduce computational times
+library(parallel)
+cl &lt;- makeCluster(2L)  # making the cluster object 'cl' with two CPU cores
+system.time(result &lt;- unpencoxIC(lowerIC, upperIC, X, cl = cl))
+on.exit()
+
+### Getting the unpenalized NPMLE for interval censored and left truncated data
+## Try following codes with the 'ex_ICLT' data example
+data(ex_ICLT)
+lowerIC &lt;- ex_ICLT$lowerIC
+upperIC &lt;- ex_ICLT$upperIC
+trunc &lt;- ex_ICLT$trunc
+X &lt;- ex_ICLT[, -c(1:3)]
+result2 &lt;- unpencoxIC(lowerIC, upperIC, X, trunc)
+result2
+
+baseline(result2)
+plot(result2)
+plot(result2, what = "survival")
+
+</code></pre>
+
+
+</div>

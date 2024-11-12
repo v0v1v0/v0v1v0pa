@@ -1,0 +1,352 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_dtm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive/Impute a Datetime from a Date Character Vector</h2>
+
+<h3>Description</h3>
+
+<p>Derive a datetime object (<code>'--DTM'</code>) from a date character vector (<code>'--DTC'</code>).
+The date and time can be imputed (see <code>date_imputation</code>/<code>time_imputation</code> arguments)
+and the date/time imputation flag (<code>'--DTF'</code>, <code>'--TMF'</code>) can be added.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_dtm(
+  dataset,
+  new_vars_prefix,
+  dtc,
+  highest_imputation = "h",
+  date_imputation = "first",
+  time_imputation = "first",
+  flag_imputation = "auto",
+  min_dates = NULL,
+  max_dates = NULL,
+  preserve = FALSE,
+  ignore_seconds_flag = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>dtc</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars_prefix</code></td>
+<td>
+<p>Prefix used for the output variable(s).
+</p>
+<p>A character scalar is expected. For the date variable "DT" is appended to
+the specified prefix, for the date imputation flag "DTF", and for the time
+imputation flag "TMF". I.e., for <code>new_vars_prefix = "AST"</code> the variables
+<code>ASTDT</code>, <code>ASTDTF</code>, and <code>ASTTMF</code> are created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtc</code></td>
+<td>
+<p>The <code>'--DTC'</code> date to impute
+</p>
+<p>A character date is expected in a format like <code>yyyy-mm-dd</code> or
+<code>yyyy-mm-ddThh:mm:ss</code>. Trailing components can be omitted and <code>-</code> is a
+valid "missing" value for any component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>highest_imputation</code></td>
+<td>
+<p>Highest imputation level
+</p>
+<p>The <code>highest_imputation</code> argument controls which components of the DTC
+value are imputed if they are missing. All components up to the specified
+level are imputed.
+</p>
+<p>If a component at a higher level than the highest imputation level is
+missing, <code>NA_character_</code> is returned. For example, for <code>highest_imputation = "D"</code> <code>"2020"</code> results in <code>NA_character_</code> because the month is missing.
+</p>
+<p>If <code>"n"</code> is specified, no imputation is performed, i.e., if any component is
+missing, <code>NA_character_</code> is returned.
+</p>
+<p>If <code>"Y"</code> is specified, <code>date_imputation</code> should be <code>"first"</code> or <code>"last"</code>
+and <code>min_dates</code> or <code>max_dates</code> should be specified respectively. Otherwise,
+<code>NA_character_</code> is returned if the year component is missing.
+</p>
+<p><em>Permitted Values</em>: <code>"Y"</code> (year, highest level), <code>"M"</code> (month), <code>"D"</code>
+(day), <code>"h"</code> (hour), <code>"m"</code> (minute), <code>"s"</code> (second), <code>"n"</code> (none, lowest
+level)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date_imputation</code></td>
+<td>
+<p>The value to impute the day/month when a datepart is
+missing.
+</p>
+<p>A character value is expected, either as a
+</p>
+
+<ul>
+<li>
+<p> format with month and day specified as <code>"mm-dd"</code>: e.g. <code>"06-15"</code> for the
+15th of June (The year can not be specified; for imputing the year
+<code>"first"</code> or <code>"last"</code> together with <code>min_dates</code> or <code>max_dates</code> argument can
+be used (see examples).),
+</p>
+</li>
+<li>
+<p> or as a keyword: <code>"first"</code>, <code>"mid"</code>, <code>"last"</code> to impute to the first/mid/last
+day/month. If <code>"mid"</code> is specified, missing components are imputed as the
+middle of the possible range:
+</p>
+
+<ul>
+<li>
+<p> If both month and day are missing, they are imputed as <code>"06-30"</code>
+(middle of the year).
+</p>
+</li>
+<li>
+<p> If only day is missing, it is imputed as <code>"15"</code> (middle of the month).
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>The argument is ignored if <code>highest_imputation</code> is less then <code>"D"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_imputation</code></td>
+<td>
+<p>The value to impute the time when a timepart is
+missing.
+</p>
+<p>A character value is expected, either as a
+</p>
+
+<ul>
+<li>
+<p> format with hour, min and sec specified as <code>"hh:mm:ss"</code>: e.g. <code>"00:00:00"</code>
+for the start of the day,
+</p>
+</li>
+<li>
+<p> or as a keyword: <code>"first"</code>,<code>"last"</code> to impute to the start/end of a day.
+</p>
+</li>
+</ul>
+<p>The argument is ignored if <code>highest_imputation = "n"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag_imputation</code></td>
+<td>
+<p>Whether the date/time imputation flag(s) must also be derived.
+</p>
+<p>If <code>"both"</code> or <code>"date"</code> is specified, then date imputation flag is derived.
+If <code>"auto"</code> is specified and <code>highest_imputation</code> argument is greater than
+<code>"h"</code>, then date imputation flag is derived.
+</p>
+<p>If <code>"both"</code> or <code>"time"</code> is specified, then time imputation flag is derived.
+If <code>"auto"</code> is specified and <code>highest_imputation</code> argument is not <code>"n"</code>,
+then time imputation flag is derived.
+</p>
+<p>If <code>"none"</code> is specified, then no date or time imputation flag is derived.
+</p>
+<p><em>Permitted Values</em>: <code>"auto"</code>, <code>"date"</code>, <code>"time"</code>, <code>"both"</code>, or <code>"none"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_dates</code></td>
+<td>
+<p>Minimum dates
+</p>
+<p>A list of dates is expected. It is ensured that the imputed date is not
+before any of the specified dates, e.g., that the imputed adverse event start
+date is not before the first treatment date. Only dates which are in the
+range of possible dates of the <code>dtc</code> value are considered. The possible dates
+are defined by the missing parts of the <code>dtc</code> date (see example below). This
+ensures that the non-missing parts of the <code>dtc</code> date are not changed.
+A date or date-time object is expected.
+For example
+</p>
+<div class="sourceCode r"><pre>impute_dtc_dtm(
+  "2020-11",
+  min_dates = list(
+   ymd_hms("2020-12-06T12:12:12"),
+   ymd_hms("2020-11-11T11:11:11")
+  ),
+  highest_imputation = "M"
+)
+</pre></div>
+<p>returns <code>"2020-11-11T11:11:11"</code> because the possible dates for <code>"2020-11"</code>
+range from <code>"2020-11-01T00:00:00"</code> to <code>"2020-11-30T23:59:59"</code>. Therefore
+<code>"2020-12-06T12:12:12"</code> is ignored. Returning <code>"2020-12-06T12:12:12"</code> would
+have changed the month although it is not missing (in the <code>dtc</code> date).
+</p>
+<p>For date variables (not datetime) in the list the time is imputed to
+<code>"00:00:00"</code>. Specifying date variables makes sense only if the date is
+imputed. If only time is imputed, date variables do not affect the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_dates</code></td>
+<td>
+<p>Maximum dates
+</p>
+<p>A list of dates is expected. It is ensured that the imputed date is not after
+any of the specified dates, e.g., that the imputed date is not after the data
+cut off date. Only dates which are in the range of possible dates are
+considered. A date or date-time object is expected.
+</p>
+<p>For date variables (not datetime) in the list the time is imputed to
+<code>"23:59:59"</code>. Specifying date variables makes sense only if the date is
+imputed. If only time is imputed, date variables do not affect the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preserve</code></td>
+<td>
+<p>Preserve lower level date/time part when higher order part
+is missing, e.g. preserve day if month is missing or
+preserve minute when hour is missing.
+</p>
+<p>For example <code>"2019---07"</code> would return <code style="white-space: pre;">⁠"2019-06-07⁠</code> if <code>preserve = TRUE</code>
+(and <code>date_imputation = "mid"</code>).
+</p>
+<p>Permitted Values: <code>TRUE</code>, <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_seconds_flag</code></td>
+<td>
+<p>ADaM IG states that given SDTM (<code>'--DTC'</code>) variable,
+if only hours and minutes are ever collected, and seconds are imputed in
+(<code>'--DTM'</code>) as 00, then it is not necessary to set (<code>'--TMF'</code>) to <code>'S'</code>. A user can set this
+to <code>TRUE</code> so the <code>'S'</code> Flag is dropped from (<code>'--TMF'</code>).
+</p>
+<p><em>Permitted Values</em>: A logical value</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In <code>{admiral}</code> we don't allow users to pick any single part of the date/time to
+impute, we only enable to impute up to a highest level, i.e. you couldn't
+choose to say impute months, but not days.
+</p>
+<p>The presence of a <code>'--DTF'</code> variable is checked and the variable is not derived
+if it already exists in the input dataset. However, if <code>'--TMF'</code> already exists
+in the input dataset, a warning is issued and <code>'--TMF'</code> will be overwritten.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with the datetime <code>'--DTM'</code> (and the date/time imputation
+flag <code>'--DTF'</code>, <code>'--TMF'</code>) added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Date/Time Derivation Functions that returns variable appended to dataset: 
+<code>derive_var_trtdurd()</code>,
+<code>derive_vars_dt()</code>,
+<code>derive_vars_dtm_to_dt()</code>,
+<code>derive_vars_dtm_to_tm()</code>,
+<code>derive_vars_duration()</code>,
+<code>derive_vars_dy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(lubridate)
+
+mhdt &lt;- tribble(
+  ~MHSTDTC,
+  "2019-07-18T15:25:40",
+  "2019-07-18T15:25",
+  "2019-07-18",
+  "2019-02",
+  "2019",
+  "2019---07",
+  ""
+)
+
+derive_vars_dtm(
+  mhdt,
+  new_vars_prefix = "AST",
+  dtc = MHSTDTC,
+  highest_imputation = "M"
+)
+
+# Impute AE end date to the last date and ensure that the imputed date is not
+# after the death or data cut off date
+adae &lt;- tribble(
+  ~AEENDTC, ~DTHDT, ~DCUTDT,
+  "2020-12", ymd("2020-12-06"), ymd("2020-12-24"),
+  "2020-11", ymd("2020-12-06"), ymd("2020-12-24")
+)
+
+derive_vars_dtm(
+  adae,
+  dtc = AEENDTC,
+  new_vars_prefix = "AEN",
+  highest_imputation = "M",
+  date_imputation = "last",
+  time_imputation = "last",
+  max_dates = exprs(DTHDT, DCUTDT)
+)
+
+# Seconds has been removed from the input dataset.  Function now uses
+# ignore_seconds_flag to remove the 'S' from the --TMF variable.
+mhdt &lt;- tribble(
+  ~MHSTDTC,
+  "2019-07-18T15:25",
+  "2019-07-18T15:25",
+  "2019-07-18",
+  "2019-02",
+  "2019",
+  "2019---07",
+  ""
+)
+
+derive_vars_dtm(
+  mhdt,
+  new_vars_prefix = "AST",
+  dtc = MHSTDTC,
+  highest_imputation = "M",
+  ignore_seconds_flag = TRUE
+)
+
+# A user imputing dates as middle month/day, i.e. date_imputation = "MID" can
+# use preserve argument to "preserve" partial dates.  For example, "2019---07",
+# will be displayed as "2019-06-07" rather than 2019-06-15 with preserve = TRUE
+
+derive_vars_dtm(
+  mhdt,
+  new_vars_prefix = "AST",
+  dtc = MHSTDTC,
+  highest_imputation = "M",
+  date_imputation = "mid",
+  preserve = TRUE
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>z2y</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert standard deviation scores (SDS) to measurements</h2>
+
+<h3>Description</h3>
+
+<p>Converts standard deviation score (SDS) into measurements using 
+an age- and sex-conditional external reference.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">z2y(
+  z = c(-2, 0, 2),
+  x = 1,
+  sex = "M",
+  sub = "N",
+  ref = get("nl4.hgt"),
+  dist = "LMS",
+  dec = 3,
+  sex.fallback = NA,
+  sub.fallback = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>A numerical vector containing standard deviation scores that are to
+be converted. The length <code>length(z)</code> determines the size of the output
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector containing the values of the numerical covariate (typically
+decimal age or height) at which conversion is desired.  Values are replicated
+to match <code>length(y)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>A character vector indicating whether the male (<code>"M"</code>) of
+female (<code>"F"</code>)reference should be used.  Values are replicated to match
+<code>length(y)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>A character vector indicating the level of the <code>sub</code> field of
+the reference standard defined in <code>ref</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref</code></td>
+<td>
+<p>A data frame containing a factor <code>sex</code>, a numerical variable
+<code>age</code> containing the tabulated decimal point ages, and two or more
+numerical variables with reference values. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>A string identifying the type of distribution. Values values are:
+<code>"NO"</code>, <code>"BCCG"</code>, <code>"LMS"</code>, <code>"BCPE"</code> and <code>"BCT"</code>.
+The default is <code>"LMS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec</code></td>
+<td>
+<p>A scalar value indicating the number of decimals used to round the
+value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex.fallback</code></td>
+<td>
+<p>The level of the <code>sex</code> field used when no match is
+found.  The default <code>sex.fallback=NA</code> specifies that 
+unmatched entries should receive a <code>NA</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub.fallback</code></td>
+<td>
+<p>The level of the <code>sub</code> field used when no match is
+found.  The default <code>sub.fallback=NA</code> specifies that 
+unmatched entries should receive a <code>NA</code> value.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Functions <code>z2y()</code> and <code>y2z()</code> are the inverse of each other.
+</p>
+<p>The argument <code>dist</code> determines the statistical distribution.  The
+possibilities are as follows: </p>
+ <dl>
+<dt>list("\"NO\"")</dt>
+<dd>
+<p><code>ref</code>
+should contain columns <code>mean</code> and <code>sd</code>, containing the mean and the
+standard deviation in the external reference population.</p>
+</dd>
+<dt>list("\"LMS\"")</dt>
+<dd>
+<p><code>ref</code> should contain columns <code>L</code>, <code>S</code>
+and <code>M</code> containing the LMS parameters.</p>
+</dd>
+<dt>list("\"BCCG\"")</dt>
+<dd>
+<p><code>ref</code> should contain columns <code>mu</code>,
+<code>sigma</code> and <code>nu</code> containing the Box-Cox Cole-Green parameters.</p>
+</dd>
+<dt>list("\"BCPE\"")</dt>
+<dd>
+<p><code>ref</code> should contain columns <code>mu</code>,
+<code>sigma</code>, <code>nu</code> and <code>tau</code> containing the Box-Cox Power
+Exponential parameters.</p>
+</dd> <dt>list("\"BCT\"")</dt>
+<dd>
+<p><code>ref</code> should contain
+columns <code>mu</code>, <code>sigma</code>, <code>nu</code> and <code>tau</code> containing the
+Box-Cox T distribution parameters.</p>
+</dd> </dl>
+<h3>Value</h3>
+
+<p>For <code>y2z()</code>: A vector with <code>length(y)</code> elements containing
+the standard deviation score.  For <code>z2y()</code>: A vector with
+<code>length(z)</code> elements containing quantiles.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stef van Buuren, 2010
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>y2z</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+boys &lt;- boys7482
+
+# quantile at SD=0 of age 2 years, 
+# height Dutch boys
+z2y(z=0, x=2)
+
+# same for Dutch girls
+z2y(z=0, x=2, sex="F")
+
+# quantile at SD=c(-1,0,1) of age 2 years, BMI Dutch boys
+z2y(z=c(-1,0,+1), x=2, ref=nl4.bmi)
+
+# 0SD line (P50) in kg of weight for age in 5-10 year, Dutch boys
+z2y(z=rep(0,6), x=5:10, ref=nl4.wgt)
+
+# 95th percentile (P95), age 10 years, wfa, Dutch boys
+z2y(z=qnorm(0.95), x=10, ref=nl4.wgt)
+
+# table of P3, P10, P50, P90, P97 of weight for 5-10 year old dutch boys
+# age per year
+age &lt;- 5:10
+p &lt;- c(0.03,0.1,0.5,0.9,0.97)
+z &lt;- rep(qnorm(p), length(age))
+x &lt;- rep(age, each=length(p))
+w &lt;- matrix(z2y(z, x=x, sex="M", ref=nl4.wgt), ncol=length(p),
+ byrow=TRUE)
+dimnames(w) &lt;- list(age, p)
+round(w,1)
+
+# standard set of Z-scores of weight for all tabulated ages, boys &amp; girls
+# and three etnicities
+sds &lt;- c(-2.5, -2, -1, 0, 1, 2, 2.5)
+age &lt;- nl4.wgt$x
+z &lt;- rep(sds, times=length(age))
+x &lt;- rep(age, each=length(sds))
+sex &lt;- rep(c("M","F"), each=length(z)/2)
+w &lt;- z2y(z=z, x=x, sex=sex, ref=nl4.wgt)
+w &lt;- matrix(w, ncol=length(sds), byrow=TRUE)
+dimnames(w) &lt;- list(age, sds)
+data.frame(sub=nl4.wgt$sub,sex=nl4.wgt$sex,round(w,2), row.names=NULL)
+
+# P85 of BMI in 5-8 year old Dutch boys and girls
+e &lt;- expand.grid(age=5:8, sex=c("M","F"))
+w &lt;- z2y(z=rep(qnorm(0.85),nrow(e)), x=e$age, sex=e$sex, ref=nl4.bmi)
+w &lt;- matrix(w, nrow=2, byrow=TRUE)
+dimnames(w) &lt;- list(c("boys","girls"),5:8)
+w
+
+# data transformation of height z-scores to cm-scale
+z &lt;- c(-1.83, 0.09, 2.33, 0.81, -1.20)
+x &lt;- c(8.33,  0.23, 19.2, 24.3, 10)
+sex &lt;- c("M", "M", "F", "M", "F")
+round(z2y(z=z, x=x, sex=sex, ref=nl4.hgt), 1)
+
+# interpolate published height standard 
+# to daily values, days 0-31, boys
+# on centiles -2SD, 0SD and +2SD 
+days &lt;- 0:31
+sds  &lt;- c(-2, 0, +2)
+z    &lt;- rep(sds, length(days))
+x    &lt;- rep(round(days/365.25,4), each=length(sds))
+w    &lt;- z2y(z, x, sex="M", ref=nl4.hgt)
+w    &lt;- matrix(w, ncol=length(sds), byrow=TRUE)
+dimnames(w) &lt;- list(days, sds)
+w
+
+</code></pre>
+
+
+</div>

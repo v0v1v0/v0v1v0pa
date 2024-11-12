@@ -1,0 +1,661 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Stock</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>R6 Class representing a stock</h2>
+
+<h3>Description</h3>
+
+<p>A stock object has life history parameters, fields and methods for a biomass dynamic model.
+</p>
+
+
+<h3>Details</h3>
+
+<p>A stock has biomass, effort, catch and hcr_ip and hcr_op fields as well as the life history parameters.
+The population dynamics are a simple biomass dynamic model.
+The Stock class is used for the Shiny apps in the AMPLE package.
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>biomass</code></dt>
+<dd>
+<p>Array of biomass</p>
+</dd>
+<dt><code>catch</code></dt>
+<dd>
+<p>Array of catches</p>
+</dd>
+<dt><code>effort</code></dt>
+<dd>
+<p>Array of fishing effort</p>
+</dd>
+<dt><code>hcr_ip</code></dt>
+<dd>
+<p>Array of HCR input signals</p>
+</dd>
+<dt><code>hcr_op</code></dt>
+<dd>
+<p>Array of HCR output signals</p>
+</dd>
+<dt><code>msy</code></dt>
+<dd>
+<p>MSY (default = 100).</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>Growth rate (default = 0.6). Set by the user in the app.</p>
+</dd>
+<dt><code>k</code></dt>
+<dd>
+<p>Carrying capacity (default = NULL - set by msy and r when object is initialised).</p>
+</dd>
+<dt><code>p</code></dt>
+<dd>
+<p>Shape of the production curve (default = 1).</p>
+</dd>
+<dt><code>q</code></dt>
+<dd>
+<p>Catchability (default = 1).</p>
+</dd>
+<dt><code>lrp</code></dt>
+<dd>
+<p>Limit reference point, expressed as depletion (default = 0.2).</p>
+</dd>
+<dt><code>trp</code></dt>
+<dd>
+<p>Target reference point, expressed as depletion (default = 0.5).</p>
+</dd>
+<dt><code>b0</code></dt>
+<dd>
+<p>Virgin biomass (default = NULL - set by msy and r when object is initialised).</p>
+</dd>
+<dt><code>current_corrnoise</code></dt>
+<dd>
+<p>Stores the current values of the correlated noise (by iteration).</p>
+</dd>
+<dt><code>biol_sigma</code></dt>
+<dd>
+<p>Standard deviation of biological variability (default = 0).</p>
+</dd>
+<dt><code>last_historical_timestep</code></dt>
+<dd>
+<p>The last historical timestep of catch and effort data.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-Stock-new"><code>Stock$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-reset"><code>Stock$reset()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-reactive"><code>Stock$reactive()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-fill_history"><code>Stock$fill_history()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-fill_catch_history"><code>Stock$fill_catch_history()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-fill_biomass"><code>Stock$fill_biomass()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-as_data_frame"><code>Stock$as_data_frame()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-project"><code>Stock$project()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-relative_cpue"><code>Stock$relative_cpue()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-relative_effort"><code>Stock$relative_effort()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-replicate_table"><code>Stock$replicate_table()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-time_periods"><code>Stock$time_periods()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-performance_indicators"><code>Stock$performance_indicators()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-pi_table"><code>Stock$pi_table()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Stock-clone"><code>Stock$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-Stock-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a new stock object, with fields of the right dimension and NA values (by calling the <code>reset()</code> method.
+See the <code>reset()</code> method for more details.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$new(stock_params, mp_params, niters = 1)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>stock_params</code></dt>
+<dd>
+<p>A list of stock parameters with essential elements: r (growth rate, numeric), stock_history (string: "fully", "over", "under") initial_year (integer), last_historical_timestep (integer), nyears (integer), biol_sigma (numeric).</p>
+</dd>
+<dt><code>mp_params</code></dt>
+<dd>
+<p>A list of the MP parameters. Used to fill HCR ip and op.</p>
+</dd>
+<dt><code>niters</code></dt>
+<dd>
+<p>The number of iters in the stock (default = 1).</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A new Stock object.
+</p>
+
+
+<hr>
+<a id="method-Stock-reset"></a>
+
+
+
+<h4>Method <code>reset()</code>
+</h4>
+
+<p>Resets an existing stock object, by remaking all fields (possibly with different dimensions for the array fields) .
+Fills up the catch, effort and biomass fields in the historical period based on the stock history and
+life history parameters in the <code>stock_params</code> argument.
+This is a reactive method which invalidates a reactive instance of this class after it is called.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$reset(stock_params, mp_params, niters)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>stock_params</code></dt>
+<dd>
+<p>A list with essential elements: r (growth rate, numeric, default=6), stock_history (string: "fully", "over", "under", default="fully") initial_year (integer, default=2000), last_historical_timestep (integer, default=10), nyears (integer, default=30), biol_sigma (numeric, default = 0).</p>
+</dd>
+<dt><code>mp_params</code></dt>
+<dd>
+<p>A list of the MP parameters. Used to fill HCR ip and op.</p>
+</dd>
+<dt><code>niters</code></dt>
+<dd>
+<p>The number of iters in the stock (default = 1).</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A new Stock object.
+</p>
+
+
+<hr>
+<a id="method-Stock-reactive"></a>
+
+
+
+<h4>Method <code>reactive()</code>
+</h4>
+
+<p>Method to create a reactive instance of a Stock.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$reactive()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p>a reactiveExpr.
+</p>
+
+
+<hr>
+<a id="method-Stock-fill_history"></a>
+
+
+
+<h4>Method <code>fill_history()</code>
+</h4>
+
+<p>Fills the historical period of the stock
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$fill_history(stock_params, mp_params)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>stock_params</code></dt>
+<dd>
+<p>Named list with last_historical_timestep and stock_history elements.</p>
+</dd>
+<dt><code>mp_params</code></dt>
+<dd>
+<p>A list of the MP parameters. Used to fill HCR ip and op.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Stock-fill_catch_history"></a>
+
+
+
+<h4>Method <code>fill_catch_history()</code>
+</h4>
+
+<p>Fill up the historical period of catches with random values to simulate a catch history
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$fill_catch_history(stock_params)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>stock_params</code></dt>
+<dd>
+<p>A list with essential elements: r (growth rate, numeric), stock_history (string: "fully", "over", "under") initial_year (integer), last_historical_timestep (integer), nyears (integer).</p>
+</dd>
+<dt><code>stock_history</code></dt>
+<dd>
+<p>Character string of the exploitation history (default = "fully", alternatives are "under" or "over").</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Stock-fill_biomass"></a>
+
+
+
+<h4>Method <code>fill_biomass()</code>
+</h4>
+
+<p>Fills the biomass in the next timestep based on current biomass and catches
+The surplus production model has the general form:
+<code>Bt+1 = Bt + f(Bt) - Ct</code>
+Where the production function f() is a Pella &amp; Tomlinson model with shape
+<code>f(Bt) = r/p Bt * (1 - (Bt/k)^p)</code>
+Here p is fixed at 1 to give a Schaefer model
+<code>cpue = Ct / Et = qBt</code>
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$fill_biomass(ts, iters = 1:dim(self$biomass)[1])</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>ts</code></dt>
+<dd>
+<p>The biomass time step to be filled (required catch etc in ts - 1).</p>
+</dd>
+<dt><code>iters</code></dt>
+<dd>
+<p>The iterations to calculate the biomass for (optional - default is all of them).</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Stock-as_data_frame"></a>
+
+
+
+<h4>Method <code>as_data_frame()</code>
+</h4>
+
+<p>Produces a data.frame of some of the array-based fields, like biomass.
+Just used for testing purposes.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$as_data_frame()</pre></div>
+
+
+<hr>
+<a id="method-Stock-project"></a>
+
+
+
+<h4>Method <code>project()</code>
+</h4>
+
+<p>Projects the stock over the time steps given and updates the biomass, HCR ip / op and catches
+It uses a simple biomass dynamic model where the catches or fishing effort are set every time step by the harvest control rule.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$project(timesteps, mp_params, iters = 1:dim(self$biomass)[1])</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>timesteps</code></dt>
+<dd>
+<p>The timesteps to project over. A vector of length 2 (start and end).</p>
+</dd>
+<dt><code>mp_params</code></dt>
+<dd>
+<p>A vector of management procedure parameters.</p>
+</dd>
+<dt><code>iters</code></dt>
+<dd>
+<p>A vector of iterations to be projected. Default is all the iterations in the stock</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A stock object (a reactiveValues object with bits for the stock)
+</p>
+
+
+<hr>
+<a id="method-Stock-relative_cpue"></a>
+
+
+
+<h4>Method <code>relative_cpue()</code>
+</h4>
+
+<p>The catch per unit effort (CPUE, or catch rate) relative to the CPUE in the last historical period.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$relative_cpue()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p>An array of same dims as the catch and effort fields.
+</p>
+
+
+<hr>
+<a id="method-Stock-relative_effort"></a>
+
+
+
+<h4>Method <code>relative_effort()</code>
+</h4>
+
+<p>The effort relative to the effort in the last historical period.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$relative_effort()</pre></div>
+
+
+
+<h5>Returns</h5>
+
+<p>An array of same dims as the effort field.
+</p>
+
+
+<hr>
+<a id="method-Stock-replicate_table"></a>
+
+
+
+<h4>Method <code>replicate_table()</code>
+</h4>
+
+<p>Summarises the final year of each iteration. Only used for the Measuring Performance app.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$replicate_table(iters = 1, quantiles = c(0.05, 0.95))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>iters</code></dt>
+<dd>
+<p>The iterations to calculate the table values for (default is iteration 1).</p>
+</dd>
+<dt><code>quantiles</code></dt>
+<dd>
+<p>Numeric vector of the quantile range. Default values are 0.05 and 0.95.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Stock-time_periods"></a>
+
+
+
+<h4>Method <code>time_periods()</code>
+</h4>
+
+<p>Calculates the short, medium and long term periods to calculate the performance indicators over,
+based on the last historic year of data and the number of years in the projection.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$time_periods()</pre></div>
+
+
+<hr>
+<a id="method-Stock-performance_indicators"></a>
+
+
+
+<h4>Method <code>performance_indicators()</code>
+</h4>
+
+<p>Gets the performance indicators across all indicators, for three time periods.
+Used in the Measuring Performance and Comparing Performance apps.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$performance_indicators(
+  iters = 1:dim(self$biomass)[1],
+  quantiles = c(0.05, 0.95)
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>iters</code></dt>
+<dd>
+<p>The iterations to calculate the table values for (default is all of them).</p>
+</dd>
+<dt><code>quantiles</code></dt>
+<dd>
+<p>Numeric vector of the quantile range. Default values are 0.05 and 0.95.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>A data.frame
+</p>
+
+
+<hr>
+<a id="method-Stock-pi_table"></a>
+
+
+
+<h4>Method <code>pi_table()</code>
+</h4>
+
+<p>Makes a table of the performance indicators.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$pi_table(iters = 1:dim(self$biomass)[1], quantiles = c(0.05, 0.95))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>iters</code></dt>
+<dd>
+<p>The iterations to calculate the table values for (default is all of them).</p>
+</dd>
+<dt><code>quantiles</code></dt>
+<dd>
+<p>Numeric vector, length 2, of the low and high quantiles.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Stock-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Stock$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+</div>

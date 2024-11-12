@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ksfun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiscale second-order neighbourhood analysis of a multivariate spatial point pattern using Simpson diversity</h2>
+
+<h3>Description</h3>
+
+<p>Computes estimates of Shimatani <em>alpha</em> and <em>beta</em> functions of Simpson diversity from a multivariate spatial point pattern 
+in a simple (rectangular or circular) or complex sampling window. Computes optionally local confidence limits of the functions
+under the null hypothesis of a random allocation of species labels (see Details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ksfun(p, upto, by, nsim=0, alpha=0.01)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p </code></td>
+<td>
+<p>a <code>"spp"</code> object defining a spatial point pattern in a given sampling window (see <code>spp</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upto </code></td>
+<td>
+<p>maximum radius of the sample circles (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by </code></td>
+<td>
+<p>interval length between successive sample circles radii (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim </code></td>
+<td>
+<p>number of Monte Carlo simulations to estimate local confidence limits of the null hypothesis of a random allocation of species labels (see Details).
+By default <code>nsim=0</code>, so that no confidence limits are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha </code></td>
+<td>
+<p>if <code>nsim&gt;0</code>, significant level of the confidence limits. By default <code class="reqn">\alpha=0.01</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>ksfun</code> computes Shimatani <code class="reqn">\alpha(r)</code> and <code class="reqn">\beta(r)</code> functions of Simpson diversity, called here <code class="reqn">Ks(r)</code> and <code class="reqn">gs(r)</code>, respectively.<br><br>
+For a multivariate point pattern consisting of <code class="reqn">S</code> species with intensity <code class="reqn">\lambda</code>p, Shimatani (2001) showed that
+a distance-dependent measure of Simpson (1949) diversity can be estimated from Ripley (1977) <code class="reqn">K</code>-function computed for each species separately and for all the points grouped together (see also Eckel et al. 2008).
+Function <code>ksfun</code> is thus a simple wrapper function of <code>kfun</code>, standardized by Simpson diversity coefficient:
+</p>
+<p><code class="reqn">Ks(r) = 1 - sum(\lambda p * \lambda p * Kp(r)) / (\lambda * \lambda * K(r) * D)</code> which is a standardized estimator of <code class="reqn">\alpha(r)</code> in Shimatani (2001).<br><br><code class="reqn">gs(r) = 1 - sum(\lambda p * \lambda p * gp(r)) / (\lambda * \lambda * g(r) * D)</code> corresponding to a standardized version of <code class="reqn">\beta(r)</code> in Shimatani (2001).<br><br></p>
+<p><code class="reqn">Kp(r)</code> and <code class="reqn">K(r)</code> (resp. <code class="reqn">gp(r)</code> and <code class="reqn">g(r)</code>) are univariate K-functions computed for species <code class="reqn">p</code> and for all species together; <code class="reqn">D = 1 - sum(Np * (Np - 1) / (N*(N - 1)))</code> is the unbiased version of Simpson diversity,
+with <code class="reqn">Np</code> the number of individuals of species <code class="reqn">p</code> in the sample and <code class="reqn">N = sum(Np)</code>.
+</p>
+<p>The program introduces an edge effect correction term according to the method proposed by Ripley (1977)
+and extended to circular and complex sampling windows by Goreaud &amp; P?Pelissier (1999).<br><br></p>
+<p>The theoretical values of <code class="reqn">gr(r)</code> and <code class="reqn">Kr(r)</code> under the null hypothesis of random labelling is 1 for all <code class="reqn">r</code>.
+Local Monte Carlo confidence limits and p-values of departure from this hypothesis are estimated at each distance <code class="reqn">r</code> by reallocating at random the species labels among points of the pattern, keeping the point locations unchanged.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>"fads"</code> with essentially the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>r </code></td>
+<td>
+<p>a vector of regularly spaced out distances (<code>seq(by,upto,by)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gs </code></td>
+<td>
+<p>a data frame containing values of the function <code class="reqn">gs(r)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ks </code></td>
+<td>
+<p>a data frame containing values of the function <code class="reqn">Ks(r)</code>.<br></p>
+</td>
+</tr>
+</table>
+<p>Each component except <code>r</code> is a data frame with the following variables:<br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs </code></td>
+<td>
+<p>a vector of estimated values for the observed point pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theo </code></td>
+<td>
+<p>a vector of theoretical values expected under the null hypothesis of random labelling, i.e. 1 for all <code class="reqn">r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sup </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the upper local confidence limits of a random distribution of species labels at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inf </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of the lower local confidence limits of a random distribution of species labels at a significant level <code class="reqn">\alpha</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval </code></td>
+<td>
+<p>(optional) if <code>nsim&gt;0</code> a vector of local p-values of departure from a random distribution of species labels.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>There are printing and plotting methods for <code>"fads"</code> objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p><a href="mailto:Raphael.Pelissier@ird.fr">Raphael.Pelissier@ird.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Shimatani K. 2001. Multivariate point processes and spatial variation in species diversity. <em>Forest Ecology and Management</em>, 142:215-229.
+</p>
+<p>Eckel, S., Fleisher, F., Grabarnik, P. and Schmidt V. 2008. An investigation of the spatial correlations for relative purchasing power in Baden-Wurttemberg. <em>AstA - Advances in Statistical Analysis</em>, 92:135-152.
+</p>
+<p>Simpson, E.H. 1949. Measurement of diversity. <em>Nature</em>, 688:163.
+</p>
+<p>Goreaud F. &amp; P?Pelissier R. 1999. On explicit formulas of edge effect correction for Ripley's K-function. <em>Journal of Vegetation Science</em>, 10:433-438.
+</p>
+<p>Ripley B.D. 1977. Modelling spatial patterns. <em>Journal of the Royal Statistical Society B</em>, 39:172-192.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.fads</code>,
+<code>spp</code>,
+<code>kfun</code>,
+<code>kpqfun</code>,
+<code>kp.fun</code>,
+<code>krfun</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Paracou15)
+  P15&lt;-Paracou15
+  ## Not run: spatial point pattern in a rectangle sampling window of size 125 x 125
+  swmr &lt;- spp(P15$trees, win = c(125, 125, 250, 250), marks = P15$species)
+  kswmr &lt;- ksfun(swmr, 50, 5, 500)
+  plot(kswmr)
+
+  ## Not run: spatial point pattern in a circle with radius 50 centred on (125,125)
+  swmc &lt;- spp(P15$trees, win = c(125, 125, 50), marks = P15$species)
+  kswmc &lt;- ksfun(swmc, 50, 5, 500)
+  plot(kswmc)
+  
+  ## Not run: spatial point pattern in a complex sampling window
+  swrt &lt;- spp(P15$trees, win = c(125, 125, 250, 250), tri=P15$tri, marks=P15$species)
+  kswrt &lt;- ksfun(swrt, 50, 5, 500)
+  plot(kswrt)
+</code></pre>
+
+
+</div>

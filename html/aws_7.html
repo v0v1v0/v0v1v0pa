@@ -1,0 +1,363 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aws.segment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Segmentation by adaptive weights for Gaussian models. </h2>
+
+<h3>Description</h3>
+
+<p>The function implements a modification of the adaptive weights smoothing algorithm for
+segmentation into three classes. The
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, mask =NULL,
+            varmodel = "Constant", lkern = "Triangle", scorr = 0, ladjust = 1,
+            wghts = NULL, u = NULL, varprop = 0.1, ext = 0, graph = FALSE,
+            demo = FALSE, fov=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+ <p><code>y</code> contains the observed response data. <code>dim(y)</code> determines the dimensionality and extend of the grid design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p> center of second class </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p> half width of second class </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+ <p><code>hmax</code> specifies the maximal bandwidth. Defaults to <code>hmax=250, 12, 5</code> for <code>dd=1, 2, 3</code>, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpre</code></td>
+<td>
+<p> Describe <code>hpre</code> Bandwidth used for an initial nonadaptive estimate. The first estimate
+of variance parameters  is obtained from residuals with respect to this estimate. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p> optional logical mask, same dimensionality as <code>y</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel</code></td>
+<td>
+<p>Implemented are "Constant", "Linear" and "Quadratic" refering to a polynomial model of degree 0 to 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern</code></td>
+<td>
+<p> character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+This is included for comparisons only and should be avoided due to its large computational costs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+<p>The vector <code>scorr</code> allows to specify a first order correlations of the noise for each coordinate direction,
+defaults to 0 (no correlation). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+<p> factor to increase the default value of lambda </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts</code></td>
+<td>
+ <p><code>wghts</code> specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
+in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p> a "true" value of the regression function, may be provided to
+report risks at each iteration. This can be used to test the propagation condition with <code>u=0</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varprop</code></td>
+<td>
+<p> Small variance estimates are replaced by <code>varprop</code> times the mean variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ext</code></td>
+<td>
+<p> Intermediate results are fixed if the test statistics exceeds the critical value by <code>ext</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p>If  <code>graph=TRUE</code> intermediate results are illustrated after each iteration step. Defaults to <code>graph=FALSE</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>demo</code></td>
+<td>
+<p> If <code>demo=TRUE</code> the function pauses after each iteration. Defaults to <code>demo=FALSE</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fov</code></td>
+<td>
+<p>Field of view. Size of region (sample size) to adjust for in multiscale testing.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The image is segmented into three parts by performing multiscale tests
+of the hypotheses H1
+<code>value &gt;= level - delta</code> and H2 <code>value &lt;= level + delta</code>.
+Pixel where the first hypotesis is rejected are classified as <code>-1</code> (segment 1)
+while rejection of H2 results in classification  <code>1</code> (segment 3).
+Pixel where neither H1 or H2 are rejected ar assigned to a value <code>0</code> (segment 2). Critical values for the tests are adjusted for smoothness at the different scales inspected in the iteration process using results from multiscale testing,
+see e.g. Duembgen and Spokoiny (2001). Critical values also depend on the
+size of the region of interest specified in parameter <code>fov</code>.
+</p>
+<p>Within segment 2 structural adaptive smoothing is performed while if a pair of pixel belongs to segment 1 or segment 3 the corresponding weight will be nonadaptive.
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns anobject of class <code>aws</code> with slots
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>y = "numeric"</code></td>
+<td>
+<p>y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dy = "numeric"</code></td>
+<td>
+<p>dim(y)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni = "integer"</code></td>
+<td>
+<p>integer(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask = "logical"</code></td>
+<td>
+<p>logical(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>segment = "integer"</code></td>
+<td>
+<p>Segmentation results, class numbers 1-3 </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta = "numeric"</code></td>
+<td>
+<p>Estimates of regression function, <code>length: length(y)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mae = "numeric"</code></td>
+<td>
+<p>Mean absolute error for each iteration step if u was specified,  numeric(0) else</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var = "numeric"</code></td>
+<td>
+<p>approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax = "numeric"</code></td>
+<td>
+<p>numeric(0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts = "numeric"</code></td>
+<td>
+<p>numeric(0), ratio of distances <code>wghts[-1]/wghts[1]</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree = "integer"</code></td>
+<td>
+<p>0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax  = "numeric"</code></td>
+<td>
+<p>effective hmax</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2  = "numeric"</code></td>
+<td>
+<p>provided or estimated error variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr = "numeric"</code></td>
+<td>
+<p>scorr</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family = "character"</code></td>
+<td>
+<p>"Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape = "numeric"</code></td>
+<td>
+<p>NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern  = "integer"</code></td>
+<td>
+<p>integer code for lkern,
+1="Plateau", 2="Triangle", 3="Quadratic", 4="Cubic", 5="Gaussian"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda = "numeric"</code></td>
+<td>
+<p>effective value of lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust = "numeric"</code></td>
+<td>
+<p>effective value of ladjust</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws = "logical"</code></td>
+<td>
+<p>aws</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory = "logical"</code></td>
+<td>
+<p>memory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen = "logical"</code></td>
+<td>
+<p>FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop = "logical"</code></td>
+<td>
+<p>FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel = "character"</code></td>
+<td>
+<p>varmodel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcoef = "numeric"</code></td>
+<td>
+<p>estimated parameters of the variance model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call = "function"</code></td>
+<td>
+<p>the arguments of the call to <code>aws.gaussian</code></p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p> This function is still experimental and may be changes considerably in future.</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Joerg Polzehl, <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a>,
+<a href="https://www.wias-berlin.de/people/polzehl/">https://www.wias-berlin.de/people/polzehl/</a>  </p>
+
+
+<h3>References</h3>
+
+<p>J. Polzehl, H.U. Voss, K. Tabelow (2010). Structural adaptive segmentation for
+statistical parametric mapping, NeuroImage, 52, pp. 515–523. DOI:10.1016/j.neuroimage.2010.04.241
+</p>
+<p>Duembgen, L. and Spokoiny, V. (2001). Multiscale testing of qualitative hypoteses. Ann. Stat. 29, 124–152.
+</p>
+<p>Polzehl, J. and Spokoiny, V. (2006). Propagation-Separation Approach for Local
+Likelihood Estimation. Probability Theory and Related Fields. 3 (135)
+335 - 362. DOI:10.1007/s00440-005-0464-1
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aws</code>, <code>aws.gaussian</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(aws)
+</code></pre>
+
+
+</div>

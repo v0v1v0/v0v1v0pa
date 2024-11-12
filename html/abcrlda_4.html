@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>grid_search</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Grid Search</h2>
+
+<h3>Description</h3>
+
+<p>Performs grid search to estimate the optimal hyperparameters (<code>gamma</code> and <code>cost</code>)
+within specified space based on double asymptotic risk estimation or cross validation.
+Double asymptotic risk estimation is more efficient to compute because it uses closed form for risk estimation.
+For further details, refer to the article in the reference section.
+</p>
+<p style="text-align: center;"><code class="reqn">\Re = \varepsilon_0 * C_{10} + \varepsilon_1 * C_{01}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\varepsilon_i = \Phi(\frac{(-1)^{i+1} ( \hat{G}_i + \hat{\omega}_{opt}/\gamma   )}{\sqrt{\hat{D}}})</code>
+</p>
+
+<p>Separate sampling cross-validation (see cross-validation function) was adapted to work with cost-based risk estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">grid_search(
+  x,
+  y,
+  range_gamma,
+  range_cost,
+  method = "estimator",
+  nfolds = 10,
+  bias_correction = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix or data.frame of dimension <code>nobs x nvars</code>; each row is an feature vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector or factor of class labels. Factor should have either two levels or be
+a vector with two distinct values.
+If <code>y</code> is presented as a vector, it will be coerced into a factor.
+Length of <code>y</code> has to correspond to number of samples in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range_gamma</code></td>
+<td>
+<p>Vector of <code>gamma</code> values to check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range_cost</code></td>
+<td>
+<p>nobs x 1 vector (values should be between 0 and 1) or
+nobs x 2 matrix (each row is cost pair value c(<code class="reqn">C_{10}</code>, <code class="reqn">C_{01}</code>))
+of cost values to check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Selects method to evaluete risk. "estimator" and "cross".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>Number of folds to use with cross-validation. Default is 10.
+In case of imbalanced data, <code>nfolds</code> should not be greater than the number of observations in
+smaller class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias_correction</code></td>
+<td>
+<p>Takes in a boolean value.
+If <code>bias_correction</code> is TRUE, then asymptotic bias correction will be performed.
+Otherwise, (if <code>bias_correction</code> is FALSE) asymptotic bias correction will not be performed and
+the ABCRLDA is the classical RLDA.
+The default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of estimated parameters.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cost</code></td>
+<td>
+<p>Cost value for which risk estimates are lowest during the search.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Gamma regularization parameter for which risk estimates are lowest during the search.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>risk</code></td>
+<td>
+<p>Lowest risk value estimated during grid search.</p>
+</td>
+</tr>
+</table>
+<h3>Reference</h3>
+
+<p>A. Zollanvari, M. Abdirash, A. Dadlani and B. Abibullaev,
+"Asymptotically Bias-Corrected Regularized Linear Discriminant Analysis for Cost-Sensitive
+Binary Classification," in IEEE Signal Processing Letters, vol. 26, no. 9, pp. 1300-1304,
+Sept. 2019. doi: 10.1109/LSP.2019.2918485
+URL: <a href="https://ieeexplore.ieee.org/document/8720003">https://ieeexplore.ieee.org/document/8720003</a>
+</p>
+<p>Braga-Neto, Ulisses &amp; Zollanvari, Amin &amp; Dougherty, Edward. (2014).
+Cross-Validation Under Separate Sampling: Strong Bias and How to Correct It.
+Bioinformatics (Oxford, England). 30. 10.1093/bioinformatics/btu527.
+URL: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4296143/pdf/btu527.pdf">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4296143/pdf/btu527.pdf</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other functions in the package: 
+<code>abcrlda()</code>,
+<code>cross_validation()</code>,
+<code>da_risk_estimator()</code>,
+<code>predict.abcrlda()</code>,
+<code>risk_calculate()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iris)
+train_data &lt;- iris[which(iris[, ncol(iris)] == "virginica" |
+                         iris[, ncol(iris)] == "versicolor"), 1:4]
+train_label &lt;- factor(iris[which(iris[, ncol(iris)] == "virginica" |
+                                 iris[, ncol(iris)] == "versicolor"), 5])
+cost_range &lt;- seq(0.1, 0.9, by = 0.2)
+gamma_range &lt;- c(0.1, 1, 10, 100, 1000)
+
+gs &lt;- grid_search(train_data, train_label,
+                  range_gamma = gamma_range,
+                  range_cost = cost_range,
+                  method = "estimator")
+model &lt;- abcrlda(train_data, train_label,
+                 gamma = gs$gamma, cost = gs$cost)
+predict(model, train_data)
+
+cost_range &lt;- matrix(1:10, ncol = 2)
+gamma_range &lt;- c(0.1, 1, 10, 100, 1000)
+
+gs &lt;- grid_search(train_data, train_label,
+                  range_gamma = gamma_range,
+                  range_cost = cost_range,
+                  method = "cross")
+model &lt;- abcrlda(train_data, train_label,
+                 gamma = gs$gamma, cost = gs$cost)
+predict(model, train_data)
+</code></pre>
+
+
+</div>

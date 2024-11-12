@@ -1,0 +1,285 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cov.pi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Coverage property diagnostics
+</h2>
+
+<h3>Description</h3>
+
+<p>These functions produce diagnostic statistics for an ABC analysis to
+judge when the tolerance level is small enough to produce roughly
+no approximation error.  This is done by running analyses for many
+pseudo-observed test data sets and assessing whether the results satisfy the "coverage
+property" (roughly speaking: credible intervals have the claimed
+coverage levels).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cov.pi(param, sumstat, testsets, tol, eps, diagnostics = c(), 
+multicore = FALSE, cores, method = "rejection", nacc.min=20, ...)
+
+cov.mc(index, sumstat, testsets, tol, eps, diagnostics = c(), 
+multicore = FALSE, cores, method = "rejection", nacc.min=20, ...)
+
+covstats.pi(raw, diagnostics = c("KS", "CGR"), nacc.min = 20)
+
+covstats.mc(raw, index, diagnostics = c("freq", "loglik.binary", 
+"loglik.multi"), nacc.min = 20) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+
+<p>A data frame of parameter values.  It must have the same number of
+rows as <code>sumstat</code> and contain numeric values only.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+
+<p>A vector of model indices. Any value which can be converted to
+factor is ok (e.g. character or numeric entries).  It must have the
+same length as <code>nrow(sumstat)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstat</code></td>
+<td>
+
+<p>A data frame of summary statistic values whose the ith row has been
+simulated using <code>param[i,]</code> or <code>index[i]</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>testsets</code></td>
+<td>
+
+<p>A numeric vector giving the rows of <code>sumstat</code> to be used as
+pseudo-observed data to test the coverage property.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>A vector of proportions of ABC acceptances which will be
+investigated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>A vector of ABC thresholds which will be investigated.  These are
+used when <code>tol</code> is missing.  One of <code>eps</code> and <code>tol</code>
+must be supplied.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagnostics</code></td>
+<td>
+
+<p>A character vector containing diagnostics to be calculated.
+Allowable values for parameter inference are "KL" (Kullback-Leibler
+based test) or "CGR" (Cook, Gelman and Rubin test). Allowable values
+for model choice are "freq" (a separate frequency-based test for
+each model), "loglik.binary" (a separate <br> log-likelihood based test
+for each model) or "loglik.multi" (single log-likelihood based test).  If
+<code>diagnostics</code> is empty only raw results will be returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multicore</code></td>
+<td>
+
+<p>Whether to use the <code>parallel</code> package to perform
+analyses of test datasets in parallel.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+
+<p>Number of cores to use when <code>multicore==TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Method used for ABC analysis.  The default is "rejection".  For
+alternatives see <code>abc</code> (parameter inference) or
+<code>postpr</code> (model choice).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nacc.min</code></td>
+<td>
+
+<p>Minimum number of ABC acceptances required to compute diagnostics.
+See Values for details of how this is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Extra arguments to be supplied to the function performing abc
+analysis i.e. <code>abc</code> (parameter inference) or
+<code>postpr</code> (model choice).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw</code></td>
+<td>
+
+<p>Raw output component from <code>cov.pi</code> or <code>cov.mc</code> for which
+diagnostics are to be calculated.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions are intended to be applied as follows (i) random
+models/parameters are generated, data sets simulated for each and
+summary statistics calculated (ii) these are input to <code>cov.pi</code>
+(parameter inference) or <code>cov.mc</code> (model choice) which outputs raw
+results and diagnostics (see below) (iii) the output can be passed to
+<code>covstats.pi</code> or <code>covstats.mc</code> if further diagnostics are
+required later (or to find diagnostics for a subset of the pseudo-observed
+data).
+</p>
+<p>The <code>cov.pi</code> and <code>cov.mc</code> functions operate by performing
+many ABC analyses.  The user specifies which datasets amongst those
+simulated will used as pseudo-observed "test" data to be analysed.
+The results of each analysis are compared to the known
+model/parameters which produced the data to see whether they are
+consistent in a particular sense (i.e. if the coverage property is
+satisfied). Various diagnostics are provided to judge this easily, and
+determine what happens as the ABC threshold is varied.  Raw results
+are also returned which can be investigated in more detail.
+</p>
+<p>All ABC analyses use a rejection sampling algorithm implemented by the
+<code>abc</code> package.  The user may specify regression
+post-processing as part of this analysis.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Output of <code>cov.pi</code> or <code>cov.mc</code> is a list of two data frames,
+<code>raw</code> and <code>diag</code>.  The <code>covstats.pi</code> and
+<code>covstats.mc</code> functions just return the latter data frame.
+</p>
+<p>For parameter inference, <code>raw</code> contains estimated cdfs (referred
+to as p0 estimates in Prangle et al 2013) of the true parameter values
+for each input configuration (i.e. for every tol/eps value at every
+test dataset).  <code>diag</code> is a data frame of tol/eps value,
+parameter name, diagnostic name and p-value.  Here the p-value relates
+to the test statistic used as a diagnostic.  It is NA if any analyses
+had fewer than <code>nacc.min</code> acceptances (Diagnostics based on a
+small number of acceptances can be misleading.)
+</p>
+<p>For model choice, <code>raw</code> contains estimated model weights for each input
+configuration, and <code>diag</code> is a data frame of tol/eps value, model,
+diagnostic name and p-value (NA under the same conditions as before.)
+</p>
+<p>In both cases, <code>raw</code> also reports the number of acceptances.  Note that
+<code>raw</code> contains p0 estimates/weights of NA if regression correction is
+requested but there are too few acceptances to compute it.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dennis Prangle
+</p>
+
+
+<h3>References</h3>
+
+<p>Nunes, M. A. and Prangle, D. (2016) abctools: an R package for tuning
+approximate Bayesian computation analyses. <em>The R Journal</em>
+<b>7</b>, Issue 2, 189–205.
+</p>
+<p>Prangle D., Blum M. G. B., Popovic G., Sisson S. A. (2014) Diagnostic
+tools of approximate Bayesian computation using the coverage
+property. <em>Australian and New Zealand Journal of Statistics</em>
+<b>56</b>, Issue 4, 309–329.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mc.ci</code> for a diagnostic plot of raw model choice results
+</p>
+<p><code>abc</code> and <code>postpr</code> to perform ABC for a given dataset
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ##The examples below are chosen to run relatively quickly (&lt;5 mins)
+  ##and do not represent recommended tuning choices.
+  ## Not run: 
+  data(musigma2)
+  library(ggplot2)
+  ##Parameter inference example
+  parameters &lt;- data.frame(par.sim)
+  sumstats &lt;- data.frame(stat.sim)
+  covdiag &lt;- cov.pi(param=parameters, sumstat=sumstats, testsets=1:100, 
+  tol=seq(0.1,1,by=0.1), diagnostics=c("KS"))
+
+  #Plot of diagnostic results
+  qplot(x=tol, y=pvalue, facets=.~parameter, data=covdiag$diag) 
+  #Plot of raw results for tol=0.5
+  qplot(x=mu, data=subset(covdiag$raw, tol==0.5)) 
+  #Plot of raw results for tol=0.5
+  qplot(x=sigma2, data=subset(covdiag$raw, tol==0.5)) 
+
+  #Compute CGR statistic and plot
+  cgrout &lt;- covstats.pi(covdiag$raw, diagnostics="CGR") 
+  qplot(x=tol, y=pvalue, facets=.~parameter, data=cgrout) 
+
+  ##Model choice example, based on simple simulated data
+  index &lt;- sample(1:2, 1E4, replace=TRUE)
+  sumstat &lt;- ifelse(index==1, rnorm(1E4,0,1), rnorm(1E4,0,rexp(1E4,1)))
+  sumstat &lt;- data.frame(ss=sumstat)
+  covdiag &lt;- cov.mc(index=index, sumstat=sumstat, testsets=1:100, 
+  tol=seq(0.1,1,by=0.1), diagnostics=c("freq"))
+  qplot(x=tol, y=pvalue, data=covdiag$diag)
+  llout &lt;- covstats.mc(covdiag$raw, index=index, 
+  diagnostics="loglik.binary")
+  qplot(x=tol, y=pvalue, data=llout)
+  mc.ci(covdiag$raw, tol=0.5, modname=1, modtrue=index[1:200])
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apa.ezANOVA.table</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates an ANOVA table in APA style based output of ezANOVA command from ez package</h2>
+
+<h3>Description</h3>
+
+<p>Creates an ANOVA table in APA style based output of ezANOVA command from ez package
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apa.ezANOVA.table(
+  ez.output,
+  correction = "GG",
+  table.title = "",
+  filename,
+  table.number = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ez.output</code></td>
+<td>
+<p>Output object from ezANOVA command from ez package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>Type of sphercity correction: "none", "GG", or "HF" corresponding to none, Greenhouse-Geisser and Huynh-Feldt, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table.title</code></td>
+<td>
+<p>String containing text for table title</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>(optional) Output filename document filename (must end in .rtf or .doc only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table.number</code></td>
+<td>
+<p>Integer to use in table number output line</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>APA table object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# ** Example 1: Between Participant Predictors
+#
+
+library(apaTables)
+library(ez)
+
+# See format where one row represents one PERSON
+# Note that participant, gender, and alcohol are factors
+
+print(goggles)
+
+
+# Use ezANOVA
+# Be sure use the options command, as below, to ensure sufficient digits
+
+options(digits = 10)
+goggles_results &lt;- ezANOVA(data = goggles,
+                          dv = attractiveness,
+                          between = .(gender, alcohol),
+                          participant ,
+                          detailed = TRUE)
+
+
+# Make APA table
+
+goggles_table &lt;- apa.ezANOVA.table(goggles_results,
+                                  filename="ex1_ez_independent.doc")
+
+print(goggles_table)
+
+
+
+#
+# ** Example 2: Within Participant Predictors
+#
+
+library(apaTables)
+library(tidyr)
+library(forcats)
+library(ez)
+
+# See initial wide format where one row represents one PERSON
+print(drink_attitude_wide)
+
+# Convert data from wide format to long format where one row represents one OBSERVATION.
+# Wide format column names MUST represent levels of each variable separated by an underscore.
+# See vignette for further details.
+
+drink_attitude_long &lt;- gather(data = drink_attitude_wide,
+                              key = cell, value = attitude,
+                              beer_positive:water_neutral,
+                              factor_key=TRUE)
+
+drink_attitude_long &lt;- separate(data = drink_attitude_long,
+                                col = cell, into = c("drink","imagery"),
+                                sep = "_", remove = TRUE)
+
+drink_attitude_long$drink &lt;- as_factor(drink_attitude_long$drink)
+drink_attitude_long$imagery &lt;- as_factor(drink_attitude_long$imagery)
+
+# See new long format of data, where one row is one OBSERVATION.
+# As well, notice that we have two columns (drink, imagery)
+# drink, imagery, and participant are factors
+print(drink_attitude_long)
+
+
+# Set contrasts to match Field et al. (2012) textbook output
+
+alcohol_vs_water &lt;- c(1, 1, -2)
+beer_vs_wine &lt;- c(-1, 1, 0)
+negative_vs_other &lt;- c(1, -2, 1)
+positive_vs_neutral &lt;- c(-1, 0, 1)
+contrasts(drink_attitude_long$drink) &lt;- cbind(alcohol_vs_water, beer_vs_wine)
+contrasts(drink_attitude_long$imagery) &lt;- cbind(negative_vs_other, positive_vs_neutral)
+
+
+# Use ezANOVA
+# Be sure use the options command, as below, to ensure sufficient digits
+
+options(digits = 10)
+drink_attitude_results &lt;- ezANOVA(data = drink_attitude_long,
+                   dv = .(attitude), wid = .(participant),
+                   within = .(drink, imagery),
+                   type = 3, detailed = TRUE)
+
+
+# Make APA table
+
+drink_table &lt;- apa.ezANOVA.table(drink_attitude_results,
+                                 filename="ex2_repeated_table.doc")
+
+print(drink_table)
+
+
+#
+# ** Example 3: Between and Within Participant Predictors
+#
+
+library(apaTables)
+library(tidyr)
+library(forcats)
+library(ez)
+
+# See initial wide format where one row represents one PERSON
+print(dating_wide)
+
+
+# Convert data from wide format to long format where one row represents one OBSERVATION.
+# Wide format column names MUST represent levels of each variable separated by an underscore.
+# See vignette for further details.
+
+dating_long &lt;- gather(data = dating_wide,
+                     key = cell, value = date_rating,
+                     attractive_high:ugly_none,
+                     factor_key = TRUE)
+
+dating_long &lt;- separate(data = dating_long,
+                       col = cell, into = c("looks","personality"),
+                       sep = "_", remove = TRUE)
+
+dating_long$looks &lt;- as_factor(dating_long$looks)
+dating_long$personality &lt;- as_factor(dating_long$personality)
+
+
+# See new long format of data, where one row is one OBSERVATION.
+# As well, notice that we have two columns (looks, personality)
+# looks, personality, and participant are factors
+
+print(dating_long)
+
+# Set contrasts to match Field et al. (2012) textbook output
+
+some_vs_none &lt;- c(1, 1, -2)
+hi_vs_av &lt;- c(1, -1, 0)
+attractive_vs_ugly &lt;- c(1, 1, -2)
+attractive_vs_average &lt;- c(1, -1, 0)
+contrasts(dating_long$personality) &lt;- cbind(some_vs_none, hi_vs_av)
+contrasts(dating_long$looks) &lt;- cbind(attractive_vs_ugly, attractive_vs_average)
+
+
+# Use ezANOVA
+
+library(ez)
+options(digits = 10)
+dating_results &lt;-ezANOVA(data = dating_long, dv = .(date_rating), wid = .(participant),
+                        between = .(gender), within = .(looks, personality),
+                        type = 3, detailed = TRUE)
+
+
+# Make APA table
+
+dating_table &lt;- apa.ezANOVA.table(dating_results,
+                                 filename = "ex3_mixed_table.doc")
+print(dating_table)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

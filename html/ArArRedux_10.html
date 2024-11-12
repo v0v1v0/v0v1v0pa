@@ -1,0 +1,70 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>concat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge a list of logratio data</h2>
+
+<h3>Description</h3>
+
+<p>Recursively concatenates a list of logratio data into one big dataset
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">concat(lrlist)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>lrlist</code></td>
+<td>
+<p>a list containing items of class
+<code>logratios</code> or <code>redux</code></p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>an object of the same class as <code>x</code> containing the
+merged dataset
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">samplefile &lt;-  system.file("Samples.csv",package="ArArRedux")
+kfile &lt;- system.file("K-glass.csv",package="ArArRedux")
+cafile &lt;- system.file("Ca-salt.csv",package="ArArRedux")
+dfile &lt;- system.file("Calibration.csv",package="ArArRedux")
+masses &lt;- c("Ar37","Ar38","Ar39","Ar40","Ar36")
+blanklabel &lt;- "EXB#"
+Jpos &lt;- c(3,15)
+dlabels &lt;- c("H1","AX","L1","L2")
+ 
+m &lt;- loaddata(samplefile,masses) # samples and J-standards
+mk &lt;- loaddata(kfile,masses) # K-interference data
+mca &lt;- loaddata(cafile,masses) # Ca interference data
+md &lt;- loaddata(dfile,dlabels,PH=TRUE) # detector intercalibrations
+ 
+# form and fit logratios
+l &lt;- fitlogratios(blankcorr(m,blanklabel),"Ar40")
+lk &lt;- fitlogratios(blankcorr(mk,blanklabel,"K:"),"Ar40")
+k &lt;- getmasses(lk,"Ar39","Ar40") # subset on the relevant isotopes
+lca &lt;- fitlogratios(blankcorr(mca,blanklabel,"Ca:"),"Ar37")
+ca &lt;- getmasses(lca,c("Ar36","Ar39"),c("Ar37","Ar37")) # subset
+ld &lt;- fitlogratios(blankcorr(md))
+d &lt;- averagebyday(ld,"DCAL")
+
+# merge all data (except air shots) into one big logratio structure
+X &lt;- newredux(concat(list(l,k,ca,d)),Jpos)
+data(Melbourne)
+if (isTRUE(all.equal(Melbourne$X,X))) {
+   print("We just reconstructed the built-in dataset Melbourne$X")}
+</code></pre>
+
+
+</div>

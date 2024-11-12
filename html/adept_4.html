@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>similarityMatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ADEPT Similarity Matrix Computation</h2>
+
+<h3>Description</h3>
+
+<p>Compute ADEPT similarity matrix between a time-series <code>x</code> and a collection
+of scaled templates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">similarityMatrix(x, template.scaled, similarity.measure)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector. A time-series <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>template.scaled</code></td>
+<td>
+<p>A list of lists of numeric vectors, as returned by
+<code>scaleTemplate</code>.  Each element of
+<code>template.scaled</code>
+is a list of templates interpolated to a particular vector length.
+Number of elements in the <code>template.scaled</code>  corresponds to the
+number of unique template length values used in segmentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>similarity.measure</code></td>
+<td>
+<p>A character scalar. Statistic
+used in similarity matrix computation; one of the following:
+</p>
+
+<ul>
+<li>
+<p> "cov" - for covariance,
+</p>
+</li>
+<li>
+<p> "cor" - for correlation.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric matrix. Contains values of similarity between a time-series <code>x</code>
+and scaled templates.
+</p>
+
+<ul>
+<li>
+<p> Number of rows equals <code>template.scaled</code> length,
+number of columns equals <code>x</code>  length.
+</p>
+</li>
+<li>
+<p> A particular matrix row consists of similarity statistic
+between <code>x</code> and a template rescaled to a particular vector length.
+Precisely, each row's element is a maximum out of similarity values
+computed for each distinct template used in segmentation.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>scaleTemplate {adept}</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data
+par(mfrow = c(1,1))
+x0 &lt;- sin(seq(0, 2 * pi * 100, length.out = 10000))
+x  &lt;- x0 + rnorm(1000, sd = 0.1)
+template &lt;- list(x0[1:500])
+template.vl &lt;- seq(300, 700, by = 50)
+
+## Rescale pattern
+template.scaled &lt;- scaleTemplate(template, template.vl)
+
+## Compute ADEPT similarity matrix
+out &lt;- similarityMatrix(x, template.scaled, "cov")
+
+## Visualize
+par(mfrow = c(1,1))
+image(t(out),
+      main = "ADEPT similarity matrix\nfor time-series x and scaled versions of pattern templates",
+      xlab = "Time index",
+      ylab = "Pattern vector length",
+      xaxt = "n", yaxt = "n")
+xaxis &lt;- c(1, seq(1000, length(x0), by = 1000))
+yaxis &lt;- template.vl
+axis(1, at = xaxis/max(xaxis), labels = xaxis)
+axis(2, at = (yaxis - min(yaxis))/(max(yaxis) - min(yaxis)), labels = yaxis)
+
+</code></pre>
+
+
+</div>

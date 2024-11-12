@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>massprop_feathers</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Feather mass properties</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the moment of inertia of the feathers within the
+feather frame of reference.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">massprop_feathers(
+  m_f,
+  l_c,
+  l_r_cor,
+  w_cal,
+  r_b,
+  d_b,
+  rho_cor,
+  rho_med,
+  w_vp,
+  w_vd,
+  angle
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m_f</code></td>
+<td>
+<p>Mass of the entire feather (kg)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_c</code></td>
+<td>
+<p>Length of the calamus; start of vane to end of calamus(m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_r_cor</code></td>
+<td>
+<p>Length of rachis; tip to start of vane (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_cal</code></td>
+<td>
+<p>Width (diameter) of the cortex part of the calamus (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_b</code></td>
+<td>
+<p>Radius of feather barbs (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d_b</code></td>
+<td>
+<p>Distance between barbs (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho_cor</code></td>
+<td>
+<p>Density of the cortex (kg/m^3)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho_med</code></td>
+<td>
+<p>Density of the medullary (kg/m^3)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_vp</code></td>
+<td>
+<p>Width of proximal (closest to body) vane (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w_vd</code></td>
+<td>
+<p>Width of distal (closest to wing tip) vane (m)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>angle</code></td>
+<td>
+<p>Angle between calamus and the vane taken the supplement angle
+to the interior angle. Negative indicates the feather tip is rotated
+proximally relative to the start of the feather vane.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list that includes:
+</p>
+
+<ul>
+<li>
+<p>Ia 3x3 matrix representing the moment of inertia tensor of a
+simplified feather with the origin at the feather calamus end and within
+the feather frame of reference
+</p>
+</li>
+<li>
+<p>CGa 1x3 vector representing the center of gravity position of a
+simplified feather with the origin at the feather calamus end and within
+the feather frame of reference
+</p>
+</li>
+<li>
+<p>ma double that returns the feather mass
+</p>
+</li>
+</ul>
+<h3>Warning</h3>
+
+<p>Parallel axis theorem does not apply between two arbitrary points.
+One point must be the object's center of gravity.
+</p>
+<p>CAUTION: While computing the variable components of the feather the x axis
+is the normal of the feather.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Christina Harvey
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># refer to the vignette
+library(AvInertia)
+
+# load data
+data(dat_id_curr, package = "AvInertia")
+data(dat_bird_curr, package = "AvInertia")
+data(dat_feat_curr, package = "AvInertia")
+data(dat_bone_curr, package = "AvInertia")
+data(dat_mat, package = "AvInertia")
+data(clean_pts, package = "AvInertia")
+
+# 1. Determine the center of gravity of the bird's torso (including the legs)
+dat_torsotail_out = massprop_restbody(dat_id_curr, dat_bird_curr)
+# 2. Calculate the inertia of the flight feathers about the tip of the calamus
+feather_inertia &lt;- compute_feat_inertia(dat_mat, dat_feat_curr, dat_bird_curr)
+# 3. Determine the center of gravity of one of the bird's wings
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = 0)
+# Visualize the center of gravity of each wing component in the x and y axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yx")
+# or the y and z axis
+dat_wing_out      = massprop_birdwing(dat_id_curr, dat_bird_curr,
+dat_bone_curr, dat_feat_curr, dat_mat, clean_pts,
+feather_inertia, plot_var = "yz")
+# 4. Combine all data and obtain the center of gravity, moment of inertia
+# and principal axes of the bird
+curr_full_bird      = combine_inertialprop(dat_torsotail_out,dat_wing_out,
+dat_wing_out, dat_id_curr, dat_bird_curr, symmetric=TRUE)
+
+</code></pre>
+
+
+</div>

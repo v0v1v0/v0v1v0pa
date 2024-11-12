@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arps.with.buildup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Arps declines with linear buildup period</h2>
+
+<h3>Description</h3>
+
+<p>Extend Arps decline curve objects by replacing early-time declines with a buildup period in which rate is a linear function of time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">    arps.with.buildup(decl, initial.rate, time.to.peak)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>decl</code></td>
+<td>
+<p>an Arps decline object as produced by <code>arps.decline</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.rate</code></td>
+<td>
+<p>initial rate [volume / time] (at time = 0) for buildup period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.to.peak</code></td>
+<td>
+<p>time to peak rate (i.e.~length of buildup period).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>arps.with.buildup</code> returns an object having class <code>"arps"</code>,
+which may be used as an argument to methods such as <code>arps.q</code>,
+<code>arps.Np</code>, <code>arps.D</code>, or <code>print.arps</code>.
+</p>
+<p>This object implements a decline curve which behaves as <code>decl</code> for all
+time greater than <code>time.to.peak</code>, but implements a linear buildup of
+rate interpolated between <code>initial.rate</code> at time zero and
+<code>arps.q(decl, time.to.peak)</code> at <code>time.to.peak</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arps.decline</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## hyperbolic decline with
+## qi = 500 bopd, Di = 3.91 nominal / year, b = 1.5,
+## cumulative production at t = 5 years
+decline &lt;- arps.decline(
+    rescale.by.time(500, from="day", to="year", method="rate"),
+    3.91, 1.5)
+# add buildup from initial rate of 50 bopd, over 30 days
+decline.with.buildup &lt;- arps.with.buildup(decline,
+    rescale.by.time(50, from="day", to="year", method="rate"),
+    rescale.by.time(30, from="day", to="year", method="time"))
+# forecast 5 years and compare
+forecast.time &lt;- seq(0, 5, 0.1)
+plot(arps.q(decline, forecast.time) ~ forecast.time, log="y", type="l",
+    lty="dashed", col="red")
+lines(arps.q(decline.with.buildup, forecast.time) ~ forecast.time,
+    lty="dotted", col="blue")
+</code></pre>
+
+
+</div>

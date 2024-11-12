@@ -1,0 +1,447 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_event_durations</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of event durations.</h2>
+
+<h3>Description</h3>
+
+<p>Computes event durations based on dispensing, prescription, and other data (e.g.
+hospitalization data) and returns a <code>data.frame</code> which can be used with the
+CMA constructors in <code>AdhereR</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_event_durations(
+  disp.data = NULL,
+  presc.data = NULL,
+  special.periods.data = NULL,
+  ID.colname,
+  medication.class.colnames,
+  disp.date.colname,
+  total.dose.colname,
+  presc.date.colname,
+  presc.daily.dose.colname,
+  presc.duration.colname,
+  visit.colname,
+  split.on.dosage.change = TRUE,
+  force.init.presc = FALSE,
+  force.presc.renew = FALSE,
+  trt.interruption = c("continue", "discard", "carryover")[1],
+  special.periods.method = trt.interruption,
+  carryover = FALSE,
+  date.format = "%d.%m.%Y",
+  suppress.warnings = FALSE,
+  return.data.table = FALSE,
+  progress.bar = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>disp.data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> or <em><code>data.table</code></em> containing
+the dispensing events. Must contain, at a minimum, the patient unique ID, one
+medication identifier, the dispensing date, and total dispensed dose, and might
+also contain additional columns to identify and group medications (the actual
+column names are defined in the <em><code>medication.class.colnames</code></em> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presc.data</code></td>
+<td>
+<p>A <em><code>data.frame</code></em> containing the prescribing events.
+Must contain, at a minimum, the same unique patient ID and medication identifier(s)
+as the dispensing data, the prescription date, the daily prescribed dose, and the
+prescription duration. Optionally, it might also contain a visit number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>special.periods.data</code></td>
+<td>
+<p>Optional, <em><code>NULL</code></em> or a <em><code>data.frame</code></em>
+containing the information about special periods (e.g., hospitalizations or other situations
+where medication use may differ, e.g. during incarcerations or holidays). Must contain the same unique
+patient ID as dispensing and prescription data, the start and end dates of the special
+periods with the exact column names <em><code>DATE.IN</code></em> and <em><code>DATE.OUT</code></em>.
+Optional columns are <em><code>TYPE</code></em> (indicating the type of special situation),
+customized instructions how to handle a specific period (see
+<code>special.periods.method</code>), and any of those specified in <code>medication.class.colnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>disp.data</code>,
+<code>presc.data</code>, and <code>special.periods.data</code> containing the unique patient ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colnames</code></td>
+<td>
+<p>A <em><code>Vector</code></em> of <em>strings</em>, the
+name(s) of the column(s) in <code>disp.data</code> and <code>presc.data</code> containing
+the classes/types/groups of medication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>disp.data</code> containing the dispensing date (in the format given in
+the <code>date.format</code> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total.dose.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>disp.data</code> containing the total dispensed dose as <code>numeric</code> (e.g.
+<code>500</code> for 10 tablets of 50 mg).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presc.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>presc.data</code> containing the prescription date (in the format given in
+the <code>date.format</code> parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presc.daily.dose.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>presc.data</code> containing the daily prescribed dose as <code>numeric</code> (e.g.
+<code>50</code> for 50 mg once per day, or 25 for 50 mg once ever 2 days).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presc.duration.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>presc.data</code> containing the duration of the prescription as <code>numeric</code>
+or <code>NA</code> if duration is unknown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>visit.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>presc.data</code> containing the number of the visit or a new column name if the
+prescribing data does not contain such a column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split.on.dosage.change</code></td>
+<td>
+<p><em>Logical</em> or <em>string</em>. If <code>TRUE</code>
+split the dispensing event on days with dosage change and create a new event with
+the new dosage for the remaining supply. If <em>string</em>, the name of the column
+containing the <code>Logical</code> in <em>disp.data</em> for each medication class separatly.
+Important if carryover should be considered later on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.init.presc</code></td>
+<td>
+<p><em>Logical</em>. If <code>TRUE</code> advance the date of the
+first prescription event to the date of the first dispensing event, if the first
+prescription event is after the first dispensing event for a specific medication.
+Only if the first prescription event is not limited in duration (as indicated in
+the <code>presc.duration.colname</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.presc.renew</code></td>
+<td>
+<p><em>Logical</em> or <em>string</em>. If <code>TRUE</code> require
+a new prescription for all medications for every prescription event (visit),
+otherwise prescriptions end on the first visit without renewal. If <em>string</em>,
+the name of the column in <em>disp.data</em> containing the <code>Logical</code> for each
+medication class separatly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt.interruption</code></td>
+<td>
+<p>can be either of <em>"continue"</em>, <em>"discard"</em>,
+<em>"carryover"</em>, or a <em>string</em>. It indicates how to handle durations during
+treatment interruptions (see <code>special.periods.method</code>).
+If <em>string</em>, the name of the (<em>character</em>) column in <em>disp.data</em>
+containing the information (<em>"continue"</em>, <em>"discard"</em>, or <em>"carryover"</em>)
+for each medication class separatly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>special.periods.method</code></td>
+<td>
+<p>can be either of <em>continue</em>, <em>discard</em>,
+<em>carryover</em>, or <em>custom</em>. It indicates how to handle durations during special periods.
+With <em>continue</em>, special periods have no effect on durations and event start dates.
+With <em>discard</em>, durations are truncated at the beginning of special periods and the
+remaining quantity is discarded. With <em>carryover</em>, durations are truncated
+at the beginning of a special period and a new event with the remaining duration
+is created after the end of the end of the special period. With <em>custom</em>, the
+mapping has to be included in <em><code>special.periods.data</code></em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>carryover</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> apply carry-over to medications of the
+same type (according to <code>medication.class.colnames</code>). Can only be used together with
+CMA7 and above in combination with <code>carry.only.for.same.medication = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in
+the <code>data</code> and the other parameters; see the <code>format</code> parameters
+of the <code>as.Date</code> function for details (NB, this concerns
+only the dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.data.table</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> return a
+<code>data.table</code> object, otherwise a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress.bar</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> show a progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other possible parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computation of CMAs requires a supply duration for medications dispensed to
+patients. If medications are not supplied for fixed durations but as a quantity
+that may last for various durations based on the prescribed dose, the supply
+duration has to be calculated based on dispensed and prescribed doses. Treatments
+may be interrupted and resumed at later times, for which existing supplies may
+or may not be taken into account. Patients may be hospitalized or incarcerated,
+and may not use their own supplies during these periods. This function calculates
+supply durations, taking into account the aforementioned situations and providing
+various parameters for flexible adjustments.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following elements:
+</p>
+
+<ul>
+<li> <p><code>event_durations</code>: A <code>data.table</code> or <code>data.frame</code> with the following columns:
+</p>
+
+<ul>
+<li> <p><code>ID.colname</code> the unique patient ID, as given by the <code>ID.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>medication.class.colnames</code> the column(s) with classes/types/groups
+of medication, as given by the <code>medication.class.colnames</code> parameter.
+</p>
+</li>
+<li> <p><code>disp.date.colname</code> the date of the dispensing event, as given by
+the <code>disp.date.colnema</code> parameter.
+</p>
+</li>
+<li> <p><code>total.dose.colname</code> the total dispensed dose, as given by the
+<code>total.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>presc.daily.dose.colname</code> the prescribed daily dose, as given by
+the <code>presc.daily.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>DISP.START</code> the start date of the dispensing event, either the
+same as in <code>disp.date.colname</code> or a later date in case of dosage changes
+or treatment interruptions/hospitalizations.
+</p>
+</li>
+<li> <p><code>DURATION</code> the calculated duration of the supply, based on the total
+dispensed dose and the prescribed daily dose, starting from the <code>DISP.START</code>
+date.
+</p>
+</li>
+<li> <p><code>episode.start</code>: the start date of the current prescription episode.
+</p>
+</li>
+<li> <p><code>episode.end</code>: the end date of the current prescription episode.
+Can be before the start date of the dispensing event if dispensed during a treatment interruption.
+</p>
+</li>
+<li> <p><code>SPECIAL.DURATION</code> the number of days <em>during</em> the current duration affected
+by special durations or treatment interruptions of type "continue".
+</p>
+</li>
+<li> <p><code>CARRYOVER.DURATION</code> the number of days <em>after</em> the current duration affected
+by special durations or treatment interruptions of type "carryover".
+</p>
+</li>
+<li> <p><code>EVENT.ID</code>: in case of multiple events with the same dispensing date
+(e.g. for dosage changes or interruptions); a unique ID starting at 1 for the first event
+</p>
+</li>
+<li> <p><code>tot.presc.interruptions</code> the total number of prescription interruptions
+per patient for a specific medication.
+</p>
+</li>
+<li> <p><code>tot.dosage.changes</code> the total number of dosage changes per patient
+for a specific medication.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>prescription_episodes</code>: A <code>data.table</code> or <code>data.frame</code> with the following columns:
+</p>
+
+<ul>
+<li> <p><code>ID.colname</code>: the unique patient ID, as given by the <code>ID.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>medication.class.colnames</code>:  the column(s) with classes/types/groups of medication,
+as given by the <code>medication.class.colnames</code> parameter.
+</p>
+</li>
+<li> <p><code>presc.daily.dose.colname</code>: the prescribed daily dose, as given by the
+<code>presc.daily.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>episode.start</code>: the start date of the prescription episode.
+</p>
+</li>
+<li> <p><code>episode.duration</code>: the duration of the prescription episode in days.
+</p>
+</li>
+<li> <p><code>episode.end</code>: the end date of the prescription episode.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>special_periods</code>: A <code>data.table</code> or <code>data.frame</code>, the <code>special.periods.data</code>
+with an additional column <code>SPECIAL.DURATION</code>: the number of days
+between <code>DATE.IN</code> and <code>DATE.OUT</code>
+</p>
+</li>
+<li> <p><code>ID.colname</code> the name of the columns containing
+the unique patient ID, as given by the <code>ID.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>medication.class.colnames</code> the name(s) of the column(s) in <code>disp.data</code>
+and <code>presc.data</code> containing the classes/types/groups of medication, as given by the
+<code>medication.class.colnames</code> parameter.
+</p>
+</li>
+<li> <p><code>disp.date.colname</code>  the name of the column in
+<code>disp.data</code> containing the dispensing date, as given in the <code>disp.date.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>total.dose.colname</code> the name of the column in
+<code>disp.data</code> containing the total dispensed dose, as given by the
+<code>total.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>presc.date.colname</code> the name of the column in
+<code>presc.data</code> containing the prescription date, as given in the <code>presc.date.colname</code>
+parameter.
+</p>
+</li>
+<li> <p><code>presc.daily.dose.colname</code> the name of the column in
+<code>presc.data</code> containing the daily prescribed dose, as given by the
+<code>presc.daily.dose.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>presc.duration.colname</code> the name of the column in
+<code>presc.data</code> containing the duration of the prescription, as given by the
+<code>presc.duration.colname</code> parameter.
+</p>
+</li>
+<li> <p><code>visit.colname</code> the name of the column containing the number of the visit,
+as given by the <code>visit.colname</code> parameter
+</p>
+</li>
+<li> <p><code>split.on.dosage.change</code> whether to split the dispensing event on days with dosage changes
+and create a new event with the new dosage for the remaining supply, as given by the
+<code>split.on.dosage.change</code> parameter.
+</p>
+</li>
+<li> <p><code>force.init.presc</code> whether the date of the first prescription event was set back
+to the date of the first dispensing event, when the first prescription event was after the
+first dispensing event for a specific medication, as given by the <code>force.init.presc</code> parameter.
+</p>
+</li>
+<li> <p><code>force.presc.renew</code> whether a new prescription was required for all medications for every
+prescription event (visit), as given by the <code>force.presc.renew</code> parameter.
+</p>
+</li>
+<li> <p><code>trt.interruption</code> how durations during treatment interruptions were handled, as given
+by the <code>trt.interruption</code> parameter.
+</p>
+</li>
+<li> <p><code>special.periods.method</code> as given by the <code>special.periods.method</code> parameter.
+</p>
+</li>
+<li> <p><code>date.format</code> the format of the dates, as given by the
+<code>date.format</code> parameter.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+event_durations &lt;- compute_event_durations(disp.data = durcomp.dispensing,
+                                           presc.data = durcomp.prescribing,
+                                           special.periods.data = durcomp.hospitalisation,
+                                           ID.colname = "ID",
+                                           presc.date.colname = "DATE.PRESC",
+                                           disp.date.colname = "DATE.DISP",
+                                           medication.class.colnames = c("ATC.CODE",
+                                           "UNIT", "FORM"),
+                                           total.dose.colname = "TOTAL.DOSE",
+                                           presc.daily.dose.colname = "DAILY.DOSE",
+                                           presc.duration.colname = "PRESC.DURATION",
+                                           visit.colname = "VISIT",
+                                           split.on.dosage.change = TRUE,
+                                           force.init.presc = TRUE,
+                                           force.presc.renew = TRUE,
+                                           trt.interruption = "continue",
+                                           special.periods.method = "continue",
+                                           date.format = "%Y-%m-%d",
+                                           suppress.warnings = FALSE,
+                                           return.data.table = TRUE);
+       
+## End(Not run)
+</code></pre>
+
+
+</div>

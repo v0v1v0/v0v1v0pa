@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>log_start</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Start the log thread.</h2>
+
+<h3>Description</h3>
+
+<p>Start a background thread that periodically writes
+system usage metrics of the current R process to a log file.
+See <code>log_read()</code> for explanations of the specific metrics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">log_start(
+  path,
+  seconds = 1,
+  pids = c(local = Sys.getpid()),
+  error = getOption("autometric_error", TRUE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Character string, path to a file to log resource usage.
+On Windows, the path must point to a physical file on disk.
+On Unix-like systems, <code>path</code> can be <code>"/dev/stdout"</code> to print to
+standard output or <code>"/dev/stderr"</code> to print to standard error.
+</p>
+<p>Standard output is the most convenient option for high-performance
+computing scenarios where worker processes already write to log files.
+Such workers usually already redirect standard output to a
+physical file, as with a cluster like SLURM,
+or capture messages with
+<a href="https://aws.amazon.com/cloudwatch/">Amazon CloudWatch</a>.
+</p>
+<p>Normally, standard output and standard error are discouraged because
+of how they interact with the R API and R console. However, the
+exported user interface of <code>autometric</code> only ever
+prints from a detached POSIX thread where it is unsafe to
+use <code>Rprintf()</code> or <code>REprintf()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seconds</code></td>
+<td>
+<p>Positive number, number of seconds between writes to the
+log file. This number should be noticeably large, anywhere between
+half a second to several seconds or minutes.
+A low number of seconds could burden the operating system
+and generate large log files. Because of the way CPU usage measurements
+work, the first log entry starts only after after the first interval of
+<code>seconds</code> has passed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pids</code></td>
+<td>
+<p>Nonempty vector of non-negative integers
+of process IDs to monitor. NOTE: On Mac OS, only the currently running
+process can be monitored.
+This is due to security restrictions around certain system calls, c.f.
+<a href="https://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/">https://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/</a>. # nolint
+If the <code>pids</code> vector is named, then the names will show alongside the
+process IDs in the log entries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p><code>TRUE</code> to throw an error if the thread is not supported on
+the current platform. (See <code>log_support()</code>.)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Only one thread can run at a time. If the thread is already
+running, then <code>log_start()</code> does not start an additional one.
+Before creating a new thread, call <code>log_stop()</code> to terminate
+the first one.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>NULL</code> (invisibly). Called for its side effects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  path &lt;- tempfile()
+  log_start(seconds = 0.5, path = path)
+  Sys.sleep(2)
+  log_stop()
+  Sys.sleep(2)
+  log_read(path)
+  unlink(path)
+</code></pre>
+
+
+</div>

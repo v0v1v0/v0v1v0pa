@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>unark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Unarchive a list of compressed tsv files into a database</h2>
+
+<h3>Description</h3>
+
+<p>Unarchive a list of compressed tsv files into a database
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">unark(
+  files,
+  db_con,
+  streamable_table = NULL,
+  lines = 50000L,
+  overwrite = "ask",
+  encoding = Sys.getenv("encoding", "UTF-8"),
+  tablenames = NULL,
+  try_native = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>files</code></td>
+<td>
+<p>vector of filenames to be read in. Must be <code>tsv</code>
+format, optionally compressed using <code>bzip2</code>, <code>gzip</code>, <code>zip</code>,
+or <code>xz</code> format at present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>db_con</code></td>
+<td>
+<p>a database src (<code>src_dbi</code> object from <code>dplyr</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>streamable_table</code></td>
+<td>
+<p>interface for serializing/deserializing in chunks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lines</code></td>
+<td>
+<p>number of lines to read in a chunk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>should any existing text files of the same name be overwritten?
+default is "ask", which will ask for confirmation in an interactive session, and
+overwrite in a non-interactive script.  TRUE will always overwrite, FALSE will
+always skip such tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>encoding</code></td>
+<td>
+<p>encoding to be assumed for input files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tablenames</code></td>
+<td>
+<p>vector of tablenames to be used for corresponding files.
+By default, tables will be named using lowercase names from file basename with
+special characters replaced with underscores (for SQL compatibility).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>try_native</code></td>
+<td>
+<p>logical, default TRUE. Should we try to use a native bulk
+import method for the database connection?  This can substantially speed up
+read times and will fall back on the DBI method for any table that fails
+to import.  Currently only MonetDBLite connections support this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>streamable_table$read</code> method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>unark</code> will read in a files in chunks and
+write them into a database.  This is essential for processing
+large compressed tables which may be too large to read into
+memory before writing into a database.  In general, increasing
+the <code>lines</code> parameter will result in a faster total transfer
+but require more free memory for working with these larger chunks.
+</p>
+<p>If using <code>readr</code>-based streamable-table, you can suppress the progress bar
+by using <code>options(readr.show_progress = FALSE)</code> when reading in large
+files.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the database connection (invisibly)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Setup: create an archive.
+library(dplyr)
+dir &lt;- tempdir()
+db &lt;- dbplyr::nycflights13_sqlite(tempdir())
+
+## database -&gt; .tsv.bz2
+ark(db, dir)
+
+## list all files in archive (full paths)
+files &lt;- list.files(dir, "bz2$", full.names = TRUE)
+
+## Read archived files into a new database (another sqlite in this case)
+new_db &lt;- DBI::dbConnect(RSQLite::SQLite())
+unark(files, new_db)
+
+## Prove table is returned successfully.
+tbl(new_db, "flights")
+
+</code></pre>
+
+
+</div>

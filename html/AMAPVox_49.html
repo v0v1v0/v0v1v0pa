@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plantAreaIndex</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plant Area Index (PAI)</h2>
+
+<h3>Description</h3>
+
+<p>Computes Plant Area Index (PAI) from Plant Area Density (PAD).
+PAI is defined as the plant area per unit ground surface area (PAI = plant
+area / ground area = m^2 / m^2).
+</p>
+<p>The function can estimate PAI on the whole voxel space or any region of
+interest (parameter vx subset of voxels). It can compute PAI from several
+perspectives : either an averaged PAI value, a two-dimensions (i, j) PAI
+array or vertical profiles either above ground or below canopy.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plantAreaIndex(
+  vxsp,
+  vx,
+  type = c("av", "ag", "bc", "xy"),
+  pattern.pad = "^pad_*"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vxsp</code></td>
+<td>
+<p>a <code>VoxelSpace</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vx</code></td>
+<td>
+<p>a subset of voxel index. A data.table with <code style="white-space: pre;">⁠i, j, k⁠</code> columns.
+Missing parameter means whole voxel space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>a character vector, the type of PAI profile.
+</p>
+
+<ul>
+<li> <p><code>"av"</code> Averaged value on every voxel
+</p>
+</li>
+<li> <p><code>"ag"</code> Above ground vertical profile
+</p>
+</li>
+<li> <p><code>"bc"</code> Below canopy vertical profile
+</p>
+</li>
+<li> <p><code>"xy"</code> Spatial profile
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pattern.pad</code></td>
+<td>
+<p>character string containing a
+regular expression to be matched in the voxel space
+variable names, for selecting PAD variables. Typing the name of a specific
+PAD variable works just fine.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list of PAI profiles for requested PAD variables and PAI
+types.
+</p>
+
+
+<h4>
+<code>av</code> Averaged PAI</h4>
+
+<p>Returns a single value. Calculated as the sum of PAD values multiplied by
+voxel volume and divided by ground surface with vegetation.
+</p>
+
+
+
+<h4>
+<code>ag &amp; bc</code> Above ground and below canopy PAI vertical profile</h4>
+
+<p>Returns a vertical profile of PAI values either from ground distance or
+canopy depth. Calculated as the averaged PAD values per layer (a layer
+being defined by either the distance to ground or canopy level) multiplied
+by voxel size along z (equivalent to multiplying PAD by voxel volume and
+dividing by voxel ground surface).
+</p>
+
+
+
+<h4>
+<code>xy</code> Spatial PAI profile</h4>
+
+<p>Returns a list a PAI values by i, j index. Calculated as the sum of PAD on
+(i, j) column multiplied by voxel size along z (equivalent to multiplying
+PAD by voxel volume and dividing by voxel ground surface).
+</p>
+
+
+
+<h3>See Also</h3>
+
+<p><code>plantAreaDensity()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+vxsp@data &lt;- merge(vxsp@data, plantAreaDensity(vxsp), by = c("i", "j", "k"))
+## Not run: 
+lai &lt;- plantAreaIndex(vxsp)
+names(lai)
+library(ggplot2)
+ggplot(data = lai[["pad_transmittance.pai.ag" ]], aes(x=pai, y=ground_distance)) +
+  geom_path() + geom_point()
+
+## End(Not run)
+# PAI on a subset
+ni &lt;- round(dim(vxsp)[1]/2)
+vx &lt;- vxsp@data[i &lt; ni, .(i, j, k)]
+lai &lt;- plantAreaIndex(vxsp, vx)
+
+</code></pre>
+
+
+</div>

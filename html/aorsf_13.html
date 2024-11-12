@@ -1,0 +1,538 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>orsf_ice_oob</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Individual Conditional Expectations</h2>
+
+<h3>Description</h3>
+
+<p>Compute individual conditional expectations for an
+oblique random forest. Unlike partial dependence, which shows the expected prediction as a function of one or multiple predictors, individual conditional expectations (ICE) show the prediction for an individual observation as a function of a predictor.
+You can compute individual conditional expectations three ways using a random forest:
+</p>
+
+<ul>
+<li>
+<p> using in-bag predictions for the training data
+</p>
+</li>
+<li>
+<p> using out-of-bag predictions for the training data
+</p>
+</li>
+<li>
+<p> using predictions for a new set of data
+</p>
+</li>
+</ul>
+<p>See examples for more details
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">orsf_ice_oob(
+  object,
+  pred_spec,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  expand_grid = TRUE,
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_ice_inb(
+  object,
+  pred_spec,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  expand_grid = TRUE,
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+
+orsf_ice_new(
+  object,
+  pred_spec,
+  new_data,
+  pred_horizon = NULL,
+  pred_type = NULL,
+  na_action = "fail",
+  expand_grid = TRUE,
+  boundary_checks = TRUE,
+  n_thread = NULL,
+  verbose_progress = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>(<em>ObliqueForest</em>) a trained oblique random forest object (see orsf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_spec</code></td>
+<td>
+<p>(<em>named list</em>, <em>pspec_auto</em>, or <em>data.frame</em>).
+</p>
+
+<ul>
+<li>
+<p> If <code>pred_spec</code> is a named list,
+Each item in the list should be a vector of values that will be used as
+points in the partial dependence function. The name of each item in the
+list should indicate which variable will be modified to take the
+corresponding values.
+</p>
+</li>
+<li>
+<p> If <code>pred_spec</code> is created using <code>pred_spec_auto()</code>, all that is needed
+is the names of variables to use (see pred_spec_auto).
+</p>
+</li>
+<li>
+<p> If <code>pred_spec</code> is a <code>data.frame</code>, columns will
+indicate variable names, values will indicate variable values, and
+partial dependence will be computed using the inputs on each row.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_horizon</code></td>
+<td>
+<p>(<em>double</em>) Only relevent for survival forests.
+A value or vector indicating the time(s) that predictions will be
+calibrated to. E.g., if you were predicting risk of incident heart
+failure within the next 10 years, then <code>pred_horizon = 10</code>.
+<code>pred_horizon</code> can be <code>NULL</code> if <code>pred_type</code> is <code>'mort'</code>, since
+mortality predictions are aggregated over all event times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_type</code></td>
+<td>
+<p>(<em>character</em>) the type of predictions to compute. Valid
+Valid options for survival are:
+</p>
+
+<ul>
+<li>
+<p> 'risk' : probability of having an event at or before <code>pred_horizon</code>.
+</p>
+</li>
+<li>
+<p> 'surv' : 1 - risk.
+</p>
+</li>
+<li>
+<p> 'chf': cumulative hazard function
+</p>
+</li>
+<li>
+<p> 'mort': mortality prediction
+</p>
+</li>
+<li>
+<p> 'time': survival time prediction
+</p>
+</li>
+</ul>
+<p>For classification:
+</p>
+
+<ul><li>
+<p> 'prob': probability for each class
+</p>
+</li></ul>
+<p>For regression:
+</p>
+
+<ul><li>
+<p> 'mean': predicted mean, i.e., the expected value
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand_grid</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, partial dependence will be
+computed at all possible combinations of inputs in <code>pred_spec</code>. If
+<code>FALSE</code>, partial dependence will be computed for each variable
+in <code>pred_spec</code>, separately.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary_checks</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, <code>pred_spec</code> will be checked
+to make sure the requested values are between the 10th and 90th
+percentile in the object's training data. If <code>FALSE</code>, these checks are
+skipped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_thread</code></td>
+<td>
+<p>(<em>integer</em>) number of threads to use while computing predictions. Default is 0, which allows a suitable number of threads to be used based on availability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose_progress</code></td>
+<td>
+<p>(<em>logical</em>) if <code>TRUE</code>, progress will be
+printed to console. If <code>FALSE</code> (the default), nothing will be
+printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not currently used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_data</code></td>
+<td>
+<p>a data.frame, tibble, or data.table to compute predictions in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_action</code></td>
+<td>
+<p>(<em>character</em>) what should happen when <code>new_data</code> contains missing values (i.e., <code>NA</code> values). Valid options are:
+</p>
+
+<ul>
+<li>
+<p> 'fail' : an error is thrown if <code>new_data</code> contains <code>NA</code> values
+</p>
+</li>
+<li>
+<p> 'omit' : rows in <code>new_data</code> with incomplete data will be dropped
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data.table containing
+individual conditional expectations for the specified variable(s)
+and, if relevant, at the specified prediction horizon(s).
+</p>
+
+
+<h3>Examples</h3>
+
+<p>You can compute individual conditional expectation and individual
+conditional expectations in three ways:
+</p>
+
+<ul>
+<li>
+<p> using in-bag predictions for the training data. In-bag individual
+conditional expectation indicates relationships that the model has
+learned during training. This is helpful if your goal is to interpret
+the model.
+</p>
+</li>
+<li>
+<p> using out-of-bag predictions for the training data. Out-of-bag
+individual conditional expectation indicates relationships that the
+model has learned during training but using the out-of-bag data
+simulates application of the model to new data. This is helpful if you
+want to test your model’s reliability or fairness in new data but you
+don’t have access to a large testing set.
+</p>
+</li>
+<li>
+<p> using predictions for a new set of data. New data individual
+conditional expectation shows how the model predicts outcomes for
+observations it has not seen. This is helpful if you want to test your
+model’s reliability or fairness.
+</p>
+</li>
+</ul>
+<h4>Classification</h4>
+
+<p>Begin by fitting an oblique classification random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_clsf &lt;- orsf(data = penguins_orsf_train, 
+                 formula = species ~ .)
+</pre></div>
+<p>Compute individual conditional expectation using out-of-bag data for
+<code>flipper_length_mm = c(190, 210)</code>.
+</p>
+<div class="sourceCode r"><pre>pred_spec &lt;- list(flipper_length_mm = c(190, 210))
+
+ice_oob &lt;- orsf_ice_oob(fit_clsf, pred_spec = pred_spec)
+
+ice_oob
+</pre></div>
+<div class="sourceCode"><pre>## Key: &lt;class&gt;
+##      id_variable id_row  class flipper_length_mm       pred
+##            &lt;int&gt; &lt;char&gt; &lt;fctr&gt;             &lt;num&gt;      &lt;num&gt;
+##   1:           1      1 Adelie               190 0.92169247
+##   2:           1      2 Adelie               190 0.80944657
+##   3:           1      3 Adelie               190 0.85172955
+##   4:           1      4 Adelie               190 0.93559327
+##   5:           1      5 Adelie               190 0.97708693
+##  ---                                                       
+## 896:           2    146 Gentoo               210 0.26092984
+## 897:           2    147 Gentoo               210 0.04798334
+## 898:           2    148 Gentoo               210 0.07927359
+## 899:           2    149 Gentoo               210 0.84779971
+## 900:           2    150 Gentoo               210 0.11105143
+</pre></div>
+<p>There are two identifiers in the output:
+</p>
+
+<ul>
+<li> <p><code>id_variable</code> is an identifier for the current value of the
+variable(s) that are in the data. It is redundant if you only have one
+variable, but helpful if there are multiple variables.
+</p>
+</li>
+<li> <p><code>id_row</code> is an identifier for the observation in the original data.
+</p>
+</li>
+</ul>
+<p>Note that predicted probabilities are returned for each class and each
+observation in the data. Predicted probabilities for a given observation
+and given variable value sum to 1. For example,
+</p>
+<div class="sourceCode r"><pre>ice_oob %&gt;%
+ .[flipper_length_mm == 190] %&gt;% 
+ .[id_row == 1] %&gt;% 
+ .[['pred']] %&gt;% 
+ sum()
+</pre></div>
+<div class="sourceCode"><pre>## [1] 1
+</pre></div>
+
+
+
+<h4>Regression</h4>
+
+<p>Begin by fitting an oblique regression random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(penguins_orsf), 150) 
+
+penguins_orsf_train &lt;- penguins_orsf[index_train, ]
+penguins_orsf_test &lt;- penguins_orsf[-index_train, ]
+
+fit_regr &lt;- orsf(data = penguins_orsf_train, 
+                 formula = bill_length_mm ~ .)
+</pre></div>
+<p>Compute individual conditional expectation using new data for
+<code>flipper_length_mm = c(190, 210)</code>.
+</p>
+<div class="sourceCode r"><pre>pred_spec &lt;- list(flipper_length_mm = c(190, 210))
+
+ice_new &lt;- orsf_ice_new(fit_regr, 
+                        pred_spec = pred_spec,
+                        new_data = penguins_orsf_test)
+
+ice_new
+</pre></div>
+<div class="sourceCode"><pre>##      id_variable id_row flipper_length_mm     pred
+##            &lt;int&gt; &lt;char&gt;             &lt;num&gt;    &lt;num&gt;
+##   1:           1      1               190 37.94483
+##   2:           1      2               190 37.61595
+##   3:           1      3               190 37.53681
+##   4:           1      4               190 39.49476
+##   5:           1      5               190 38.95635
+##  ---                                              
+## 362:           2    179               210 51.80471
+## 363:           2    180               210 47.27183
+## 364:           2    181               210 47.05031
+## 365:           2    182               210 50.39028
+## 366:           2    183               210 48.44774
+</pre></div>
+<p>You can also let <code>pred_spec_auto</code> pick reasonable values like so:
+</p>
+<div class="sourceCode r"><pre>pred_spec = pred_spec_auto(species, island, body_mass_g)
+
+ice_new &lt;- orsf_ice_new(fit_regr, 
+                        pred_spec = pred_spec,
+                        new_data = penguins_orsf_test)
+
+ice_new
+</pre></div>
+<div class="sourceCode"><pre>##       id_variable id_row species    island body_mass_g     pred
+##             &lt;int&gt; &lt;char&gt;  &lt;fctr&gt;    &lt;fctr&gt;       &lt;num&gt;    &lt;num&gt;
+##    1:           1      1  Adelie    Biscoe        3200 37.78339
+##    2:           1      2  Adelie    Biscoe        3200 37.73273
+##    3:           1      3  Adelie    Biscoe        3200 37.71248
+##    4:           1      4  Adelie    Biscoe        3200 40.25782
+##    5:           1      5  Adelie    Biscoe        3200 40.04074
+##   ---                                                          
+## 8231:          45    179  Gentoo Torgersen        5300 46.14559
+## 8232:          45    180  Gentoo Torgersen        5300 43.98050
+## 8233:          45    181  Gentoo Torgersen        5300 44.59837
+## 8234:          45    182  Gentoo Torgersen        5300 44.85146
+## 8235:          45    183  Gentoo Torgersen        5300 44.23710
+</pre></div>
+<p>By default, all combinations of all variables are used. However, you can
+also look at the variables one by one, separately, like so:
+</p>
+<div class="sourceCode r"><pre>ice_new &lt;- orsf_ice_new(fit_regr, 
+                        expand_grid = FALSE,
+                        pred_spec = pred_spec,
+                        new_data = penguins_orsf_test)
+
+ice_new
+</pre></div>
+<div class="sourceCode"><pre>##       id_variable id_row    variable value  level     pred
+##             &lt;int&gt; &lt;char&gt;      &lt;char&gt; &lt;num&gt; &lt;char&gt;    &lt;num&gt;
+##    1:           1      1     species    NA Adelie 37.74136
+##    2:           1      2     species    NA Adelie 37.42367
+##    3:           1      3     species    NA Adelie 37.04598
+##    4:           1      4     species    NA Adelie 39.89602
+##    5:           1      5     species    NA Adelie 39.14848
+##   ---                                                     
+## 2009:           5    179 body_mass_g  5300   &lt;NA&gt; 51.50196
+## 2010:           5    180 body_mass_g  5300   &lt;NA&gt; 47.27055
+## 2011:           5    181 body_mass_g  5300   &lt;NA&gt; 48.34064
+## 2012:           5    182 body_mass_g  5300   &lt;NA&gt; 48.75828
+## 2013:           5    183 body_mass_g  5300   &lt;NA&gt; 48.11020
+</pre></div>
+<p>And you can also bypass all the bells and whistles by using your own
+<code>data.frame</code> for a <code>pred_spec</code>. (Just make sure you request values that
+exist in the training data.)
+</p>
+<div class="sourceCode r"><pre>custom_pred_spec &lt;- data.frame(species = 'Adelie', 
+                               island = 'Biscoe')
+
+ice_new &lt;- orsf_ice_new(fit_regr, 
+                        pred_spec = custom_pred_spec,
+                        new_data = penguins_orsf_test)
+
+ice_new
+</pre></div>
+<div class="sourceCode"><pre>##      id_variable id_row species island     pred
+##            &lt;int&gt; &lt;char&gt;  &lt;fctr&gt; &lt;fctr&gt;    &lt;num&gt;
+##   1:           1      1  Adelie Biscoe 38.52327
+##   2:           1      2  Adelie Biscoe 38.32073
+##   3:           1      3  Adelie Biscoe 37.71248
+##   4:           1      4  Adelie Biscoe 41.68380
+##   5:           1      5  Adelie Biscoe 40.91140
+##  ---                                           
+## 179:           1    179  Adelie Biscoe 43.09493
+## 180:           1    180  Adelie Biscoe 38.79455
+## 181:           1    181  Adelie Biscoe 39.37734
+## 182:           1    182  Adelie Biscoe 40.71952
+## 183:           1    183  Adelie Biscoe 39.34501
+</pre></div>
+
+
+
+<h4>Survival</h4>
+
+<p>Begin by fitting an oblique survival random forest:
+</p>
+<div class="sourceCode r"><pre>set.seed(329)
+
+index_train &lt;- sample(nrow(pbc_orsf), 150) 
+
+pbc_orsf_train &lt;- pbc_orsf[index_train, ]
+pbc_orsf_test &lt;- pbc_orsf[-index_train, ]
+
+fit_surv &lt;- orsf(data = pbc_orsf_train, 
+                 formula = Surv(time, status) ~ . - id,
+                 oobag_pred_horizon = 365.25 * 5)
+</pre></div>
+<p>Compute individual conditional expectation using in-bag data for
+<code>bili = c(1,2,3,4,5)</code>:
+</p>
+<div class="sourceCode r"><pre>ice_train &lt;- orsf_ice_inb(fit_surv, pred_spec = list(bili = 1:5))
+ice_train
+</pre></div>
+<div class="sourceCode"><pre>##      id_variable id_row pred_horizon  bili      pred
+##            &lt;int&gt; &lt;char&gt;        &lt;num&gt; &lt;num&gt;     &lt;num&gt;
+##   1:           1      1      1826.25     1 0.1290317
+##   2:           1      2      1826.25     1 0.1242352
+##   3:           1      3      1826.25     1 0.0963452
+##   4:           1      4      1826.25     1 0.1172367
+##   5:           1      5      1826.25     1 0.2030256
+##  ---                                                
+## 746:           5    146      1826.25     5 0.7868537
+## 747:           5    147      1826.25     5 0.2012954
+## 748:           5    148      1826.25     5 0.4893605
+## 749:           5    149      1826.25     5 0.4698220
+## 750:           5    150      1826.25     5 0.9557285
+</pre></div>
+<p>If you don’t have specific values of a variable in mind, let
+<code>pred_spec_auto</code> pick for you:
+</p>
+<div class="sourceCode r"><pre>ice_train &lt;- orsf_ice_inb(fit_surv, pred_spec_auto(bili))
+ice_train
+</pre></div>
+<div class="sourceCode"><pre>##      id_variable id_row pred_horizon  bili       pred
+##            &lt;int&gt; &lt;char&gt;        &lt;num&gt; &lt;num&gt;      &lt;num&gt;
+##   1:           1      1      1826.25  0.55 0.11728559
+##   2:           1      2      1826.25  0.55 0.11728839
+##   3:           1      3      1826.25  0.55 0.08950739
+##   4:           1      4      1826.25  0.55 0.10064959
+##   5:           1      5      1826.25  0.55 0.18736417
+##  ---                                                 
+## 746:           5    146      1826.25  7.25 0.82600898
+## 747:           5    147      1826.25  7.25 0.29156437
+## 748:           5    148      1826.25  7.25 0.58395919
+## 749:           5    149      1826.25  7.25 0.54202021
+## 750:           5    150      1826.25  7.25 0.96391985
+</pre></div>
+<p>Specify <code>pred_horizon</code> to get individual conditional expectation at each
+value:
+</p>
+<div class="sourceCode r"><pre>ice_train &lt;- orsf_ice_inb(fit_surv, pred_spec_auto(bili),
+                          pred_horizon = seq(500, 3000, by = 500))
+ice_train
+</pre></div>
+<div class="sourceCode"><pre>##       id_variable id_row pred_horizon  bili        pred
+##             &lt;int&gt; &lt;char&gt;        &lt;num&gt; &lt;num&gt;       &lt;num&gt;
+##    1:           1      1          500  0.55 0.008276627
+##    2:           1      1         1000  0.55 0.055724516
+##    3:           1      1         1500  0.55 0.085091120
+##    4:           1      1         2000  0.55 0.123423352
+##    5:           1      1         2500  0.55 0.166380739
+##   ---                                                  
+## 4496:           5    150         1000  7.25 0.837774757
+## 4497:           5    150         1500  7.25 0.934536379
+## 4498:           5    150         2000  7.25 0.967823286
+## 4499:           5    150         2500  7.25 0.972059574
+## 4500:           5    150         3000  7.25 0.980785643
+</pre></div>
+<p>Multi-prediction horizon ice comes with minimal extra computational
+cost. Use a fine grid of time values and assess whether predictors have
+time-varying effects.
+</p>
+
+
+
+</div>

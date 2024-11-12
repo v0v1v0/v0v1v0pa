@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>shapeToRaster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Load shapefile and convert to a raster object.</h2>
+
+<h3>Description</h3>
+
+<p>shapeToRaster can also perform early quality checks on the shape file, to ensure it is compatible
+with the remaining study data. To activate these, set the names of the columns in the spatial.csv
+file that contain the x and y coordinates of the stations using coord.x and coord.y. By default,
+shapeToRaster looks for a spatial.csv file in the current working directory, but this can be
+personalized using the spatial argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">shapeToRaster(
+  shape,
+  size,
+  spatial = "spatial.csv",
+  coord.x = NULL,
+  coord.y = NULL,
+  buffer = NULL,
+  type = c("land", "water")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>shape</code></td>
+<td>
+<p>The path to a shapefile containing land polygons of the study area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>The pixel size, in metres.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatial</code></td>
+<td>
+<p>Either a character string specifying the path to a spatial.csv file or a spatial data frame.
+This argument is not mandatory, but can be used to perform an early check of the shape file's compatibility
+with the study stations and release sites.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coord.x, coord.y</code></td>
+<td>
+<p>The names of the columns containing the x and y positions of the stations
+in the spatial.csv file. these coordinates MUST BE in the same coordinate system as the shape file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>buffer</code></td>
+<td>
+<p>Artificially expand the map edges. Can be a single value (applied to all edges)
+or four values (xmin, xmax, ymin, ymax). The unit of the buffer depends on the shape file's
+coordinate system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of shapefile being loaded. One of "land", if the shapefile's polygons represent landmasses, or "water", if the shapefile's polygons represent water bodies.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is highly recommended to read the manual page regarding distances matrices before running this function.
+You can find it here: <a href="https://hugomflavio.github.io/actel-website/manual-distances.html">https://hugomflavio.github.io/actel-website/manual-distances.html</a>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A raster object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# check if R can run the distance functions
+aux &lt;- c(
+  length(suppressWarnings(packageDescription("raster"))),
+  length(suppressWarnings(packageDescription("gdistance"))),
+  length(suppressWarnings(packageDescription("sp"))),
+  length(suppressWarnings(packageDescription("terra"))))
+
+missing.packages &lt;- sapply(aux, function(x) x == 1)
+
+if (any(missing.packages)) {
+  message("Sorry, this function requires packages '",
+    paste(c("raster", "gdistance", "sp", "terra")[missing.packages], collapse = "', '"),
+    "' to operate. Please install ", ifelse(sum(missing.packages) &gt; 1, "them", "it"),
+    " before proceeding.")
+} else {
+  # Fetch actel's example shapefile
+  example.shape &lt;- paste0(system.file(package = "actel")[1], "/example_shapefile.shp")
+
+  # import the shape file
+  x &lt;- shapeToRaster(shape = example.shape, size = 20)
+
+  # have a look at the resulting raster,
+  # where the blank spaces are the land areas
+  terra::plot(x)
+}
+rm(aux, missing.packages)
+
+</code></pre>
+
+
+</div>

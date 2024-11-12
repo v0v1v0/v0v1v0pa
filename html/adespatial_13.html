@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create.dbMEM.model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combine dbMEM matrices corresponding to groups of sites</h2>
+
+<h3>Description</h3>
+
+<p>This function reads a file containing the Cartesian coordinates of
+sites forming different groups on the map, and constructs a combined staggered matrix
+of dbMEM spatial eigenvectors, ready for use in RDA.
+The method was first described and used in Declerck et al. (2011) and summarized in
+the Borcard et al. (2011) book, section 7.4.3.5. These publications provided
+preliminary versions of the present function. The present version is more completely
+documented. Furthermore, it uses the <code>dbmem</code> function of the
+<code>adespatial</code> package for computation of the eigenfunctions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create.dbMEM.model(coord = NULL, D.mat = NULL, nsites)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>coord</code></td>
+<td>
+<p>Optional file containing the Cartesian coordinates of the sites.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D.mat</code></td>
+<td>
+<p>Optional distance matrix provided by user, class <code>matrix</code> or
+<code>dist</code>. If <code>D.mat=NULL</code>, the geographic distance matrix will be computed
+from the coordinates provided in file <code>coord</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsites</code></td>
+<td>
+<p>A vector containing the number of sites per group.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The geographic positions of the sites are provided either in a file of geographic
+coordinates <code>coord</code> or as a geographic distance matrix <code>D.mat</code>.
+</p>
+<p>The sites must, of course, be in the same order in file <code>coord</code> (or in file
+<code>D.mat</code>) and in the response data file used in the RDA. All sites of a group must
+be together in these two files, i.e. not interspersed. The numbers of sites in the
+groups are provided in vector <code>nsites</code>. See example.
+</p>
+<p>File vector <code>coord</code>, if provided, must contain Cartesian coordinates of the sites,
+not coordinates in degrees. The Euclidean distance computed from the geographic
+coordinates is a meaningful representation of the geographic relationships only if the
+coordinates are Cartesian. Geodetic Cartesian coordinates can be derived from Lat-Lon
+data in degrees using the function <code>geoXY</code> of the <code>SoDA</code> package. Beware of
+UTM coordinates if the sites are not all located in the same UTM zone; UTM coordinates
+are Cartesian only within an UTM zone. See
+https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with <code>n</code> rows containing a set of <code>k</code> staggered matrices of
+dbMEM eigenfunctions in its diagonal portion; <code>n</code> is the total number of sites
+in the study and <code>k</code> is the number of groups. Each small matrix contains
+the dbMEM functions, modelling positive spatial correlation, describing the spatial
+relationships among the sites of a group. The remainder of the matrix is filled with
+zeros. Zero is the mean value of all eigenfunctions describing within-group
+relationships. This means that during the calculation of RDA, the sites of a focus
+group will have, with each other, relationships described by the dbMEM eigenfunctions
+of that group, whereas the sites outside that group will have weights of 0 in the
+regressions that concern these eigenfunctions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pierre Legendre <a href="mailto:pierre.legendre@umontreal.ca">pierre.legendre@umontreal.ca</a>, 2010. Adaptation to adespatial: Daniel Borcard and Pierre
+Legendre, 2016
+</p>
+
+
+<h3>References</h3>
+
+<p>Borcard, D., F. Gillet and P. Legendre. 2011. Numerical ecology with R. Use R! series,
+Springer Science, New York.
+</p>
+<p>Declerck, S. A. J., J. S. Coronel, P. Legendre &amp; L. Brendonck. 2011. Scale dependency of
+processes structuring metacommunities of cladocerans in temporary pools of High-Andes
+wetlands. Ecography 34: 296-305.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dbmem</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">{
+ # Generate random coordinates for 35 sites forming 6 distinct groups on the map
+ Easting &lt;- runif(35)+c(rep(0,6),rep(1.5,7),rep(3,6), rep(0,5),rep(1.5,5),rep(3,6))
+ Northing&lt;- runif(35)+c(rep(2.8,6),rep(2.3,7),rep(2.8,6), rep(0,5),rep(0.5,5),rep(0,6))
+ cartesian &lt;- cbind(Easting,Northing)
+ rownames(cartesian) &lt;- paste("S",1:nrow(cartesian),sep='')
+ nsites.per.group &lt;- c(6,7,6,5,5,6)
+
+ result &lt;- create.dbMEM.model(coord=cartesian, nsites=nsites.per.group)
+
+ # Draw a map to check the coding of the sites into the groups
+ site.codes &lt;- unlist(apply(cbind(1:6),1,n=nsites.per.group,function(a,n) rep(a,n[a])))
+
+ col.vec &lt;- c("green3","gray99","orange2","gold1","brown3","gray70")
+ plot(cartesian, pch=22, col="black", bg=col.vec[site.codes], cex=2, ylim=c(0,4),asp=1)
+ text(cartesian,labels=rownames(cartesian), cex=0.5, pos=3)
+
+ # Examine the staggered matrix of dbMEM eigenfunctions
+ # Not run:
+ result
+}
+
+
+</code></pre>
+
+
+</div>

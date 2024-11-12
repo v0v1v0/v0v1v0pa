@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_argument</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add an argument to a parser.</h2>
+
+<h3>Description</h3>
+
+<p>This function adds an argument to an <code>arg.parser</code> object and returns 
+the modified object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_argument(
+  parser,
+  arg,
+  help,
+  default = NULL,
+  type = NULL,
+  nargs = NULL,
+  flag = NULL,
+  short = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parser</code></td>
+<td>
+<p>an <code>arg.parser</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arg</code></td>
+<td>
+<p>argument name (use no prefix for positional arguments,
+<code>--</code> or <code>-</code> prefix for optional arguments or flags)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>help</code></td>
+<td>
+<p>help description for the argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default</code></td>
+<td>
+<p>default value for the argument [default: NA]</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>variable type of the argument (which can be inferred from 
+<code>default</code>); assumed to be <code>character</code> otherwise.
+See details for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nargs</code></td>
+<td>
+<p>number of argument values (which can be inferred from 
+<code>default</code>); set to <code>Inf</code> for an indefinite number;
+an optional argument with an indefinite number of values may
+need to be followed by another optional argument or flag (e.g.
+<code>--</code>) to separate the indefinite optional argument from
+possible position arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag</code></td>
+<td>
+<p>whether argument is a flag (and does not consume a value)
+[default: FALSE]; during argument parsing, a flag argument 
+is FALSE by default if it is not set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>short</code></td>
+<td>
+<p>short-form for flags and positional arguments;
+short-forms can be assigned automatically based on the first
+character of the argument name, unless a conflict arises with
+an existing short-form; to avoid conflicts, add the argument 
+as early as possible</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function supports multiple arguments in a vector. To ensure that the
+argument variable type is set correctly, either specify <code>type</code> directly
+or supply <code>default</code> argument values as a list. 
+Custom types are supported by defining a new class and a S4 method for
+<code>coerce</code>, see the examples section.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an <code>arg.parser</code> object with the argument added
+</p>
+
+
+<h3>Note</h3>
+
+<p>Dashes <code>-</code> that occur in the stem of the argument names
+(e.g. –argument-name) will be converted to underscores <code>_</code> 
+(e.g. argument_name) in the name of the corresponding variable.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">p &lt;- arg_parser("A text file modifying program")
+
+# Add a positional argument
+p &lt;- add_argument(p, "input", help="input file")
+
+# Add an optional argument
+p &lt;- add_argument(p, "--output", help="output file", default="output.txt")
+
+# Add a flag
+p &lt;- add_argument(p, "--append", help="append to file", flag=TRUE)
+
+# Add multiple arguments together
+p &lt;- add_argument(p,
+    c("ref", "--date", "--sort"),
+    help = c("reference file", "date stamp to use", "sort lines"),
+    flag = c(FALSE, FALSE, TRUE))
+
+# Print the help message
+print(p)
+
+# Example of custom type, using the example from pythons argparse
+setClass("perfectSquare")
+setMethod("coerce", c(from = "ANY", to = "perfectSquare"),
+    function(from, to) {
+      from &lt;- as.numeric(from)
+      if (!all.equal(from, as.integer(from))) {
+        stop("Type error: ", from, " is not an integer!")
+      }
+      sqt &lt;- sqrt(from)
+      if (sqt != as.integer(sqt)) {
+         stop("Type error: ", from, " is not a perfect square!")
+      }
+      from
+    }
+)
+
+p2 &lt;- arg_parser("Perfect square checker")
+p2 &lt;- add_argument(p2, arg = c("--perfect-square"), 
+                   help = "A perfect square integer",
+                   type = "perfectSquare")
+
+parse_args(p2, c("--perfect-square", 144))
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aou_concept_set</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get occurrences of a concept set from AoU for a given cohort</h2>
+
+<h3>Description</h3>
+
+<p>Retrieves occurrences of a concept set from the All of Us
+database for a given cohort.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aou_concept_set(
+  cohort = NULL,
+  concepts,
+  start_date = NULL,
+  end_date = NULL,
+  domains = c("condition", "measurement", "observation", "procedure", "drug", "device",
+    "visit"),
+  output = "indicator",
+  concept_set_name = "concept_set",
+  min_n = 1,
+  collect = FALSE,
+  ...,
+  con = getOption("aou.default.con")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cohort</code></td>
+<td>
+<p>Reference to a remote table or local dataframe with a column
+called "person_id", and (possibly) columns for <code>start_date</code> and <code>end_date</code>.
+If not provided, defaults to entire All of Us cohort.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>concepts</code></td>
+<td>
+<p>a vector of concept ids</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>chr; the name of the start_date column in the cohort table;
+defaults to NULL to pull data across all dates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>chr; the name of the end_date column in the cohort table;
+defaults to NULL to pull data across all dates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domains</code></td>
+<td>
+<p>chr; a vector of domains to search for the concepts in
+("condition", "measurement", "observation", "procedure", "drug", "device",
+"visit"); defaults to all</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>one of "indicator", "count", "all"; do you want to return a 1
+if a person has any matching concepts and 0 if not ("indicator"), the
+number of matching concepts per person ("count"), or all info about the
+matching concepts ("all"). Defaults to "indicator"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>concept_set_name</code></td>
+<td>
+<p>chr; If output = "indicator" or output = "n", name
+for that column. Defaults to "concept_set".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_n</code></td>
+<td>
+<p>dbl; If output = "indicator", the minimum number of occurrences
+per person to consider the indicator true. Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collect</code></td>
+<td>
+<p>Whether to bring the resulting table into local memory
+(<code>collect = TRUE</code>) as a dataframe or leave as a reference to a database
+table (for continued analysis using, e.g., <code>dbplyr</code>). Defaults to <code>FALSE.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed along to <code>collect()</code> if <code>collect = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>con</code></td>
+<td>
+<p>Connection to the allofus SQL database. Defaults to
+<code>getOption("aou.default.con")</code>, which is created automatically with
+<code>aou_connect()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataframe if <code>collect = TRUE</code>; a reference to a remote database
+table if not.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# indicator for any aspirin at any time
+aspirin_users &lt;- aou_concept_set(dplyr::tbl(con, "person"),
+  concepts = 1191, concept_set_name = "aspirin", domains = "drug"
+)
+
+# starting with person table to create a cohort
+people &lt;- dplyr::tbl(con, "person") %&gt;%
+  dplyr::filter(person_id &lt; 2000000) %&gt;%
+  dplyr::mutate(
+    start = as.Date("2021-01-01"),
+    end = as.Date("2023-12-31")
+  )
+
+dat &lt;- aou_concept_set(
+  cohort = people,
+  concepts = c(725115, 1612146, 1613031),
+  start_date = "start",
+  end_date = "end",
+  concept_set_name = "CGM",
+  output = "all"
+)
+
+</code></pre>
+
+
+</div>

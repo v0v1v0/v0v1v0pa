@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>corAspect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Scaling by Maximizing Correlational Aspects</h2>
+
+<h3>Description</h3>
+
+<p>This function performs optimal scaling by maximizing a certain aspect of the correlation matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">corAspect(data, aspect = "aspectSum", level = "nominal", itmax = 100, eps = 1e-06, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame or matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aspect</code></td>
+<td>
+<p>Function on the correlation matrix (see details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Vector with scale level of the variables ("nominal" or "ordinal"). If all variables have the same scale level, only one value can be provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itmax</code></td>
+<td>
+<p>Maximum number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Convergence criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters for aspect</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We provide various pre-specified aspects: 
+</p>
+<p><code>"aspectAbs"</code> takes the sum of the absolute values of the correlations to the power <code>pow</code>. The optional argument <code>pow = 1</code>. 
+</p>
+<p><code>"aspectSum"</code> the sum of the correlations to the power of <code>pow</code>. Again, as default <code>pow = 1</code>. 
+</p>
+<p><code>"aspectDeterminant"</code> computes the determinant of the correlation matrix; no additional arguments needed.
+</p>
+<p><code>"aspectEigen"</code> the sum of the first p eigenvalues (principal component analysis). By default the argument <code>p = 1</code>. 
+</p>
+<p><code>"aspectSMC"</code> the squared multiple correlations (multiple regression) with respect to a target variable. By default <code>targvar = 1</code> which implies that the first variable of the dataset is taken as response. 
+</p>
+<p><code>"aspectSumSMC"</code> uses the sum of all squared multiple correlations (path analysis). 
+</p>
+<p>Alternatively, the user can write his own aspect, e.g. the function <code>myAspect(r, ...)</code> with r as the correlation matrix. This function must return a list with the function value as first list element and the first derivative with respect to r as the second. Then <code>aspect = myAspect</code> and additional arguments go into <code>...</code> in <code>maxAspect()</code>. 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>Final value of the loss function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>catscores</code></td>
+<td>
+<p>Resulting category scores (after optimal scaling)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cormat</code></td>
+<td>
+<p>Correlation matrix based on the scores</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigencor</code></td>
+<td>
+<p>Eigenvalues of the correlation matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indmat</code></td>
+<td>
+<p>Indicator matrix (dummy coded)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scoremat</code></td>
+<td>
+<p>Transformed data matrix (i.e with category scores resulting from optimal scaling)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burtmat</code></td>
+<td>
+<p>Burt matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>Number of iterations</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jan de Leeuw, Patrick Mair</p>
+
+
+<h3>References</h3>
+
+<p>Mair, P., &amp; De Leeuw, J. (2010). Scaling variables by optimizing correlational and non-correlational aspects in R. Journal of Statistical Software, 32(9), 1-23. <a href="https://doi.org/10.18637/jss.v032.i09">doi:10.18637/jss.v032.i09</a>
+</p>
+<p>de Leeuw, J. (1988). Multivariate analysis with optimal scaling. In S. Das Gupta and J.K. Ghosh, Proceedings of the International Conference on Advances in Multivariate Statistical Analysis, pp. 127-160. Calcutta: Indian Statistical Institute.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lineals</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## maximizes the first eigenvalue
+data(galo)
+res.eig1 &lt;- corAspect(galo[,1:4], aspect = "aspectEigen")
+res.eig1
+summary(res.eig1)
+
+## maximizes the first 2 eigenvalues
+res.eig2 &lt;- corAspect(galo[,1:4], aspect = "aspectEigen", p = 2)
+res.eig2
+
+## maximizes the absolute value of cubic correlations
+res.abs3 &lt;- corAspect(galo[,1:4], aspect = "aspectAbs", pow = 3)
+res.abs3
+
+## maximizes the sum of squared correlations
+res.cor2 &lt;- corAspect(galo[,1:4], aspect = "aspectSum", pow = 2)
+res.cor2
+
+## maximizes the determinant
+res.det &lt;- corAspect(galo[,1:4], aspect = "aspectDeterminant")
+res.det
+
+## maximizes SMC, IQ as target variable
+res.smc &lt;- corAspect(galo[,1:4], aspect = "aspectSMC", targvar = 2)
+res.smc
+
+## maximizes the sum of SMC
+res.sumsmc &lt;- corAspect(galo[,1:4], aspect = "aspectSumSMC")
+res.sumsmc
+
+
+</code></pre>
+
+
+</div>

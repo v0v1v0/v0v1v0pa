@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>geom_tallrect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ggplot2 geom with xmin and xmax aesthetics that covers the entire y range, useful for clickSelects background elements.</h2>
+
+<h3>Description</h3>
+
+<p>ggplot2 geom with xmin and xmax aesthetics that covers the entire y range, useful for clickSelects background elements.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">geom_tallrect(
+  mapping = NULL,
+  data = NULL,
+  stat = "identity",
+  position = "identity",
+  ...,
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mapping</code></td>
+<td>
+<p>aesthetic mapping</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>statistic mapping, defaults to identity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>position</code></td>
+<td>
+<p>position mapping, defaults to identity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>remove missing values?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.legend</code></td>
+<td>
+<p>TRUE or FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inherit.aes</code></td>
+<td>
+<p>TRUE or FALSE</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>ggplot2 layer
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require('data.table'))setDTthreads(1)#for CRAN.
+
+library(animint2)
+
+## Example: 2 plots, 2 selectors, but only interacting with 1 plot.
+data(breakpoints)
+only.error &lt;- subset(breakpoints$error,type=="E")
+only.segments &lt;- subset(only.error,bases.per.probe==bases.per.probe[1])
+signal.colors &lt;- c(estimate="#0adb0a", latent="#0098ef")
+breakpointError &lt;- list(
+  signal=ggplot()+
+    geom_point(aes(
+      position, signal),
+      showSelected="bases.per.probe",
+      data=breakpoints$signals)+
+    geom_line(aes(
+      position, signal), 
+      colour=signal.colors[["latent"]],
+      data=breakpoints$imprecision)+
+    geom_segment(aes(
+      first.base, mean, xend=last.base, yend=mean),
+      showSelected=c("segments", "bases.per.probe"),
+      colour=signal.colors[["estimate"]],
+      data=breakpoints$segments)+
+    geom_vline(aes(
+      xintercept=base),
+      showSelected=c("segments", "bases.per.probe"),
+      colour=signal.colors[["estimate"]],
+      linetype="dashed",
+      data=breakpoints$breaks),
+  error=ggplot()+
+    geom_vline(aes(
+      xintercept=segments), 
+      clickSelects="segments",
+      data=only.segments, lwd=17, alpha=1/2)+
+    geom_line(aes(
+      segments, error, group=bases.per.probe),
+      clickSelects="bases.per.probe",
+      data=only.error, lwd=4))
+animint2dir(breakpointError)
+</code></pre>
+
+
+</div>

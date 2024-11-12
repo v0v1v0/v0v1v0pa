@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_dthcaus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Death Cause</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_var_dthcaus()</code>
+function has been superseded in favor of <code>derive_vars_extreme_event()</code>.
+</p>
+<p>Derive death cause (<code>DTHCAUS</code>) and add traceability variables if required.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_dthcaus(
+  dataset,
+  ...,
+  source_datasets,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>subject_keys</code> argument are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Objects of class "dthcaus_source" created by <code>dthcaus_source()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>A named <code>list</code> containing datasets in which to search for the
+death cause</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Variables to uniquely identify a subject
+</p>
+<p>A list of expressions where the expressions are symbols as returned by
+<code>exprs()</code> is expected.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function derives <code>DTHCAUS</code> along with the user-defined traceability
+variables, if required. If a subject has death info from multiple sources,
+the one from the source with the earliest death date will be used. If dates are
+equivalent, the first source will be kept, so the user should provide the inputs in
+the preferred order.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with <code>DTHCAUS</code> variable added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dthcaus_source()</code>
+</p>
+<p>Other superseded: 
+<code>date_source()</code>,
+<code>derive_param_extreme_record()</code>,
+<code>derive_var_extreme_dt()</code>,
+<code>derive_var_extreme_dtm()</code>,
+<code>dthcaus_source()</code>,
+<code>get_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+
+adsl &lt;- tribble(
+  ~STUDYID,  ~USUBJID,
+  "STUDY01", "PAT01",
+  "STUDY01", "PAT02",
+  "STUDY01", "PAT03"
+)
+ae &lt;- tribble(
+  ~STUDYID,  ~USUBJID, ~AESEQ, ~AEDECOD,       ~AEOUT,  ~AEDTHDTC,
+  "STUDY01", "PAT01",  12,     "SUDDEN DEATH", "FATAL", "2021-04-04"
+)
+
+ds &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~DSSEQ, ~DSDECOD, ~DSTERM, ~DSSTDTC,
+  "STUDY01", "PAT02", 1, "INFORMED CONSENT OBTAINED", "INFORMED CONSENT OBTAINED", "2021-04-03",
+  "STUDY01", "PAT02", 2, "RANDOMIZATION", "RANDOMIZATION", "2021-04-11",
+  "STUDY01", "PAT02", 3, "DEATH", "DEATH DUE TO PROGRESSION OF DISEASE", "2022-02-01",
+  "STUDY01", "PAT03", 1, "DEATH", "POST STUDY REPORTING OF DEATH", "2022-03-03"
+)
+
+# Derive `DTHCAUS` only - for on-study deaths only
+src_ae &lt;- dthcaus_source(
+  dataset_name = "ae",
+  filter = AEOUT == "FATAL",
+  date = convert_dtc_to_dt(AEDTHDTC),
+  mode = "first",
+  dthcaus = AEDECOD
+)
+
+src_ds &lt;- dthcaus_source(
+  dataset_name = "ds",
+  filter = DSDECOD == "DEATH" &amp; grepl("DEATH DUE TO", DSTERM),
+  date = convert_dtc_to_dt(DSSTDTC),
+  mode = "first",
+  dthcaus = DSTERM
+)
+
+derive_var_dthcaus(adsl, src_ae, src_ds, source_datasets = list(ae = ae, ds = ds))
+
+# Derive `DTHCAUS` and add traceability variables - for on-study deaths only
+src_ae &lt;- dthcaus_source(
+  dataset_name = "ae",
+  filter = AEOUT == "FATAL",
+  date = convert_dtc_to_dt(AEDTHDTC),
+  mode = "first",
+  dthcaus = AEDECOD,
+  set_values_to = exprs(DTHDOM = "AE", DTHSEQ = AESEQ)
+)
+
+src_ds &lt;- dthcaus_source(
+  dataset_name = "ds",
+  filter = DSDECOD == "DEATH" &amp; grepl("DEATH DUE TO", DSTERM),
+  date = convert_dtc_to_dt(DSSTDTC),
+  mode = "first",
+  dthcaus = DSTERM,
+  set_values_to = exprs(DTHDOM = "DS", DTHSEQ = DSSEQ)
+)
+
+derive_var_dthcaus(adsl, src_ae, src_ds, source_datasets = list(ae = ae, ds = ds))
+
+# Derive `DTHCAUS` as above - now including post-study deaths with different `DTHCAUS` value
+src_ae &lt;- dthcaus_source(
+  dataset_name = "ae",
+  filter = AEOUT == "FATAL",
+  date = convert_dtc_to_dt(AEDTHDTC),
+  mode = "first",
+  dthcaus = AEDECOD,
+  set_values_to = exprs(DTHDOM = "AE", DTHSEQ = AESEQ)
+)
+
+ds &lt;- mutate(
+  ds,
+  DSSTDT = convert_dtc_to_dt(DSSTDTC)
+)
+
+src_ds &lt;- dthcaus_source(
+  dataset_name = "ds",
+  filter = DSDECOD == "DEATH" &amp; grepl("DEATH DUE TO", DSTERM),
+  date = DSSTDT,
+  mode = "first",
+  dthcaus = DSTERM,
+  set_values_to = exprs(DTHDOM = "DS", DTHSEQ = DSSEQ)
+)
+
+src_ds_post &lt;- dthcaus_source(
+  dataset_name = "ds",
+  filter = DSDECOD == "DEATH" &amp; DSTERM == "POST STUDY REPORTING OF DEATH",
+  date = DSSTDT,
+  mode = "first",
+  dthcaus = "POST STUDY: UNKNOWN CAUSE",
+  set_values_to = exprs(DTHDOM = "DS", DTHSEQ = DSSEQ)
+)
+
+derive_var_dthcaus(
+  adsl,
+  src_ae, src_ds, src_ds_post,
+  source_datasets = list(ae = ae, ds = ds)
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_modis_par</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate MODIS product covariates in multiple CPU threads</h2>
+
+<h3>Description</h3>
+
+<p><code>calc_modis_par</code> essentially runs <code>calc_modis_daily</code> function
+in each thread (subprocess). Based on daily resolution, each day's workload
+will be distributed to each thread. With <code>product</code> argument,
+the files are processed by a customized function where the unique structure
+and/or characteristics of the products are considered. <code>nthreads</code>
+argument should be carefully selected in consideration of the machine's
+CPU and memory capacities as products have their own memory pressure.
+<code>locs</code> should be <code>sf</code> object as it is exportable to parallel workers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_modis_par(
+  from = NULL,
+  locs = NULL,
+  locs_id = "site_id",
+  radius = c(0L, 1000L, 10000L, 50000L),
+  preprocess = process_modis_merge,
+  name_covariates = NULL,
+  subdataset = NULL,
+  fun_summary = "mean",
+  nthreads = floor(length(parallelly::availableWorkers())/2),
+  package_list_add = NULL,
+  export_list_add = NULL,
+  max_cells = 3e+07,
+  geom = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>character. List of paths to MODIS/VIIRS files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locs</code></td>
+<td>
+<p>sf/SpatVector object. Unique locs where covariates
+will be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locs_id</code></td>
+<td>
+<p>character(1). Site identifier. Default is <code>"site_id"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>numeric. Radii to calculate covariates.
+Default is <code>c(0, 1000, 10000, 50000)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preprocess</code></td>
+<td>
+<p>function. Function to handle HDF files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name_covariates</code></td>
+<td>
+<p>character. Name header of covariates.
+e.g., <code>"MOD_NDVIF_0_"</code>.
+The calculated covariate names will have a form of
+"<code>{name_covariates}{zero-padded buffer radius in meters}</code>",
+e.g., 'MOD_NDVIF_0_50000' where 50 km radius circular buffer
+was used to calculate mean NDVI value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subdataset</code></td>
+<td>
+<p>Indices, names, or search patterns for subdatasets.
+Find detail usage of the argument in notes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun_summary</code></td>
+<td>
+<p>character or function. Function to summarize
+extracted raster values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nthreads</code></td>
+<td>
+<p>integer(1). Number of threads to be used
+to calculate covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>package_list_add</code></td>
+<td>
+<p>character. A vector with package names to load
+these in each thread. Note that <code>sf</code>, <code>terra</code>, <code>exactextractr</code>,
+<code>doParallel</code>, <code>parallelly</code> and <code>dplyr</code> are the default packages to be
+loaded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_list_add</code></td>
+<td>
+<p>character. A vector with object names to export
+to each thread. It should be minimized to spare memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_cells</code></td>
+<td>
+<p>integer(1). Maximum number of cells to be read at once.
+Higher values will expedite processing, but will increase memory usage.
+Maximum possible value is <code>2^31 - 1</code>.
+See <code>exactextractr::exact_extract</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>logical(1). Should the function return a <code>SpatVector</code>?
+Default is <code>FALSE</code>. The coordinate reference system of the <code>SpatVector</code> is
+that of <code>from.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>preprocess</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.frame or SpatVector with an attribute:
+</p>
+
+<ul><li> <p><code>attr(., "dates_dropped")</code>: Dates with insufficient tiles.
+Note that the dates mean the dates with insufficient tiles,
+not the dates without available tiles.
+</p>
+</li></ul>
+<h3>Note</h3>
+
+<p>Overall, this function and dependent routines assume that the file
+system can handle concurrent access to the (network) disk by multiple
+processes. File system characteristics, package versions, and hardware
+settings and specification can affect the processing efficiency.
+<code>locs</code> is expected to be convertible to <code>sf</code> object. <code>sf</code>, <code>SpatVector</code>, and
+other class objects that could be converted to <code>sf</code> can be used.
+Common arguments in <code>preprocess</code> functions such as <code>date</code> and <code>path</code> are
+automatically detected and passed to the function. Please note that
+<code>locs</code> here and <code>path</code> in <code>preprocess</code> functions are assumed to have a
+standard naming convention of raw files from NASA.
+The argument <code>subdataset</code> should be in a proper format
+depending on <code>preprocess</code> function:
+</p>
+
+<ul>
+<li> <p><code>process_modis_merge()</code>: Regular expression pattern.
+e.g., <code>"^LST_"</code>
+</p>
+</li>
+<li> <p><code>process_modis_swath()</code>: Subdataset names.
+e.g., <code>c("Cloud_Fraction_Day", "Cloud_Fraction_Night")</code>
+</p>
+</li>
+<li> <p><code>process_blackmarble()</code>: Subdataset number.
+e.g., for VNP46A2 product, 3L.
+Dates with less than 80 percent of the expected number of tiles,
+which are determined by the mode of the number of tiles, are removed.
+Users will be informed of the dates with insufficient tiles.
+The result data.frame will have an attribute with the dates with
+insufficient tiles.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>See details for setting parallelization:
+</p>
+
+<ul>
+<li> <p><code>future::plan()</code>
+</p>
+</li>
+<li> <p><code>future.apply::future_lapply()</code>
+</p>
+</li>
+<li> <p><code>parallelly::makeClusterPSOCK()</code>
+</p>
+</li>
+<li> <p><code>parallelly::availableCores()</code>
+</p>
+</li>
+</ul>
+<p>This function leverages the calculation of single-day MODIS
+covariates:
+</p>
+
+<ul><li> <p><code>calc_modis_daily()</code>
+</p>
+</li></ul>
+<p>Also, for preprocessing, please refer to:
+</p>
+
+<ul>
+<li> <p><code>process_modis_merge()</code>
+</p>
+</li>
+<li> <p><code>process_modis_swath()</code>
+</p>
+</li>
+<li> <p><code>process_blackmarble()</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## NOTE: Example is wrapped in `\dontrun{}` as function requires a large
+##       amount of data which is not included in the package.
+## Not run: 
+locs &lt;- data.frame(lon = -78.8277, lat = 35.95013, id = "001")
+locs &lt;- terra::vect(locs, geom = c("lon", "lat"), crs = "EPSG:4326")
+calc_modis_par(
+  from =
+    list.files("./data", pattern = "VNP46A2.", full.names = TRUE),
+  locs = locs,
+  locs_id = "site_id",
+  radius = c(0L, 1000L),
+  preprocess = process_modis_merge,
+  name_covariates = "cloud_fraction_0",
+  subdataset = "Cloud_Fraction",
+  fun_summary = "mean",
+  nthreads = 1
+)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

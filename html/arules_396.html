@@ -1,0 +1,379 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transactions-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Class transactions — Binary Incidence Matrix for Transactions</h2>
+
+<h3>Description</h3>
+
+<p>The <code>transactions</code> class is a subclass of itemMatrix and
+represents transaction data used for mining associations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transactions(
+  x,
+  itemLabels = NULL,
+  transactionInfo = NULL,
+  format = "wide",
+  cols = NULL
+)
+
+## S4 method for signature 'transactions'
+summary(object)
+
+## S4 method for signature 'transactions'
+toLongFormat(from, cols = c("TID", "item"), decode = TRUE)
+
+## S4 method for signature 'transactions'
+items(x)
+
+transactionInfo(x)
+
+## S4 method for signature 'transactions'
+transactionInfo(x)
+
+transactionInfo(x) &lt;- value
+
+## S4 replacement method for signature 'transactions'
+transactionInfo(x) &lt;- value
+
+## S4 method for signature 'transactions'
+dimnames(x)
+
+## S4 replacement method for signature 'transactions,list'
+dimnames(x) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, object, from</code></td>
+<td>
+<p>the object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itemLabels</code></td>
+<td>
+<p>a vector with labels for the items</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transactionInfo</code></td>
+<td>
+<p>a transaction information data.frame with one row per transaction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p><code>"wide"</code> or <code>"long"</code> format?
+Format wide is a regular data.frame where each row contains an object.
+Format "long" is a data.frame with one column with transaction IDs and one with an
+item (see <code>cols</code> below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>a numeric or character vector of length two giving the index or names of
+the columns (fields) with the transaction and item ids in the long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decode</code></td>
+<td>
+<p>translate item IDs to item labels?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>replacement value</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Transactions store the presence of items in each individual transaction
+as binary matrix where rows represent the transactions and columns represent the items.
+<code>transactions</code> direct extends class itemMatrix
+to store the sparse binary incidence matrix, item labels, and optionally transaction
+IDs and user IDs. If you work with several transaction sets at the
+same time, then the encoding (order of the items in the binary matrix) in
+the different sets is important. See itemCoding to learn how
+to encode and recode transaction sets.
+</p>
+<p><strong>Data Preparation</strong>
+</p>
+<p>Data typically starts as a data.frame or a matrix and needs to be
+prepared before it can be converted into <code>transactions</code> (see coercion methods in
+the Methods Section and the Example Section below for details on the needed
+format).
+</p>
+<p>Columns need to represent items which is different depending on the data type of
+the column:
+</p>
+
+<ul>
+<li> <p><strong>Continuous variables:</strong> Continuous variables cannot directly be represented as
+items and need to be
+discretized first. An item resulting from discretization might be
+<code>age&gt;18</code> and the column contains only <code>TRUE</code> or <code>FALSE</code>.
+Alternatively, it can be a factor with levels <code>age&lt;=18</code>,
+<code style="white-space: pre;">⁠50=&gt;age&gt;18⁠</code> and <code>age&gt;50</code>. These will be automatically converted
+into 3 items, one for each level. Discretization is described in functions
+<code>discretize()</code> and <code>discretizeDF()</code>.
+</p>
+</li>
+<li> <p><strong>Logical variables:</strong> A logical variable describing a person could be
+<code>tall</code> indicating if the person is tall using the values <code>TRUE</code>
+and <code>FALSE</code>. The fact that the person is tall would be encoded in the
+transaction containing the item <code>tall</code> while not tall persons would not
+have this item. Therefore, for logical variables, the <code>TRUE</code> value is
+converted into an item with the name of the variable and for the
+<code>FALSE</code> values no item is created.
+</p>
+</li>
+<li> <p><strong>Factors:</strong> Columns with nominal values
+(i.e., factor, ordered) are translated into a series of binary items (one for each level
+constructed as <code style="white-space: pre;">⁠variable name = level⁠</code>). Items cannot represent order and this ordered factors
+lose the order information. Note that nominal variables
+need to be encoded as factors (and not characters or numbers). This can be
+done with
+</p>
+<p><code>data[,"a_nominal_var"] &lt;- factor(data[,"a_nominal_var"])</code>.
+</p>
+<p>Complete examples for how to prepare data can be found in the man pages for
+Income and Adult.
+</p>
+</li>
+</ul>
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>summary(transactions)</code>: produce a summary
+</p>
+</li>
+<li> <p><code>toLongFormat(transactions)</code>: convert the transactions to long format
+(a data.frame with two columns, tid and item). Column names can
+be specified as a character vector of length 2 called <code>cols</code>.
+</p>
+</li>
+<li> <p><code>items(transactions)</code>: get the transactions as an itemMatrix
+</p>
+</li>
+<li> <p><code>transactionInfo(transactions)</code>: get the transaction info data.frame
+</p>
+</li>
+<li> <p><code>transactionInfo(transactions) &lt;- value</code>: replace the transaction info data.frame
+</p>
+</li>
+<li> <p><code>dimnames(transactions)</code>: get the dimnames
+</p>
+</li>
+<li> <p><code>dimnames(x = transactions) &lt;- value</code>: set the dimnames
+</p>
+</li>
+</ul>
+<h3>Slots</h3>
+
+<p>Slots are inherited from itemMatrix.
+</p>
+
+
+<h3>Objects from the Class</h3>
+
+<p>Objects are created by:
+</p>
+
+<ul>
+<li>
+<p> coercion from objects of other classes. <code>itemLabels</code> and <code>transactionInfo</code> are
+by default created from information in <code>x</code> (e.g., from row and column names).
+</p>
+</li>
+<li>
+<p> the constructor function <code>transactions()</code>
+</p>
+</li>
+<li>
+<p> by calling <code>new("transactions", ...)</code>.
+</p>
+</li>
+</ul>
+<p>See Examples Section for creating transactions from data.
+</p>
+
+
+<h3>Coercions</h3>
+
+
+<ul>
+<li> <p><code>as("transactions", "matrix")</code>
+</p>
+</li>
+<li> <p><code>as("matrix", "transactions")</code>
+</p>
+</li>
+<li> <p><code>as("list", "transactions")</code>
+</p>
+</li>
+<li> <p><code>as("transactions", "list")</code>
+</p>
+</li>
+<li> <p><code>as("data.frame", "transactions")</code>
+</p>
+</li>
+<li> <p><code>as("transactions", "data.frame")</code>
+</p>
+</li>
+<li> <p><code>as("ngCMatrix", "transactions")</code>
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Superclass: itemMatrix
+</p>
+<p>Other itemMatrix and transactions functions: 
+<code>abbreviate()</code>,
+<code>c()</code>,
+<code>crossTable()</code>,
+<code>duplicated()</code>,
+<code>extract</code>,
+<code>hierarchy</code>,
+<code>image()</code>,
+<code>inspect()</code>,
+<code>is.superset()</code>,
+<code>itemFrequency()</code>,
+<code>itemFrequencyPlot()</code>,
+<code>itemMatrix-class</code>,
+<code>match()</code>,
+<code>merge()</code>,
+<code>random.transactions()</code>,
+<code>sample()</code>,
+<code>sets</code>,
+<code>size()</code>,
+<code>supportingTransactions()</code>,
+<code>tidLists-class</code>,
+<code>unique()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example 1: creating transactions form a list (each element is a transaction)
+a_list &lt;- list(
+      c("a","b","c"),
+      c("a","b"),
+      c("a","b","d"),
+      c("c","e"),
+      c("a","b","d","e")
+      )
+
+## Set transaction names
+names(a_list) &lt;- paste("Tr", c(1:5), sep = "")
+a_list
+
+## Use the constructor to create transactions
+## Note: S4 coercion does the same trans1 &lt;- as(a_list, "transactions")
+trans1 &lt;- transactions(a_list)
+trans1
+
+## Analyze the transactions
+summary(trans1)
+image(trans1)
+
+## Example 2: creating transactions from a 0-1 matrix with 5 transactions (rows) and
+##            5 items (columns)
+a_matrix &lt;- matrix(
+  c(1, 1, 1, 0, 0,
+	   1, 1, 0, 0, 0,
+	   1, 1, 0, 1, 0,
+	   0, 0, 1, 0, 1,
+	   1, 1, 0, 1, 1), ncol = 5)
+
+## Set item names (columns) and transaction labels (rows)
+colnames(a_matrix) &lt;- c("a", "b", "c", "d", "e")
+rownames(a_matrix) &lt;- paste("Tr", c(1:5), sep = "")
+
+a_matrix
+
+## Create transactions
+trans2 &lt;- transactions(a_matrix)
+trans2
+inspect(trans2)
+
+## Example 3: creating transactions from data.frame (wide format)
+a_df &lt;- data.frame(
+	age   = as.factor(c( 6,   8,   NA, 9,   16)),
+	grade = as.factor(c("A", "C", "F", NA, "C")),
+  pass  = c(TRUE, TRUE, FALSE, TRUE, TRUE))
+## Note: factors are translated differently than logicals and NAs are ignored
+a_df
+
+## Create transactions
+trans3 &lt;- transactions(a_df)
+inspect(trans3)
+
+## Note that coercing the transactions back to a data.frame does not recreate the
+## original data.frame, but represents the transactions as sets of items
+as(trans3, "data.frame")
+
+## Example 4: creating transactions from a data.frame with
+## transaction IDs and items (long format)
+a_df3 &lt;- data.frame(
+  TID =  c( 1,   1,   2,   2,   2,   3 ),
+  item = c("a", "b", "a", "b", "c", "b")
+)
+a_df3
+trans4 &lt;- transactions(a_df3, format = "long", cols = c("TID", "item"))
+trans4
+inspect(trans4)
+
+## convert transactions back into long format.
+toLongFormat(trans4)
+
+## Example 5: create transactions from a dataset with numeric variables
+## using discretization.
+data(iris)
+
+irisDisc &lt;- discretizeDF(iris)
+head(irisDisc)
+
+trans5 &lt;- transactions(irisDisc)
+trans5
+inspect(head(trans5))
+
+## Note, creating transactions without discretizing numeric variables will apply the
+## default discretization and also create a warning.
+
+
+## Example 6: create transactions manually (with the same item coding as in trans5)
+trans6 &lt;- transactions(
+  list(
+    c("Sepal.Length=[4.3,5.4)", "Species=setosa"),
+    c("Sepal.Length=[4.3,5.4)", "Species=setosa")
+  ), itemLabels = trans5)
+trans6
+
+inspect(trans6)
+</code></pre>
+
+
+</div>

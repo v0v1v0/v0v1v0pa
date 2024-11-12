@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compare</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare two simulations or two antaresData</h2>
+
+<h3>Description</h3>
+
+<p><code>compare</code> has been designed to compare two surpluses created with function
+<code>surplus</code> but it can be used to compare the values of two tables of
+class <code>antaresData</code> that contain the same type of data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compare(x, y, method = c("diff", "ratio", "rate"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Table of class <code>antaresData</code>. x can be an antaresDataTable or antaresDataList.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Table of class <code>antaresData</code>. x can be an antaresDataTable or antaresDataList.
+It must contain the same type of data than 'x': if 'x' contains areas,
+it must contain areas, ... Moreover it has to have same time step and
+contain either synthetic or detailed results like 'x'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method used two compare the two tables. <code>"diff"</code> compute the difference
+between 'y' and 'x'. <code>"ratio"</code> computes the ratio between 'y' and 'x'.
+Finally, <code>"rate"</code> computes the rate of change between 'y' and 'x' (
+it is equal to the ratio between 'y' and 'x' minus one).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data.table of class <code>antaresDataTable</code>. It contains all shared rows and
+columns between 'x' and 'y'. The columns contain the statistic chosen:
+difference, ratio or rate of change.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# First simulation
+studyPath &lt;- "path/to/study/"
+
+setSimulationPath(studyPath, 1)
+mydata1 &lt;- readAntares("all", "all", synthesis = FALSE)
+surplus1 &lt;- surplus(mydata1, groupByDistrict = TRUE)
+
+# Second simulation
+setSimulationPath(studyPath, 2)
+mydata2 &lt;- readAntares("all", "all", synthesis = FALSE)
+surplus2 &lt;- surplus(mydata2, groupByDistrict = TRUE)
+
+compare(surplus1, surplus2)
+
+opts1 &lt;- setSimulationPath(studyPath,-1)
+mydata1&lt;-readAntares(areas = "all",
+links = "all",
+select = c("allAreas", "allLinks"),
+mcYears = c(1),
+linkCapacity = TRUE)
+
+opts2 &lt;- setSimulationPath(studyPath,-2)
+mydata2 &lt;- readAntares(areas = "all",
+links = "all",
+select = c("allAreas", "allLinks"),
+mcYears = c(1),
+linkCapacity = TRUE)
+
+opts3 &lt;- setSimulationPath(studyPath,-3)
+mydata3 &lt;- readAntares(areas = "all",
+links = "all",
+select = c("allAreas", "allLinks"),
+mcYears = c(1),
+linkCapacity = TRUE)
+
+opts4 &lt;- setSimulationPath(studyPath, -4)
+mydata4 &lt;- readAntares(areas = "all",
+links = "all",
+select=c("allAreas", "allLinks"),
+mcYears = c(1),
+linkCapacity = TRUE)
+
+opts5 &lt;- setSimulationPath(studyPath, -5)
+mydata5 &lt;- readAntares(areas = "all",
+links = "all",
+select=c("allAreas", "allLinks"),
+mcYears = c(1),
+linkCapacity = TRUE)
+
+resCompare1 &lt;- compare(mydata2, mydata1, method = "diff")
+resCompare2 &lt;- compare(mydata3, mydata1, method = "diff")
+resCompare3 &lt;- compare(mydata4, mydata1, method = "diff")
+resCompare4 &lt;- compare(mydata5, mydata1, method = "diff")
+
+listCompare &lt;- list(resCompare1, resCompare2, resCompare3, resCompare4)
+
+for (i in 1:length(listCompare)){
+listCompare[[i]] &lt;- removeVirtualAreas(listCompare[[i]],
+                                       storageFlexibility =
+                                       getAreas(select = c("z_dsr", "y_mul", "pum", "tur")))
+}
+
+ml &lt;- readRDS("path/to/mapLayout.rds")
+plotMap(listCompare, ml)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

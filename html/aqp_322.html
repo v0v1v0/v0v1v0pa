@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sp2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Honcut Creek Soil Profile Data</h2>
+
+<h3>Description</h3>
+
+<p>A collection of 18 soil profiles, consisting of select soil morphologic
+attributes, associated with a stratigraphic study conducted near Honcut
+Creek, California.
+</p>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 154 observations on the following 21 variables.
+</p>
+ <dl>
+<dt>id</dt>
+<dd>
+<p>profile id</p>
+</dd> <dt>surface</dt>
+<dd>
+<p>dated
+surface</p>
+</dd> <dt>top</dt>
+<dd>
+<p>horizon top in cm</p>
+</dd> <dt>bottom</dt>
+<dd>
+<p>horizon
+bottom in cm</p>
+</dd> <dt>bound_distinct</dt>
+<dd>
+<p>horizon lower boundary
+distinctness class</p>
+</dd> <dt>bound_topography</dt>
+<dd>
+<p>horizon lower boundary
+topography class</p>
+</dd> <dt>name</dt>
+<dd>
+<p>horizon name</p>
+</dd>
+<dt>texture</dt>
+<dd>
+<p>USDA soil texture class</p>
+</dd>
+<dt>prop</dt>
+<dd>
+<p>field-estimated clay content</p>
+</dd>
+<dt>structure_grade</dt>
+<dd>
+<p>soil structure grade</p>
+</dd>
+<dt>structure_size</dt>
+<dd>
+<p>soil structure size</p>
+</dd>
+<dt>structure_type</dt>
+<dd>
+<p>soil structure type</p>
+</dd>
+<dt>stickiness</dt>
+<dd>
+<p>stickiness</p>
+</dd> <dt>plasticity</dt>
+<dd>
+<p>plasticity</p>
+</dd>
+<dt>field_ph</dt>
+<dd>
+<p>field-measured pH</p>
+</dd> <dt>hue</dt>
+<dd>
+<p>Munsell hue</p>
+</dd>
+<dt>value</dt>
+<dd>
+<p>Munsell value</p>
+</dd> <dt>chroma</dt>
+<dd>
+<p>Munsell chroma</p>
+</dd>
+<dt>r</dt>
+<dd>
+<p>RGB red component</p>
+</dd> <dt>g</dt>
+<dd>
+<p>RGB green component</p>
+</dd>
+<dt>b</dt>
+<dd>
+<p>RGB blue component</p>
+</dd> <dt>soil_color</dt>
+<dd>
+<p>R-friendly
+encoding of soil color</p>
+</dd> </dl>
+<h3>Author(s)</h3>
+
+<p>Dylan E. Beaudette
+</p>
+
+
+<h3>Source</h3>
+
+<p>Busacca, Alan J.; Singer, Michael J.; Verosub, Kenneth L. 1989. Late
+Cenozoic stratigraphy of the Feather and Yuba rivers area, California, with
+a section on soil development in mixed alluvium at Honcut Creek. USGS
+Bulletin 1590-G.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://casoilresource.lawr.ucdavis.edu/">https://casoilresource.lawr.ucdavis.edu/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# keep examples from using more than 2 cores
+data.table::setDTthreads(Sys.getenv("OMP_THREAD_LIMIT", unset = 2))
+
+data(sp2)
+
+# convert into SoilProfileCollection object
+depths(sp2) &lt;- id ~ top + bottom
+
+# transfer site-level data
+site(sp2) &lt;- ~ surface
+
+# generate a new plotting order, based on the dated surface each soil was described on
+p.order &lt;- order(sp2$surface)
+
+# plot
+par(mar=c(1,0,3,0))
+plot(sp2, plot.order=p.order)
+
+# setup multi-figure output
+par(mfrow=c(2,1), mar=c(0,0,1,0))
+
+# truncate plot to 200 cm depth
+plot(sp2, plot.order=p.order, max.depth=200)
+abline(h=200, lty=2, lwd=2)
+
+# compute numerical distances between profiles
+# based on select horizon-level properties, to a depth of 200 cm
+d &lt;- NCSP(sp2, vars=c('prop','field_ph','hue'), maxDepth = 100, k = 0)
+
+# plot dendrogram with ape package:
+if(require(ape) &amp; require(cluster)) {
+h &lt;- diana(d)
+p &lt;- as.phylo(as.hclust(h))
+plot(p, cex=0.75, label.offset=0.01, font=1, direct='down', srt=90, adj=0.5, y.lim=c(-0.125, 0.5))
+
+# add in the dated surface type via color
+tiplabels(col=as.numeric(sp2$surface), pch=15)
+
+# based on distance matrix values, YMMV
+legend('topleft', legend=levels(sp2$surface), col=1:6, pch=15, bty='n', bg='white', cex=0.75)
+}
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>subset.alldiffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Subsets the components in an <code>alldiffs.object</code> according to the supplied condition.</h2>
+
+<h3>Description</h3>
+
+<p>Subsets each of the components of an <code>alldiffs.object</code>. The subset is 
+determined by applying the condition to the <code>prediction</code> component to 
+determine which of its rows are to be included in the subset. Then, if present, 
+this subset is applied to the rows of <code>backtransforms</code> and to the rows 
+and columns of <code>differences</code>, <code>p.differences</code> and <code>sed</code> 
+components. In addition, if <code>sed</code> is present, <code>recalcLSD.alldiffs</code> 
+is called to recalculate the values in the <code>LSD.frame</code> stored in the 
+<code>LSD</code> component, with any arguments supplied via the <code>...</code> 
+argument passed ot it.
+</p>
+<p>The <code>select</code> argument of <code>subset</code> is not implemented, but can be 
+achieved for variables in the <code>classify</code> using the <code>rmClassifyVars</code> 
+argument.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'alldiffs'
+subset(x, subset = rep(TRUE, nrow(x$predictions)), 
+       rmClassifyVars = NULL, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A <code>logical</code> that detemines rows of the <code>predictions</code>  
+component of <code>x</code> to be included in the subset. By default allws are 
+included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmClassifyVars</code></td>
+<td>
+<p>A <code>character</code> that contains the names of the 
+variables in the <code>classify</code> attribute of <code>x</code> that are to be 
+removed from the predictions <code>data.frame</code> and the names of the 
+dimensions of the other components of <code>x</code>. In doing this, 
+the combinations of the remaining <code>classify</code> variables must 
+uniquely index the predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>recalcLSD.alldiffs</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>alldiffs.object</code> with the following components of the supplied 
+<code>alldiffs.object</code> subsetted, if present in the original object: 
+<code>predictions</code>, <code>vcov</code>, <code>backtransforms</code>, <code>differences</code>, 
+<code>p.differences</code> and <code>sed</code>. In addition, if <code>sed</code> is present, the 
+<code>LSD.frame</code> in the <code>LSD</code> component will be recalculated.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>as.alldiffs</code>, <code>allDifferences.data.frame</code>, 
+<code>print.alldiffs</code>, <code>sort.alldiffs</code>, <br><code>redoErrorIntervals.alldiffs</code>, <code>recalcLSD.alldiffs</code>, <br><code>predictPlus.asreml</code>, <code>predictPresent.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(WaterRunoff.dat)
+
+##Use asreml to get predictions and associated statistics
+
+## Not run: 
+asreml.options(keep.order = TRUE) #required for asreml-R4 only
+current.asr &lt;- asreml(fixed = pH ~ Benches + (Sources * (Type + Species)), 
+                      random = ~ Benches:MainPlots,
+                      keep.order=TRUE, data= WaterRunoff.dat)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+TS.diffs &lt;- predictPlus.asreml(classify = "Sources:Type", 
+                              asreml.obj = current.asr, tables = "none", 
+                              wald.tab = current.asrt$wald.tab, 
+                              present = c("Type","Species","Sources"))
+
+## End(Not run)
+
+## Use lmeTest and emmmeans to get predictions and associated statistics
+
+if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+    requireNamespace("emmeans", quietly = TRUE))
+{
+  m1.lmer &lt;- lmerTest::lmer(pH ~ Benches + (Sources * (Type + Species)) + 
+                              (1|Benches:MainPlots),
+                            data=na.omit(WaterRunoff.dat))
+  TS.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Sources:Type)
+  TS.preds &lt;- summary(TS.emm)
+  den.df &lt;- min(TS.preds$df, na.rm = TRUE)
+  ## Modify TS.preds to be compatible with a predictions.frame
+  TS.preds &lt;- as.predictions.frame(TS.preds, predictions = "emmean", 
+                                   se = "SE", interval.type = "CI", 
+                                   interval.names = c("lower.CL", "upper.CL"))
+  
+  ## Form an all.diffs object and check its validity
+  TS.vcov &lt;- vcov(TS.emm)
+  TS.diffs &lt;- allDifferences(predictions = TS.preds, classify = "Sources:Type", 
+                             vcov = TS.vcov, tdf = den.df)
+  validAlldiffs(TS.diffs)
+}  
+
+## Plot p-values for predictions obtained using asreml or lmerTest
+if (exists("TS.diffs"))
+{
+  ##Use subset.alldiffs to select a subset of the alldiffs object
+  TS.diffs.subs &lt;- subset(TS.diffs, 
+                          subset = grepl("R", Sources, fixed = TRUE) &amp; 
+                                   Type %in% c("Control","Medicinal"))
+}
+</code></pre>
+
+
+</div>

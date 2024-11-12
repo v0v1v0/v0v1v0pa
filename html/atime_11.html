@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>references_best</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Best references</h2>
+
+<h3>Description</h3>
+
+<p>Compute best asymptotic references,
+for all empirical measurements which are
+present (not missing) and increasing with data size.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">references_best(L, fun.list=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>List output from atime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun.list</code></td>
+<td>
+<p>List of asymptotic complexity reference functions,
+default NULL means to use package default.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>list of class <code>"references_best"</code> with elements
+<code>references</code> (data table of all references),
+<code>plot.references</code> (data table of references to show using <code>plot</code>
+method, default is to show closest larger and smaller references),
+<code>measurements</code> (data table of measurements).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Example 1: polynomial and exponential time string functions.
+atime_result_string &lt;- atime::atime(
+  seconds.limit=0.001,
+  N=unique(as.integer(10^seq(0,4,l=100))),
+  setup={
+    subject &lt;- paste(rep("a", N), collapse="")
+    pattern &lt;- paste(rep(c("a?", "a"), each=N), collapse="")
+    linear_size_replacement &lt;- paste(rep("REPLACEMENT", N), collapse="")
+  },
+  PCRE.match=regexpr(pattern, subject, perl=TRUE),
+  TRE.match=regexpr(pattern, subject, perl=FALSE),
+  constant.replacement=gsub("a","constant size replacement",subject),
+  linear.replacement=gsub("a",linear_size_replacement,subject))
+(refs_best_string &lt;- atime::references_best(atime_result_string))
+## plot method shows each expr and unit in a separate panel.
+## default is to show closest larger and smaller references.
+plot(refs_best_string)
+## modifying plot.references changes violet references shown by plot.
+refs_best_string$plot.references &lt;- refs_best_string$ref[c("N","N^2","N^3","2^N"),on="fun.name"]
+plot(refs_best_string)
+## predict method computes N for given units (default seconds limit).
+(pred_string &lt;- predict(refs_best_string))
+plot(pred_string)
+
+## Example 2: combine using rbind inside or outside for loop.
+atime_result_rbind &lt;- atime::atime(
+  seconds.limit=0.001,
+  setup={
+    DF &lt;- data.frame(i=1:100)
+  },
+  inside={
+    big.frame &lt;- data.frame()
+    for(table.i in 1:N){
+      big.frame &lt;- rbind(big.frame, DF)
+    }
+  },
+  outside={
+    big.frame.list &lt;- list()
+    for(table.i in 1:N){
+      big.frame.list[[table.i]] &lt;- DF
+    }
+    big.frame &lt;- do.call(rbind, big.frame.list)
+  }
+)
+(refs_best_rbind &lt;- atime::references_best(atime_result_rbind))
+plot(refs_best_rbind)
+refs_best_rbind$plot.references &lt;- refs_best_rbind$ref[c("N","N^2"),on="fun.name"]
+plot(refs_best_rbind)
+(pred_rbind &lt;- predict(refs_best_rbind))
+plot(pred_rbind)
+
+</code></pre>
+
+
+</div>

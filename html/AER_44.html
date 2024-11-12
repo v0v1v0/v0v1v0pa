@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Franses1998</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data and Examples from Franses (1998)</h2>
+
+<h3>Description</h3>
+
+<p>This manual page collects a list of examples from the book. Some 
+solutions might not be exact and the list is certainly not complete.
+If you have suggestions for improvement (preferably in the form of code),
+please contact the package maintainer.
+</p>
+
+
+<h3>References</h3>
+
+<p>Franses, P.H. (1998). <em>Time Series Models for Business and Economic Forecasting</em>.
+Cambridge, UK: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ArgentinaCPI</code>, <code>ChinaIncome</code>, <code>ConsumerGood</code>,
+<code>DJFranses</code>, <code>DutchAdvert</code>, <code>DutchSales</code>,
+<code>GermanUnemployment</code>, <code>MotorCycles</code>, <code>OlympicTV</code>,
+<code>PepperPrice</code>, <code>UKNonDurables</code>, <code>USProdIndex</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">###########################
+## Convenience functions ##
+###########################
+
+## EACF tables (Franses 1998, p. 99)
+ctrafo &lt;- function(x) residuals(lm(x ~ factor(cycle(x))))
+ddiff &lt;- function(x) diff(diff(x, frequency(x)), 1)
+eacf &lt;- function(y, lag = 12) {
+  stopifnot(all(lag &gt; 0))
+  if(length(lag) &lt; 2) lag &lt;- 1:lag
+  rval &lt;- sapply(
+    list(y = y, dy = diff(y), cdy = ctrafo(diff(y)),
+         Dy = diff(y, frequency(y)), dDy = ddiff(y)),
+    function(x) acf(x, plot = FALSE, lag.max = max(lag))$acf[lag + 1])
+  rownames(rval) &lt;- lag
+  return(rval)
+}
+
+#######################################
+## Index of US industrial production ##
+#######################################
+
+data("USProdIndex", package = "AER")
+plot(USProdIndex, plot.type = "single", col = 1:2)
+
+## Franses (1998), Table 5.1
+round(eacf(log(USProdIndex[,1])), digits = 3)
+
+## Franses (1998), Equation 5.6: Unrestricted airline model
+## (Franses: ma1 = 0.388 (0.063), ma4 = -0.739 (0.060), ma5 = -0.452 (0.069))
+arima(log(USProdIndex[,1]), c(0, 1, 5), c(0, 1, 0), fixed = c(NA, 0, 0, NA, NA))
+
+###########################################
+## Consumption of non-durables in the UK ##
+###########################################
+
+data("UKNonDurables", package = "AER")
+plot(UKNonDurables)
+
+## Franses (1998), Table 5.2
+round(eacf(log(UKNonDurables)), digits = 3)
+
+## Franses (1998), Equation 5.51
+## (Franses: sma1 = -0.632 (0.069))
+arima(log(UKNonDurables), c(0, 1, 0), c(0, 1, 1))
+
+##############################
+## Dutch retail sales index ##
+##############################
+
+data("DutchSales", package = "AER")
+plot(DutchSales)
+
+## Franses (1998), Table 5.3
+round(eacf(log(DutchSales), lag = c(1:18, 24, 36)), digits = 3)
+
+###########################################
+## TV and radio advertising expenditures ##
+###########################################
+
+data("DutchAdvert", package = "AER")
+plot(DutchAdvert)
+
+## Franses (1998), Table 5.4
+round(eacf(log(DutchAdvert[,"tv"]), lag = c(1:19, 26, 39)), digits = 3)
+</code></pre>
+
+
+</div>

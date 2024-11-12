@@ -1,0 +1,226 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as_trx_df</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transaction summary helper functions</h2>
+
+<h3>Description</h3>
+
+<p>Convert aggregate transaction experience studies to the <code>trx_df</code> class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as_trx_df(
+  x,
+  col_trx_amt = "trx_amt",
+  col_trx_n = "trx_n",
+  col_trx_flag = "trx_flag",
+  col_exposure = "exposure",
+  col_percent_of = NULL,
+  col_percent_of_w_trx = NULL,
+  col_trx_amt_sq = "trx_amt_sq",
+  start_date = as.Date("1900-01-01"),
+  end_date = NULL,
+  conf_int = FALSE,
+  conf_level = 0.95
+)
+
+is_trx_df(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object. For <code>as_trx_df()</code>, <code>x</code> must be a data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_trx_amt</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing transaction
+amounts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_trx_n</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing transaction
+counts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_trx_flag</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing the number
+of exposure records with transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_exposure</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing exposures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_percent_of</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing a
+numeric variable to use in "percent of" calculations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_percent_of_w_trx</code></td>
+<td>
+<p>Optional. Name of the column in <code>x</code> containing a
+numeric variable to use in "percent of" calculations with transactions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col_trx_amt_sq</code></td>
+<td>
+<p>Optional and only required when <code>col_percent_of</code> is
+passed and <code>conf_int</code> is <code>TRUE</code>. Name of the column in <code>x</code> containing squared
+transaction amounts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Experience study start date. Default value = 1900-01-01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_date</code></td>
+<td>
+<p>Experience study end date</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_int</code></td>
+<td>
+<p>If <code>TRUE</code>, future calls to <code>summary()</code> will include
+confidence intervals around the observed utilization rates and any
+<code>percent_of</code> output columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf_level</code></td>
+<td>
+<p>Confidence level for confidence intervals</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>is_trx_df()</code> will return <code>TRUE</code> if <code>x</code> is a <code>trx_df</code> object.
+</p>
+<p><code>as_trx_df()</code> will coerce a data frame to a <code>trx_df</code> object if that
+data frame has the required columns for transaction studies listed below.
+</p>
+<p><code>as_trx_df()</code> is most useful for working with aggregate summaries of
+experience that were not created by actxps where individual policy
+information is not available. After converting the data to the <code>trx_df</code>
+class, <code>summary()</code> can be used to summarize data by any grouping variables,
+and <code>autoplot()</code> and <code>autotable()</code> are available for reporting.
+</p>
+<p>At a minimum, the following columns are required:
+</p>
+
+<ul>
+<li>
+<p> Transaction amounts (<code>trx_amt</code>)
+</p>
+</li>
+<li>
+<p> Transaction counts (<code>trx_n</code>)
+</p>
+</li>
+<li>
+<p> The number of exposure records with transactions (<code>trx_flag</code>). This number
+is not necessarily equal to transaction counts. If multiple transactions
+are allowed per exposure period, <code>trx_flag</code> will be less than <code>trx_n</code>.
+</p>
+</li>
+<li>
+<p> Exposures (<code>exposure</code>)
+</p>
+</li>
+</ul>
+<p>If transaction amounts should be expressed as a percentage of another
+variable (i.e. to calculate utilization rates or actual-to-expected ratios),
+additional columns are required:
+</p>
+
+<ul>
+<li>
+<p> A denominator "percent of" column. For example, the sum of account values.
+</p>
+</li>
+<li>
+<p> A denominator "percent of" column for exposure records with transactions.
+For example, the sum of account values across all records with non-zero
+transaction amounts.
+</p>
+</li>
+</ul>
+<p>If confidence intervals are desired and "percent of" columns are passed, an
+additional column for the sum of squared transaction amounts (<code>trx_amt_sq</code>)
+is also required.
+</p>
+<p>The names in parentheses above are expected column names. If the data
+frame passed to <code>as_trx_df()</code> uses different column names, these can be
+specified using the <code style="white-space: pre;">⁠col_*⁠</code> arguments.
+</p>
+<p><code>start_date</code>, and <code>end_date</code> are optional arguments that are
+only used for printing the resulting <code>trx_df</code> object.
+</p>
+<p>Unlike <code>trx_stats()</code>, <code>as_trx_df()</code> only permits a single transaction type and
+a single <code>percent_of</code> column.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>is_trx_df()</code>, a length-1 logical vector. For <code>as_trx_df()</code>,
+a <code>trx_df</code> object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>trx_stats()</code> for information on how <code>trx_df</code> objects are typically
+created from individual exposure records.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># convert pre-aggregated experience into a trx_df object
+dat &lt;- as_trx_df(agg_sim_dat,
+                 col_exposure = "n",
+                 col_trx_amt = "wd",
+                 col_trx_n = "wd_n",
+                 col_trx_flag = "wd_flag",
+                 col_percent_of = "av",
+                 col_percent_of_w_trx = "av_w_wd",
+                 col_trx_amt_sq = "wd_sq",
+                 start_date = 2005, end_date = 2019,
+                 conf_int = TRUE)
+dat
+is_trx_df(dat)
+
+# summary by policy year
+summary(dat, pol_yr)
+
+</code></pre>
+
+
+</div>

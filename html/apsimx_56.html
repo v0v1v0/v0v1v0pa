@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>inspect_apsim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inspect an .apsim (XML) file</h2>
+
+<h3>Description</h3>
+
+<p>inspect an XML apsim file. It does not replace the GUI, but it can save time by quickly checking parameters and values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">inspect_apsim(
+  file = "",
+  src.dir = ".",
+  node = c("Clock", "Weather", "Soil", "SurfaceOrganicMatter", "Crop", "Manager",
+    "Outputfile", "Other"),
+  soil.child = c("Metadata", "Water", "OrganicMatter", "Nitrogen", "Analysis",
+    "InitialWater", "Sample", "SWIM"),
+  parm = NULL,
+  digits = 3,
+  print.path = FALSE,
+  root
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file ending in .apsim (Classic) to be inspected (XML)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src.dir</code></td>
+<td>
+<p>directory containing the .apsim file to be inspected; defaults to the current working directory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>either ‘Weather’, ‘Soil’, ‘SurfaceOrganicMatter’, 
+‘MicroClimate’, ‘Crop’, ‘Manager’, ‘Outputfile’ or ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.child</code></td>
+<td>
+<p>specific soil component to be inspected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>parameter to inspect when node = ‘Crop’, ‘Manager’, ‘Outputfile’ or ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>number of decimals to print (default 3)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.path</code></td>
+<td>
+<p>whether to print the parameter path (default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>root node label. In simulation structures such as factorials there will be multiple possible nodes. This can be specified by supplying an appropriate character.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is simply a script that prints the relevant parameters which are likely to need editing. It does not print all information from an .apsim file.
+For ‘Crop’, ‘Manager’ and ‘Other’, ‘parm’ should be indicated with a first element to look for and a second with the relative position in case there are
+multiple results.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns the parameter path (when print.path equals TRUE) and table with inspected parameters and values
+</p>
+
+
+<h3>Note</h3>
+
+<p>When multiple folders are present as it is the case when there are factorials. Inspect will find
+the instance in the first folder unless 'root' is supplied. By providing the name of the folder to root
+(or a regular expression), the appropriate node can be selected. In this case the printed path will
+be absolute instead of relative.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+## Testing using 'Millet'
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Clock")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Weather") 
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", soil.child = "Metadata")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", soil.child = "OrganicMatter")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", soil.child = "Analysis")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", soil.child = "InitialWater")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", soil.child = "Sample")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "SurfaceOrganicMatter")
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Crop", parm = list("sow",NA)) 
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Crop", parm = list("sow",7))
+
+## when soil.child = "Water" there are potentially many crops to chose from 
+## This selects LL, KL and XF for Barley
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", 
+              soil.child = "Water", parm = "Barley")
+## This selects LL for all the crops
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", 
+              soil.child = "Water", parm = "LL")
+## To print the parm.path the selection needs to be unique
+## but still there will be multiple soil layers
+## 'parm' can be a list or a character vector of length equal to two
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Soil", 
+              soil.child = "Water", parm = list("Barley", "LL"),
+              print.path = TRUE)
+
+## Inspect outputfile
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Outputfile",
+              parm = "filename")
+ 
+inspect_apsim("Millet.apsim", src.dir = extd.dir, node = "Outputfile",
+              parm = "variables")
+
+## Testing with maize-soybean-rotation.apsim
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Clock")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Weather")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Soil",
+              soil.child = "Metadata")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Soil", 
+               soil.child = "OrganicMatter")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Soil", 
+               soil.child = "Analysis")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Soil", 
+               soil.child = "InitialWater")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Soil", 
+               soil.child = "Sample")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, 
+               node = "SurfaceOrganicMatter")
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, node = "Crop")
+## This has many options and a complex structure
+## It is possible to select unique managements, but not non-unique ones
+## The first element in parm can be a regular expression
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, 
+               node = "Manager", parm = list("rotat",NA))
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, 
+               node = "Manager", 
+               parm = list("sow on a fixed date - maize",NA))
+## Select an individual row by position
+inspect_apsim("maize-soybean-rotation.apsim", src.dir = extd.dir, 
+              node = "Manager", 
+              parm = list("sow on a fixed date - maize",7))
+              
+## Illustrating the 'print.path' feature.
+inspect_apsim("Millet.apsim", src.dir = extd.dir, 
+               node = "Soil", soil.child = "Water", 
+               parm = "DUL", print.path = TRUE)
+## But the path can also be returned as a string
+## Which is useful for later editing
+pp &lt;-  inspect_apsim("Millet.apsim", src.dir = extd.dir, 
+               node = "Soil", soil.child = "Water", 
+               parm = "DUL", print.path = TRUE)
+               
+## Inspecting a factorial
+## (or simply a simulation with multiple folders)
+## No cover
+inspect_apsim("maize-factorial.apsim", src.dir = extd.dir, 
+               root = "IA-CC_Canisteo_No-Cover")
+               
+## Cover
+inspect_apsim("maize-factorial.apsim", src.dir = extd.dir, 
+               root = "IA-CC_Canisteo_Cover")
+
+
+</code></pre>
+
+
+</div>

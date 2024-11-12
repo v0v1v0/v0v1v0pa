@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>%type%</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Types</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to define new S4-classes which are called Type.
+They have an initialize method and in the introduced syntax init-method and
+S4-class definition build a unit, hence a type. This simply captures a
+typical <code>setClass</code> then <code>setMethod("initialize", ...)</code> pattern
+where often some redundancy is introduced. The function has side effects due
+to calling <code>setClass</code>, <code>setMethod</code> and assigning the constructor
+function to the types name.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lhs %type% rhs
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lhs</code></td>
+<td>
+<p>an expression of the form:
+<br><code>[&lt;parent-name&gt;:]&lt;type-name&gt;([&lt;slots&gt;])</code>
+<br> - &lt;parent-name&gt; optional, the name of the S4-class/type to inherit from, 
+seperated by <code>:</code>
+<br> - &lt;type-name&gt; the name for the new type and constructor function.
+<br> - &lt;slots&gt; optional, <code>name = value</code> or <code>name ~ type</code>
+expressions. Name-Value expressions are used to construct a prototype. From
+the prototype the class of the slot will be inferred. They are also the
+defaults in the type constructor. Name-Type expressions define the classes of
+the slots. If no value (or type) is supplied, <code>ANY</code> is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>the body of the initialize method as expression. It will be called
+with <code>.Object</code> and <code>...</code> as arguments. <code>.Object</code> should be
+the return value. With <code>.Object</code> there is an instance of the type on
+which assertions can be formulated. Prior to the body (rhs) <code>.Object
+&lt;- callNextMethod()</code> will be evaluated which enables proper initialization
+of your type and its inherited fields. See initialize for
+details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>Name-Type</code> expressions are also used in %m%. Besides this you
+can formulate type unions in type expressions or the inheritance structure.
+This has a side effect in that setClassUnion is called. Whenever you
+write a type you can replace the name by an expression of the form:
+<code>type1 | type2</code>. Outside the slots or argument list of a method these
+expressions have to be quoted. In this example the following expression is
+evaluated for you: <code>setClassUnion("type1ORtype2", c("type1", "type2"))</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This will create an S4-class named 'Test' with two slots; x = "numeric"
+# and y = "list"; prototype: list(x = 1, y = list()); and an initialize
+# method where some checks are performed.
+
+Test(x = 1, y = list()) %type% {
+  stopifnot(.Object@x &gt; 0)
+  .Object
+}
+
+# This will create an S4-class named 'Numeric' with a slot and some tests.
+
+numeric : Numeric(metaInfo = character()) %type% {
+  stopifnot(length(.Object) &gt; 0)
+  stopifnot(all(.Object &gt; 0))
+  .Object
+}
+
+# This will create an S4-class with slots, where the constructor function has
+# no defaults. All slots will allow for ANY type.
+
+Anything(x, y ~ ANY, z = NULL) %type% .Object
+## Not run: 
+  Anything() # error because x and y are missing
+
+## End(Not run)
+
+# Type Unions:
+'character | numeric' : Either(either ~ character | numeric) %type% .Object
+Either("", 1)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,375 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_bor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a Parameter for Best Overall Response (without confirmation)</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_param_bor()</code> function has been
+superseded in favor of <code>derive_extreme_event()</code>.
+</p>
+<p>Adds a parameter for best overall response, without confirmation, optionally up to
+first progressive disease
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_bor(
+  dataset,
+  dataset_adsl,
+  filter_source,
+  source_pd = NULL,
+  source_datasets = NULL,
+  reference_date,
+  ref_start_window,
+  missing_as_ne = FALSE,
+  aval_fun,
+  set_values_to,
+  subject_keys = get_admiral_option("subject_keys")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>The input dataframe from which the Best Overall Response will
+be derived from and added to.
+</p>
+<p>The columns <code>PARAMCD</code>, <code>ADT</code>, and <code>AVALC</code>and the columns specified in
+<code>subject_keys</code> and <code>reference_date</code> are expected.
+</p>
+<p>After applying <code>filter_source</code> and/or <code>source_pd</code> the column <code>ADT</code> and the
+columns specified by <code>subject_keys</code> must be a unique key of the dataframe.
+</p>
+<p><em>Permitted Values:</em> a <code>data.frame()</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataset_adsl</code></td>
+<td>
+<p>ADSL input dataset.
+</p>
+<p>The columns specified in the subject_keys argument are expected. For each subject in
+the passed <code>dataset</code> a new row is added to the input <code>dataset</code>. Columns
+in <code>dataset_adsl</code> that also appear in <code>dataset</code> will be populated with the
+appropriate subject-specific value for these new rows.
+</p>
+<p><em>Permitted Values:</em> a <code>data.frame()</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_source</code></td>
+<td>
+<p>Filter to be applied to <code>dataset</code> to derive the
+Best Overall Response</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_pd</code></td>
+<td>
+<p>Date of first progressive disease (PD)
+</p>
+<p>If the parameter is specified, the observations of the input <code>dataset</code> for
+deriving the new parameter are restricted to observations up to the
+specified date. Observations at the specified date are included. For
+subjects without first PD date all observations are take into account.
+</p>
+<p><em>Permitted Values:</em> a <code>date_source</code> object (see <code>date_source()</code>
+for details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source dataframe to be used to calculate the
+first PD date
+</p>
+<p>A named list of dataframes is expected (although for BOR) only one dataframe is
+needed. It links the <code>dataset_name</code> from <code>source_pd</code> with an existing dataframe.
+</p>
+<p>For example if <code>source_pd = pd_date</code> with
+</p>
+<div class="sourceCode r"><pre>pd_date &lt;- date_source(
+  dataset_name = "adrs",
+  date = ADT,
+  filter = PARAMCD == PD
+)
+</pre></div>
+<p>and the actual response dataframe in the script is <code>myadrs</code>, <code>source_datasets = list(adrs = myadrs)</code> should be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_date</code></td>
+<td>
+<p>Reference date
+</p>
+<p>The reference date is used along with <code>ref_start_window</code> to determine those
+records that occur before and after <code>ADT</code> (see Details section for further
+information). Usually it is treatment start date (<code>TRTSDT</code>) or
+randomization date (<code>RANDDT</code>).
+</p>
+<p><em>Permitted Values:</em> a numeric date column</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_start_window</code></td>
+<td>
+<p>Stable disease time window
+</p>
+<p>The ref_start_window is used along with <code>reference_date</code> to determine those
+records that occur before and after <code>ADT</code> (i.e. for a record determine
+whether <code>ADT</code> &gt;= <code>reference_date</code> + <code>ref_start_window</code>),
+see Details section for further information.
+</p>
+<p><em>Permitted Values:</em> a non-negative numeric scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing_as_ne</code></td>
+<td>
+<p>Consider no assessments as <code>"NE"</code>?
+</p>
+<p>If the argument is set to <code>TRUE</code>, the response is set to <code>"NE"</code> for
+subjects in <code>dataset_adsl</code> without an assessment in the <code>dataset</code> after the
+filter has been applied. Otherwise, the response is set to <code>"MISSING"</code>
+for these subjects.
+</p>
+<p><em>Permitted Values:</em> a logical scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aval_fun</code></td>
+<td>
+<p><em>Deprecated</em>, please use <code>set_values_to</code> instead.
+</p>
+<p>Function to map character analysis value (<code>AVALC</code>) to numeric analysis
+value (<code>AVAL</code>)
+</p>
+<p>The (first) argument of the function must expect a character vector and the
+function must return a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>New columns to set
+</p>
+<p>A named list returned by <code>exprs()</code> defining the columns to be set for the
+new parameter, e.g. <code>exprs(PARAMCD = "BOR", PARAM = "Best Overall Response")</code> is expected. The values must be symbols, character strings,
+numeric values, or <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_keys</code></td>
+<td>
+<p>Columns to uniquely identify a subject
+</p>
+<p><em>Permitted Values:</em> A list of symbols created using <code>exprs()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates the best overall response (BOR) parameter, as detailed below.
+</p>
+<p>Records after PD can be removed using the source_pd and source_datasets
+arguments.
+</p>
+<p>Note:
+</p>
+
+<ol>
+<li>
+<p> All <code>CR</code>, <code>PR</code> and <code>PD</code> response records are considered for Best Overall Response.
+</p>
+</li>
+<li>
+<p> All <code>SD</code> or <code>NON-CR/NON-PD</code> records where <code>ADT</code> &gt;= <code>reference_date</code> +
+<code>ref_start_window</code> are also considered for Best Overall Response.
+</p>
+</li>
+<li>
+<p> Subjects with <strong>ONLY</strong> an <code>SD</code> or <code>NON-CR/NON-PD</code> records where <code>ADT</code> &lt;
+<code>reference_date</code> + <code>ref_start_window</code> are assigned a Best Overall Response of <code>NE</code>.
+</p>
+</li>
+<li>
+<p> The Best Response, from the records in steps 1 to 3, is then selected in the following
+order of preference: CR, PR, SD, NON-CR/NON-PD, PD, NE, MISSING
+</p>
+</li>
+<li>
+<p> The <code>AVAL</code> column is added and set using the <code>aval_fun(AVALC)</code> function
+</p>
+</li>
+<li>
+<p> The columns specified by the <code>set_values_to</code> parameter and records
+are added to the dataframe passed into the <code>dataset</code> argument
+</p>
+</li>
+</ol>
+<p>Note: Any responses of SD or NON-CR/NON-PD that occur before <code>reference_date</code> +
+<code>ref_start_window</code> are ignored in the calculation of BOR. All other responses are included
+in the calculation of BOR, irrespective of the number of days from the reference date.
+</p>
+<p>Also Note: All columns from the input dataset are kept. For subjects with no records in
+the input dataset (after the filter is applied) all columns are kept from ADSL which are
+also in the input dataset.  Columns which are not to be populated for the new parameter
+or populated differently (e.g. <code>RSSTRESC</code>, <code>VISIT</code>, <code>PARCATy</code>, <code>ANLzzFL</code>, ...) should be
+overwritten using the <code>set_values_to</code> parameter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The dataframe passed in the <code>dataset</code> argument with additional columns and/or
+rows as set in the <code>set_values_to</code> argument.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stephen Gormley
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other superseded: 
+<code>derive_param_clinbenefit()</code>,
+<code>derive_param_confirmed_bor()</code>,
+<code>derive_param_confirmed_resp()</code>,
+<code>derive_param_response()</code>,
+<code>filter_pd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(magrittr)
+library(dplyr)
+library(tibble)
+library(lubridate)
+library(admiral)
+
+# Create ADSL dataset
+adsl &lt;- tribble(
+  ~USUBJID, ~TRTSDTC,
+  "1",      "2020-01-01",
+  "2",      "2019-12-12",
+  "3",      "2019-11-11",
+  "4",      "2019-12-30",
+  "5",      "2020-01-01",
+  "6",      "2020-02-02",
+  "7",      "2020-02-02",
+  "8",      "2020-04-01"
+) %&gt;%
+  mutate(
+    TRTSDT = ymd(TRTSDTC),
+    STUDYID = "XX1234"
+  )
+
+# Create ADRS dataset
+ovr_obs &lt;- tribble(
+  ~USUBJID, ~ADTC, ~AVALC, ~ANL01FL,
+  "1", "2020-01-01", "PR", "Y",
+  "1", "2020-02-01", "CR", "Y",
+  "1", "2020-02-16", "NE", "Y",
+  "1", "2020-03-01", "CR", "Y",
+  "1", "2020-04-01", "SD", "Y",
+  "2", "2020-01-01", "SD", "Y",
+  "2", "2020-02-01", "PR", "Y",
+  "2", "2020-03-01", "SD", "Y",
+  "2", "2020-03-13", "CR", "Y",
+  "3", "2019-11-12", "CR", "Y",
+  "3", "2019-12-02", "CR", "Y",
+  "3", "2020-01-01", "SD", "Y",
+  "4", "2020-01-01", "PR", "Y",
+  "4", "2020-03-01", "SD", "N",
+  "4", "2020-04-01", "SD", "Y",
+  "4", "2020-05-01", "PR", "Y",
+  "4", "2020-05-15", "NON-CR/NON-PD", "Y",
+  "5", "2020-01-01", "PR", "Y",
+  "5", "2020-01-10", "SD", "Y",
+  "5", "2020-01-20", "PR", "Y",
+  "5", "2020-05-15", "NON-CR/NON-PD", "Y",
+  "6", "2020-02-06", "PR", "Y",
+  "6", "2020-02-16", "CR", "Y",
+  "6", "2020-03-30", "PR", "Y",
+  "6", "2020-04-12", "PD", "Y",
+  "6", "2020-05-01", "CR", "Y",
+  "6", "2020-06-01", "CR", "Y",
+  "7", "2020-02-06", "PR", "Y",
+  "7", "2020-02-16", "CR", "Y",
+  "7", "2020-04-01", "NE", "N"
+) %&gt;%
+  mutate(PARAMCD = "OVR")
+
+pd_obs &lt;-
+  bind_rows(tribble(
+    ~USUBJID, ~ADTC,        ~AVALC,
+    "2",      "2020-03-01", "Y",
+    "4",      "2020-02-01", "Y"
+  ) %&gt;%
+    mutate(PARAMCD = "PD"))
+
+adrs &lt;- bind_rows(ovr_obs, pd_obs) %&gt;%
+  mutate(
+    ADT = ymd(ADTC),
+    STUDYID = "XX1234"
+  ) %&gt;%
+  select(-ADTC) %&gt;%
+  derive_vars_merged(
+    dataset_add = adsl,
+    by_vars     = exprs(STUDYID, USUBJID),
+    new_vars    = exprs(TRTSDT)
+  )
+
+pd_date &lt;- date_source(
+  dataset_name = "adrs",
+  date         = ADT,
+  filter       = PARAMCD == "PD"
+)
+
+aval_fun_pass &lt;- function(arg) {
+  case_when(
+    arg == "CR" ~ 11,
+    arg == "PR" ~ 22,
+    arg == "SD" ~ 33,
+    arg == "NON-CR/NON-PD" ~ 44,
+    arg == "PD" ~ 55,
+    arg == "NE" ~ 66,
+    arg == "MISSING" ~ 77,
+    TRUE ~ NA_real_
+  )
+}
+
+# Derive best overall response parameter
+derive_param_bor(
+  adrs,
+  dataset_adsl = adsl,
+  filter_source = PARAMCD == "OVR" &amp; ANL01FL == "Y",
+  source_pd = pd_date,
+  source_datasets = list(adrs = adrs),
+  aval_fun = aval_fun_pass,
+  reference_date = TRTSDT,
+  ref_start_window = 28,
+  set_values_to = exprs(
+    PARAMCD = "BOR",
+    PARAM = "Best Overall Response"
+  )
+) %&gt;%
+  filter(PARAMCD == "BOR")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_sampling_periods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Convert group or individual data into sampling periods
+</h2>
+
+<h3>Description</h3>
+
+<p>Converts several different types of data storage into sampling periods for calculating or permuting networks
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_sampling_periods(association_data, association_times, sampling_period, 
+identities = NULL, location = NULL, within_locations = FALSE, 
+data_format = c("gbi", "groups", "individuals"), return="SP")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>association_data</code></td>
+<td>
+
+<p>Can be either a group by individual matrix, a list containing group members in each element, or a two-column data frame with individual ID in the first column and group ID in the second column
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>association_times</code></td>
+<td>
+
+<p>Because sampling periods are inferred over time, each group must contain some time data (can be in any format, such as seconds, days, etc.). One time must be provided for each row of the association data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling_period</code></td>
+<td>
+
+<p>The number of time periods over which data are combined (for example 10 days, 3600 seconds)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identities</code></td>
+<td>
+
+<p>Optional identities for each individual in the dataset
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location</code></td>
+<td>
+
+<p>If spatial disaggregation need to be maintained, samping periods can be calculated per time per location
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>within_locations</code></td>
+<td>
+
+<p>Flag whether to include location information
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_format</code></td>
+<td>
+
+<p>Format of the input data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return</code></td>
+<td>
+
+<p>By default ("SP") returns the sampling periods. Anything else will return the occurrence data (see get_network function)
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function will calculate an association matrix for each sampling period. If locations are included, these will be treated independently.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>K x N x N</code> stack of matrices, where each <code>N x N</code> slice is an association matrix. Row names and Column names of these slices are given the identity where available. The K slice names are given either the time or time_location for each sampling period. Alternatively (return != "SP") the function returns the occurrence of each individual in each sampling period, with individuals as rows and sampling periods as columns.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Damien R. Farine
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## define group memberships (these would be read from a file)
+individuals &lt;- data.frame(ID=c("C695905","H300253","H300253",
+	"H300283","H839876","F464557","H300296","H300253",
+	"F464557","H300296","C695905","H300283","H839876"),
+	GROUP=c(1,1,2,2,2,3,3,4,5,5,6,6,6))
+
+## create a time column
+individuals &lt;- cbind(individuals,
+	DAY=c(1,1,1,1,1,2,2,2,3,3,3,3,3))
+
+SPs &lt;- get_sampling_periods(individuals[,c(1,2)],
+	individuals[,3],1,data_format="individuals")
+occurs &lt;- get_sampling_periods(individuals[,c(1,2)],
+	individuals[,3],1,data_format="individuals", return="occ")
+	
+## define group memberships (these would be read from a file)
+groups &lt;- list(G1=c("C695905","H300253"),
+	G2=c("H300253","H300283","H839876"),
+	G3=c("F464557","H300296"),
+	G4=c("H300253"),
+	G5=c("F464557","H300296"),
+	G6=c("C695905","H300283","H839876"))
+
+## create a time variable
+days &lt;- c(1,1,2,2,3,3)
+
+SPs &lt;- get_sampling_periods(groups,
+	days,1,data_format="groups")
+occurs &lt;- get_sampling_periods(groups,
+	days,1,data_format="groups", return="occ")
+
+</code></pre>
+
+
+</div>

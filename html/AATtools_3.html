@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aat_covreliability</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute a dataset's reliability from its covariance matrix</h2>
+
+<h3>Description</h3>
+
+<p>This function computes mean single-difference scores (push minus pull) for individual stimuli,
+and computes the reliability from that information.
+Missing values are dealt with using multiple imputation.
+</p>
+<p>This function computes the reliability when stimuli and participants are removed,
+allowing for the diagnosis of potential sources of unreliability within the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aat_covreliability(
+  ds,
+  subjvar,
+  stimvar,
+  pullvar,
+  targetvar = NULL,
+  rtvar,
+  aggfunc = c("mean", "median"),
+  algorithm = c("calpha", "lambda2", "lambda4"),
+  iters = 5
+)
+
+## S3 method for class 'aat_covreliability'
+print(x, ...)
+
+aat_covreliability_jackknife(
+  ds,
+  subjvar,
+  stimvar,
+  pullvar,
+  targetvar = NULL,
+  rtvar,
+  algorithm = c("calpha", "lambda2", "lambda4"),
+  iters = 5,
+  holdout = c("both", "participant", "stimulus", "cross")
+)
+
+## S3 method for class 'aat_covreliability_jackknife'
+print(x, ...)
+
+## S3 method for class 'aat_covreliability_jackknife'
+plot(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ds</code></td>
+<td>
+<p>the <code>data.frame</code> to use</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subjvar</code></td>
+<td>
+<p>Name of the subject-identifying variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stimvar</code></td>
+<td>
+<p>Name of the stimulus-identifying variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pullvar</code></td>
+<td>
+<p>Name of the movement-direction identifying variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetvar</code></td>
+<td>
+<p>Optional. Name of the stimulus-category identifying variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rtvar</code></td>
+<td>
+<p>Name of the reaction-time identifying variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggfunc</code></td>
+<td>
+<p>The function with which to aggregate the RTs before computing difference scores. Defaults to mean but can be changed to median.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>The reliability formula to use. Defaults to Cronbach's alpha, but Guttman's Lambda-2 is recommended instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iters</code></td>
+<td>
+<p>If there are missing values (which is almost inevitable) then
+multiple imputation will be used to complete the covariance matrix - this option sets
+the number of multiple imputations to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object to be printed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout</code></td>
+<td>
+<p>What should be removed from the data for computation of jackknife statistics?
+"both" computes reliability when stimuli and participants are separately removed,
+while "cross" computes  reliability when stimuli and participants are simultaneously removed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When only one stimulus category is indicated, one of the commonly known reliability algorithms
+provided with the <code>algorithm</code> argument is used.
+When two stimulus categories are indicated, this function uses Lord's (1963) algorithm to
+compute the reliability of a double mean difference score, using the algorithms in <code>algorithm</code>
+to estimate the reliability of indiviau lstimulus categories.
+</p>
+<p>When one wants to compute the reliability of a double median difference score or D-score,
+<code>aat_splithalf()</code> is recommended instead.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an <code>aat_covreliability</code> object containing the reliability value
+as well as the dataset and covariance matrix with replaced missing values. When
+the argument <code>targetvar</code> is provided, the output also contains the reliability of the
+individual stimulus categories and their intercorrelation.
+</p>
+<p><code>aat_covreliability_jackknife()</code> returns an <code>aat_covreliability_jackknife</code> object,
+containing jackknife reliability statistics. If argument <code>holdout</code> was set to "cross",
+then these statistics are provided in a matrix where rows represent participants and columns represent stimuli.
+Otherwise, they are provided in <code>data.frame</code>s where the stimulus or participant is represented in a column
+alongside the associated reliability value.
+</p>
+
+
+<h3>Methods (by generic)</h3>
+
+
+<ul><li> <p><code>print(aat_covreliability)</code>: Print an <code>aat_covreliability</code> object
+</p>
+</li></ul>
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>print(aat_covreliability_jackknife)</code>: Print an <code>aat_covreliability_jackknife</code> object
+</p>
+</li>
+<li> <p><code>plot(aat_covreliability_jackknife)</code>: Plot an <code>aat_covreliability_jackknife</code> object
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Lord, F.Y. (1963), "Elementary Models for Measuring Change",
+in Problems in Measuring Change, C.W. Harris, ed.. Madison. Wisconsin:
+University of Wisconsin.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#We generate a dataset with 16 stimuli in each category
+ds&lt;-aat_simulate(biasfx_jitter=40,nstims=16)
+ds$stim&lt;-paste0(ds$stim,"-",ds$is_target)
+
+# If Lord's formula and
+# bootstrapped splithalf measure something similar,
+# then the outcomes should be close to each other.
+aat_covreliability(ds=ds,subjvar="subj",stimvar="stim",pullvar="is_pull",
+                           targetvar="is_target",rtvar="rt")
+aat_splithalf(ds=ds,subjvar="subj",pullvar="is_pull",targetvar="is_target",rtvar="rt",
+              algorithm="aat_doublemeandiff",iters=100,plot=FALSE)
+
+#Testing reliability for single-difference scores
+ds&lt;-ds[ds$is_target==1,]
+aat_covreliability(ds=ds,subjvar="subj",stimvar="stim",pullvar="is_pull",rtvar="rt")
+hh&lt;-aat_simulate()
+test&lt;-aat_covreliability_jackknife(ds=hh,subjvar="subj",stimvar="stim",pullvar="is_pull",
+                                   targetvar="is_target",rtvar="rt",holdout="cross")
+print(test)
+plot(test)
+</code></pre>
+
+
+</div>

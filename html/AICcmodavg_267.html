@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>covDiag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute Covariance Diagnostic for Lambda in <em>N</em>-mixture Models
+</h2>
+
+<h3>Description</h3>
+
+<p>This function extracts the covariance diagnostic of Dennis et al. (2015) 
+for lambda in <em>N</em>-mixture models (Royle 2004) of the
+<code>unmarkedFitPCount</code> class as well as in data frames of the
+<code>unmarkedFramePcount</code> class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">covDiag(object, ...)
+
+## S3 method for class 'unmarkedFitPCount'
+covDiag(object, ...)
+
+## S3 method for class 'unmarkedFramePCount'
+covDiag(object, ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of class <code>unmarkedFitPCount</code> or <code>unmarkedFramePCount</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function extracts the covariance diagnostic developed by Dennis 
+et al. (2015) for lambda in <em>N</em>-mixture models.  Values &lt;= 0
+suggest sparse data and potential problems during model fitting.
+<code>covDiag</code> can take data frames of the <code>unmarkedFramePcount</code>
+class as input.  For convenience, the function also takes the repeated
+count model object as input, extracts the raw data, and computes the
+covariance diagnostic.  Thus, different models on the same data set
+will have identical values for this covariance diagnostic.   
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>covDiag</code> returns a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cov.diag</code></td>
+<td>
+<p>the value of the covariance diagnostic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>a string indicating whether a warning was issued (i.e.,
+<code>"Warning: lambda is infinite, data too sparse"</code>) or not (i.e.,
+<code>NULL</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Dennis, E. B., Morgan, B. J. T., Ridout, M. S. (2015)
+Computational aspects of <em>N</em>-mixture models. <em>Biometrics</em>
+<b>71</b>, 237–246.
+</p>
+<p>Royle, J. A. (2004) <em>N</em>-mixture models for estimating population
+size from spatially replicated counts. <em>Biometrics</em> <b>60</b>,
+108–115.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>modavg</code>, <code>modavgPred</code>,
+<code>Nmix.chisq</code>, <code>Nmix.gof.test</code>,
+<code>predictSE</code>, <code>pcount</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##modified example from ?pcount
+## Not run: 
+if(require(unmarked)){
+##Simulate data
+set.seed(3)
+nSites &lt;- 100
+nVisits &lt;- 3
+##covariate
+x &lt;- rnorm(nSites)               
+beta0 &lt;- 0
+beta1 &lt;- 1
+##expected counts
+lambda &lt;- exp(beta0 + beta1*x)   
+N &lt;- rpois(nSites, lambda)      
+y &lt;- matrix(NA, nSites, nVisits)
+p &lt;- c(0.3, 0.6, 0.8)           
+for(j in 1:nVisits) {
+  y[,j] &lt;- rbinom(nSites, N, p[j])
+}
+## Organize data
+visitMat &lt;- matrix(as.character(1:nVisits),
+                   nSites, nVisits, byrow=TRUE)
+     
+umf &lt;- unmarkedFramePCount(y=y, siteCovs=data.frame(x=x),
+                           obsCovs=list(visit=visitMat))
+## Fit model
+fm1 &lt;- pcount(~ visit ~ 1, umf, K=50)
+covDiag(fm1)
+
+##sparser data
+p &lt;- c(0.01, 0.001, 0.01)           
+for(j in 1:nVisits) {
+  y[,j] &lt;- rbinom(nSites, N, p[j])
+}
+## Organize data
+visitMat &lt;- matrix(as.character(1:nVisits),
+                   nSites, nVisits, byrow=TRUE)
+     
+umf &lt;- unmarkedFramePCount(y=y, siteCovs=data.frame(x=x),
+                           obsCovs=list(visit=visitMat))
+## Fit model
+fm.sparse &lt;- pcount(~ visit ~ 1, umf, K=50)
+covDiag(fm.sparse)
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FGR_MI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fine &amp; Gray Model with Multiple Imputation
+</h2>
+
+<h3>Description</h3>
+
+<p>This function can be utilized to calculate Fine &amp; Gray models for multiply imputed datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FGR_MI(mids, formula, cause=1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mids</code></td>
+<td>
+
+<p>A <code>mids</code> object created using the <code>mice</code> function. This replaces the <code>data</code> argument in the original function call.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>A formula object passed to the <code>FGR</code> function in the <span class="pkg">riskRegression</span> package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cause</code></td>
+<td>
+
+<p>The failure type of interest. Defaults to 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Other arguments which should be passed to the <code>FGR</code> function in the <span class="pkg">riskRegression</span> package.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A small convenience function to calculate Fine &amp; Gray models for multiply imputed data. It is simply a wrapper around the <code>FGR</code> function from the <span class="pkg">riskRegression</span> package, because the usual use of <code>with</code> is not supported directly. It returns a <code>mira</code> object, which can be passed to the <code>outcome_model</code> argument inside of the <code>adjustedcif</code> function when needed. No <code>pool</code> method or other functionality is available.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>mira</code> object containing the FGR regression for every imputed dataset.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin Denz
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adjustedsurv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># not run because it would be too slow
+
+library(adjustedCurves)
+library(survival)
+
+if (requireNamespace("riskRegression") &amp; requireNamespace("prodlim") &amp;
+    requireNamespace("mice")) {
+
+library(riskRegression)
+library(mice)
+library(prodlim)
+
+# simulate some data as example
+sim_dat &lt;- sim_confounded_crisk(n=50, max_t=1.2)
+sim_dat$group &lt;- as.factor(sim_dat$group)
+
+# introduce random missingness in x1 as example
+sim_dat$x1 &lt;- ifelse(runif(n=50) &lt; 0.5, sim_dat$x1, NA)
+
+# perform multiple imputation
+mids &lt;- mice::mice(data=sim_dat, method="pmm", m=5, printFlag=FALSE)
+
+# use the function
+fgr_mods &lt;- FGR_MI(mids=mids,
+                   formula=Hist(time, event) ~ x1 + x2 + x3 + x4 + x5 + x6 + group,
+                   cause=1)
+}
+
+</code></pre>
+
+
+</div>

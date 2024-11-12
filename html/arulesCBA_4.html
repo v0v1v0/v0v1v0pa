@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RWeka_CBA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>CBA classifiers based on rule-based classifiers in RWeka</h2>
+
+<h3>Description</h3>
+
+<p>Provides CBA-type classifiers based on RIPPER (Cohen, 1995), C4.5 (Quinlan,
+1993) and PART (Frank and Witten, 1998) using the implementation in Weka via
+RWeka (Hornik et al, 2009). These classifiers do not mine CARs, but
+directly create rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RIPPER_CBA(formula, data, control = NULL, disc.method = "mdlp")
+
+PART_CBA(formula, data, control = NULL, disc.method = "mdlp")
+
+C4.5_CBA(formula, data, control = NULL, disc.method = "mdlp")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A symbolic description of the model to be fitted. Has to be
+of form <code>class ~ .</code> or <code>class ~ predictor1 + predictor2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or arules::transactions containing the training data.
+Data frames are automatically discretized and converted to transactions with
+<code>prepareTransactions()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>algorithmic control options for R/Weka Rule learners (see
+Details Section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disc.method</code></td>
+<td>
+<p>Discretization method used to discretize continuous
+variables if data is a data.frame (default: <code>"mdlp"</code>). See
+<code>discretizeDF.supervised()</code> for more supervised discretization
+methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>You need to install package <span class="pkg">RWeka</span> to use these classifiers.
+</p>
+<p>See R/Weka functions
+<code>RWeka::JRip()</code> (RIPPER),
+<code>RWeka::J48()</code> (C4.5 rules),
+<code>RWeka::PART()</code>
+for algorithm details and how control options can be passed on via
+<code>control</code>. An example is given in the Examples Section below.
+</p>
+<p>Memory for <span class="pkg">RWeka</span> can be increased using the R options (e.g.,
+<code>options(java.parameters = "-Xmx1024m")</code>) before <span class="pkg">RWeka</span> or
+<span class="pkg">rJava</span> is loaded or any RWeka-based classifier in this package is used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class CBA representing the
+trained classifier.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>References</h3>
+
+<p>W. W. Cohen (1995). Fast effective rule induction. In A.
+Prieditis and S. Russell (eds.), Proceedings of the 12th International
+Conference on Machine Learning, pages 115-123. Morgan Kaufmann. ISBN
+1-55860-377-8.
+</p>
+<p>E. Frank and I. H. Witten (1998). Generating accurate rule sets without
+global optimization. In J. Shavlik (ed.), Machine Learning: Proceedings of
+the Fifteenth International Conference. Morgan Kaufmann Publishers: San
+Francisco, CA.
+</p>
+<p>R. Quinlan (1993). C4.5: Programs for Machine Learning. Morgan Kaufmann
+Publishers, San Mateo, CA.
+</p>
+<p>Hornik K, Buchta C, Zeileis A (2009). "Open-Source Machine Learning: R Meets
+Weka." <em>Computational Statistics,</em> 24(2), 225-232.
+<a href="https://doi.org/10.1007/s00180-008-0119-7">doi:10.1007/s00180-008-0119-7</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other classifiers: 
+<code>CBA()</code>,
+<code>CBA_helpers</code>,
+<code>CBA_ruleset()</code>,
+<code>FOIL()</code>,
+<code>LUCS_KDD_CBA</code>,
+<code>RCAR()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># rJava and RWeka need to be installed
+
+## Not run: 
+data("iris")
+
+# learn a classifier using automatic default discretization
+classifier &lt;- RIPPER_CBA(Species ~ ., data = iris)
+classifier
+
+# inspect the rule base
+inspect(classifier$rules)
+
+# make predictions for the first few instances of iris
+predict(classifier, head(iris))
+
+table(predict(classifier, iris), iris$Species)
+
+# C4.5
+classifier &lt;- C4.5_CBA(Species ~ ., iris)
+inspect(classifier$rules)
+
+# To use algorithmic options (here for PART), you need to load RWeka
+library(RWeka)
+
+# control options can be found using the Weka Option Wizard (WOW)
+WOW(PART)
+
+# build PART with control option U (Generate unpruned decision list) set to TRUE
+classifier &lt;- PART_CBA(Species ~ ., data = iris, control = RWeka::Weka_control(U = TRUE))
+classifier
+inspect(classifier$rules)
+predict(classifier, head(iris))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

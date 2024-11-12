@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alarm_add_plan</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a reference plan to a set of plans</h2>
+
+<h3>Description</h3>
+
+<p>Facilitates comparing an existing (i.e., non-simulated) redistricting plan to a set of simulated plans.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">alarm_add_plan(
+  plans,
+  ref_plan,
+  map = NULL,
+  name = NULL,
+  calc_polsby = FALSE,
+  GEOID = "GEOID",
+  year = 2020
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>plans</code></td>
+<td>
+<p>A <code>redist_plans</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_plan</code></td>
+<td>
+<p>An integer vector containing the reference plan or a block assignment file as a <code>tibble</code> or <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>A <code>redist_map</code> object. Only required if the <code>redist_plans</code> object includes summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A human-readable name for the reference plan. Defaults to the name of <code>ref_plan</code>. If <code>ref_plan</code> is a
+<code>tibble</code> or <code>data.frame</code>, it should be the name of the column of <code>ref_plan</code> that identifies districts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_polsby</code></td>
+<td>
+<p>A logical value indicating whether a Polsby-Popper compactness score should be calculated for the reference plan. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GEOID</code></td>
+<td>
+<p>character. Ignored unless <code>ref_plan</code> is a <code>tibble</code> or <code>data.frame</code>.
+Should correspond to the column of <code>ref_plan</code> that identifies block <code>GEOID</code>s.
+Default is <code>'GEOID'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>the decade to request if passing a <code>tibble</code> to <code>ref_plan</code>, either <code>2010</code> or <code>2020</code>. Default is <code>2020</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A modified <code>redist_plans</code> object containing the reference plan. Includes summary statistics if the original <code>redist_plans</code> object had them as well.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# requires Harvard Dataverse API key
+map &lt;- alarm_50state_map("WY")
+pl &lt;- alarm_50state_plans("WY")
+pl_new &lt;- alarm_add_plan(pl, ref_plan = c(1), map, name = "example")
+
+# download and load a comparison plan
+url &lt;- paste0("https://github.com/PlanScore/Redistrict2020/raw/main/files/",
+  "NM-2021-10/Congressional_Concept_A.zip")
+tf &lt;- tempfile(fileext = ".zip")
+utils::download.file(url, tf)
+utils::unzip(tf, exdir = dirname(tf))
+baf &lt;- readr::read_csv(file = paste0(dirname(tf), "/Congressional Concept A.csv"),
+                       col_types = "ci")
+names(baf) &lt;- c("GEOID", "concept_a")
+# Add it to the plans object
+map_nm &lt;- alarm_50state_map("NM")
+plans_nm &lt;- alarm_50state_plans("NM", stats = FALSE)
+alarm_add_plan(plans_nm, baf, map = map_nm, name = "concept_a")
+
+</code></pre>
+
+
+</div>

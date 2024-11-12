@@ -1,0 +1,704 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictPlus.asreml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Forms the predictions for a term, their pairwise differences and 
+associated statistics. A factor having parallel values may occur in 
+the model and a linear transformation of the predictions can be specified.
+It results in an object of class alldifffs. </h2>
+
+<h3>Description</h3>
+
+<p>This function forms the predictions for <code>term</code> using 
+<code>classify</code> and the supplied <code>asreml</code> object and stores 
+them in an <code>alldiffs.object</code>. If <code>x.num</code> is 
+supplied, the predictions will be obtained for the values supplied 
+in <code>x.pred.values</code> and, if supplied, <code>x.plot.values</code> will 
+replace them in the <code>alldiffs.object</code> that is returned. 
+If <code>x.fac</code>, but not <code>x.num</code>, is specified, predictions 
+will involve it and, if supplied, <code>x.plot.values</code> will replace 
+the levels of <code>x.fac</code> in the <code>alldiffs.object</code> 
+that is returned. In order to get the correct predictions you may 
+need to supply additional arguments to <code>predict.asreml</code> 
+through <code>...</code> e.g. <code>present</code>, <code>parallel</code>, <code>levels</code>. 
+Any aliased predictions will be removed, as 
+will any standard error of pairwise differences involving them.
+</p>
+<p>Also calculated are the approximate degrees of freedom of the 
+standard errors of the predictions. If the denominator degrees of 
+freedom for <code>term</code> are available in <code>wald.tab</code>, they are 
+used. Otherwise the residual degrees of freedom or the maximum of 
+the denominator degrees in <code>wald.tab</code>, excluding the  
+Intercept, are used. Which is used depends on the setting of 
+<code>dDF.na</code>. These degrees of freedom are used for the 
+t-distribution on which p-values and confidence intervals are 
+based. It is stored as an  attribute to the <code>alldiffs.object</code>. 
+The degrees of freedom are also used in calculating the minimum, 
+mean and maximum LSD for comparing pairs of predictions, which are 
+also stored in the <code>alldiffs.object</code>.
+</p>
+<p>If <code>pairwise = TRUE</code>, all pairwise differences between the 
+<code>predictions</code>, their standard errors, p-values and LSD 
+statistics are computed using <code>allDifferences.data.frame</code>. 
+This adds them to the <code>alldiffs.object</code> as additional 
+<code>list</code> components named <code>differences</code>, <code>sed</code>, 
+<code>p.differences</code> and <code>LSD</code>.
+</p>
+<p>If a linear transformation of the predictions is specified then the 
+values of this linear transformation are returned, 
+instead of the original predictions, along with their standard errors 
+and the pairwise differences and associated statistics. 
+</p>
+<p>If a transformation has been applied in the analysis (any one of 
+<code>transform.power</code> is not one, <code>scale</code> is  not one and 
+<code>offset</code> is nonzero), the backtransforms of the transformed 
+values and their lower and upper error intervals are added 
+to a <code>data.frame</code> that is consistent with the <code>predictions</code> 
+<code>data.frame</code>. 
+If <code>transform.power</code> is other than 
+one, the <code>standard.error</code> column of the <code>data.frame</code> 
+is set to <code>NA</code>. This <code>data.frame</code> is added to the 
+<code>alldiffs.object</code> as a <code>list</code> component called 
+<code>backtransforms</code>.
+</p>
+<p>The printing of the components produced is controlled by the 
+<code>tables</code> argument. The order of plotting the levels of 
+one of the factors indexing the predictions can be modified 
+and is achieved using <code>sort.alldiffs</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'asreml'
+predictPlus(asreml.obj, classify, term = NULL, 
+            inestimable.rm = TRUE, 
+            linear.transformation = NULL, EGLS.linTransform = TRUE, 
+            error.intervals = "Confidence", alpha = 0.05, 
+            wald.tab = NULL, dDF.na = "residual",  dDF.values = NULL, 
+            pairwise = TRUE, Vmatrix = FALSE, 
+            avsed.tolerance = 0.25, accuracy.threshold = NA, 
+            LSDtype = "overall", LSDsupplied = NULL, LSDby = NULL, 
+            LSDstatistic = "mean", LSDaccuracy = "maxAbsDeviation", 
+            x.num = NULL, x.fac = NULL,  
+            x.pred.values = NULL, x.plot.values = NULL, 
+            titles = NULL,  tables = "all" , level.length = NA, 
+            transform.power = 1, offset = 0, scale = 1, 
+            transform.function = "identity", 
+            sortFactor = NULL, sortParallelToCombo = NULL, 
+            sortNestingFactor = NULL, sortOrder = NULL, 
+            decreasing = FALSE, trace = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>asreml.obj</code></td>
+<td>
+<p><code>asreml</code> object for a fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classify</code></td>
+<td>
+<p>A <code>character</code> string giving the variables that 
+define the margins of the multiway table to be predicted. 
+Multiway tables are specified by forming an interaction type 
+term from the classifying variables, that is, separating the 
+variable names with the <code>:</code> operator. To predict the overall 
+mean, set the <code>classify</code> to "<code>(Intercept)</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term</code></td>
+<td>
+<p>A <code>character</code> string giving the variables that define the term 
+that was fitted using <code>asreml</code> and that corresponds to <code>classify</code>. 
+It only needs to be specified when it is different to <code>classify</code>; it 
+is stored as an attribute of the <code>alldiffs.object</code>. 
+It is likely to be needed when the fitted model includes terms that involve  
+both a <code>numeric</code> covariate and a <code>factor</code> that 
+parallel each other; the <code>classify</code> would include the covariate and 
+the <code>term</code> would include the <code>factor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inestimable.rm</code></td>
+<td>
+<p>A <code>logical</code> indicating whether rows for  predictions 
+that are not estimable are to be removed from the components of 
+the <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linear.transformation</code></td>
+<td>
+<p>A <code>formula</code> or a <code>matrix</code>. 
+If a <code>formula</code> is given then it is taken to be a submodel of 
+a model term corresponding to the <code>classify</code>. The projection matrix 
+that transforms the <code>predictions</code> so that they conform to the submodel 
+is obtained; the submodel does not have to involve variables in the 
+<code>classify</code>, but the variables must be columns in the <code>predictions</code> 
+component of <code>alldiffs.obj</code> and the space for the submodel must be a 
+subspace of the space for the term specified by the <code>classify</code>. 
+For example, for <code>classify</code> set to <code>"A:B"</code>, the submodel 
+<code>~ A + B</code> will result in the <code>predictions</code> for the combinations of 
+<code>A</code> and <code>B</code> being made additive for the <code>factors</code> 
+<code>A</code> and <code>B</code>. The submodel space corresponding to <code>A + B</code> is 
+a subspace of the space <code>A:B</code>. In this case both the submodel and the 
+classify involve only the factors A and B. To fit an intercept-only 
+submodel, specify <code>linear.transformation</code> to be the formula <code>~1</code>.
+</p>
+<p>If a <code>matrix</code> is provided then it will be 
+used to apply the linear transformation to the <code>predictions</code>. 
+It might be a contrast <code>matrix</code> or a <code>matrix</code> of 
+weights for a factor used to obtain the weighted average over that factor. 
+The number of rows in the <code>matrix</code> should equal the 
+number of linear combinations of the <code>predictions</code> desired and 
+the number of columns should equal the number of <code>predictions</code>.
+</p>
+<p>In either case, as well as the values of the linear combinations, 
+their standard errors, pairwise differences and associated statistics 
+are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EGLS.linTransform</code></td>
+<td>
+<p>A <code>logical</code> indicating whether or not the 
+<code>linear.transformation</code> of the predictions stored in an 
+<code>alldiffs.object</code> by fitting a submodel supplied in a 
+<code>formula</code> is to take into account the variance of the 
+predictions using a Estimated Generalized Least Squares (EGLS) approach. 
+This is likely to be appropriate when the variance matrix of the predictions 
+is not compound symmetric i.e. when not all the variances are equal or not 
+all the covariances are equal. If the variance matrix is compund symmetric, 
+then the setting of <code>EGLS.linTransform</code> will not affect the transformed 
+predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error.intervals</code></td>
+<td>
+<p>A <code>character</code> string indicating the type of error interval, if any, 
+to calculate in order to indicate uncertainty in the results. 
+Possible values are <code>"none"</code>, <code>"StandardError"</code>, <code>"Confidence"</code> 
+and <code>"halfLeastSignificant"</code>. The default is for confidence limits to 
+be used. The <code>"halfLeastSignificant"</code> option results in half the 
+Least Significant Difference (LSD) being added and subtracted to the 
+predictions, the LSD being calculated using the square root of the mean of the 
+variances of all or a subset of pairwise differences between the predictions. 
+If the LSD is zero, as can happen when predictions are constrained to be equal,
+then the limits of the error intervals are set to <code>NA</code>. 
+If <code>LSDtype</code> is set to <code>overall</code>, the <code>avsed.tolerance</code> is not 
+<code>NA</code> and the range of the SEDs divided by the average of the SEDs exceeds 
+<code>avsed.tolerance</code> then the <code>error.intervals</code> calculations and the plotting 
+will revert to confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A <code>numeric</code> giving the significance level for LSDs or one minus 
+the confidence level for confidence intervals.
+It is stored as an attribute to the <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wald.tab</code></td>
+<td>
+<p>A <code>data.frame</code> containing the pseudo-anova table for the 
+fixed terms produced by a call to <code>wald.asreml</code>. The main 
+use of it here is in determining the degrees of freedom for 
+calculating confidence or half-LSD <code>error.intervals</code> and p-values, 
+the latter to be stored in the <code>p.differences</code> component of the 
+<code>alldiffs.object</code> that is created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dDF.na</code></td>
+<td>
+<p>A <code>character</code> specifying the method to use to 
+obtain approximate denominator degrees of 
+freedom. when the numeric or algebraic methods produce an 
+<code>NA</code>. Consistent with when no denDF are available, the 
+default is <code>"residual"</code> and so the residual degrees of 
+freedom from <code>asreml.obj$nedf</code> are used. 
+If <code>dDF.na = "none"</code>, no substitute denominator degrees of 
+freedom are employed; if <code>dDF.na = "maximum"</code>, the maximum 
+of those denDF that are available, excluding that for the 
+Intercept, is used; if all denDF are <code>NA</code>, <code>asreml.obj$nedf</code> is used. If 
+<code>dDF.na = "supplied"</code>, a <code>vector</code> of values for the 
+denominator degrees of freedom is to be supplied in <code>dDF.values</code>. 
+Any other setting is ignored and a warning message produced. 
+Generally, substituting these degrees of freedom is 
+anticonservative in that it is likely that the degrees of freedom 
+used will be too large.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dDF.values</code></td>
+<td>
+<p>A <code>vector</code> of values to be used when 
+<code>dDF.na = "supplied"</code>. Its values will be used when 
+<code>denDF</code> in a test for a fixed effect is <code>NA</code>. 
+This vector must be the same length as the number of 
+fixed terms, including (Intercept) whose value could be 
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pairwise</code></td>
+<td>
+<p>A <code>logical</code> indicating whether all pairwise differences of the
+<code>predictions</code> and their standard errors and p-values are to be 
+computed and stored. If <code>tables</code> is equal to 
+<code>"differences"</code> or <code>"all"</code> or <code>error.intervals</code> is 
+equal to <code>"halfLeastSignificant"</code>, they will be stored 
+irrespective of the value of <code>pairwise</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Vmatrix</code></td>
+<td>
+<p>A <code>logical</code> indicating whether the variance matrix of the 
+<code>predictions</code> will be stored as a component of the 
+<code>alldiffs.object</code> that is returned. 
+If <code>linear.transformation</code> is set, it will 
+be stored irrespective of the value of <code>Vmatrix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avsed.tolerance</code></td>
+<td>
+<p>A <code>numeric</code> giving the value of the SED range, the range of the SEDs 
+divided by the square root of the mean of the variances of all or a subset of the 
+pairwise differences, that is considered reasonable in calculating 
+<code>error.intervals</code>. To have it ignored, set it to <code>NA</code>. It should be a 
+value between 0 and 1. The following rules apply:
+</p>
+
+<ol>
+<li>
+<p> If <code>avsed.tolerance</code> is <code>NA</code> then mean LSDs of the type specified by 
+<code>LSDtype</code> are calculated and used in <code>error.intervals</code> and plots.
+</p>
+</li>
+<li>
+<p> Irrespective of the setting of <code>LSDtype</code>, if <code>avsed.tolerance</code> is not 
+exceeded then the mean LSDs are used in <code>error.intervals</code> and plots. 
+</p>
+</li>
+<li>
+<p> If <code>LSDtype</code> is set to <code>overall</code>, <code>avsed.tolerance</code> is not 
+<code>NA</code>, and <code>avsed.tolerance</code> is exceeded then  <code>error.intervals</code> and 
+plotting revert to confidence intervals. 
+</p>
+</li>
+<li>
+<p> If <code>LSDtype</code> is set to <code>factor.combinations</code> and <code>avsed.tolerance</code> 
+is not exceeded for any factor combination then the half LSDs are 
+used in <code>error.intervals</code> and plots; otherwise, <code>error.intervals</code> and 
+plotting revert to confidence intervals. 
+</p>
+</li>
+<li>
+<p> If <code>LSDtype</code> is set to <code>per.prediction</code> and <code>avsed.tolerance</code> 
+is not exceeded for any prediction then the half LSDs are used in <code>error.intervals</code> 
+and plots; otherwise, <code>error.intervals</code> and plotting revert to confidence intervals.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accuracy.threshold</code></td>
+<td>
+<p>A <code>numeric</code> specifying the value of the LSD accuracy measure,  
+which measure is specified by <code>LSDaccuracy</code>, as a threshold value in determining whether the 
+<code>hallfLeastSignificant</code> <code>error.interval</code> for a predicted value is a reasonable  
+approximation; this will be the case if the LSDs across all pairwise comparisons for which 
+the interval's LSD was computed, as specified by <code>LSDtype</code> and <code>LSDby</code>, 
+are similar enough to the interval's LSD, as measured by <code>LSDaccuracy</code>.  
+If it is <code>NA</code>, it will be ignored. If it is 
+not <code>NA</code>, a column of <code>logicals</code> named <code>LSDwarning</code>  will be added 
+to the <code>predictions</code> component of the <code>alldiffs.object</code>. The value of 
+<code>LSDwarning</code> for a <code>predicted.value</code> will be <code>TRUE</code> if the value of the 
+<code>LSDaccuracy</code> measure computed from the LSDs for differences between this 
+<code>predicted.value</code> and the other <code>predicted.values</code> as compared to its 
+<code>assignedLSD</code> exceeds the value of <code>accuracy.threshold</code>. Otherwise, the 
+value of <code>LSDwarning</code> for a <code>predicted.value</code> will be <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDtype</code></td>
+<td>
+<p>A <code>character</code> string that can be <code>overall</code>, <code>factor.combinations</code>, 
+<code>per.prediction</code> or <code>supplied</code>. It determines whether the values stored in a row  
+of a <code>LSD.frame</code> are the values calculated 
+(i) <code>overall</code> from the LSD values for all pairwise comparison2, 
+(ii) the values calculated from the pairwise LSDs for the levels of each 
+<code>factor.combination</code>, unless there is only one prediction for a level  of the 
+<code>factor.combination</code>, when a notional LSD is calculated,  
+(iii) <code>per.prediction</code>, being based, for each prediction, on all pairwise differences 
+involving that prediction, or 
+(iv) as <code>supplied</code> values of the LSD, specified with the <code>LSDsupplied</code> argument; 
+these supplied values are to be placed in the <code>assignedLSD</code> column of the 
+<code>LSD.frame</code> stored in an <code>alldiffs.object</code> so that they can be used 
+in LSD calculations.
+</p>
+<p>See <code>LSD.frame</code> for further information on the values in a row of this 
+<code>data.frame</code> and how they are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDsupplied</code></td>
+<td>
+<p>A <code>data.frame</code> or a named <code>numeric</code> containing a set of <code>LSD</code> 
+values that correspond to the observed combinations of the values of the <code>LSDby</code> variables 
+in the <code>predictions.frame</code> or a single LSD value that is an overall LSD. 
+If a <code>data.frame</code>, it may have (i) a column for the <code>LSDby</code> variable and a column 
+of <code>LSD</code> values or (ii) a single column of <code>LSD</code> values with rownames being the 
+combinations of the observed values of the <code>LSDby</code> variables. Any name can be used 
+for the column of <code>LSD</code> values; <code>assignedLSD</code> is sensible, but not obligatory. Otherwise, 
+a <code>numeric</code> containing the <code>LSD</code> values, each of which is named for the observed 
+combination of the values of the <code>LSDby</code> variables to which it corresponds. (Applying the 
+<code>function</code> <code>dae::fac.combine</code> to the <code>predictions</code> component is one way of 
+forming the required combinations for the (row) names.)  The values supplied 
+will be incorporated into <code>assignedLSD</code> column of the <code>LSD.frame</code> stored as the 
+<code>LSD</code> component of the <code>alldiffs.object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDby</code></td>
+<td>
+<p>A <code>character</code> (vector) of variables names, being the names of the 
+<code>factors</code> or <code>numerics</code> in the <code>classify</code>; for each 
+combination of their levels and values, there will be or is a row in the <code>LSD.frame</code> 
+stored in the <code>LSD</code> component of the <code>alldiffs.object</code> when <code>LSDtype</code> is 
+<code>factor.combinatons</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDstatistic</code></td>
+<td>
+<p>A <code>character</code> nominating one or more of <code>minimum</code>, <code>q10</code>, <code>q25</code>,  
+<code>mean</code>, <code>median</code>, <code>q75</code>, <code>q90</code> or <code>maximum</code> as the value(s) to be 
+stored in the <code>assignedLSD</code> column in an <code>LSD.frame</code>; the values in the 
+<code>assignedLSD</code> column are used in computing <code>halfLeastSignificant</code> <code>error.intervals</code>. 
+Here <code>q10</code>,  <code>q25</code>, <code>q75</code> and <code>q90</code> indicate the sample quantiles corresponding 
+to probabilities of 0.1, 0.25, 0.75 and 0.9 for the group of LSDs from which a single LSD value 
+is calculated. The function <code>quantile</code> is used to obtain them. The <code>mean</code> LSD is 
+calculated as the square root of the mean of the squares of the LSDs for the group. The 
+<code>median</code> is calculated using the <code>median</code> function. Multiple values are only 
+produced for <code>LSDtype</code> set to <code>factor.combination</code>, in which case <code>LSDby</code> must 
+not be <code>NULL</code> and the number of values must equal the number of observed combinations of 
+the values of the variables specified by <code>LSDby</code>.  If <code>LSDstatistic</code> is <code>NULL</code>, 
+it is reset to <code>mean</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LSDaccuracy</code></td>
+<td>
+<p>A <code>character</code> nominating one of <code>maxAbsDeviation</code>, <code>maxDeviation</code>, 
+<code>q90Deviation</code> or <code>RootMeanSqDeviation</code> as the statistic to be calculated as a measure 
+of the accuracy of <code>assignedLSD</code>. The option <code>q90Deviation</code> produces the sample quantile 
+corresponding to a probability of 0.90. The deviations are the differences between the LSDs used in 
+calculating the LSD statistics and each assigned LSD and the accuracy is expressed as a 
+proportion of the assigned LSD value. The calculated values are stored in the column named 
+<code>accuracyLSD</code> in an <code>LSD.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>titles</code></td>
+<td>
+<p>A <code>list</code>, each component of which is named for a column in 
+the <code>data.frame</code> for <code>asreml.obj</code> and contains a 
+<code>character string</code> giving a title to use 
+in output (e.g. tables and graphs). Here they will 
+be used for table headings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tables</code></td>
+<td>
+<p>A <code>character</code> vector containing a combination of 
+<code>none</code>, 
+<code>predictions</code>, <code>vcov</code>, <code>backtransforms</code>, <code>differences</code>, 
+<code>p.differences</code>, <code>sed</code>, <code>LSD</code> and <code>all</code>.
+These nominate which components of the <code>alldiffs.object</code> to print.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.num</code></td>
+<td>
+<p>A <code>character</code> string giving the name of the numeric covariate that 
+(i) is potentially included in terms in the fitted model and (ii) is the 
+x-axis variable for plots. Its values will not be converted to a <code>factor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.fac</code></td>
+<td>
+<p>A <code>character</code> string giving the name of the factor that 
+(i) corresponds to <code>x.num</code> and (ii) is potentially included in 
+terms in the fitted model. It should have the same number of levels as the 
+number of unique values in <code>x.num</code>. The levels of 
+<code>x.fac</code> must be in the order in which they are to be plotted 
+- if they are dates, then they should be in the form 
+yyyymmdd, which can be achieved using <code>as.Date</code>. However, the levels
+can be non-numeric in nature, provided that <code>x.num</code> is also set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.pred.values</code></td>
+<td>
+<p>The values of <code>x.num</code> for which predicted values are 
+required. If <code>levels</code> is set for passing to <code>predict.asreml</code>, 
+<code>x.pred.values</code> is ignored. Note that while <code>levels</code> is an
+alternative to <code>x.pred.values</code>, <code>x.pred.values</code> allows more 
+general setting of the levels to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.plot.values</code></td>
+<td>
+<p>The actual values to be plotted on the x axis. They are 
+needed when values different to those in <code>x.num</code> are to be 
+plotted or <code>x.fac</code> is to be plotted because there is no 
+<code>x.num</code> term corresponding to the same term with <code>x.fac</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level.length</code></td>
+<td>
+<p>The maximum number of characters from the levels of 
+factors to use in the row and column labels of the tables of 
+pairwise differences and their p-values and standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.power</code></td>
+<td>
+<p>A <code>numeric</code> specifying the power of a transformation, if 
+one has been applied to the response variable. Unless it is equal 
+to 1, the default, back-transforms of the predictions will be 
+obtained and stored in the <code>backtransforms</code> component of the 
+<code>alldiffs.object</code>. 
+The back-transformation raises the predictions to the power equal 
+to the reciprocal of <code>transform.power</code>, unless it equals 0 in 
+which case the exponential of the predictions is taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>A <code>numeric</code> that has been added to each value of the 
+response after any scaling and before applying any power transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A <code>numeric</code> by which each value of the response has been multiplied 
+before adding any offset and applying any power transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.function</code></td>
+<td>
+<p>A <code>character</code> giving the name of a function that 
+specifies the scale on which the predicted values are defined. This may be the 
+result of a transformation of the data using the function or the use of the 
+function as a link function in the fitting of a generalized linear (mixed) 
+model (GL(M)M). The possible <code>transform.function</code>s are 
+<code>identity</code>, <code>log</code>, <code>inverse</code>, <code>sqrt</code>, <code>logit</code>, 
+<code>probit</code>, and <code>cloglog</code>.  The <code>predicted.values</code> and 
+<code>error.intervals</code>, if not <code>StandardError</code> intervals, will be 
+back-transformed using the inverse function of the <code>transform.function</code>. 
+The <code>standard.error</code> column will be set to <code>NA</code>, unless (i) 
+<code>asreml</code> returns columns named <code>transformed.value</code> and 
+<code>approx.se</code>, as well as those called <code>predicted.values</code> and 
+<code>standard.error</code> (such as when a GLM is fitted) and 
+(ii) the values in <code>transformed.value</code> are equal to those obtained by 
+backtransforming the <code>predicted.value</code>s using the inverse function 
+of the <code>transform.function</code>. Then, the <code>approx.se</code> values will be 
+saved in the <code>standard.error</code> column of the <code>backtransforms</code> 
+component of the returned <code>alldiffs.obj</code>. Also, the 
+<code>transformed.value</code> and <code>approx.se</code> columns are removed from both 
+the <code>predictions</code> and <code>backtransforms</code> components of the 
+<code>alldiffs.obj</code>. Note that the values that end up in the <code>standard errors</code> 
+column are approximate for the backtransformed values and are not used in 
+calculating <code>error.intervals</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortFactor</code></td>
+<td>
+<p>A <code>character</code> containing the name of the 
+<code>factor</code> that indexes the set of predicted values that determines 
+the sorting of the components. If there is only one variable in the 
+<code>classify</code> term then <code>sortFactor</code> can be <code>NULL</code> and 
+the order is defined by the complete set of predicted values. 
+If there is more than one variable in the <code>classify</code> term 
+then <code>sortFactor</code> must be set. In this case the <code>sortFactor</code> 
+is sorted in the same order within each combination of the values of 
+the <code>sortParallelToCombo</code> variables: the <code>classify</code> variables, excluding the 
+<code>sortFactor</code>. There should be only one predicted value for 
+each unique value of <code>sortFactor</code> within each set defined by a 
+combination of the values of the <code>classify</code> variables, excluding the 
+<code>sortFactor</code> <code>factor</code>. 
+The order to use is determined by either <code>sortParallelToCombo</code> or 
+<code>sortOrder</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortParallelToCombo</code></td>
+<td>
+<p>A <code>list</code> that specifies a combination of the values 
+of the <code>factor</code>s and <code>numeric</code>s, excluding <code>sortFactor</code>, that 
+are in <code>classify</code>. Each of the components of the supplied <code>list</code> 
+is named for a <code>classify</code> variable and specifies a single value for it. The 
+combination of this set of values will be used to define a subset of the predicted 
+values whose order will define the order of <code>sortFactor</code>. Each of the other 
+combinations of the values of the <code>factor</code>s and <code>numeric</code>s will be sorted 
+in parallel. If <code>sortParallelToCombo</code> is <code>NULL</code> then the first value of               
+each <code>classify</code> variable, except for the <code>sortFactor</code> <code>factor</code>,  
+in the <code>predictions</code> component is used to define <code>sortParallelToCombo</code>. 
+If there is only one variable in the <code>classify</code> then 
+<code>sortParallelToCombo</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortNestingFactor</code></td>
+<td>
+<p>A <code>character</code> containing the name of the 
+<code>factor</code> that defines groups of the <code>sortFactor</code> within which the predicted 
+values are to be ordered. 
+If there is only one variable in the <code>classify</code> then 
+<code>sortNestingFactor</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortOrder</code></td>
+<td>
+<p>A <code>character vector</code> whose length is the same as the number 
+of levels for <code>sortFactor</code> in the <code>predictions</code> component of the 
+<code>alldiffs.object</code>. It specifies the desired order of the 
+levels in the reordered components of the <code>alldiffs.object</code>. 
+The argument <code>sortParallelToCombo</code> is ignored.
+</p>
+<p>The following creates a <code>sortOrder</code> vector <code>levs</code> for factor 
+<code>f</code> based on the values in <code>x</code>: 
+<code>levs &lt;- levels(f)[order(x)]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decreasing</code></td>
+<td>
+<p>A <code>logical</code> passed to <code>order</code> that detemines whether 
+the order for sorting the components of the <code>alldiffs.object</code> is for 
+increasing or decreasing magnitude of the predicted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>A <code>logical</code> that control output from ASReml-R. 
+If TRUE then partial iteration details are displayed when ASReml-R 
+functions are invoked; if FALSE then no output is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>predict.asreml</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>For <code>linear.transformations</code> set to <code>NULL</code>, an S3-class 
+<code>alldiffs.object</code> with predictions and their standard 
+errors and, depending on the settings of the arguments, all pairwise 
+differences between predictions, their standard errors and p-values 
+and LSD statistics.  Also, unless the <code>sortFactor</code> or <code>sortOrder</code> 
+arguments are invoked, the rows of <code>predictions</code> component are ordered 
+so that they are in standard order for the variables in the <code>classify</code>. 
+That is, the values of the last variable change with every row, those of the 
+second-last variable only change after all the values of the last variable have 
+been traversed; in general, the values of a variable are the same for all the 
+combinations of the values to the variables to its right in the <code>classify</code>. 
+In addition, if necessary, the order of the columns of the variables in the 
+<code>predictions</code> component are changed to match their order in the <code>classify</code>.
+</p>
+<p>If <code>transform.power</code> or <code>scale</code> is not one or <code>offset</code> 
+is not zero, it will contain a <code>data.frame</code> with the backtransformed 
+linear transformation of the predictions. The backtransformation will, after 
+backtransforming for any power transformation, subtract the <code>offset</code> 
+and then divide by the <code>scale</code>.
+</p>
+<p>If <code>error.intervals</code> is not <code>"none"</code>, then the 
+<code>predictions</code> component and, if present, the 
+<code>backtransforms</code> component will contain columns for the lower 
+and upper values of the limits for the interval.
+</p>
+<p>The name of the <code>response</code>, the <code>response.title</code>, 
+the <code>term</code>, the <code>classify</code>, <code>tdf</code>, <code>sortFactor</code> 
+and the <code>sortOrder</code> will be set as attributes to the object. 
+Also, if <code>error.intervals</code> is <code>"halfLeastSignificant"</code>, then those of 
+<code>LSDtype</code>, <code>LSDby</code> and <code>LSDstatistic</code> that are not <code>NULL</code> 
+will be added as attributes of the object and of the <code>predictions frame</code>; 
+additionally, <code>LSDvalues</code> will be added as attribute of the 
+<code>predictions frame</code>, <code>LSDvalues</code> being the LSD values used in 
+calculating the <code>error.intervals</code>. 
+Note that the <code>classify</code> in an <code>alldiffs.object</code> is based on the 
+variables indexing the predictions, which may differ from the 
+<code>classify</code> used to obtain the original predictions (for example, 
+when the <code>alldiffs.object</code>s stores a linear transformation of predictions.
+</p>
+<p>For <code>linear.transformations</code> set to other than <code>NULL</code>, 
+an <code>alldiffs.object</code> with the <code>linear.transformation</code> 
+applied to the <code>predictions</code> and their standard errors and, 
+depending on the settings of the arguments, all pairwise 
+differences between the linearly transformed predictions, their 
+standard errors and p-values and LSD statistics. 
+(See also <code>linTransform.alldiffs</code>.)</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>alldiffs.object</code>, <code>as.alldiffs</code>, <code>print.alldiffs</code>, 
+<code>linTransform.alldiffs</code>, <code>sort.alldiffs</code>,  <br><code>subset.alldiffs</code>, <code>allDifferences.data.frame</code>, 
+<code>redoErrorIntervals.alldiffs</code>,  <br><code>recalcLSD.alldiffs</code>,  <code>exploreLSDs.alldiffs</code>, 
+<code>pickLSDstatistics.alldiffs</code>, <br><code>predictPresent.asreml</code>, 
+<code>plotPredictions.data.frame</code>, <code>as.Date</code>, <code>predict.asreml</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(WaterRunoff.dat)
+asreml.options(keep.order = TRUE) #required for asreml-R4 only
+current.asr &lt;- asreml(fixed = pH ~ Benches + (Sources * (Type + Species)), 
+                      random = ~ Benches:MainPlots,
+                      keep.order=TRUE, data= WaterRunoff.dat)
+current.asrt &lt;- as.asrtests(current.asr, NULL, NULL)
+diffs &lt;- predictPlus(classify = "Sources:Type", 
+                     asreml.obj = current.asr, 
+                     wald.tab = current.asrt$wald.tab, 
+                     present = c("Sources", "Type", "Species"))
+
+## End(Not run)</code></pre>
+
+
+</div>

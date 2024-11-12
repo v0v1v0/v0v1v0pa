@@ -1,0 +1,463 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dea.gem</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Generalized Efficiency Measures (Additive DEA Models)
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate additive Data Envelopment Analysis (DEA) efficiency with five Generalized Efficiency Measures (GEM): unweighted additive model (Cooper et al., 2007), Range Adjusted Measure (Cooper et al., 1999; 2001), Bounded Adjusted Measure (Cooper et al., 2011), Measure of Inefficiency Proportions (Cooper et al., 1999), and the Lovell-Pastor Measure (Lovell and Pastor, 1995).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dea.gem(base, noutput, fixed = NULL, rts = 2, bound = NULL,
+  add.model = c("additive", "RAM", "BAM", "MIP", "LovPast"),
+  whichDMUs = NULL, print.status = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+
+<p>A data frame with N rows and S+M columns, where N is the number of Decision-Making Units (DMUs), S is the number of
+outputs and M is the number of inputs. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noutput</code></td>
+<td>
+
+<p>The number of outputs produced by the DMUs. All DMUs must produce the same number of outputs.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>A numeric vector containing column indices for fixed (non-controllable) outputs and/or inputs (if any) in the data.
+Defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rts</code></td>
+<td>
+
+<p>Returns to scale specification. 1 for constant returns to scale and 2 (default) for variable returns to scale.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound</code></td>
+<td>
+
+<p>A data frame with N rows and S+M columns containing user-defined bounds on the slacks of each DMU. If bounds are
+supplied by the user in cases where some outputs and/or inputs are fixed, values should be 0 for these fixed
+variables. Same for slacks that do not require bounds. Defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.model</code></td>
+<td>
+
+<p>Additive model to calculate efficiency. additive: unweighted additive model (Cooper et al., 2007); RAM: Range
+Adjusted Measure (Cooper et al., 1999; 2001); BAM: Bounded Adjusted Measure (Cooper et al., 2011); MIP: Measure
+of Inefficiency Proportions (Cooper et al., 1999); LovPast: the Lovell-Pastor Measure (Lovell and Pastor, 1995).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>whichDMUs</code></td>
+<td>
+
+<p>Numeric vector specifying the line numbers of the DMUs for which efficiency should be calculated. Defaults to NULL, 
+i.e. by default efficiency is calculated for all DMUs in the dataset.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.status</code></td>
+<td>
+
+<p>Defaults to FALSE. If the solution of the linear program is NA for one or more DMUs, print.status can be set to TRUE to     find out why.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Generalized Efficiency Measures (GEMs) are additive DEA models that maximize the sum of input and output slacks for each DMU. This sum is an aggregate measure of all inefficiencies that a DMU may exhibit in its inputs and outputs and can thus be seen as a holistic measure of (Pareto-Koopmans) inefficiency (efficient DMUs have no inefficiencies, thus their sum of slacks is 0). GEMs differ in that they weigh slacks in the objective function in different manners: the unweighted additive model does not in fact weigh the slacks, i.e. all slacks are assigned a trivial weight of 1 (Cooper et al., 2007); RAM weighs input and output slacks by the ranges in inputs and outputs respectively (Cooper et al., 1999). BAM weighs input and output slacks by the lower-sided ranges in inputs and the upper-sided ranges in outputs respectively (Cooper et al., 2011). MIP weighs input and output slacks by the respective inputs used and outputs produced by each DMU (Cooper et al., 1999); the Lovell-Pastor Measure weighs input and output slacks by the standard deviations in inputs and outputs respectively (Lovell and Pastor, 1995).
+</p>
+<p>Models RAM, BAM, MIP and the Lovell-Pastor measure are units invariant, that is, the value of the aggregate inefficiency score of a DMU is independent of the units in which the inputs and outputs are measured, as long as these units are the same for every DMU. When a variable returns to scale specification is assumed, the unweighted additive model, RAM, BAM and the Lovell-Pastor measure are translation invariant, that is, they can accommodate zero or negative values of inputs and outputs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If print.status=FALSE, returns a data frame with N rows and 1+N+S+M columns. Column 1 reports the inefficiency score of each DMU. Columns 2 to N+1 contain the lambda values (intensity variables) indicating the DMU(s) that serve as reference for each DMU. Columns 1+N+1 to 1+N+S report the optimal output slacks for each DMU. Columns 1+N+S+1 to 1+N+S+M report the optimal input slacks for each DMU. When the linear program of a DMU is infeasible, the row of this DMU in the data frame will have NA values.
+</p>
+<p>If print.status=TRUE, returns a list with two elements. The first element is the aforementioned data frame. The second element is a numeric vector indicating the solution status of the linear program (e.g. 0: solution found; 2: problem is infeasible; 5: problem needs scaling; etc. See <a href="https://CRAN.R-project.org/package=lpSolveAPI">https://CRAN.R-project.org/package=lpSolveAPI</a>).
+</p>
+
+
+<h3>Note</h3>
+
+<p>Models RAM and BAM return an inefficiency score that is bounded by 0 and 1. Subtracting this inefficiency score from 1 gives an efficiency score that is also bounded by 0 and 1, with 1 indicating that the DMU under evaluation is fully efficient (zero slacks). The other GEMs do not carry this property, unless the slacks are bounded appropriately. For instance, the user may demand that output slacks are bounded by the actual outputs produced by each DMU, resulting in a MIP measure of inefficiency that, when divided by S+M and subtracted from 1, can be converted to an efficiency measure that is bounded by 0 and 1. Note that with RAM and BAM the bounds must be smaller than, or equal to, the ranges (for RAM) or the sided ranges (for BAM) for the inefficiency scores to be bounded by 0 and 1.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Diomedes Soteriades, <a href="mailto:andreassot10@yahoo.com">andreassot10@yahoo.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Cooper W. W., Park K. S., Pastor J. T. (1999) RAM: a range adjusted measure of inefficiency for use with additive models, and relations to other models and measures in DEA. <em>Journal of Productivity Analysis</em>, <b>11</b>, 5–42
+</p>
+<p>Cooper W. W., Park K. S., Pastor J. T. (2001) The range adjusted measure (RAM) in DEA: a response to the comment by Steinmann and Zweifel. <em>Journal of Productivity Analysis</em>, <b>15</b>, 145–152
+</p>
+<p>Cooper W. W., Pastor J. T., Borras F., Aparicio J., Pastor D. (2011) BAM: a bounded adjusted measure of efficiency for use with bounded additive models. <em>Journal of Productivity Analysis</em>, <b>35</b>, 85–94
+</p>
+<p>Cooper W. W., Seiford L., Tone K. (2007) <em>Data Envelopment Analysis: a comprehensive text with models, applications, references and DEA-Solver software</em>. New York: Springer
+</p>
+<p>Lovell, C. A. K., Pastor J. T. (1995) Units invariant and translation invariant DEA models. <em>Operations Research Letters</em>, <b>18</b>, 147–151
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dea.sbm</code>, <code>dea.fast</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Twelve DMUs, 2 inputs, 2 outputs
+# (see Table 1.5 in Cooper et al., 2007):
+base &lt;- data.frame(
+  y1= c(100,150,160,180,94,230,220,152,190,250,260,250),
+  y2= c(90,50,55,72,66,90,88,80,100,100,147,120),
+  x1= c(20,19,25,27,22,55,33,31,30,50,53,38),
+  x2= c(151,131,160,168,158,255,235,206,244,268,306,284))
+
+# Example 1: Get inefficiency scores,
+# lambdas and slacks for all DMUs, with each GEM:
+models &lt;- c("additive", "RAM", "BAM", "MIP", "LovPast")
+for(i in models) {
+  print(i)
+  results &lt;- dea.gem(base, noutput= 2, add.model= i)
+  print(results)
+}
+
+# Example 2: Same as above, but consider output y2 and input x1 as fixed:
+for(i in models) {
+  print(i)
+  results &lt;- dea.gem(base, noutput= 2, add.model= i, fixed= c(2, 3))
+  print(results)
+}
+
+# Example 3: Impose upper bounds to slacks and get BAM inefficiency:
+# upper-sided range for output:
+Uo &lt;- sweep(-base[c(1,2)], 2,
+  apply(base[c(1,2)], 2, max), '+')
+# lower-sided range for input
+Li &lt;- sweep(base[c(3,4)], 2,
+  apply(base[c(3,4)], 2, min), '-')
+# ensure bounds are &lt;= the sided ranges:
+bound &lt;- cbind(Uo, Li)/2
+# results with bounds:
+dea.gem(base, noutput= 2, add.model= "BAM", bound= bound)$eff
+# removing bounds allows for larger inefficiencies:
+dea.gem(base, noutput= 2, add.model= "BAM", bound= NULL)$eff
+# check solution status of linear programs when y2 and x1 are fixed
+# and y1, x2 slacks are bounded:
+fixed &lt;- c(2,3)
+bound[fixed] &lt;- 0
+for(i in models) {
+  print(i)
+  results &lt;- dea.gem(base, noutput= 2, add.model= i,
+    bound= bound, fixed= c(2, 3), rts= 1, print.status= TRUE)[[2]]
+  print(results)
+}
+
+# Example 4: Get inefficiency scores for DMUs 11 and 12:
+bound &lt;- base
+fixed &lt;- c(2,3)
+bound[fixed] &lt;- 0
+for(i in models) {
+  print(i)
+  results &lt;- dea.gem(base, noutput= 2, add.model= i,
+    bound= base, fixed= c(2, 3), rts= 1, whichDMUs= c(11, 12))$eff
+  print(results)
+}
+
+# Example 5: a typical scaling problem in linear programing
+# and how to deal with it:
+# get data from package Benchmarking:
+library(Benchmarking)
+data(pigdata)
+base &lt;- pigdata[, 2:9][, c(7,8,1:6)]
+results &lt;- dea.gem(base, noutput= 2, rts= 1,
+  add.model= 'RAM', print.status= TRUE)
+# inefficiency for DMU 37 is NA:
+which(is.na(results[[1]]$eff))
+# error status: 5, i.e. scaling problem:
+results[[2]][37]
+# scale data:
+results &lt;- dea.gem(base/1000, noutput= 2, rts= 1,
+  add.model= 'RAM', print.status= TRUE)
+which(is.na(results[[1]]$eff)) # problem solved!
+
+## The function is currently defined as
+function (base, noutput, fixed = NULL, rts = 2, bound = NULL, 
+    add.model = c("additive", "RAM", "BAM", "MIP", "LovPast"), 
+    whichDMUs = NULL, print.status = FALSE) 
+{
+    s &lt;- noutput
+    m &lt;- ncol(base) - s
+    n &lt;- nrow(base)
+    ifelse(!is.null(whichDMUs), nn &lt;- length(whichDMUs), nn &lt;- n)
+    if (is.null(whichDMUs)) {
+        whichDMUs &lt;- 1:n
+    }
+    re &lt;- data.frame(matrix(0, nrow = nn, ncol = 1 + n + s + 
+        m))
+    names(re) &lt;- c("eff", paste("lambda", 1:n, sep = ""), paste("slack.y", 
+        1:s, sep = ""), paste("slack.x", 1:m, sep = ""))
+    lpmodel &lt;- make.lp(nrow = 0, ncol = n + s + m)
+    slacks &lt;- diag(s + m)
+    slacks[1:s, ] &lt;- -slacks[1:s, ]
+    type &lt;- rep("=", s + m)
+    if (!is.null(fixed)) {
+        slacks[, fixed] &lt;- 0
+        type[fixed[fixed &lt;= s]] &lt;- "&gt;="
+        type[fixed[fixed &gt; s]] &lt;- "&lt;="
+    }
+    A &lt;- cbind(t(base), slacks)
+    for (i in 1:(s + m)) {
+        add.constraint(lpmodel, xt = A[i, ], type = type[i], 
+            rhs = 0)
+    }
+    if (add.model == "BAM") {
+        Uo &lt;- t(apply(data.frame(base[, 1:s]), 2, max) - t(base[, 
+            1:s]))
+        Li &lt;- t(t(base[, (s + 1):(s + m)]) - apply(data.frame(base[, 
+            (s + 1):(s + m)]), 2, min))
+        if (!is.null(bound) &amp; rts == 1) {
+            index1 &lt;- which(colSums(bound) == 0)
+            bound[, index1] &lt;- data.frame(Uo, Li)[, index1]
+            if (!is.null(fixed)) {
+                bound[fixed] &lt;- 0
+            }
+        }
+        if (is.null(bound) &amp; rts == 1) {
+            bound &lt;- data.frame(Uo, Li)
+            if (!is.null(fixed)) {
+                bound[fixed] &lt;- 0
+            }
+        }
+    }
+    if (add.model == "RAM") {
+        Ro &lt;- apply(data.frame(base[, 1:s]), 2, max) - apply(data.frame(base[, 
+            1:s]), 2, min)
+        Ri &lt;- apply(data.frame(base[, (s + 1):(s + m)]), 2, max) - 
+            apply(data.frame(base[, (s + 1):(s + m)]), 2, min)
+        if (!is.null(bound) &amp; rts == 1) {
+            index1 &lt;- which(colSums(bound) == 0)
+            bound[, index1] &lt;- t(as.data.frame(matrix(c(Ro, Ri), 
+                nrow = s + m, ncol = nrow(base))))[, index1]
+            if (!is.null(fixed)) {
+                bound[fixed] &lt;- 0
+            }
+        }
+        if (is.null(bound) &amp; rts == 1) {
+            bound &lt;- t(as.data.frame(matrix(c(Ro, Ri), nrow = s + 
+                m, ncol = nrow(base))))
+            if (!is.null(fixed)) {
+                bound[fixed] &lt;- 0
+            }
+        }
+    }
+    if (!is.null(bound)) {
+        index &lt;- which(colSums(bound) != 0)
+        nrows &lt;- length(index)
+        A.bound &lt;- matrix(0, nrow = nrows, ncol = n + s + m)
+        k &lt;- 0
+        for (i in index) {
+            k &lt;- k + 1
+            A.bound[k, n + index[k]] &lt;- 1
+        }
+        A &lt;- rbind(A, A.bound)
+        for (i in 1:k) {
+            add.constraint(lpmodel, xt = A[s + m + i, ], type = "&lt;=", 
+                rhs = 0)
+        }
+    }
+    syx &lt;- rep(-1, s + m)
+    syx[fixed] &lt;- 0
+    if (add.model == "additive") {
+        set.objfn(lpmodel, c(rep(0, n), syx))
+    }
+    if (add.model == "RAM") {
+        Ro[Ro == 0] &lt;- Inf
+        Ri[Ri == 0] &lt;- Inf
+        Ranges &lt;- (1/c(Ro, Ri))/abs(sum(syx))
+        set.objfn(lpmodel, c(rep(0, n), as.numeric(syx * Ranges)))
+    }
+    if (add.model == "LovPast") {
+        st.dev &lt;- apply(base, 2, sd)
+        st.dev[st.dev == 0] &lt;- Inf
+        set.objfn(lpmodel, c(rep(0, n), syx/st.dev))
+    }
+    k &lt;- 0
+    if (print.status == TRUE) {
+        ifelse(!is.null(whichDMUs), solution.status &lt;- rep(0, 
+            nn), solution.status &lt;- rep(0, n))
+    }
+    if (rts == 2 &amp; is.null(bound)) {
+        add.constraint(lpmodel, xt = c(rep(1, n), rep(0, s + 
+            m)), type = "=", rhs = 0)
+        for (i in whichDMUs) {
+            k &lt;- k + 1
+            if (add.model == "MIP") {
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx/base[i, 
+                  ])))
+            }
+            if (add.model == "BAM") {
+                Uo[i, ][Uo[i, ] == 0] &lt;- Inf
+                Li[i, ][Li[i, ] == 0] &lt;- Inf
+                Ranges &lt;- (1/c(Uo[i, ], Li[i, ]))/abs(sum(syx))
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx * 
+                  Ranges)))
+            }
+            set.rhs(lpmodel, b = as.numeric(c(base[i, ], 1)))
+            x &lt;- solve(lpmodel)
+            if (print.status == TRUE) {
+                solution.status[k] &lt;- x
+            }
+            re[k, ] &lt;- c(-get.objective(lpmodel), tail(get.primal.solution(lpmodel), 
+                s + m + n))
+            if (x != 0) {
+                re[k, ] &lt;- rep(NA, ncol(re))
+            }
+        }
+    }
+    if (rts == 2 &amp; !is.null(bound)) {
+        add.constraint(lpmodel, xt = c(rep(1, n), rep(0, s + 
+            m)), type = "=", rhs = 0)
+        for (i in whichDMUs) {
+            k &lt;- k + 1
+            if (add.model == "MIP") {
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx/base[i, 
+                  ])))
+            }
+            if (add.model == "BAM") {
+                Uo[i, ][Uo[i, ] == 0] &lt;- Inf
+                Li[i, ][Li[i, ] == 0] &lt;- Inf
+                Ranges &lt;- (1/c(Uo[i, ], Li[i, ]))/abs(sum(syx))
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx * 
+                  Ranges)))
+            }
+            if (add.model %in% c("RAM", "BAM")) {
+                set.rhs(lpmodel, b = as.numeric(c(base[i, ], 
+                  bound[i, index], 1)))
+            }
+            if (sum(add.model == c("RAM", "BAM")) == 0) {
+                bound[bound == 0] &lt;- 10^10
+                set.rhs(lpmodel, b = as.numeric(c(base[i, ], 
+                  bound[i, index], 1)))
+            }
+            solve(lpmodel)
+            x &lt;- solve(lpmodel)
+            if (print.status == TRUE) {
+                solution.status[k] &lt;- x
+            }
+            re[k, ] &lt;- c(-get.objective(lpmodel), tail(get.primal.solution(lpmodel), 
+                s + m + n))
+            if (x != 0) {
+                re[k, ] &lt;- rep(NA, ncol(re))
+            }
+        }
+    }
+    if (rts == 1 &amp; is.null(bound)) {
+        for (i in whichDMUs) {
+            k &lt;- k + 1
+            if (add.model == "MIP") {
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx/base[i, 
+                  ])))
+            }
+            set.rhs(lpmodel, b = as.numeric(base[i, ]))
+            x &lt;- solve(lpmodel)
+            if (print.status == TRUE) {
+                solution.status[k] &lt;- x
+            }
+            re[k, ] &lt;- c(-get.objective(lpmodel), tail(get.primal.solution(lpmodel), 
+                s + m + n))
+            if (x != 0) {
+                re[k, ] &lt;- rep(NA, ncol(re))
+            }
+        }
+    }
+    if (rts == 1 &amp; !is.null(bound)) {
+        for (i in whichDMUs) {
+            k &lt;- k + 1
+            if (add.model == "MIP") {
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx/base[i, 
+                  ])))
+            }
+            if (add.model == "BAM") {
+                Uo[i, ][Uo[i, ] == 0] &lt;- Inf
+                Li[i, ][Li[i, ] == 0] &lt;- Inf
+                Ranges &lt;- (1/c(Uo[i, ], Li[i, ]))/abs(sum(syx))
+                set.objfn(lpmodel, c(rep(0, n), as.numeric(syx * 
+                  Ranges)))
+            }
+            if (add.model %in% c("RAM", "BAM")) {
+                set.rhs(lpmodel, b = as.numeric(c(base[i, ], 
+                  bound[i, index])))
+            }
+            if (sum(add.model == c("RAM", "BAM")) == 0) {
+                bound[bound == 0] &lt;- 10^10
+                set.rhs(lpmodel, b = as.numeric(c(base[i, ], 
+                  bound[i, index])))
+            }
+            x &lt;- solve(lpmodel)
+            if (print.status == TRUE) {
+                solution.status[k] &lt;- x
+            }
+            ifelse(x != 0, re[k, ] &lt;- rep(NA, ncol(re)), re[k, 
+                ] &lt;- c(-get.objective(lpmodel), tail(get.primal.solution(lpmodel), 
+                s + m + n)))
+        }
+    }
+    if (!is.null(fixed)) {
+        re &lt;- re[, -(1 + n + fixed)]
+    }
+    if (print.status == TRUE) {
+        reList &lt;- list()
+        reList[[1]] &lt;- re
+        reList[[2]] &lt;- solution.status
+        names(reList[[2]]) &lt;- whichDMUs
+        re &lt;- reList
+    }
+    return(re)
+  }
+</code></pre>
+
+
+</div>

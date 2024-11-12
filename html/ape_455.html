@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>yule.cov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fits the Yule Model With Covariates</h2>
+
+<h3>Description</h3>
+
+<p>This function fits by maximum likelihood the Yule model with
+covariates, that is a birth-only model where speciation rate is
+determined by a generalized linear model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">yule.cov(phy, formula, data = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>phy</code></td>
+<td>
+<p>an object of class <code>"phylo"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula specifying the model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the name of the data frame where the variables in
+<code>formula</code> are to be found; by default, the variables are looked
+for in the global environment.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The model fitted is a generalization of the Yule model where the
+speciation rate is determined by:
+</p>
+<p style="text-align: center;"><code class="reqn">\ln\frac{\lambda_i}{1 - \lambda_i} = \beta_1 x_{i1} + \beta_2 x_{i2}
+    + \dots + \alpha </code>
+</p>
+
+<p>where <code class="reqn">\lambda_i</code> is the speciation rate for species i,
+<code class="reqn">x_{i1}, x_{i2}, \dots</code> are species-specific
+variables, and <code class="reqn">\beta_1, \beta_2, \dots, \alpha</code>
+are parameters to be estimated. The term on the left-hand side above
+is a logit function often used in generalized linear models for
+binomial data (see <code>family</code>). The above model can
+be written in matrix form:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{logit} \lambda_i = x_i' \beta</code>
+</p>
+
+<p>The standard-errors of the parameters are computed with the second
+derivatives of the log-likelihood function. (See References for other
+details on the estimation procedure.)
+</p>
+<p>The function needs three things:
+</p>
+
+<ul>
+<li>
+<p> a phylogenetic tree which may contain multichotomies;
+</p>
+</li>
+<li>
+<p> a formula which specifies the predictors of the model described
+above: this is given as a standard <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> formula and has no response (no
+left-hand side term), for instance: <code>~ x + y</code>, it can include
+interactions (<code>~ x + a * b</code>) (see <code>formula</code>
+for details);
+</p>
+</li>
+<li>
+<p> the predictors specified in the formula must be accessible to
+the function (either in the global space, or though the <code>data</code>
+option); they can be numeric vectors or factors. The length and the
+order of these data are important: the number of values (length) must
+be equal to the number of tips of the tree + the number of nodes. The
+order is the following: first the values for the tips in the same
+order than for the labels, then the values for the nodes sequentially
+from the root to the most terminal nodes (i.e., in the order given by
+<code>phy$edge</code>).
+</p>
+</li>
+</ul>
+<p>The user must obtain the values for the nodes separately.
+</p>
+<p>Note that the method in its present implementation assumes that the
+change in a species trait is more or less continuous between two nodes
+or between a node and a tip. Thus reconstructing the ancestral values
+with a Brownian motion model may be consistent with the present
+method. This can be done with the function <code>ace</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A NULL value is returned, the results are simply printed. The output
+includes the deviance of the null (intercept-only) model and a
+likelihood-ratio test of the fitted model against the null model.
+Note that the deviance of the null model is different from the one
+returned by <code>yule</code> because of the different parametrizations.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Emmanuel Paradis</p>
+
+
+<h3>References</h3>
+
+<p>Paradis, E. (2005) Statistical analysis of diversification with
+species traits. <em>Evolution</em>, <b>59</b>, 1–12.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>branching.times</code>, <code>diversi.gof</code>,
+<code>diversi.time</code>, <code>ltt.plot</code>,
+<code>birthdeath</code>, <code>bd.ext</code>, <code>yule</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### a simple example with some random data
+data(bird.orders)
+x &lt;- rnorm(45) # the tree has 23 tips and 22 nodes
+### the standard-error for x should be as large as
+### the estimated parameter
+yule.cov(bird.orders, ~ x)
+### another example with a tree that has a multichotomy
+data(bird.families)
+y &lt;- rnorm(272) # 137 tips + 135 nodes
+yule.cov(bird.families, ~ y)
+</code></pre>
+
+
+</div>

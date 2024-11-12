@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test.W</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to compute and test eigenvectors of spatial weighting matrices</h2>
+
+<h3>Description</h3>
+
+<p>This function is now deprecated. Please try the new <code>listw.candidates</code> and 
+<code>listw.select</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">test.W(
+  Y,
+  nb,
+  xy,
+  MEM.autocor = c("all", "positive", "negative"),
+  f = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A matrix with response variables (univariate or multivariate 
+response)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb</code></td>
+<td>
+<p>An object of the class <code>nb</code> created by functions of the 
+<code>spdep</code> package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>Coordinates of the samples, this argument is optional and is 
+required only if the argument <code>f</code> is not null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MEM.autocor</code></td>
+<td>
+<p>A string indicating if all MEM must be returned or only 
+those corresponding to positive or negative autocorrelation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>A function of the distance that can be used as a weighting spatial 
+function. This argument is optional</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Others arguments for the function <code>f</code>. It defines the range
+of parameters which will be tested</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is a user-friendly way to compute and test eigenvectors for
+various definitions of spatial weighting matrices. It combines calls to the 
+functions <code>scores.listw</code> and <code>ortho.AIC</code>. It allows to test various
+definitions of the spatial weighting matrix and return results of 
+<code>scores.listw</code> for the best one.
+</p>
+<p>This functions allows to test one binary spatial weighting matrix 
+(if only Y and nb are provided). It allows also to test a weighting 
+function based on distances (if f is provided) and a weighting function 
+with different values of parameters if other arguments of <code>f</code> are 
+provided.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following elements: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>all </code></td>
+<td>
+<p>A data.frame where 
+each row correspond to one spatial weighting matrix tested. It contains 
+value of parameteres tested and corrected AIC and number of orthogonal 
+vectors for the best model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best </code></td>
+<td>
+<p>A list containing results of 
+scores.listw and ortho.AIC of the best spatial weighting matrix according 
+to corrected AIC.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Stéphane Dray <a href="mailto:stephane.dray@univ-lyon1.fr">stephane.dray@univ-lyon1.fr</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Dray S., Legendre P. and Peres-Neto P. R. (2006) Spatial 
+modeling: a comprehensive framework for principal coordinate analysis of 
+neighbor matrices (PCNM). Ecological Modelling, 196, 483–493
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ortho.AIC</code>, <code>scores.listw</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require(ade4) &amp; require(spdep)){
+
+data(oribatid)
+# Hellinger transformation
+fau &lt;- sqrt(oribatid$fau / outer(apply(oribatid$fau, 1, sum), rep(1, ncol(oribatid$fau)), "*"))
+# remove gradient effect
+faudt &lt;- resid(lm(as.matrix(fau) ~ as.matrix(oribatid$xy)))
+
+# test a binary spatial weighting matrix
+nbtri &lt;- tri2nb(as.matrix(oribatid$xy))
+tri.res &lt;- test.W(faudt, nbtri)
+
+maxi &lt;- max(unlist(nbdists(nbtri, as.matrix(oribatid$xy))))
+
+# test a simple spatial weighting function of the distance
+f1 &lt;- function(x) {1-(x)/(maxi)}
+tri.f1 &lt;- test.W(faudt, nbtri, f = f1, xy = as.matrix(oribatid$xy))
+
+# test a spatial weighting function with various values of parameters
+f2 &lt;- function(x,dmax,y) {1-(x^y)/(dmax)^y}
+tri.f2 &lt;- test.W(faudt,nbtri, f = f2, y = 2:10, dmax = maxi, xy = as.matrix(oribatid$xy))
+}
+
+</code></pre>
+
+
+</div>

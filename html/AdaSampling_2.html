@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adaSvmBenchmark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Benchmarking AdaSampling efficacy on noisy labelled data.</h2>
+
+<h3>Description</h3>
+
+<p><code>adaSvmBenchmark()</code> allows a comparison between the performance
+of an AdaSampling-enhanced SVM (support vector machine)-
+classifier against the SVM-classifier on its
+own. It requires a matrix of features (extracted from a labelled dataset),
+and two vectors of true labels and labels with noise added as desired.
+It runs an SVM classifier and returns a matrix which displays the specificity
+(Sp), sensitivity (Se) and F1 score for each of four conditions:
+"Original" (classifying with true labels), "Baseline" (classifying with
+noisy labels), "AdaSingle" (classifying using AdaSampling) and
+"AdaEnsemble" (classifying using AdaSampling in conjunction with
+an ensemble of models).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adaSvmBenchmark(data.mat, data.cls, data.cls.truth, cvSeed, C = 50,
+  sampleFactor = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data.mat</code></td>
+<td>
+<p>a rectangular matrix or data frame that can be
+coerced to a matrix, containing the
+features of the dataset, without class labels. Rownames (possibly
+containing unique identifiers) will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.cls</code></td>
+<td>
+<p>a numeric vector containing class labels for the dataset
+with added noise.
+Must be in the same order and of the same length as <code>data.mat</code>. Labels
+must be 1 for positive observations, and 0 for negative observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.cls.truth</code></td>
+<td>
+<p>a numeric vector of true class labels for
+the dataset. Must be the same order and of the same length as <code>data.mat</code>. Labels must
+be 1, for positive observations, and 0 for negative observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvSeed</code></td>
+<td>
+<p>sets the seed for cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>sets how many times to run the classifier, for the AdaEnsemble
+condition. See Description above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampleFactor</code></td>
+<td>
+<p>provides a control on the sample size for resampling.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>AdaSampling is an adaptive sampling-based noise reduction method
+to deal with noisy class labelled data, which acts as a wrapper for
+traditional classifiers, such as support vector machines,
+k-nearest neighbours, logistic regression, and linear discriminant
+analysis. For more details see <code>?adaSample()</code>.
+</p>
+<p>This function runs evaluates the AdaSampling procedure by adding noise
+to a labelled dataset, and then running support vector machines on
+the original and the noisy dataset. Note that this function is for
+benchmarking AdaSampling performance using what is assumed to be
+a well-labelled dataset. In order to run AdaSampling on a noisy dataset,
+please see <code>adaSample()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>performance matrix
+</p>
+
+
+<h3>References</h3>
+
+<p>Yang, P., Liu, W., Yang. J. (2017) Positive unlabeled learning via wrapper-based
+adaptive sampling. <em>International Joint Conferences on Artificial Intelligence (IJCAI)</em>, 3272-3279
+</p>
+<p>Yang, P., Ormerod, J., Liu, W., Ma, C., Zomaya, A., Yang, J.(2018) 
+AdaSampling for positive-unlabeled and label noise learning with bioinformatics applications. 
+<em>IEEE Transactions on Cybernetics</em>, doi:10.1109/TCYB.2018.2816984
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load the example dataset
+data(brca)
+head(brca)
+
+# First, clean up the dataset to transform into the required format.
+brca.mat &lt;- apply(X = brca[,-10], MARGIN = 2, FUN = as.numeric)
+brca.cls &lt;- sapply(X = brca$cla, FUN = function(x) {ifelse(x == "malignant", 1, 0)})
+rownames(brca.mat) &lt;- paste("p", 1:nrow(brca.mat), sep="_")
+
+# Introduce 40% noise to positive class and 30% noise to the negative class
+set.seed(1)
+pos &lt;- which(brca.cls == 1)
+neg &lt;- which(brca.cls == 0)
+brca.cls.noisy &lt;- brca.cls
+brca.cls.noisy[sample(pos, floor(length(pos) * 0.4))] &lt;- 0
+brca.cls.noisy[sample(neg, floor(length(neg) * 0.3))] &lt;- 1
+
+# benchmark classification performance with different approaches
+
+adaSvmBenchmark(data.mat = brca.mat, data.cls = brca.cls.noisy, data.cls.truth = brca.cls, cvSeed=1)
+
+
+</code></pre>
+
+
+</div>

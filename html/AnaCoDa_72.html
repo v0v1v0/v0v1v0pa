@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>runMCMC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run MCMC</h2>
+
+<h3>Description</h3>
+
+<p><code>runMCMC</code> will run a monte carlo markov chain algorithm
+for the given mcmc, genome, and model objects to perform a model fitting.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">runMCMC(mcmc, genome, model, ncores = 1, divergence.iteration = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mcmc</code></td>
+<td>
+<p>MCMC object that will run the model fitting algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genome</code></td>
+<td>
+<p>Genome that the model fitting will run on. Should be 
+the same genome associated with the parameter and model objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model to run the fitting on. Should be associated with
+the given genome.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>Number of cores to perform the model fitting with. Default
+value is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>divergence.iteration</code></td>
+<td>
+<p>Number of steps that the initial conditions
+can diverge from the original conditions given. Default value is 0.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>runMCMC</code> will run for the number of samples times the number
+thinning given when the mcmc object is initialized. Updates are provided every 100
+steps, and the state of the chain is saved every thinning steps.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function has no return value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#fitting a model to a genome using the runMCMC function
+
+genome_file &lt;- system.file("extdata", "genome.fasta", package = "AnaCoDa")
+
+genome &lt;- initializeGenomeObject(file = genome_file)
+sphi_init &lt;- c(1,1)
+numMixtures &lt;- 2
+geneAssignment &lt;- c(rep(1,floor(length(genome)/2)),rep(2,ceiling(length(genome)/2)))
+parameter &lt;- initializeParameterObject(genome = genome, sphi = sphi_init, 
+                                       num.mixtures = numMixtures, 
+                                       gene.assignment = geneAssignment, 
+                                       mixture.definition = "allUnique")
+model &lt;- initializeModelObject(parameter = parameter, model = "ROC")
+samples &lt;- 2500
+thinning &lt;- 50
+adaptiveWidth &lt;- 25
+mcmc &lt;- initializeMCMCObject(samples = samples, thinning = thinning, 
+                             adaptive.width=adaptiveWidth, est.expression=TRUE, 
+                             est.csp=TRUE, est.hyper=TRUE, est.mix = TRUE) 
+divergence.iteration &lt;- 10
+## Not run: 
+runMCMC(mcmc = mcmc, genome = genome, model = model, 
+        ncores = 4, divergence.iteration = divergence.iteration)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

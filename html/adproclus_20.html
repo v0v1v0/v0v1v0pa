@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>select_by_CHull</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic Model Selection for ADPROCLUS with CHull Method</h2>
+
+<h3>Description</h3>
+
+<p>For a set of full dimensional ADPROCLUS models (each with different number of clusters),
+this function finds the "elbow" in the scree plot by using the
+CHull procedure (Wilderjans, Ceuleman &amp; Meers, 2013) implemented in
+the <code>multichull</code> package.
+For a matrix of low dimensional ADPROCLUS models
+(each with different number of cluster and components),
+this function finds the "elbow" in the scree plot for each
+number of clusters with the CHull methods.
+That is, it reduces the number of model to choose from to the number of
+different cluster parameter values by choosing the "elbow" number of
+components for a given number of clusters. The resulting list can in turn
+be visualized with <code>plot_scree_adpc_preselected</code>.
+For this procedure to work, the SSE or unexplained variance values must be
+decreasing in the number of clusters (components). If that is not the case
+increasing the number of (semi-) random starts can help.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">select_by_CHull(model_fit, percentage_fit = 1e-04, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model_fit</code></td>
+<td>
+<p>Matrix containing SSEs or unexplained variance of all models
+as in the output of <code>mselect_adproclus</code> or <code>mselect_adproclus_low_dim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>percentage_fit</code></td>
+<td>
+<p>Required proportion of increase in fit of a more complex model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters to be passed on to <code>multichull::CHull()</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This procedure cannot choose the model with
+the largest or smallest number of clusters (components), i.e. for a set of
+three models it will always choose the middle one. If for a given number of
+clusters exactly two models were estimated, this function chooses the model
+with the lower SSE/unexplained variance.
+</p>
+<p>The name of the model fit criterion is propagated from the input matrix based
+on the first column name. It is either "SSE" or "Unexplained_Variance".
+</p>
+
+
+<h3>Value</h3>
+
+<p>For full dimensional ADPROCLUS a <code>CHull</code> object describing the
+chosen model.
+For low dimensional ADPROCLUS a matrix containing the list of chosen models
+and the relevant model parameter, compatible with
+<code>plot_scree_adpc_preselected</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Wilderjans, T. F., Ceulemans, E., &amp; Meers, K. (2012). CHull: A generic convex hull based model
+selection method. <em>Behavior Research Methods</em>, 45, 1-15
+</p>
+
+
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>mselect_adproclus</code></dt>
+<dd>
+<p>to obtain the <code>model_fit</code> input from the possible ADPROCLUS models</p>
+</dd>
+<dt><code>mselect_adproclus_low_dim</code></dt>
+<dd>
+<p>to obtain the <code>model_fit</code> input from the possible low dimensional ADPROCLUS models</p>
+</dd>
+<dt><code>plot_scree_adpc</code></dt>
+<dd>
+<p>for plotting the model fits</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Loading a test dataset into the global environment
+x &lt;- stackloss
+
+# Estimating models with cluster parameter values ranging from 1 to 4
+model_fits &lt;- mselect_adproclus(data = x, min_nclusters = 1, max_nclusters = 4)
+
+# Use and visualize CHull method
+selected_model &lt;- select_by_CHull(model_fits)
+selected_model
+plot(selected_model)
+
+# Estimating low dimensional models with cluster parameter values
+# ranging from 1 to 4 and component parameter values also ranging from 1 to 4
+model_fits &lt;- mselect_adproclus_low_dim(data = x, 1, 4, 1, 4, nsemirandomstart = 10, seed = 1)
+
+# Using the CHull method
+pre_selection &lt;- select_by_CHull(model_fits)
+
+# Visualize pre-selected models
+plot_scree_adpc_preselected(pre_selection)
+
+</code></pre>
+
+
+</div>

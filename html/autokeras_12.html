@@ -1,0 +1,212 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>model_structured_data_classifier</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AutoKeras Structured Data Classifier Model</h2>
+
+<h3>Description</h3>
+
+<p>AutoKeras structured data classification class.<br>
+To 'fit', 'evaluate' or 'predict', format inputs as:
+</p>
+
+<ul>
+<li>
+<p>x : character or array. If the data is from a csv file, it should be a
+character specifying the path of the csv file of the training data.
+
+</p>
+</li>
+<li>
+<p>y : character or array. If the data is from a csv file, it should be a
+character, which is the name of the target column. Otherwise, It can be raw
+labels, one-hot encoded if more than two classes, or binary encoded for
+binary classification.
+
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">model_structured_data_classifier(
+  column_names = NULL,
+  column_types = NULL,
+  num_classes = NULL,
+  multi_label = FALSE,
+  loss = NULL,
+  metrics = NULL,
+  name = "structured_data_classifier",
+  max_trials = 100,
+  directory = tempdir(),
+  objective = "val_accuracy",
+  overwrite = TRUE,
+  seed = runif(1, 0, 1e+07)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>column_names</code></td>
+<td>
+<p>: A list of characters specifying the names of the
+columns. The length of the list should be equal to the number of columns of
+the data excluding the target column. Defaults to 'NULL'. If 'NULL', it
+will obtained from the header of the csv file or the 'data.frame'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_types</code></td>
+<td>
+<p>: A list of characters. The names are the column names.
+The values should either be 'numerical' or 'categorical', indicating the
+type of that column. Defaults to 'NULL'. If not 'NULL', the 'column_names'
+need to be specified. If 'NULL', it will be inferred from the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_classes</code></td>
+<td>
+<p>: numeric. Defaults to 'NULL'. If 'NULL', it will infer
+from the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi_label</code></td>
+<td>
+<p>: logical. Defaults to 'FALSE'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>: A Keras loss function. Defaults to use "binary_crossentropy" or
+"categorical_crossentropy" based on the number of classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>: A list of Keras metrics. Defaults to use "accuracy".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>: character. The name of the AutoModel. Defaults to
+"structured_data_classifier".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_trials</code></td>
+<td>
+<p>: numeric. The maximum number of different Keras Models to
+try. The search may finish before reaching the 'max_trials'. Defaults to
+'100'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directory</code></td>
+<td>
+<p>: character. The path to a directory for storing the search
+outputs. Defaults to 'tempdir()', which would create a folder with the name
+of the AutoModel in the current directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>: character. Name of model metric to minimize or maximize.
+Defaults to "val_accuracy".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>: logical. Defaults to 'TRUE'. If 'FALSE', reloads an
+existing project of the same name if one is found. Otherwise, overwrites
+the project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>: numeric. Random seed. Defaults to 'runif(1, 0, 10e6)'.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Important: The object returned by this function behaves like an R6 object,
+i.e., within function calls with this object as parameter, it is most likely
+that the object will be modified. Therefore it is not necessary to assign
+the result of the functions to the same object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A non-trained structured data classifier AutokerasModel.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library("magrittr")
+
+# use the iris dataset as an example
+set.seed(8818)
+# balanced sample 80% for training
+train_idxs &lt;- unlist(by(seq_len(nrow(iris)), iris$Species, function(x) {
+  sample(x, length(x) * .8)
+}))
+train_data &lt;- iris[train_idxs, ]
+test_data &lt;- iris[-train_idxs, ]
+
+colnames(iris)
+# Species will be the interest column to predict
+
+train_file &lt;- paste0(tempdir(), "/iris_train.csv")
+write.csv(train_data, train_file, row.names = FALSE)
+
+# file to predict, cant have the response "Species" column
+test_file_to_predict &lt;- paste0(tempdir(), "/iris_test_2_pred.csv")
+write.csv(test_data[, -5], test_file_to_predict, row.names = FALSE)
+
+test_file_to_eval &lt;- paste0(tempdir(), "/iris_test_2_eval.csv")
+write.csv(test_data, test_file_to_eval, row.names = FALSE)
+
+library("autokeras")
+
+# Initialize the structured data classifier
+clf &lt;- model_structured_data_classifier(max_trials = 10) %&gt;% # It tries 10 different models
+  fit(train_file, "Species") # Feed the structured data classifier with training data
+
+# If you want to use own valitadion data do:
+clf &lt;- model_structured_data_classifier(max_trials = 10) %&gt;%
+  fit(
+    train_file,
+    "Species",
+    validation_data = list(test_file_to_eval, "Species")
+  )
+
+# Predict with the best model
+(predicted_y &lt;- clf %&gt;% predict(test_file_to_predict))
+
+# Evaluate the best model with testing data
+clf %&gt;% evaluate(test_file_to_eval, "Species")
+
+# Get the best trained Keras model, to work with the keras R library
+export_model(clf)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

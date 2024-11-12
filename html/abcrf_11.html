@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.abcrf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict and evaluate the posterior probability of the MAP
+for new data using an ABC-RF object</h2>
+
+<h3>Description</h3>
+
+<p>Based on an ABC-RF object this function predicts the best model for
+new data and evaluate the posterior probability of the MAP.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'abcrf'
+predict(object, obs, training, ntree = 1000, 
+sampsize = min(1e5,  object$model.rf$num.samples ), paral = FALSE,
+ncores = if(paral) max(detectCores()-1,1) else 1, paral.predict = FALSE, 
+ncores.predict = if(paral.predict) max(detectCores()-1,1) else 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an <code>abcrf</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>a data frame containing the summary statistics of the observed data sets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>training</code></td>
+<td>
+<p>the data frame containing the reference table used to train the <code>abcrf</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntree</code></td>
+<td>
+<p>number of trees to grow in the regression forest, by default 1,000 trees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampsize</code></td>
+<td>
+<p>size of the sample from the reference table used to grow a tree
+of the forest, by default the minimum between the number of elements of the reference table and 100,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paral</code></td>
+<td>
+<p>a boolean that indicates if the calculations of the regression random forest
+(forest that returns the posterior probability of the selected model) should be parallelized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>the number of CPU cores to use for the regression random forest construction. If paral=TRUE, it is used the number of CPU cores minus 1. If ncores is not specified and <code>detectCores</code> does not detect the number of CPU cores with success then 1 core is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paral.predict</code></td>
+<td>
+<p>a boolean that indicates if random forests predictions should be parallelized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores.predict</code></td>
+<td>
+<p>the number of CPU cores to use for random forest predictions (classification and regression). If paral.predict=TRUE, it is used the number of CPU cores minus 1. If ncores.predict is not specified and <code>detectCores</code> does not detect the number of CPU cores with success then 1 core is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed on to <code>ranger</code> used to construct
+the regression random forest that estimates the posterior probability of the selected model.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>abcrfpredict</code>, which is a list with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>allocation</code></td>
+<td>
+<p>indices of the selected models for each observed data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vote</code></td>
+<td>
+<p>votes for each observed dataset,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.prob</code></td>
+<td>
+<p>ABC-RF approximations of the posterior probability of the selected model for each observed dataset.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Pudlo P., Marin J.-M., Estoup A., Cornuet J.-M., Gautier M. and Robert, C. P. (2016)
+<em>Reliable ABC model choice via random forests</em> Bioinformatics
+<a href="https://doi.org/10.1093/bioinformatics/btv684">doi:10.1093/bioinformatics/btv684</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>abcrf</code>,
+<code>plot.abcrf</code>,
+<code>err.abcrf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(snp)
+modindex &lt;- snp$modindex[1:500]
+sumsta &lt;- snp$sumsta[1:500,]
+data1 &lt;- data.frame(modindex, sumsta)
+model.rf &lt;- abcrf(modindex~., data1, ntree=100)
+data(snp.obs)
+predict(model.rf, snp.obs, data1, ntree=100)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,232 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auk_zerofill</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read and zero-fill an eBird data file</h2>
+
+<h3>Description</h3>
+
+<p>Read an eBird Basic Dataset (EBD) file, and associated sampling event data
+file, to produce a zero-filled, presence-absence dataset. The EBD contains
+bird sightings and the sampling event data is a set of all checklists, they
+can be combined to infer absence data by assuming any species not reported on
+a checklist was had a count of zero.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auk_zerofill(x, ...)
+
+## S3 method for class 'data.frame'
+auk_zerofill(
+  x,
+  sampling_events,
+  species,
+  taxonomy_version,
+  collapse = FALSE,
+  unique = TRUE,
+  rollup = TRUE,
+  drop_higher = TRUE,
+  complete = TRUE,
+  ...
+)
+
+## S3 method for class 'character'
+auk_zerofill(
+  x,
+  sampling_events,
+  species,
+  taxonomy_version,
+  collapse = FALSE,
+  unique = TRUE,
+  rollup = TRUE,
+  drop_higher = TRUE,
+  complete = TRUE,
+  sep = "\t",
+  ...
+)
+
+## S3 method for class 'auk_ebd'
+auk_zerofill(
+  x,
+  species,
+  taxonomy_version,
+  collapse = FALSE,
+  unique = TRUE,
+  rollup = TRUE,
+  drop_higher = TRUE,
+  complete = TRUE,
+  sep = "\t",
+  ...
+)
+
+collapse_zerofill(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>filename, <code>data.frame</code> of eBird observations, or <code>auk_ebd</code> object
+with associated output files as created by <code>auk_filter()</code>. If a filename is
+provided, it must point to the EBD and the <code>sampling_events</code> argument must
+point to the sampling event data file. If a <code>data.frame</code> is provided it
+should have been imported with <code>read_ebd()</code>, to ensure the variables names
+have been set correctly, and it must have been passed through
+<code>auk_unique()</code> to ensure duplicate group checklists have been removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling_events</code></td>
+<td>
+<p>character or <code>data.frame</code>; filename for the sampling
+event data or a <code>data.frame</code> of the same data. If a <code>data.frame</code> is
+provided it should have been imported with <code>read_sampling()</code>, to ensure the
+variables names have been set correctly, and it must have been passed
+through <code>auk_unique()</code> to ensure duplicate group checklists have been
+removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>species</code></td>
+<td>
+<p>character; species to include in zero-filled dataset, provided
+as scientific or English common names, or a mixture of both. These names
+must match the official eBird Taxomony (ebird_taxonomy). To include all
+species, leave this argument blank.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomy_version</code></td>
+<td>
+<p>integer; the version (i.e. year) of the taxonomy. In
+most cases, this should be left empty to use the version of the taxonomy
+included in the package. See <code>get_ebird_taxonomy()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse</code></td>
+<td>
+<p>logical; whether to call <code>collapse_zerofill()</code> to return a
+data frame rather than an <code>auk_zerofill</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unique</code></td>
+<td>
+<p>logical; should <code>auk_unique()</code> be run on the input data if it
+hasn't already.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rollup</code></td>
+<td>
+<p>logical; should <code>auk_rollup()</code> be run on the input data if it
+hasn't already.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_higher</code></td>
+<td>
+<p>logical; whether to remove taxa above species during the
+rollup process, e.g. "spuhs" like "duck sp.". See <code>auk_rollup()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete</code></td>
+<td>
+<p>logical; if <code>TRUE</code> (the default) all checklists are required
+to be complete prior to zero-filling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>character; single character used to separate fields within a row.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>auk_zerofill()</code> generates an <code>auk_zerofill</code> object consisting of a list with
+elements <code>observations</code> and <code>sampling_events</code>. <code>observations</code> is a data frame
+giving counts and binary presence/absence data for each species.
+<code>sampling_events</code> is a data frame with checklist level information. The two
+data frames can be connected via the <code>checklist_id</code> field. This format is
+efficient for storage since the checklist columns are not duplicated for each
+species, however, working with the data often requires joining the two data
+frames together.
+</p>
+<p>To return a data frame, set <code>collapse = TRUE</code>. Alternatively,
+<code>zerofill_collapse()</code> generates a data frame from an <code>auk_zerofill</code> object,
+by joining the two data frames together to produce a single data frame in
+which each row provides both checklist and species information for a
+sighting.
+</p>
+<p>The list of species is checked against the eBird taxonomy for validity. This
+taxonomy is updated once a year in August. The <code>auk</code> package includes a copy
+of the eBird taxonomy, current at the time of release; however, if the EBD
+and <code>auk</code> versions are not aligned, you may need to explicitly specify which
+version of the taxonomy to use, in which case the eBird API will be queried
+to get the correct version of the taxonomy.
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, an <code>auk_zerofill</code> object, or a data frame if <code>collapse = TRUE</code>.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>auk_zerofill(data.frame)</code>: EBD data frame.
+</p>
+</li>
+<li> <p><code>auk_zerofill(character)</code>: Filename of EBD.
+</p>
+</li>
+<li> <p><code>auk_zerofill(auk_ebd)</code>: <code>auk_ebd</code> object output from <code>auk_filter()</code>. Must
+have had a sampling event data file set in the original call to
+<code>auk_ebd()</code>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other import: 
+<code>read_ebd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># read and zero-fill the ebd data
+f_ebd &lt;- system.file("extdata/zerofill-ex_ebd.txt", package = "auk")
+f_smpl &lt;- system.file("extdata/zerofill-ex_sampling.txt", package = "auk")
+auk_zerofill(x = f_ebd, sampling_events = f_smpl)
+
+# use the species argument to only include a subset of species
+auk_zerofill(x = f_ebd, sampling_events = f_smpl,
+             species = "Collared Kingfisher")
+
+# to return a data frame use collapse = TRUE
+ebd_df &lt;- auk_zerofill(x = f_ebd, sampling_events = f_smpl, collapse = TRUE)
+</code></pre>
+
+
+</div>

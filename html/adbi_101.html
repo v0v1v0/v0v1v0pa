@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dbSendQueryArrow_AdbiConnection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create result sets</h2>
+
+<h3>Description</h3>
+
+<p>Creating result sets using <code>dbSendQuery()</code> (and by extension using
+<code>dbGetQuery()</code>) mostly follows DBI specification. One way where adbi
+deviates from DBI mechanisms is how the <code>bigint</code> setting is not only per
+connection, but the per-connection setting can be overridden on a result
+set basis. As default, the connection setting is applied, but passing one
+of the accepted values as <code>bigint</code> when creating a result set will
+subsequently use that setting for all fetches using this result set.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S4 method for signature 'AdbiConnection'
+dbSendQueryArrow(
+  conn,
+  statement,
+  ...,
+  params = NULL,
+  immediate = NULL,
+  bigint = NULL
+)
+
+## S4 method for signature 'AdbiConnection,character'
+dbSendQuery(
+  conn,
+  statement,
+  ...,
+  params = NULL,
+  immediate = NULL,
+  bigint = NULL
+)
+
+## S4 method for signature 'AdbiConnection,character'
+dbSendStatement(
+  conn,
+  statement,
+  ...,
+  params = NULL,
+  immediate = NULL,
+  bigint = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>conn</code></td>
+<td>
+<p>A DBIConnection object, as returned by
+<code>dbConnect()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statement</code></td>
+<td>
+<p>a character string containing SQL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters passed on to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>Optional query parameters (forwarded to <code>dbBind()</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>immediate</code></td>
+<td>
+<p>Passing a value <code>TRUE</code> is intended for statements containing
+no placeholders and <code>FALSE</code> otherwise. The default value <code>NULL</code> will
+inspect the statement for presence of placeholders (will <code>PREPARE</code> the
+statement)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bigint</code></td>
+<td>
+<p>The R type that 64-bit integer types should be mapped to,
+default is chosen according to the connection setting</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multiple open result sets per connection are supported and support can
+be disabled by setting <code>options(adbi.allow_multiple_results = FALSE)</code>. If
+not enabled, creating a new result will finalize potential other results
+and throw a warning.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S4 class <code>AdbiResult</code> (inheriting from DBIResult).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>adbi-driver
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (requireNamespace("adbcsqlite")) {
+  library(DBI)
+  con &lt;- dbConnect(adbi::adbi("adbcsqlite"), uri = ":memory:")
+  dbWriteTable(con, "swiss", swiss)
+  str(
+    dbGetQuery(con, "SELECT Examination from swiss WHERE Agriculture &lt; 30")
+  )
+  str(
+    dbGetQuery(con, "SELECT Examination from swiss WHERE Agriculture &lt; 30",
+      bigint = "integer")
+  )
+  dbDisconnect(con)
+}
+</code></pre>
+
+
+</div>

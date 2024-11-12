@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>preload</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Load a dataset before running an analysis</h2>
+
+<h3>Description</h3>
+
+<p>This function allows the user to prepare a set of R objects to be run through
+an <code>explore</code>, <code>migration</code> or <code>residency</code>
+analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">preload(
+  biometrics,
+  spatial,
+  deployments,
+  detections,
+  dot = NULL,
+  distances = NULL,
+  tz,
+  start.time = NULL,
+  stop.time = NULL,
+  section.order = NULL,
+  exclude.tags = NULL,
+  disregard.parallels = FALSE,
+  discard.orphans = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>biometrics</code></td>
+<td>
+<p>A data frame containing biometric information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatial</code></td>
+<td>
+<p>A data frame containing spatial information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deployments</code></td>
+<td>
+<p>A data frame containing deployment information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detections</code></td>
+<td>
+<p>A data frame containing the detections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dot</code></td>
+<td>
+<p>A DOT string of the array configuration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distances</code></td>
+<td>
+<p>A distances matrix between arrays. See <code>distancesMatrix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>The time zone of the study area. Must match one of the values
+present in <code>timezones</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.time</code></td>
+<td>
+<p>Detection data prior to the timestamp set in
+<code>start.time</code> (in YYYY-MM-DD HH:MM:SS format) is not considered during
+the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stop.time</code></td>
+<td>
+<p>Detection data posterior to the timestamp set in
+<code>stop.time</code> (in YYYY-MM-DD HH:MM:SS format) is not considered during
+the analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>section.order</code></td>
+<td>
+<p>A vector containing the order by which sections should
+be aligned in the results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude.tags</code></td>
+<td>
+<p>A vector of tags that should be excluded from the
+detection data before any analyses are performed. Intended to be used if
+stray tags from a different code space but with the same signal as a target
+tag are detected in the study area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disregard.parallels</code></td>
+<td>
+<p>Logical:  Should the presence of parallel arrays
+invalidate potential efficiency peers? See the vignettes for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>discard.orphans</code></td>
+<td>
+<p>Logical: Should actel automatically discard
+detections that do not fall within receiver deployment periods, or that
+were recorded before the respective animals were released?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataset that can be used as an input for actel's main analyses.
+This dataset contains:
+</p>
+
+<ul>
+<li> <p><code>bio</code>: The biometric data
+</p>
+</li>
+<li> <p><code>sections</code>: The sections of the study area, if set using the argument sections (required to run residency and migration analyses)
+</p>
+</li>
+<li> <p><code>deployments</code>: The deployment data
+</p>
+</li>
+<li> <p><code>spatial</code>: The spatial data, split in stations and release sites.
+</p>
+</li>
+<li> <p><code>dot</code>: A table of array connections.
+</p>
+</li>
+<li> <p><code>arrays</code>: A list with the details of each array
+</p>
+</li>
+<li> <p><code>dotmat</code>: A matrix of distances between arrays (in number of arrays).
+</p>
+</li>
+<li> <p><code>dist.mat</code>: The distances matrix.
+</p>
+</li>
+<li> <p><code>detections.list</code>: A processed list of detections for each tag.
+</p>
+</li>
+<li> <p><code>paths</code>: A list of the possible paths between each pair of arrays.
+</p>
+</li>
+<li> <p><code>disregard.parallels</code>: Logical: Should parallel arrays invalidate efficiency peers? (required to run residency and migration analyses)
+</p>
+</li>
+<li> <p><code>tz</code>: The time zone of the study area
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This function requires a series of pre-created R objects.
+# We can create them by loading the example files from actel:
+aux &lt;- system.file(package = "actel")[1]
+
+bio &lt;- read.csv(paste0(aux, "/example_biometrics.csv"))
+deployments &lt;- read.csv(paste0(aux, "/example_deployments.csv"))
+spatial &lt;- read.csv(paste0(aux, "/example_spatial.csv"))
+detections &lt;- read.csv(paste0(aux, "/example_detections.csv"))
+
+dot &lt;- "A0--A1--A2--A3--A4--A5--A6--A7--A8--A9"
+
+# Now that we have the R objects created, we can run preload:
+
+x &lt;- preload(biometrics = bio, deployments = deployments, spatial = spatial,
+ detections = detections, dot = dot, tz = "Europe/Copenhagen")
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>storage_endpoint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a storage endpoint object</h2>
+
+<h3>Description</h3>
+
+<p>Create a storage endpoint object, for interacting with blob, file, table, queue or ADLSgen2 storage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">storage_endpoint(endpoint, key = NULL, token = NULL, sas = NULL,
+  api_version, service)
+
+blob_endpoint(endpoint, key = NULL, token = NULL, sas = NULL,
+  api_version = getOption("azure_storage_api_version"))
+
+file_endpoint(endpoint, key = NULL, token = NULL, sas = NULL,
+  api_version = getOption("azure_storage_api_version"))
+
+adls_endpoint(endpoint, key = NULL, token = NULL, sas = NULL,
+  api_version = getOption("azure_storage_api_version"))
+
+## S3 method for class 'storage_endpoint'
+print(x, ...)
+
+## S3 method for class 'adls_endpoint'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>endpoint</code></td>
+<td>
+<p>The URL (hostname) for the endpoint. This must be of the form <code style="white-space: pre;">⁠http[s]://{account-name}.{type}.{core-host-name}⁠</code>, where <code>type</code> is one of <code>"dfs"</code> (corresponding to ADLSgen2), <code>"blob"</code>, <code>"file"</code>, <code>"queue"</code> or <code>"table"</code>. On the public Azure cloud, endpoints will be of the form <code style="white-space: pre;">⁠https://{account-name}.{type}.core.windows.net⁠</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>The access key for the storage account.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>An Azure Active Directory (AAD) authentication token. This can be either a string, or an object of class AzureToken created by AzureRMR::get_azure_token. The latter is the recommended way of doing it, as it allows for automatic refreshing of expired tokens.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sas</code></td>
+<td>
+<p>A shared access signature (SAS) for the account.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>api_version</code></td>
+<td>
+<p>The storage API version to use when interacting with the host. Defaults to <code>"2019-07-07"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>service</code></td>
+<td>
+<p>For <code>storage_endpoint</code>, the service endpoint type: either "blob", "file", "adls", "queue" or "table". If this is missing, it is inferred from the endpoint hostname.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>For the print method, a storage endpoint object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For the print method, further arguments passed to lower-level functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the starting point for the client-side storage interface in AzureRMR. <code>storage_endpoint</code> is a generic function to create an endpoint for any type of Azure storage while <code>adls_endpoint</code>, <code>blob_endpoint</code> and <code>file_endpoint</code> create endpoints for those types.
+</p>
+<p>If multiple authentication objects are supplied, they are used in this order of priority: first an access key, then an AAD token, then a SAS. If no authentication objects are supplied, only public (anonymous) access to the endpoint is possible.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>storage_endpoint</code> returns an object of S3 class <code>"adls_endpoint"</code>, <code>"blob_endpoint"</code>, <code>"file_endpoint"</code>, <code>"queue_endpoint"</code> or <code>"table_endpoint"</code> depending on the type of endpoint. All of these also inherit from class <code>"storage_endpoint"</code>. <code>adls_endpoint</code>, <code>blob_endpoint</code> and <code>file_endpoint</code> return an object of the respective class.
+</p>
+<p>Note that while endpoint classes exist for all storage types, currently AzureStor only includes methods for interacting with ADLSgen2, blob and file storage.
+</p>
+
+
+<h3>Storage emulators</h3>
+
+<p>AzureStor supports connecting to the <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator">Azure SDK</a> and <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite">Azurite</a> emulators for blob and queue storage. To connect, pass the full URL of the endpoint, including the account name, to the <code>blob_endpoint</code> and <code>queue_endpoint</code> methods (the latter from the AzureQstor package). The warning about an unrecognised endpoint can be ignored. See the linked pages, and the examples below, for details on how to authenticate with the emulator.
+</p>
+<p>Note that the Azure SDK emulator is no longer being actively developed; it's recommended to use Azurite for development work.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>create_storage_account, adls_filesystem, create_adls_filesystem, file_share, create_file_share, blob_container, create_blob_container
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# obtaining an endpoint from the storage account resource object
+stor &lt;- AzureRMR::get_azure_login()$
+    get_subscription("sub_id")$
+    get_resource_group("rgname")$
+    get_storage_account("mystorage")
+stor$get_blob_endpoint()
+
+# creating an endpoint standalone
+blob_endpoint("https://mystorage.blob.core.windows.net/", key="access_key")
+
+# using an OAuth token for authentication -- note resource is 'storage.azure.com'
+token &lt;- AzureAuth::get_azure_token("https://storage.azure.com",
+                                    "myaadtenant", "app_id", "password")
+adls_endpoint("https://myadlsstorage.dfs.core.windows.net/", token=token)
+
+
+## Azurite storage emulator:
+
+# connecting to Azurite with the default account and key (these also work for the Azure SDK)
+azurite_account &lt;- "devstoreaccount1"
+azurite_key &lt;-
+   "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+blob_endpoint(paste0("http://127.0.0.1:10000/", azurite_account), key=azurite_key)
+
+# to use a custom account name and key, set the AZURITE_ACCOUNTS env var before starting Azurite
+Sys.setenv(AZURITE_ACCOUNTS="account1:key1")
+blob_endpoint("http://127.0.0.1:10000/account1", key="key1")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

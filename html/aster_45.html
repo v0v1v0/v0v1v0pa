@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quickle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Penalized Quasi-Likelihood for Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Evaluates the objective function for approximate maximum likelihood for
+an aster model with random effects.  Uses Laplace approximation to
+integrate out the random effects analytically.
+The “quasi” in the title is a misnomer in the context of aster
+models but the acronym PQL for this procedure is well-established in
+the generalized linear mixed models literature.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quickle(alphanu, bee, fixed, random, obj, y, origin, zwz, deriv = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alphanu</code></td>
+<td>
+<p>the parameter vector value where the function is evaluated,
+a numeric vector, see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bee</code></td>
+<td>
+<p>the random effects vector that is used as the starting point
+for the inner optimization, which maximizes the penalized log likelihood
+to find the optimal random effects vector matching <code>alphanu</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the model matrix for fixed effects.  The number of rows
+is <code>nrow(obj$data)</code>.  The number of columns is the number of fixed
+effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>the model matrix or matrices for random effects.
+The number of rows is <code>nrow(obj$data)</code>.  The number of columns
+is the number of random effects in a group.  Either a matrix or a list
+each element of which is a matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>aster model object, the result of a call to <code>aster</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response vector.  May be omitted, in which case <code>obj$x</code>
+is used.  If supplied, must be a matrix of the same dimensions as
+<code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>origin of aster model.  May be omitted, in which case
+default origin (see <code>aster</code>) is used.  If supplied, must be
+a matrix of the same dimensions <code>obj$x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zwz</code></td>
+<td>
+<p>A possible value of <code class="reqn">Z^T W Z</code>, where <code class="reqn">Z</code> is the
+model matrix for all random effects and <code class="reqn">W</code> is the variance matrix of
+the response.  See details.  Typically constructed by
+the function <code>makezwz</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>Number of derivatives wanted, zero, one, or two.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Define
+</p>
+<p style="text-align: center;"><code class="reqn">p(\alpha, b, \nu) = m(a + M \alpha + Z b) + {\textstyle \frac{1}{2}} b^T D^{- 1} b + {\textstyle \frac{1}{2}} \log \det[Z^T W Z D + I]</code>
+</p>
+
+<p>where <code class="reqn">m</code> is minus the log likelihood function of a saturated aster model,
+where <code class="reqn">a</code> is a known vector (the <em>offset vector</em> in the terminology
+of <code>glm</code> but the <em>origin</em> in the terminology
+of <code>aster</code>),
+where <code class="reqn">M</code> is a known matrix, the model matrix for fixed effects
+(the argument <code>fixed</code> of this function),
+where <code class="reqn">Z</code> is a known matrix, the model matrix for random effects
+(either the argument <code>random</code> of this function if it is a matrix or
+<code>Reduce(cbind, random)</code> if <code>random</code> is a list of matrices),
+where <code class="reqn">D</code> is a diagonal matrix whose diagonal is the vector
+<code>rep(nu, times = nrand)</code>
+where <code>nrand</code> is <code>sapply(random, ncol)</code>
+when <code>random</code> is a list of
+matrices and <code>ncol(random)</code> when <code>random</code> is a matrix,
+where <code class="reqn">W</code> is an arbitrary symmetric positive semidefinite matrix
+(<code class="reqn">Z^T W Z</code> is the argument <code>zwz</code> of this function),
+and where <code class="reqn">I</code> is the identity matrix.
+Note that <code class="reqn">D</code> is a function of <code class="reqn">\nu</code>
+although the notation does not explicitly indicate this.
+</p>
+<p>The argument <code>alphanu</code> of this function is the concatenation
+of the parameter vectors <code class="reqn">\alpha</code> and <code class="reqn">\nu</code>.
+The argument <code>bee</code> of this function is a possible value of <code class="reqn">b</code>.
+The length of <code class="reqn">\alpha</code> is the column dimension of <code class="reqn">M</code>.
+The length of <code class="reqn">b</code> is the column dimension of <code class="reqn">Z</code>.
+The length of <code class="reqn">\nu</code> is the length of the argument <code>random</code>
+of this function if it is a list and is one otherwise.
+</p>
+<p>Let <code class="reqn">b^*</code> denote the minimizer
+of <code class="reqn">p(\alpha, b, \nu)</code> considered as a function of
+<code class="reqn">b</code> for fixed <code class="reqn">\alpha</code> and <code class="reqn">\nu</code>, so <code class="reqn">b^*</code>
+is a function of <code class="reqn">\alpha</code> and <code class="reqn">\nu</code>.
+This function evaluates
+</p>
+<p style="text-align: center;"><code class="reqn">q(\alpha, \nu) = p(\alpha, b^*, \nu)</code>
+</p>
+
+<p>and its gradient vector and Hessian matrix (if requested).
+Note that <code class="reqn">b^*</code> is a function of <code class="reqn">\alpha</code>
+and <code class="reqn">\nu</code> although the notation does not explicitly indicate this.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list with some of the following components: <code>value</code>, <code>gradient</code>,
+<code>hessian</code>, <code>alpha</code>, <code>bee</code>, <code>nu</code>.  The first three are
+the requested derivatives.  The second three are the corresponding parameter
+values: <code>alpha</code> and <code>nu</code> are the corresponding parts of the
+argument <code>alphanu</code>, the value of <code>bee</code> is the result of the inner
+optimization (<code class="reqn">b^*</code> in the notation in details),
+not the argument <code>bee</code> of this function.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Not intended for use by naive users.  Use <code>summary.reaster</code>,
+which calls it.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(radish)
+
+pred &lt;- c(0,1,2)
+fam &lt;- c(1,3,2)
+
+rout &lt;- reaster(resp ~ varb + fit : (Site * Region),
+    list(block = ~ 0 + fit : Block, pop = ~ 0 + fit : Pop),
+    pred, fam, varb, id, root, data = radish)
+
+alpha.mle &lt;- rout$alpha
+bee.mle &lt;- rout$b
+nu.mle &lt;- rout$sigma^2
+zwz.mle &lt;- rout$zwz
+obj &lt;- rout$obj
+fixed &lt;- rout$fixed
+random &lt;- rout$random
+alphanu.mle &lt;- c(alpha.mle, nu.mle)
+
+qout &lt;- quickle(alphanu.mle, bee.mle, fixed, random, obj,
+    zwz = zwz.mle, deriv = 2)
+</code></pre>
+
+
+</div>

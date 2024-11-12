@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sim_from_fitted</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate an ARFIMA time series from a fitted arfima object.</h2>
+
+<h3>Description</h3>
+
+<p>This function simulates an long memory ARIMA time series, with one of
+fractionally differenced white noise (FDWN), fractional Gaussian noise
+(FGN), power-law autocovariance (PLA) noise, or short memory noise and
+possibly seasonal effects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sim_from_fitted(n, model, X = NULL, seed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of points to be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model to be simulated from.  The phi and theta arguments
+should be vectors with the values of the AR and MA parameters. Note that
+Box-Jenkins notation is used for the MA parameters: see the "Details"
+section of <code>arfima</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The xreg matrix to add to the series, <em>required</em> if there is an xreg
+argument in <code>model</code>.  An error will be thrown if there is a mismatch
+between this argument and whether <code>model</code> was called with a external
+regressor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An optional seed that will be set before the simulation.  If 
+<code>model</code> is multimodal, a seed will be chosen randomly if not provided, 
+and all modes will simulate a time series with said seed set.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A suitably defined stationary series is generated, and if either of the
+dints (non-seasonal or seasonal) are greater than zero, the series is
+integrated (inverse-differenced) with zinit equalling a suitable amount of
+0s if not supplied.  Then a suitable amount of points are taken out of the
+beginning of the series (i.e. dint + period * seasonal dint = the length of
+zinit) to obtain a series of length n.  The stationary series is generated
+by calculating the theoretical autovariance function and using it, along
+with the innovations to generate a series as in McLeod et. al. (2007).
+<em>Note:</em> if you would like to fit from parameters, use the funtion,
+<code>arfima.sim</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A sample (or list of samples) from a multivariate normal distribution that has a
+covariance structure defined by the autocovariances generated for given
+parameters.  The sample acts like a time series with the given parameters.
+The returned value will be a list if the fit is multimodal.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>JQ (Justin) Veenstra
+</p>
+
+
+<h3>References</h3>
+
+<p>McLeod, A. I., Yu, H. and Krougly, Z. L. (2007) Algorithms for
+Linear Time Series Analysis: With R Package Journal of Statistical Software,
+Vol. 23, Issue 5
+</p>
+<p>Veenstra, J.Q. Persistence and Antipersistence:  Theory and
+Software (PhD Thesis)
+</p>
+<p>P. Borwein (1995) An efficient algorithm for Riemann Zeta function Canadian
+Math. Soc. Conf. Proc., 27, pp. 29-34.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>arfima</code>, <code>arfima.sim</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+set.seed(6533)
+sim &lt;- arfima.sim(1000, model = list(phi = .2, dfrac = .3, dint = 2))
+
+fit &lt;- arfima(sim, order = c(1, 2, 0))
+fit
+
+sim2 &lt;- sim_from_fitted(100, fit)
+
+fit2 &lt;- arfima(sim2, order = c(1, 2, 0))
+fit2
+
+set.seed(2266)
+#Fairly pathological series to fit for this package
+series = arfima.sim(500, model=list(phi = 0.98, dfrac = 0.46))
+
+X = matrix(rnorm(1000), ncol = 2)
+colnames(X) &lt;- c('c1', 'c2')
+series_added &lt;- series + X%*%c(2, 5)
+
+fit &lt;- arfima(series, order = c(1, 0, 0), numeach = c(2, 2))
+fit_X &lt;- arfima(series_added, order=c(1, 0, 0), xreg=X, numeach = c(2, 2))
+
+from_series &lt;- sim_from_fitted(1000, fit)
+ 
+fit1a &lt;- arfima(from_series[[1]], order = c(1, 0, 0), numeach = c(2, 2))
+fit1a
+fit1 &lt;- arfima(from_series[[1]], order = c(1, 0, 0))
+fit1
+fit2 &lt;- arfima(from_series[[1]], order = c(1, 0, 0))
+fit2
+fit3 &lt;- arfima(from_series[[1]], order = c(1, 0, 0))
+fit3
+fit4 &lt;- arfima(from_series[[1]], order = c(1, 0, 0))
+fit4
+
+Xnew = matrix(rnorm(2000), ncol = 2)
+from_series_X &lt;- sim_from_fitted(1000, fit_X, X=Xnew)
+
+fit_X1a &lt;- arfima(from_series_X[[1]], order=c(1, 0, 0), xreg=Xnew, numeach = c(2, 2))
+fit_X1a
+fit_X1 &lt;- arfima(from_series_X[[1]], order=c(1, 0, 0), xreg=Xnew)
+fit_X1
+fit_X2 &lt;- arfima(from_series_X[[2]], order=c(1, 0, 0), xreg=Xnew)
+fit_X2
+fit_X3 &lt;- arfima(from_series_X[[3]], order=c(1, 0, 0), xreg=Xnew)
+fit_X3
+fit_X4 &lt;- arfima(from_series_X[[4]], order=c(1, 0, 0), xreg=Xnew)
+fit_X4
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,345 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>computeFlappingPower</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate aerodynamic power flapping flight</h2>
+
+<h3>Description</h3>
+
+<p>The function calculates the aerodynamic power required for the specified bird (or bat) at the specified flight speed.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">computeFlappingPower(bird,speed,...,frequency,strokeplane)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bird</code></td>
+<td>
+<p> object describing the relevant morphological parameters of the bird (or bat); this object should be created using the <code>Bird</code> constructor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>speed</code></td>
+<td>
+<p> a numeric vector of the airspeed. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> optional arguments (see details) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p> wingbeat frequency as single numeric value, a numeric vector matching the speed vector, a closure object returning a numeric value as a function of speed, or the character string 'recompute'. The latter will recompute the default frequency for the current flight condition (density) and the current total mass of the bird (assuming the frequency in bird is the default wingbeat frequency). If not provided, the function will look for a default wingbeat frequency in the bird object. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strokeplane</code></td>
+<td>
+<p> angle of the strokeplane in degrees, as a single numeric value, a numeric vector matching the speed vector, a closure object describing the strokeplane angle as a function of speed. Alternatively providing character string "opt" will tell the function to optimize the strokeplane angle for minimum aerodynamic power. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function estimates aerodynamic power for a animal in forward flight based on morphology and wingbeat kinematics (<cite>Klein Heerenbrink, 2015</cite>). The model takes into account span reduction during the upstroke, which is typical for vertebrate forward flight.
+...
+The minimal input required for the function is a description of the animal (as provided by the Bird constructor) and the speed(range) for which to compute the aerodynamic power. Distinct from other models, this model also requires wingbeat frequency and strokeplane angle. Higher wingbeat frequency tends to lower the induced power, but it may increase profile power. If no wingbeat frequency is provided, the function will use the reference wingbeat frequency from the bird object. Otherwise the user can specify values (either as vectors or as closure object). The user can provide additional optional arguments:
+</p>
+
+<dl>
+<dt><code>bodyDragCoefficient</code></dt>
+<dd>
+<p>  single numeric value, a numeric vector matching the speed vector, or a closure object as a function of speed. If not provided, the function will look for a default value in the bird object.</p>
+</dd>
+<dt><code>addedDrag</code></dt>
+<dd>
+<p>  single numeric value or a numeric vector matching the speed vector. This represents additional "drag" (in Newtons) that must be overcome (e.g. during climb). </p>
+</dd>
+<dt><code>flightcondition</code></dt>
+<dd>
+<p> object describing the atmospheric conditions (density, viscosity, gravity). </p>
+</dd>
+</dl>
+<h4>Aerodynamic model</h4>
+
+<p><code>computeFlappingPower</code> first computes the drag components for non-flapping flight:
+</p>
+<p style="text-align: center;"><code class="reqn">D_\mathrm{ind} = \frac{L^2}{q \pi b^2}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">D_\mathrm{pro,0} = C_{D_\mathrm{pro,0}} q S</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">D_\mathrm{pro,2} = k_{p} \frac{L^2}{q S}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">D_\mathrm{par} = C_{D_\mathrm{b}} q S_\mathrm{b} + D_\mathrm{added}</code>
+</p>
+
+<p>which combine to the non-flapping thrust requirement <code class="reqn">T_0 = \sum D_{&lt;&gt;}</code>. Here <code class="reqn">q = \frac{1}{2}\rho U^2</code> is the dynamic pressure depending on density (<code class="reqn">\rho</code>) and speed (<code class="reqn">U</code>).
+To account for how flapping the wings affects the drag on the wings, <code>computeFlappingPower</code> computes factors <code class="reqn">f_{D_\mathrm{ind}}</code>, <code class="reqn">f_{D_\mathrm{pro,0}}</code> and <code class="reqn">f_{D_\mathrm{pro,2}}</code>, which are functions of the strokeplane angle and the (reduced) wingbeat frequency. These factors relate to the returned drag factors <code>kD.ind</code>, <code>kD.pro0</code> and <code>kD.pro2</code> through
+</p>
+<p style="text-align: center;"><code class="reqn">k_{D,&lt;&gt;}=1+f_{D,&lt;&gt;} \frac{T}{L}</code>
+</p>
+
+<p>The actual drag in flapping flight is found by multiplying each non-flapping drag component with its respective drag factor. This means that the actual thrust requirement (thrust ratio <code class="reqn">T/L</code>) can be computed as
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{T}{L} = \frac{T_0}{L - f_{D\mathrm{ind}}D_\mathrm{ind} - f_{D\mathrm{pro,0}}D_\mathrm{pro,0} - f_{D\mathrm{pro,2}}D_\mathrm{pro,2} }</code>
+</p>
+
+<p>Finally, <code>computeFlappingPower</code> computes the power factors in a similar way to the drag factors (i.e. <code class="reqn">k_{P,i}=1+f_{P,i}\frac{T}{L}</code>, with <code class="reqn">f_{P,i}</code> functions of strokeplane angle and wingbeat frequency).
+The total aerodynamic power is then computed as
+</p>
+<p style="text-align: center;"><code class="reqn">P = k_{P\mathrm{ind}} D_\mathrm{ind}U + k_{P\mathrm{pro,0}} D_\mathrm{pro,0}U + k_{P\mathrm{pro,2}} D_\mathrm{pro,2}U + D_\mathrm{par}U</code>
+</p>
+
+
+
+
+<h4>Wingbeat optimization</h4>
+
+<p>The underlying numerical model that is represented by functions <code class="reqn">f_{D,i}</code> and <code class="reqn">f_{P,i}</code>, has optimised the flapping amplitude for minimum induced power. This means <code>computeFlappingPower</code> implicitly optimizes flapping amplitude, which is the value <code>amplitude</code> returned in the output.
+</p>
+<p><code>computeFlappingPower</code> takes strokeplane angle as input. The underlying numerical model has only explored strokeplane angles over a range of 0 (vertical) to 50 degrees, the latter being defined as having the down-stroke moving forward. In many cases it will be possible to find a strokeplane angle for which the total aerodynamic power is minimal. At high speeds this optimum will be for a vertical strokeplane while at lower speeds it will be more horizontal. By passing <code>strokeplane="opt"</code> as an argument to <code>computeFlappingPower</code>, it will try to numerically find the optimal strokeplane angle, using the function <code>optimize</code>.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A data.frame including elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>speed</code></td>
+<td>
+<p> specified speed for which power is computed. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p> total aerodynamic power. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power.chem</code></td>
+<td>
+<p> total chemical power. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strokeplane</code></td>
+<td>
+<p> used strokeplane angle (either specified or optimized). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amplitude</code></td>
+<td>
+<p> wingbeat amplitude (implicitly optimized for minimum induced power). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequency</code></td>
+<td>
+<p> wingbeat frequency (specified). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flags.redFreqLo</code></td>
+<td>
+<p> TRUE if reduced frequency too low (&lt;1; outside model range). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flags.redFreqHi</code></td>
+<td>
+<p> TRUE if reduced frequency too high (&gt;6; outside model range). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flags.thrustHi</code></td>
+<td>
+<p> TRUE if thrust requirement too high (&gt;0.3; outside model range). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flags.speedLo</code></td>
+<td>
+<p> TRUE if speed is too low (invalidating the forward flight assumption). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kD.ind</code></td>
+<td>
+<p> induced drag factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kD.pro0</code></td>
+<td>
+<p> zero lift profile drag factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kD.pro2</code></td>
+<td>
+<p> lift dependent profile drag factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kP.ind</code></td>
+<td>
+<p> induced power factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kP.pro0</code></td>
+<td>
+<p> zero lift profile power factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kP.pro2</code></td>
+<td>
+<p> lift dependent profile power factor </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CDpro0</code></td>
+<td>
+<p> used zero lift profile drag coefficient (laminar boundary layer friction) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ReynoldsNumber</code></td>
+<td>
+<p> mean chord Reynolds number </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dnf.ind</code></td>
+<td>
+<p> non-flapping induced drag (N) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dnf.pro0</code></td>
+<td>
+<p> non-flapping zero lift profile drag (N) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dnf.pro2</code></td>
+<td>
+<p> non-flapping lift dependent profile drag (N) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dnf.par</code></td>
+<td>
+<p> non-flapping parasitic drag (including body drag and apparent drag due to climbing)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p> lift (N) </p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This model aims to predict the optimal flight performance for a bird. Particularly, the induced drag and induced power assume an ideal load distribution over the wing equivalent to the elliptical lift distribution for non-flapping wings. This means that induced power will typically be underestimated.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Klein Heerenbrink</p>
+
+
+<h3>References</h3>
+
+<p>Klein Heerenbrink, M., Johansson, L. C. and Hedenström, A. (2015) Power of the wingbeat: modelling the effects of flapping wings in vertebrate flight. <em>Proc. R. Soc. A</em> <b>471</b>, 2177 <a href="https://doi.org/10.1098/rspa.2014.0952">doi:10.1098/rspa.2014.0952</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Bird</code>, <code>amplitude</code>, <code>fD.ind</code>, <code>fD.pro0</code>, <code>fD.pro2</code>, <code>fP.ind</code>, <code>fP.pro0</code>, <code>fP.pro2</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Define a bird:
+myBird = Bird(
+  massTotal = 0.215, #  (kg) total body mass
+  wingSpan = 0.67, #  (m) maximum wing span
+  wingArea = 0.0652, #  (m2) maximum wing area
+  type = "passerine"
+)
+
+## define a speed range
+speedrange &lt;- seq(5,14,length.out=5)
+
+## compute aerodynamic power for that speed range:
+Paero &lt;- computeFlappingPower(myBird,speedrange)
+print(Paero[c("speed","power","frequency","strokeplane")])
+#   speed    power frequency strokeplane
+# 1  5.00 2.789751  5.948083    46.56887
+# 2  7.25 2.129466  5.948083    31.89129
+# 3  9.50 2.203773  5.948083    22.51896
+# 4 11.75 2.740763  5.948083    16.49120
+# 5 14.00 3.673714  5.948083    12.09174
+
+## prescribe strokeplane angle:
+Paero &lt;- computeFlappingPower(myBird,speedrange,strokeplane=20)
+print(Paero[c("speed","power","frequency","strokeplane")])
+#   speed    power frequency strokeplane
+# 1  5.00 2.950259  5.948083          20
+# 2  7.25 2.141581  5.948083          20
+# 3  9.50 2.204132  5.948083          20
+# 4 11.75 2.741335  5.948083          20
+# 5 14.00 3.676224  5.948083          20
+
+## prescribe frequency as a function of speed:
+funFrequency = function(U){19.8 - 4.7*U + 0.45*U^2 - 0.0138*U^3}
+Paero &lt;- computeFlappingPower(myBird,speedrange,frequency=funFrequency,strokeplane='opt')
+print(Paero[c("speed","power","frequency","strokeplane")])
+#   speed    power frequency strokeplane
+# 1  5.00 2.810431  5.825000    46.16223
+# 2  7.25 2.356278  4.119247    25.99702
+# 3  9.50 2.390251  3.930725    17.94304
+# 4 11.75 2.860463  4.316291    14.52910
+# 5 14.00 3.794431  4.332800    11.70058
+
+## examine effect of frequency for a single airspeed:
+speedrange &lt;- rep(10,5) #  repeated speed
+freqrange &lt;- seq(3,10,length.out=5) #  frequency range
+Paero &lt;- computeFlappingPower(myBird,speedrange,frequency=freqrange,strokeplane='opt')
+print(Paero[c("speed","power","frequency","strokeplane")])
+#   speed    power frequency strokeplane
+# 1    10 2.681028      3.00    13.87797
+# 2    10 2.367982      4.75    18.90949
+# 3    10 2.263765      6.50    21.52433
+# 4    10 2.219739      8.25    21.71519
+# 5    10 2.200852     10.00    20.18503
+</code></pre>
+
+
+</div>

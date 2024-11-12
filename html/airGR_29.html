@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RunModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run with the provided hydrological model function</h2>
+
+<h3>Description</h3>
+
+<p>Function which performs a single model run with the provided function over the selected period.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RunModel(InputsModel, RunOptions, Param, FUN_MOD, ...)
+
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>InputsModel</code></td>
+<td>
+<p>[object of class <em>InputsModel</em>] see <code>CreateInputsModel</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RunOptions</code></td>
+<td>
+<p>[object of class <em>RunOptions</em>] see <code>CreateRunOptions</code> for details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Param</code></td>
+<td>
+<p>[numeric] vector of model parameters (See details for SD lag model)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN_MOD</code></td>
+<td>
+<p>[function] hydrological model function (e.g. <code>RunModel_GR4J</code>, <code>RunModel_CemaNeigeGR4J</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>(optional) arguments to pass to <code>FUN_MOD</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>InputsModel</code> parameter has been created for using a semi-distributed (SD) lag model (See <code>CreateInputsModel</code>), the first item of <code>Param</code> parameter should contain a constant lag parameter expressed as a velocity in m/s, parameters for the hydrological model are then shift one position to the right.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[list] see <code>RunModel_GR4J</code> or <code>RunModel_CemaNeigeGR4J</code> for details.
+</p>
+<p>If <code>InputsModel</code> parameter has been created for using a semi-distributed (SD) lag model (See <code>CreateInputsModel</code>), the list value contains an extra item named <code>QsimDown</code> which is a numeric series of simulated discharge [mm/time step] related to the run-off contribution of the downstream sub-catchment.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Laurent Coron, Olivier Delaigue
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>RunModel_GR4J</code>, <code>RunModel_CemaNeigeGR4J</code>, <code>CreateInputsModel</code>,
+<code>CreateRunOptions</code>, <code>CreateIniStates</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(airGR)
+
+## loading catchment data
+data(L0123001)
+
+## preparation of the InputsModel object
+InputsModel &lt;- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
+                                 Precip = BasinObs$P, PotEvap = BasinObs$E)
+
+## run period selection
+Ind_Run &lt;- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
+               which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1999-12-31"))
+
+## preparation of the RunOptions object
+RunOptions &lt;- CreateRunOptions(FUN_MOD = RunModel_GR4J,
+                               InputsModel = InputsModel, IndPeriod_Run = Ind_Run)
+
+## simulation
+Param &lt;- c(X1 = 734.568, X2 = -0.840, X3 = 109.809, X4 = 1.971)
+OutputsModel &lt;- RunModel(InputsModel = InputsModel,
+                         RunOptions = RunOptions, Param = Param,
+                         FUN_MOD = RunModel_GR4J)
+
+## results preview
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+## efficiency criterion: Nash-Sutcliffe Efficiency
+InputsCrit  &lt;- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                                RunOptions = RunOptions, Obs = BasinObs$Qmm[Ind_Run])
+OutputsCrit &lt;- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+</code></pre>
+
+
+</div>

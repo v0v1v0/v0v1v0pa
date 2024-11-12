@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>iccbin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Intra-Cluster Correlation for Clustered Binomial data</h2>
+
+<h3>Description</h3>
+
+<p>The function estimates the intraclass correlation <code class="reqn">\rho</code> from clustered binomial data:
+</p>
+<p>{<code class="reqn">(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)</code>},
+</p>
+<p>where <code class="reqn">n_i</code> is the size of cluster <code class="reqn">i</code>, <code class="reqn">m_i</code> the number of “successes” (proportions are <code class="reqn">y = m/n</code>), and <code class="reqn">N</code> the number of clusters. The function uses a one-way random effect model. Three estimates, corresponding to methods referred to as “A”, “B” and “C” in Goldstein et al. (2002), can be returned.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  iccbin(n, m, method = c("A", "B", "C"), nAGQ = 1, M = 1000)
+  
+  ## S3 method for class 'iccbin'
+print(x, ...)
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>A vector of the sizes of the clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>A vector of the numbers of successes (proportions are eqny = m / n).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character (“A”, “B” or “C”) defining the calculation method. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nAGQ</code></td>
+<td>
+<p>Same as in function <code>glmer</code> of package <span class="pkg">lme4</span>. Only for methods “A” and “B”. Default to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Number of Monte Carlo (MC) replicates used in method “B”. Default to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class “iccbin”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to ba passed to “print”.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Before computations, the clustered data are split to binary “0/1” observations <code class="reqn">y_{ij}</code> (observation <code class="reqn">j</code> in cluster <code class="reqn">i</code>). The methods of calculation are described in Goldstein et al. (2002).<br><br></p>
+<p>Methods "A" and "B" use the 1-way logistic binomial-Gaussian model
+</p>
+<p style="text-align: center;"><code class="reqn">y_{ij} | \mu_{ij} \sim Bernoulli(\mu_{ij})</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">logit(\mu_{ij}) = b_0 + u_i,</code>
+</p>
+
+<p>where <code class="reqn">b_0</code> is a constant and <code class="reqn">u_i</code> a cluster random effect with <code class="reqn">u_i \sim N(0, s^2_u)</code>. The ML estimate of the variance component <code class="reqn">s^2_u</code> is calculated with the function <code>glmer</code> of package <span class="pkg">lme4</span>. The intra-class correlation <code class="reqn">\rho = Corr[y_{ij}, y_{ik}]</code> is then calculated from a first-order model linearization around <code class="reqn">E[u_i]=0</code> in method “A”, and with Monte Carlo simulations in method “B”.<br><br></p>
+<p>Method "C" provides the common ANOVA (moment) estimate of <code class="reqn">\rho</code>. For details, see for instance Donner (1986), Searle et al. (1992) or Ukoumunne (2002).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>iccbin</code>, printed with <code>print.iccbin</code>.</p>
+
+
+<h3>References</h3>
+
+<p>Donner A., 1986, <em>A review of inference procedures for the intraclass correlation coefficient in the one-way random effects model</em>. International Statistical Review 54, 67-82.<br>
+Searle, S.R., Casella, G., McCulloch, C.E., 1992. <em>Variance components</em>. Wiley, New York.<br>
+Ukoumunne, O. C., 2002. <em>A comparison of confidence interval methods for the intraclass correlation coefficient in cluster randomized trials</em>. Statistics in Medicine 21, 3757-3774.<br>
+Golstein, H., Browne, H., Rasbash, J., 2002. <em>Partitioning variation in multilevel models</em>.  Understanding Statistics 1(4), 223-231.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>glmer</code><br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(rats)
+z &lt;- rats[rats$group == "TREAT", ]
+# A: glmm (model linearization)
+iccbin(z$n, z$m, method = "A")
+iccbin(z$n, z$m, method = "A", nAGQ = 10)
+# B: glmm (Monte Carlo)
+iccbin(z$n, z$m, method = "B")
+iccbin(z$n, z$m, method = "B", nAGQ = 10, M = 1500)
+# C: lmm (ANOVA moments)
+iccbin(z$n, z$m, method = "C")
+
+## Not run: 
+  # Example of CI calculation with nonparametric bootstrap
+  require(boot)
+  foo &lt;- function(X, ind) {
+    n &lt;- X$n[ind]
+    m &lt;- X$m[ind]
+    iccbin(n = n, m = m, method = "C")$rho
+    }
+  res &lt;- boot(data = z[, c("n", "m")], statistic = foo, R = 500, sim = "ordinary", stype = "i")
+  res
+  boot.ci(res, conf = 0.95, type = "basic")
+  
+## End(Not run)
+  
+</code></pre>
+
+
+</div>

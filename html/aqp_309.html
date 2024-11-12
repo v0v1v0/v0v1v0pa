@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>slice-methods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Slicing of SoilProfileCollection Objects</h2>
+
+<h3>Description</h3>
+
+<p>A method for "slicing" of SoilProfileCollection objects into constant depth intervals. Now deprecated, see <code style="white-space: pre;">⁠[dice()]⁠</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">slice.fast(object, fm, top.down = TRUE, just.the.data = FALSE, strict = TRUE)
+
+## S4 method for signature 'SoilProfileCollection'
+slice(object, fm, top.down = TRUE, just.the.data = FALSE, strict = TRUE)
+
+get.slice(h, id, top, bottom, vars, z, include = "top", strict = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a SoilProfileCollection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fm</code></td>
+<td>
+<p>A formula: either <code>integer.vector ~ var1 + var2 + var3</code> where
+named variables are sliced according to <code>integer.vector</code> OR where all
+variables are sliced according to <code>integer.vector</code>: <code>integer.vector ~ .</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top.down</code></td>
+<td>
+<p>logical, slices are defined from the top-down: <code>0:10</code> implies 0-11 depth units.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>just.the.data</code></td>
+<td>
+<p>Logical, return just the sliced data or a new <code>SoilProfileCollection</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strict</code></td>
+<td>
+<p>Check for logic errors? Default: <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Horizon data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Profile ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top</code></td>
+<td>
+<p>Top Depth Column Name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bottom</code></td>
+<td>
+<p>Bottom Depth Column Name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>Variables of Interest</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>Slice Depth (index).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>Either <code>'top'</code> or <code>'bottom'</code>. Boundary to include in slice. Default: <code>'top'</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Either a new <code>SoilProfileCollection</code> with data sliced according to <code>fm</code>, or a <code>data.frame</code>.
+</p>
+
+
+<h3>Details</h3>
+
+<p>By default, slices are defined from the top-down:
+<code>0:10</code> implies 0-11 depth units.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+<p>D.E. Beaudette, P. Roudier, A.T. O'Geen, Algorithms for
+quantitative pedology: A toolkit for soil scientists, Computers &amp;
+Geosciences, Volume 52, March 2013, Pages 258-268,
+10.1016/j.cageo.2012.10.020.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>slab</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(aqp)
+
+# simulate some data, IDs are 1:20
+d &lt;- lapply(1:20, random_profile)
+d &lt;- do.call('rbind', d)
+
+# init SoilProfileCollection object
+depths(d) &lt;- id ~ top + bottom
+head(horizons(d))
+
+# generate single slice at 10 cm
+# output is a SoilProfileCollection object
+s &lt;- dice(d, fm = 10 ~ name + p1 + p2 + p3)
+
+# generate single slice at 10 cm, output data.frame
+s &lt;- dice(d, 10 ~ name + p1 + p2 + p3, SPC = FALSE)
+
+# generate integer slices from 0 - 26 cm
+# note that slices are specified by default as "top-down"
+# result is a SoilProfileCollection
+# e.g. the lower depth will always by top + 1
+s &lt;- dice(d, fm = 0:25 ~ name + p1 + p2 + p3)
+par(mar=c(0,1,0,1))
+plotSPC(s)
+
+# generate slices from 0 - 11 cm, for all variables
+s &lt;- dice(d, fm = 0:10 ~ .)
+print(s)
+
+# compute percent missing, for each slice,
+# if all vars are missing, then NA is returned
+d$p1[1:10] &lt;- NA
+s &lt;- dice(d, 10 ~ ., SPC = FALSE, pctMissing = TRUE)
+head(s)
+
+## Not run: 
+##
+## check sliced data
+##
+
+# test that mean of 1 cm slices property is equal to the
+# hz-thickness weighted mean value of that property
+data(sp1)
+depths(sp1) &lt;- id ~ top + bottom
+
+# get the first profile
+sp1.sub &lt;- sp1[which(profile_id(sp1) == 'P009'), ]
+
+# compute hz-thickness wt. mean
+hz.wt.mean &lt;- with(
+  horizons(sp1.sub),
+  sum((bottom - top) * prop) / sum(bottom - top)
+)
+
+# hopefully the same value, calculated via slice()
+s &lt;- dice(sp1.sub, fm = 0:max(sp1.sub) ~ prop)
+hz.slice.mean &lt;- mean(s$prop, na.rm = TRUE)
+
+# they are the same
+all.equal(hz.slice.mean, hz.wt.mean)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

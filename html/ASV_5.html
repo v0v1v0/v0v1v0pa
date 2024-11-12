@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asv_mcmc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+MCMC estimation for stochastic volatility models with leverage
+
+</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates model parameters and latent log volatilities for 
+stochastic volatility models with leverage (asymmetric stochastic volatility models):  
+</p>
+<p>y(t) = eps(t)*exp(h(t)/2), h(t+1) = mu + phi*(h(t)-mu) + eta(t)
+</p>
+<p>eps(t)~i.i.d. N(0,1), eta(t)~i.i.d. N(0,sigma_eta^2)
+</p>
+<p>where we assume the correlation between eps(t) and eta(t) equals to rho. Prior distributions are 
+</p>
+<p>mu~N(mu_0,sigma_0^2), (phi+1)/2~Beta(a_0,b_0), sigma_eta^2~IG(n_0/2,S_0/2),
+</p>
+<p>(rho+1)/2~Beta(a_1,b_1),
+</p>
+<p>where N, Beta and IG denote normal, beta and inverse gaussian distributions respectively. Note that the probability density function of x ~ IG(a,b) is proportional to (1/x)^(a+1)*exp(-b/x). 
+</p>
+<p>The highly efficient Markov chain Monte Carlo algorithm is based on the mixture 
+sampler by Omori, Chib, Shephard and Nakajima (2007), but it further corrects 
+the approximation error within the sampling algorithm.
+See Takahashi, Omori and Watanabe (2022+) for more details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asv_mcmc(return_vector, nSim = NULL, nBurn = NULL, vHyper = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>return_vector</code></td>
+<td>
+
+
+<p>T x 1 vector (y(1),...,y(T))' of returns where T is a sample size.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nSim</code></td>
+<td>
+
+
+<p>Number of iterations for the MCMC estimation. Default value is 5000.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nBurn</code></td>
+<td>
+
+
+<p>Number of iterations for the burn-in period. Default value is the maximum integer less than or equal to 2*sqrt(nSim)+1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vHyper</code></td>
+<td>
+
+<p>8 x 1 vector of hyperparameters. (mu_0,sigma_0^2,a_0,b_0,a_1,b_1,n_0,S_0). Default values are (0,1000, 1,1,1,1,0.01,0.01).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p> A list with components:
+
+
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>vmu</code></td>
+<td>
+<p>nSim x 1 vector of MCMC samples of mu</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vphi</code></td>
+<td>
+<p>nSim x 1 vector of MCMC samples of phi</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vsigma_eta</code></td>
+<td>
+<p>nSim x 1 vector of MCMC samples of sigma_eta</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vrho</code></td>
+<td>
+<p>nSim x 1 vector of MCMC samples of rho</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mh</code></td>
+<td>
+<p>nSim x T matrix of latent log volatilities (h(1),...,h(T)). For example, the first column is a vector of MCMC samples for h(1).</p>
+</td>
+</tr>
+</table>
+<p>Further, the acceptance rates of MH algorithms will be shown for h and (mu,phi,sigma_eta, rho). 
+
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Yasuhiro Omori, Ryuji Hashimoto</p>
+
+
+<h3>References</h3>
+
+
+<p>Omori, Y., Chib, S., Shephard, N., and J. Nakajima (2007), "Stochastic volatility model with leverage: fast and efficient likelihood inference," Journal of Econometrics, 140-2, 425-449.
+</p>
+<p>Takahashi, M., Omori, Y. and T. Watanabe (2022+), Stochastic volatility and  realized stochastic volatility models. JSS Research Series in Statistics, in press. Springer, Singapore.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>See also <code>ReportMCMC</code>, <code>asv_pf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(111)
+nobs = 80; # n is often larger than 1000 in practice.
+mu = 0; phi = 0.97; sigma_eta = 0.3; rho = -0.3;
+h  = 0;   Y = c();
+for(i in 1:nobs){
+  eps = rnorm(1, 0, 1)
+  eta = rho*sigma_eta*eps + sigma_eta*sqrt(1-rho^2)*rnorm(1, 0, 1)
+  y   = eps * exp(0.5*h)
+  h   = mu + phi * (h-mu) + eta
+  Y   = append(Y, y)
+}
+
+# This is a toy example. Increase nsim and nburn
+# until the convergence of MCMC in practice.
+
+nsim = 500; nburn = 100;
+vhyper = c(0.0,1000,1.0,1.0,1.0,1.0,0.01,0.01)
+out  = asv_mcmc(Y, nsim, nburn, vhyper)
+vmu = out[[1]]; vphi = out[[2]]; vsigma_eta = out[[3]]; vrho = out[[4]];
+mh  = out[[5]];
+</code></pre>
+
+
+</div>

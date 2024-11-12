@@ -1,0 +1,409 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>process_uni</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Process Uniaxial Minute-to-Minute Accelerometer Data</h2>
+
+<h3>Description</h3>
+
+<p>Calculates a variety of physical activity variables based on uniaxial 
+minute-to-minute accelerometer count values for individual participants. 
+Assumes first 1440 minutes are day 1, next 1440 are day 2, and so on. If 
+final day has less than 1440 minutes, it is excluded. A data dictionary for 
+the variables created is available here: 
+<a href="https://github.com/vandomed/accelerometry/blob/master/process_uni_dictionary.csv">https://github.com/vandomed/accelerometry/blob/master/process_uni_dictionary.csv</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">process_uni(counts, steps = NULL, nci_methods = FALSE, start_day = 1,
+  start_date = NULL, id = NULL, brevity = 1, hourly_var = "cpm",
+  hourly_wearmin = 0, hourly_normalize = FALSE, valid_days = 1,
+  valid_wk_days = 0, valid_we_days = 0, int_cuts = c(100, 760, 2020,
+  5999), cpm_nci = FALSE, days_distinct = FALSE, nonwear_window = 60,
+  nonwear_tol = 0, nonwear_tol_upper = 99, nonwear_nci = FALSE,
+  weartime_minimum = 600, weartime_maximum = 1440,
+  active_bout_length = 10, active_bout_tol = 0, mvpa_bout_tol_lower = 0,
+  vig_bout_tol_lower = 0, active_bout_nci = FALSE, sed_bout_tol = 0,
+  sed_bout_tol_maximum = int_cuts[2] - 1, artifact_thresh = 25000,
+  artifact_action = 1, weekday_weekend = FALSE, return_form = "averages")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Integer vector with accelerometer count values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>steps</code></td>
+<td>
+<p>Integer vector with steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nci_methods</code></td>
+<td>
+<p>Logical value for whether to set all arguments so as to 
+replicate the data processing methods used in the NCI's SAS programs. More 
+specifically: 
+</p>
+<p><code>valid_days = 4</code>
+</p>
+<p><code>valid_wk_days = 0</code>
+</p>
+<p><code>valid_we_days = 0</code>
+</p>
+<p><code>int_cuts = c(100, 760, 2020, 5999)</code>
+</p>
+<p><code>cpm_nci = TRUE</code>
+</p>
+<p><code>days_distinct = TRUE</code>
+</p>
+<p><code>nonwear_window = 60</code>
+</p>
+<p><code>nonwear_tol = 2</code>
+</p>
+<p><code>nonwear_tolupper = 100</code>
+</p>
+<p><code>nonwear_nci = TRUE</code>
+</p>
+<p><code>weartime_minimum = 600</code>
+</p>
+<p><code>weartime_maximum = 1440</code>
+</p>
+<p><code>active_bout_length = 10</code>
+</p>
+<p><code>active_bout_tol = 2</code>
+</p>
+<p><code>mvpa_bout_tol_lower = 0</code>
+</p>
+<p><code>vig_bout_tol_lower = 0</code>
+</p>
+<p><code>active_bout_nci = TRUE</code>
+</p>
+<p><code>sed_bout_tol = 0</code>
+</p>
+<p><code>sed_bout_tol_maximum = 759</code>
+</p>
+<p><code>artifact_thresh = 32767</code>
+</p>
+<p><code>artifact_action = 3</code>
+</p>
+<p>If <code>TRUE</code>, you can still specify non-default values for <code>brevity</code> 
+and <code>weekday_weekend</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_day</code></td>
+<td>
+<p>Integer value specifying day of week for first day of 
+monitoring, with 1 = Sunday, ..., 7 = Satuday.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Date for first day of monitoring, which function can use to 
+figure out <code>start_day</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Numeric value specifying ID number of participant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brevity</code></td>
+<td>
+<p>Integer value controlling the number of physical activity 
+variables generated. Choices are 1 for basic indicators of physical activity 
+volume, 2 for addditional indicators of activity intensities, activity bouts, 
+sedentary behavior, and peak activity, and 3 for additional hourly count 
+averages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hourly_var</code></td>
+<td>
+<p>Character string specifying what hourly activity variable 
+to record, if <code>brevity = 3</code>. Choices are "counts", "cpm", "sed_min", 
+"sed_bouted_10min", and "sed_breaks".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hourly_wearmin</code></td>
+<td>
+<p>Integer value specifying minimum number of wear time 
+minutes needed during a given hour to record a value for the hourly activity 
+variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hourly_normalize</code></td>
+<td>
+<p>Logical value for whether to normalize hourly 
+activity by number of wear time minutes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valid_days</code></td>
+<td>
+<p>Integer value specifying minimum number of valid days to 
+be considered valid for analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valid_wk_days</code></td>
+<td>
+<p>Integer value specifying minimum number of valid 
+weekdays to be considered valid for analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valid_we_days</code></td>
+<td>
+<p>Integer value specifying minimum number of valid weekend 
+days to be considered valid for analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int_cuts</code></td>
+<td>
+<p>Numeric vector with four cutpoints from which five intensity 
+ranges are derived. For example, <code>int_cuts = c(100, 760, 2020, 5999)</code> 
+creates: 0-99 = intensity 1; 100-759 = intensity level 2; 760-2019 = 
+intensity 3; 2020-5998 = intensity 4; &gt;= 5999 = intensity 5. Intensities 1-5 
+are typically viewed as sedentary, light, lifestyle, moderate, and vigorous.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpm_nci</code></td>
+<td>
+<p>Logical value for whether to calculate average counts per 
+minute by dividing average daily counts by average daily wear time, as 
+opposed to taking the average of each day's counts per minute value. Strongly 
+recommend leave as <code>FALSE</code> unless you wish to replicate the NCI's SAS 
+programs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days_distinct</code></td>
+<td>
+<p>Logical value for whether to treat each day of data as 
+distinct, as opposed to analyzing the entire monitoring period as one 
+continuous segment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonwear_window</code></td>
+<td>
+<p>Integer value specifying minimum length of a non-wear 
+period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonwear_tol</code></td>
+<td>
+<p>Integer value specifying tolerance for non-wear algorithm, 
+i.e. number of minutes with non-zero counts allowed during a non-wear 
+interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonwear_tol_upper</code></td>
+<td>
+<p>Integer value specifying maximum count value for a 
+minute with non-zero counts during a non-wear interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonwear_nci</code></td>
+<td>
+<p>Logical value for whether to use non-wear algorithm from 
+NCI's SAS programs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weartime_minimum</code></td>
+<td>
+<p>Integer value specifying minimum number of wear time 
+minutes for a day to be considered valid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weartime_maximum</code></td>
+<td>
+<p>Integer value specifying maximum number of wear time 
+minutes for a day to be considered valid. The default is 1440, but you may 
+want to use a lower value (e.g. 1200) if participants were instructed to 
+remove devices for sleeping, but often did not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active_bout_length</code></td>
+<td>
+<p>Integer value specifying minimum length of an 
+active bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active_bout_tol</code></td>
+<td>
+<p>Integer value specifying number of minutes with counts 
+outside the required range to allow during an active bout. If non-zero and 
+<code>active_bout_nci = FALSE</code>, specifying non-zero values for 
+<code>mvpa_bout_tol_lower</code> and <code>vig_bout_tol_lower</code> is highly 
+recommended. Otherwise minutes immediately before and after an active bout 
+will tend to be classified as part of the bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mvpa_bout_tol_lower</code></td>
+<td>
+<p>Integer value specifying lower cut-off for count 
+values outside of required intensity range for an MVPA bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vig_bout_tol_lower</code></td>
+<td>
+<p>Integer value specifying lower cut-off for count 
+values outside of required intensity range for a vigorous bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active_bout_nci</code></td>
+<td>
+<p>Logical value for whether to use algorithm from the 
+NCI's SAS programs for classifying active bouts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sed_bout_tol</code></td>
+<td>
+<p>Integer value specifying number of minutes with counts 
+outside sedentary range to allow during a sedentary bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sed_bout_tol_maximum</code></td>
+<td>
+<p>Integer value specifying upper cut-off for count 
+values outside sedentary range during a sedentary bout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>artifact_thresh</code></td>
+<td>
+<p>Integer value specifying the smallest count value that 
+should be considered an artifact.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>artifact_action</code></td>
+<td>
+<p>Integer value controlling method of correcting 
+artifacts. Choices are 1 to exclude days with one or more artifacts, 2 to 
+lump artifacts into non-wear time, 3 to replace artifacts with the average of 
+neighboring count values, and 4 to take no action.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weekday_weekend</code></td>
+<td>
+<p>Logical value for whether to calculate averages for 
+weekdays and weekend days separately (in addition to all valid days).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_form</code></td>
+<td>
+<p>Character string controlling how variables are returned. 
+Choices are "daily" for per-day summaries, "averages" for averages across 
+all valid days, and "both" for a list containing both.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Numeric matrix or list of two numeric matrices, depending on 
+<code>return_form</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>National Cancer Institute. Risk factor monitoring and methods: SAS programs 
+for analyzing NHANES 2003-2004 accelerometer data. Available at: 
+<a href="http://riskfactor.cancer.gov/tools/nhanes_pam">http://riskfactor.cancer.gov/tools/nhanes_pam</a>. Accessed Aug. 19, 2018.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Note that the 'unidata' dataset contains accelerometer data for first 5 
+# subjects in NHANES 2003-2004
+
+# Get data from ID number 21005
+id.part1 &lt;- unidata[unidata[, "seqn"] == 21005, "seqn"]
+counts.part1 &lt;- unidata[unidata[, "seqn"] == 21005, "paxinten"]
+
+# Process data from ID 21005 and request per-day variables
+accel.days &lt;- process_uni(
+  counts = counts.part1, 
+  id = id.part1, 
+  return_form = "daily"
+)
+
+# Repeat, but request averages across all valid days
+accel.averages &lt;- process_uni(
+  counts = counts.part1, 
+  id = id.part1, 
+  return_form = "averages"
+)
+                          
+# Process data according to methods used in NCI's SAS programs
+accel.nci1 &lt;- process_uni(
+  counts = counts.part1, 
+  id = id.part1, 
+  brevity = 2, 
+  valid_days = 4, 
+  cpm_nci = TRUE, 
+  days_distinct = TRUE, 
+  nonwear_tol = 2, 
+  nonwear_tol_upper = 100,
+  nonwear_nci = TRUE, 
+  weartime_maximum = 1440,
+  active_bout_tol = 2, 
+  active_bout_nci = TRUE, 
+  artifact_thresh = 32767,
+  artifact_action = 3, 
+  return_form = "averages"
+)
+                          
+# Repeat, but use nci_methods input for convenience
+accel.nci2 &lt;- process_uni(
+  counts = counts.part1, 
+  id = id.part1, 
+  nci_methods = TRUE, 
+  brevity = 2, 
+  return_form = "averages"
+)
+                          
+# Results are identical
+all.equal(accel.nci1, accel.nci2)
+
+
+</code></pre>
+
+
+</div>

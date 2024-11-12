@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pedFixBirthYear</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>pedFixBirthYear.R</h2>
+
+<h3>Description</h3>
+
+<p>A function to fix (impute) missing birth years in pedigree.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pedFixBirthYear(
+  x,
+  interval,
+  down = FALSE,
+  na.rm = TRUE,
+  sort = TRUE,
+  direct = TRUE,
+  report = TRUE,
+  colId = 1,
+  colFid = 2,
+  colMid = 3,
+  colBY = 4
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>data.frame , with (at least) the following columns: individual, father, and mother identification,
+and year of birth; see arguments <code>colId</code>,
+<code>colFid</code>, <code>colMid</code>, and <code>colBY</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Numeric, a value for generation interval in years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>down</code></td>
+<td>
+<p>Logical, the default is to impute birth years based on the birth year of children
+starting from the youngest to the oldest individuals, while with <code>down=TRUE</code>
+birth year is imputed based on the birth year of parents in the opposite order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical, remove <code>NA</code> values when searching for the minimal (maximal) year of birth
+in children (parents); setting this to <code>FALSE</code> can lead to decreased success of
+imputation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Logical, initially sort <code>x</code> using <code>orderPed()</code> so that children follow
+parents in order to make imputation as optimal as possible (imputation is performed
+within a loop from the first to the last unknown birth year); at the end original
+order is restored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>direct</code></td>
+<td>
+<p>Logical, insert inferred birth years immediately so they can be used for successive
+individuals within the loop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>Logical, report success.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colId</code></td>
+<td>
+<p>Numeric or character, position or name of a column holding individual identification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colFid</code></td>
+<td>
+<p>Numeric or character, position or name of a column holding father identification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colMid</code></td>
+<td>
+<p>Numeric or character, position or name of a column holding mother identification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colBY</code></td>
+<td>
+<p>Numeric or character, position or name of a column holding birth year.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Warnings are issued when there is no information to use to impute birth years or missing
+values (<code>NA</code>) are propagated.
+</p>
+<p>Arguments <code>down</code> and <code>na.rm</code> allow for repeated use of this function, i.e., with
+<code>down=FALSE</code> and with <code>down=TRUE</code> (both in combination with <code>na.rm=TRUE</code>) in order to
+propagate information over the pedigree until "convergence".
+</p>
+<p>This function can be very slow on large pedigrees with extensive missingness of birth years.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object <code>x</code> with imputed birth years based on the birth year of children or parents.
+If <code>report=TRUE</code> success is printed on the screen as the number of initially, fixed,
+and left unknown birth years is printed.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>orderPed</code> in <span class="pkg">pedigree</span> package
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example pedigree with missing (unknown) birth year for some individuals
+ped0 &lt;- data.frame(     id=c( 1, 2, 3,  4, 5, 6, 7,  8, 9, 10, 11, 12, 13, 14),
+                        fid=c( 0, 0, 0,  1, 1, 1, 3,  3, 3,  5,  4,  0,  0, 12),
+                        mid=c( 0, 0, 0,  2, 0, 2, 2,  2, 5,  0,  0,  0,  0, 13),
+                        birth_dt=c(NA, 0, 1, NA, 3, 3, 3, 3, 4, 4, 5, NA, 6, 6) + 2000)
+
+## First run - using information from children
+ped1 &lt;- pedFixBirthYear(x=ped0, interval=1)
+
+## Second run - using information from parents
+ped2 &lt;- pedFixBirthYear(x=ped1, interval=1, down=TRUE)
+
+## Third run - using information from children, but with no success
+ped3 &lt;- pedFixBirthYear(x=ped2, interval=1)
+</code></pre>
+
+
+</div>

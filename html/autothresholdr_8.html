@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>med_stack_thresh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Threshold every image frame in a stack based on their median.</h2>
+
+<h3>Description</h3>
+
+<p>An ijtiff_img is a 4-dimensional array indexed by
+<code>img[y, x, channel, frame]</code>. For each channel (which consists of a stack of
+frames), this function finds a threshold based on all of the frames, then
+takes the median of all the frames in the stack image, uses this to create a
+mask with the found threshold and then applies this mask to every frame in
+the stack (so for a given pillar in the image stack, either all the pixels
+therein are thresholded away or all are untouched, where pillar <code style="white-space: pre;">⁠x,y⁠</code> of
+channel <code>ch</code> is <code>img[y, x, ch, ]</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">med_stack_thresh(
+  img,
+  method,
+  fail = NA,
+  ignore_black = FALSE,
+  ignore_white = FALSE,
+  ignore_na = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>img</code></td>
+<td>
+<p>A 3-dimensional array (the image stack, possibly a time-series of
+images) where the <code class="reqn">n</code>th slice is the <code class="reqn">n</code>th image in the stack.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The name of the thresholding method you wish to use. The
+available methods are <code>"IJDefault"</code>, <code>"Huang"</code>, <code>"Huang2"</code>, <code>"Intermodes"</code>,
+<code>"IsoData"</code>, <code>"Li"</code>, <code>"MaxEntropy"</code>, <code>"Mean"</code>, <code>"MinErrorI"</code>, <code>"Minimum"</code>,
+<code>"Moments"</code>, <code>"Otsu"</code>, <code>"Percentile"</code>, <code>"RenyiEntropy"</code>, <code>"Shanbhag"</code>,
+<code>"Triangle"</code> and <code>"Yen"</code>. Partial matching is performed i.e. <code>method = "h"</code>
+is enough to get you <code>"Huang"</code> and <code>method = "in"</code> is enough to get you
+<code>"Intermodes"</code>. To perform <em>manual</em> thresholding (where you set the
+threshold yourself), supply the threshold here as a number e.g. <code>method = 3</code> (so note that this would <em>not</em> select the third method in the above
+list of methods). This manual threshold will then be used to threshold the
+median stack to create a 2D mask and then this mask will be applied to all
+frames in the stack. If you want a different method for each channel,
+specify this parameter as a vector or list, one element per channel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fail</code></td>
+<td>
+<p>When using <code>auto_thresh_apply_mask()</code>, to what value do you wish
+to set the pixels which fail to exceed the threshold? <code>fail = 'saturate'</code>
+sets them to saturated value (see 'Details'). <code>fail = 'zero'</code> sets them to
+zero. You can also specify directly here a natural number (must be between
+<code>0</code> and <code>2^32 - 1</code>) to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_black</code></td>
+<td>
+<p>Ignore black pixels/elements (zeros) when performing the
+thresholding?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_white</code></td>
+<td>
+<p>Ignore white pixels when performing the thresholding? If
+set to <code>TRUE</code>, the function makes a good guess as to what the white
+(saturated) value would be (see 'Details').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_na</code></td>
+<td>
+<p>This should be <code>TRUE</code> if <code>NA</code>s in <code>int_arr</code> should be
+ignored or <code>FALSE</code> if you want the presence of <code>NA</code>s in <code>int_arr</code> to throw
+an error.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<ul>
+<li>
+<p> Values greater than or equal to the found threshold
+<em>pass</em> the thresholding and values less than the threshold <em>fail</em>
+the thresholding.
+</p>
+</li>
+<li>
+<p>For <code>ignore_white = TRUE</code>, if the maximum value in the array is one of
+<code>2^8-1</code>, <code>2^16-1</code> or <code>2^32-1</code>, then those max values are ignored.
+That's because they're the white values in 8, 16 and 32-bit images
+respectively (and these are the common image bit sizes to work with). This
+guesswork has to be done because <code>R</code> does not know how many bits the image
+was on disk. This guess is very unlikely to be wrong, and if it is, the
+consequences are negligible anyway. If you're very concerned, then just
+specify the white value as an integer in this <code>ignore_white</code> argument.
+</p>
+</li>
+<li>
+<p>If you have set <code>ignore_black = TRUE</code> and/or <code>ignore_white = TRUE</code> but
+you are still getting error/warning messages telling you to try them, then
+your chosen method is not working for the given array, so you should try a
+different method.
+</p>
+</li>
+<li>
+<p> For a given array, if all values are less than <code>2^8</code>, saturated value
+is <code>2^8 - 1</code>, otherwise, saturated value is <code>2^16 - 1</code>. </p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of class stack_threshed_img which is the thresholded
+image (an array in the style of an ijtiff_img).
+Pillars not exceeding the threshold are set to the <code>fail</code> value (default
+<code>NA</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+img &lt;- ijtiff::read_tif(system.file("extdata", "50.tif",
+  package = "autothresholdr"
+))
+ijtiff::display(img[, , 1, 1])
+img_thresh_mask &lt;- med_stack_thresh(img, "Otsu")
+ijtiff::display(img_thresh_mask[, , 1, 1])
+ijtiff::display(img[, , 1, 1])
+img_thresh_mask &lt;- med_stack_thresh(img, "Triangle")
+ijtiff::display(img_thresh_mask[, , 1, 1])
+
+</code></pre>
+
+
+</div>

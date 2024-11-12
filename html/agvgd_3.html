@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>agvgd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Align-GVGD (A-GVGD)</h2>
+
+<h3>Description</h3>
+
+<p>This function implements the Align-GVGD (A-GVGD) method described in
+Tavtigian <em>et al.</em> (2006).
+</p>
+<p>A-GVGD combines multiple sequence alignment of orthologous sequences with the
+Grantham distance to classify missense variants, i.e. to distinguish human
+disease susceptibility missense changes from changes of little clinical
+significance.
+</p>
+<p>The biochemical variation at each alignment position is converted to a
+Grantham Variation score (GV) and the difference between these properties and
+those of the variant amino acid being assessed are calculated and a Grantham
+Difference score generated (GD).  The predicted effect is classed as C0, C15,
+C25, C35, C45, C55, or C65, with C65 most likely to interfere with function
+and C0 least likely.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">agvgd(
+  alignment,
+  poi,
+  sub,
+  mode = c("recycle", "expand_grid"),
+  sort = FALSE,
+  keep_self = TRUE,
+  digits = 2L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alignment</code></td>
+<td>
+<p>A character matrix or an alignment object obtained with
+<code>read_alignment()</code>. Rows are expected to be sequences of single characters
+(protein residues), and columns the alignment positions. The first row must
+be the reference sequence, i.e. the sequence whose substitutions will be
+evaluated against.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poi</code></td>
+<td>
+<p>A whole number indicating the position of interest (POI).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>A character vector of protein residue substitutions to be
+classified. The amino acids must be provided as one-letter symbols.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>If both <code>poi</code> and <code>sub</code> contain more than one element, <code>mode</code>
+specifies how these two inputs are combined. If <code>mode = 'recycle'</code> the
+shortest vector is recycled to match the length of the longest. If <code>mode = 'expand_grid'</code>, all combinations between elements of <code>poi</code> and <code>sub</code> are
+combined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Whether to sort the output by <code>gd</code>, or not. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_self</code></td>
+<td>
+<p>Whether to keep those results in the output that correspond
+to residues being the same in <code>ref</code> and <code>sub</code>. Default is <code>TRUE</code>. But it
+will be useful to change it to <code>FALSE</code> if want to compare the results with
+those provided by <a href="http://agvgd.hci.utah.edu/">http://agvgd.hci.utah.edu/</a> that filters them out.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Integer indicating the number of decimal places to be used in
+rounding <code>gv</code> and <code>gd</code> values. Default is <code>2</code>. Note that the calculation of
+the <code>prediction</code> variable won't be affected by rounding of <code>gv</code> and <code>gd</code>,
+as it is calculated prior to the rounding.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A tibble whose observations refer to the
+combination alignment position and amino acid substitution; consists of
+seven variables:
+</p>
+
+<dl>
+<dt>res</dt>
+<dd>
+<p>Position of the amino acid residue in the reference protein
+(first sequence in the alignment). This position corresponds to <code>poi</code> minus
+the gaps in the alignment.</p>
+</dd>
+<dt>poi</dt>
+<dd>
+<p>Position of interest, i.e. the alignment position at which the
+amino acid substitution is being assessed.</p>
+</dd>
+<dt>ref</dt>
+<dd>
+<p>Reference amino acid, i.e. the amino acid in the first sequence
+of the alignment, at the position of interest.</p>
+</dd>
+<dt>sub</dt>
+<dd>
+<p>Amino acid substitution being assessed.</p>
+</dd>
+<dt>gv</dt>
+<dd>
+<p>Grantham variation score.</p>
+</dd>
+<dt>gd</dt>
+<dd>
+<p>Grantham difference score.</p>
+</dd>
+<dt>prediction</dt>
+<dd>
+<p>Predicted effect of the amino acid substitution. This is
+classed as C0, C15, C25, C35, C45, C55, or C65, with C65 most likely to
+interfere with function and C0 least likely.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Tavtigian, S.V., Deffenbaugh, A. M., Yin, L., Judkins, T., Scholl, T.,
+Samollow, P.B., de Silva, D., Zharkikh, A., Thomas, A. <em>Comprehensive
+statistical study of 452 BRCA1 missense substitutions with classification of
+eight recurrent substitutions as neutral</em>. Journal of Medical Genetics 43,
+295–305 (2006). <a href="https://doi.org/10.1136/jmg.2005.033878">doi:10.1136/jmg.2005.033878</a>.
+</p>
+</li>
+<li>
+<p> Mathe, E., Olivier, M., Kato, S., Ishioka, C., Hainaut, P., Tavtigian, S.V.
+<em>Computational approaches for predicting the biological effect of p53
+missense mutations: a comparison of three sequence analysis based methods</em>.
+Nucleic Acids Research 34, 1317–1325 (2006). <a href="https://doi.org/10.1093/nar/gkj518">doi:10.1093/nar/gkj518</a>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Read an alignment into R, e.g. the alignment for gene ATM.
+alignment_ATM &lt;- read_alignment(gene = 'ATM')
+
+# Predict the impact of changing the first residue (Met) to a Serine (S).
+agvgd(alignment = alignment_ATM, poi = 1, sub = 'S')
+
+# `poi` can be a vector of positions, e.g., 3 thru 10, allow for prediction
+# of multiple positions at once.
+agvgd(alignment = alignment_ATM, poi = 3:10, sub = 'S')
+
+# `poi` expects a position in the frame of reference of the alignment, i.e.
+# an alignment position (a column index). However, if you know instead
+# the residue position in the reference sequence (first sequence in the
+# alignment), then you may use the function `res_to_poi()`
+# to convert from residue position to alignment position.
+#
+# Example: The second residue in the reference sequence of the ATM alignment
+# is a Serine, after a Methionine. In the alignment, there is a gap between
+# the two residues, so the alignment is 3 but the residue position on the
+# protein is 2.
+(poi2 &lt;- res_to_poi(alignment_ATM, 2))
+agvgd(alignment = alignment_ATM, poi = poi2, sub = 'A')
+
+# Because changes are context-dependent, i.e. they depend on the residue
+# variation observed at a given alignment position, the same reference
+# residue when replaced with the same substitution will in general have
+# a different predicted impact.
+agvgd(alignment = alignment_ATM, poi = 9:10, sub = 'S')
+
+# Use the ancillary function `amino_acids()` to get a vector of one-letter
+# residue substitutions if you want to quickly assess the impact of all
+# possible substitutions.
+agvgd(alignment = alignment_ATM, poi = 1, sub = amino_acids())
+
+# Parameter `mode` gives you flexibility on how to combine `poi` and `sub`.
+agvgd(alignment = alignment_ATM, poi = 3:4, sub = c('A', 'V'))
+
+# Use 'expand_grid' for all combinations.
+agvgd(alignment = alignment_ATM, poi = 3:4, sub = c('A', 'V'), mode = 'expand_grid')
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_select</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Query a Feature Service</h2>
+
+<h3>Description</h3>
+
+<p><code>arc_select()</code> takes a <code>FeatureLayer</code>, <code>Table</code>, of <code>ImageServer</code> object and
+returns data from the layer as an <code>sf</code> object or <code>data.frame</code> respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arc_select(
+  x,
+  ...,
+  fields = NULL,
+  where = NULL,
+  crs = sf::st_crs(x),
+  geometry = TRUE,
+  filter_geom = NULL,
+  predicate = "intersects",
+  n_max = Inf,
+  page_size = NULL,
+  token = arc_token()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>FeatureLayer</code>, <code>Table</code>, or <code>ImageServer</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional query parameters passed to the API.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fields</code></td>
+<td>
+<p>a character vector of the field names that you wish to be
+returned. By default all fields are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>where</code></td>
+<td>
+<p>a simple SQL where statement indicating which features should be
+selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>the spatial reference to be returned. If the CRS is different than
+the CRS for the input <code>FeatureLayer</code>, a transformation will occur
+server-side. Ignored if x is a <code>Table</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geometry</code></td>
+<td>
+<p>default <code>TRUE</code>. If geometries should be returned. Ignored for
+<code>Table</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter_geom</code></td>
+<td>
+<p>an object of class <code>bbox</code>, <code>sfc</code> or <code>sfg</code> used to filter
+query results based on a predicate function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predicate</code></td>
+<td>
+<p>Spatial predicate to use with <code>filter_geom</code>. Default
+<code>"intersects"</code>. Possible options are <code>"intersects"</code>, <code>"contains"</code>,
+<code>"crosses"</code>,  <code>"overlaps"</code>,  <code>"touches"</code>, and <code>"within"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>the maximum number of features to return. By default returns
+every feature available. Unused at the moment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>page_size</code></td>
+<td>
+<p>the maximum number of features to return per request. Useful when requests return a 500 error code. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>your authorization token.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm#GUID-BC2AD141-3386-49FB-AA09-FF341145F614">reference documentation</a> for possible arguments.
+</p>
+<p><code>FeatureLayers</code> can contain very dense geometries with a lot of coordinates.
+In those cases, the feature service may time out before all geometries can
+be returned. To address this issue, we can reduce the number of features
+returned per each request by reducing the value of the <code>page_size</code> parameter.
+</p>
+<p><code>arc_select()</code> works by sending a single request that counts the number of
+features that will be returned by the current query. That number is then used
+to calculate how many "pages" of responses are needed to fetch all the results.
+The number of features returned (page size) is set to the <code>maxRecordCount</code>
+property of the layer by default. However, by setting <code>page_size</code> to be
+smaller than the <code>maxRecordCount</code> we can return fewer geometries per page and
+avoid time outs.
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Value</h3>
+
+<p>An sf object, or a data.frame
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# define the feature layer url
+furl &lt;- paste0(
+  "https://services3.arcgis.com/ZvidGQkLaDJxRSJ2/arcgis/rest",
+  "/services/PLACES_LocalData_for_BetterHealth/FeatureServer/0"
+)
+
+flayer &lt;- arc_open(furl)
+
+arc_select(
+  flayer,
+  fields = c("StateAbbr", "TotalPopulation")
+)
+
+arc_select(
+  flayer,
+  fields = c("OBJECTID", "PlaceName"),
+  where = "TotalPopulation &gt; 1000000"
+)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

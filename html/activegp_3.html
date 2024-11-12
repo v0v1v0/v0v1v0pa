@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>C_GP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Active Subspace Matrix closed form expression for a GP.</h2>
+
+<h3>Description</h3>
+
+<p>Computes the integral over the input domain of the outer product of the gradients of a Gaussian process. 
+The corresponding matrix is the C matrix central in active subspace methodology.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">C_GP(
+  modelX,
+  y,
+  measure = "lebesgue",
+  xm = NULL,
+  xv = NULL,
+  S = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>modelX</code></td>
+<td>
+<p>This may be either 1) a <code>homGP</code> or <code>hetGP</code> GP model, see <code>hetGP-package</code> containing, e.g.,
+a vector of <code>theta</code>s, type of covariance <code>ct</code>, an inverse covariance matrix <code>Ki</code>,
+a design matrix <code>X0</code>, and response vector <code>Z0</code>. 2) A matrix of design locations, in which case a vector of responses must be given as the y argument, and this function will fit a default model for you.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of responses corresponding to the design matrix; may be ommited if a GP fit is provided in the modelX argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p>One of c("lebesgue", "gaussian", "trunc_gaussian", "sample", "discrete"), indiciating the probability distribution with respect to which the input points are drawn in the definition of the active subspace. "lebesgue" uses the Lebesgue or Uniform measure over the unit hypercube [0,1]^d. "gaussian" uses a Gaussian or Normal distribution, in which case xm and xv should be specified. "trunc_gaussian" gives a truncated Gaussian or Normal distribution over the unit hypercube [0,1]^d, in which case xm and xv should be specified. "sample" gives the Sample or Empirical measure (dirac deltas located at each design point), which is equivalent to calculating the average expected gradient outer product at the design points. "discrete" gives a measure which puts equal weight at points in the input space specified via the S parameter, which should be a matrix with one row for each atom of the measure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xm</code></td>
+<td>
+<p>If measure is "gaussian" or "trunc_gaussian", gives the mean vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xv</code></td>
+<td>
+<p>If measure is "gaussian" or "trunc_gaussian", gives the marginal variance vector. The covariance matrix is assumed to be diagonal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>If measure is "discrete", gives the locations of the measure's atoms. S is a matrix, each row of which gives an atom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Should we print progress?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>const_C</code> object with elements
+</p>
+
+<ul>
+<li> <p><code>model</code>: GP model provided or estimated;
+</p>
+</li>
+<li> <p><code>mat</code>: C matrix estimated;
+</p>
+</li>
+<li> <p><code>Wij</code>: list of W matrices, of size number of variables;
+</p>
+</li>
+<li> <p><code>ct</code>: covariance type (1 for "Gaussian", 2 for "Matern3_2", 3 for "Matern5_2").
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>N. Wycoff, M. Binois, S. Wild (2019+), Sequential Learning of Active Subspaces, preprint.<br></p>
+<p>P. Constantine (2015), Active Subspaces, Philadelphia, PA: SIAM.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.const_C</code>, <code>plot.const_C</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">################################################################################
+### Active subspace of a Gaussian process
+################################################################################
+ 
+library(hetGP); library(lhs)
+set.seed(42)
+
+nvar &lt;- 2
+n &lt;- 100
+
+# theta gives the subspace direction
+f &lt;- function(x, theta, nugget = 1e-3){
+  if(is.null(dim(x))) x &lt;- matrix(x, 1)
+  xact &lt;- cos(theta) * x[,1] - sin(theta) * x[,2]
+  return(hetGP::f1d(xact) + rnorm(n = nrow(x), sd = rep(nugget, nrow(x))))
+}
+
+theta_dir &lt;- pi/6
+act_dir &lt;- c(cos(theta_dir), -sin(theta_dir))
+
+# Create design of experiments and initial GP model
+design &lt;- X &lt;- matrix(signif(maximinLHS(n, nvar), 2), ncol = nvar)
+response &lt;- Y &lt;- apply(design, 1, f, theta = theta_dir)
+model &lt;- mleHomGP(design, response, known = list(beta0 = 0))
+
+C_hat &lt;- C_GP(model)
+
+# Subspace distance to true subspace:
+print(subspace_dist(C_hat, matrix(act_dir, nrow = nvar), r = 1))
+plot(design %*% eigen(C_hat$mat)$vectors[,1], response, 
+  main = "Projection along estimated active direction")
+plot(design %*% eigen(C_hat$mat)$vectors[,2], response, 
+  main = "Projection along estimated inactive direction")
+  
+# For other plots:
+# par(mfrow = c(1, 3)) # uncomment to have all plots together
+plot(C_hat)
+# par(mfrow = c(1, 1)) # restore graphical window
+
+ 
+</code></pre>
+
+
+</div>

@@ -1,0 +1,724 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ATA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic Time Series Analysis and Forecasting using Ata Method with Box-Cox Power Transformations Family and Seasonal Decomposition Techniques</h2>
+
+<h3>Description</h3>
+
+<p><code>ATA</code> is a generic function for Ata Method forecasting.
+The Ata method based on the modified simple exponential smoothing as described in Yapar, G. (2016) &lt;doi:10.15672/HJMS.201614320580&gt; ,
+Yapar G., Capar, S., Selamlar, H. T., Yavuz, I. (2017) &lt;doi:10.15672/HJMS.2017.493&gt; and Yapar G., Selamlar, H. T., Capar, S., Yavuz, I. (2019)
+&lt;doi:10.15672/hujms.461032&gt; is a new univariate time series forecasting method which provides innovative solutions to issues faced during
+the initialization and optimization stages of existing methods.
+Forecasting performance of the Ata method is superior to existing methods both in terms of easy implementation and accurate forecasting.
+It can be applied to non-seasonal or seasonal time series which can be decomposed into four components (remainder, level, trend and seasonal).
+This methodology performed well on the M3 and M4-competition data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ATA(
+  X,
+  Y = NULL,
+  parP = NULL,
+  parQ = NULL,
+  parPHI = NULL,
+  model.type = NULL,
+  seasonal.test = NULL,
+  seasonal.model = "decomp",
+  seasonal.period = NULL,
+  seasonal.type = NULL,
+  seasonal.test.attr = NULL,
+  find.period = NULL,
+  accuracy.type = NULL,
+  nmse = 3,
+  level.fixed = FALSE,
+  trend.opt = "none",
+  h = NULL,
+  train_test_split = NULL,
+  holdout = FALSE,
+  holdout.adjustedP = TRUE,
+  holdout.set_size = NULL,
+  holdout.onestep = FALSE,
+  holdin = FALSE,
+  transform.order = "before",
+  transform.method = NULL,
+  transform.attr = NULL,
+  lambda = NULL,
+  shift = 0,
+  initial.level = "none",
+  initial.trend = "none",
+  ci.level = 95,
+  start.phi = NULL,
+  end.phi = NULL,
+  size.phi = NULL,
+  negative.forecast = TRUE,
+  onestep = FALSE,
+  print.out = TRUE,
+  plot.out = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A numeric vector or time series of class <code>ts</code> or <code>msts</code> for in-sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>A numeric vector or time series of class <code>ts</code> or <code>msts</code> for out-sample. If you do not have out-sample data, you can split in-sample data into training and test dataset with <code>train_test_split</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parP</code></td>
+<td>
+<p>Value of Level parameter <code>p</code>. If NULL or "opt", it is estimated. <code>p</code> has all integer values from 1 to <code>length(X)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parQ</code></td>
+<td>
+<p>Value of Trend parameter <code>q</code>. If NULL or "opt", it is estimated. <code>q</code> has all integer values from 0 to <code>p</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parPHI</code></td>
+<td>
+<p>Value of Damping Trend parameter <code>phi</code>. If NULL or "opt", it is estimated. phi has all values from 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>An one-character string identifying method using the framework terminology. The letter "A" for additive model, the letter "M" for multiplicative model.
+If NULL, both letters will be tried and the best model (according to the accuracy measure <code>accuracy.type</code>) returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal.test</code></td>
+<td>
+<p>Testing for stationary and seasonality. If TRUE, the method firstly uses <code>test="adf"</code>, Augmented Dickey-Fuller, unit-root test then the test returns the least number of differences required to pass the test at level <code>alpha</code>.
+After the unit-root test, seasonal test applies on the stationary <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal.model</code></td>
+<td>
+<p>A string identifying method for seasonal decomposition. If NULL, "decomp" method is default. c("none", "decomp", "stl", "stlplus", "tbats", "stR") phrases of methods denote
+</p>
+
+<ul>
+<li>
+<p>none    : seasonal decomposition is not required.
+</p>
+</li>
+<li>
+<p>decomp     : classical seasonal decomposition. If <code>decomp</code>, the <code>stats</code> package will be used.
+</p>
+</li>
+<li>
+<p>stl        : seasonal-trend decomposition procedure based on loess developed by Cleveland et al. (1990). If <code>stl</code>, the <code>stats</code> and <code>forecast</code> packages will be used. Multiple seasonal periods are allowed.
+</p>
+</li>
+<li>
+<p>stlplus    : seasonal-trend decomposition procedure based on loess developed by Cleveland et al. (1990). If <code>stlplus</code>, the <code>stlplus</code> package will be used.
+</p>
+</li>
+<li>
+<p>tbats   : exponential smoothing state space model with Box-Cox transformation, ARMA errors, trend and seasonal components.
+as described in De Livera, Hyndman &amp; Snyder (2011). Parallel processing is used by default to speed up the computations. If <code>tbats</code>, the <code>forecast</code> package will be used. Multiple seasonal periods are allowed.
+</p>
+</li>
+<li>
+<p>stR        : seasonal-trend decomposition procedure based on regression developed by Dokumentov and Hyndman (2015). If <code>stR</code>, the <code>stR</code> package will be used. Multiple seasonal periods are allowed.
+</p>
+</li>
+<li>
+<p>x13        : seasonal-trend decomposition procedure based on X13ARIMA/SEATS. If <code>x13</code>, the <code>seasonal</code> package will be used.
+</p>
+</li>
+<li>
+<p>x11        : seasonal-trend decomposition procedure based on X11. If <code>x11</code>, the <code>seasonal</code> package will be used.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal.period</code></td>
+<td>
+<p>Value(s) of seasonal periodicity. If NULL, <code>frequency</code> of X is default  If <code>seasonal.period</code> is not integer, <code>X</code> must be <code>msts</code> time series object. c(s1,s2,s3,...) for multiple period. If <code>X</code> has multiple periodicity, "tbats" or "stR" seasonal model have to be selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal.type</code></td>
+<td>
+<p>An one-character string identifying method for the seasonal component framework. The letter "A" for additive model, the letter "M" for multiplicative model.
+If NULL, both letters will be tried and the best model (according to the accuracy measure <code>accuracy.type</code>) returned.
+If seasonal decomposition methods except <code>decomp</code> with "M", Box-Cox transformation with <code>lambda</code>=0 is selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal.test.attr</code></td>
+<td>
+<p>Attributes set for unit root, seasonality tests, X13ARIMA/SEATS and X11. If NULL, corrgram.tcrit=1.28, uroot.test="adf", suroot.test="correlogram", suroot.uroot=TRUE, uroot.type="trend", uroot.alpha=0.05, suroot.alpha=0.05, uroot.maxd=2, suroot.maxD=1, suroot.m=frequency(X), uroot.pkg="urca", multi.period="min", x13.estimate.maxiter=1500, x13.estimate.tol=1.0e-5, x11.estimate.maxiter=1500, x11.estimate.tol=1.0e-5. If you want to change, please use <code>ATA.SeasAttr</code> function and its output.
+For example, you can use <code>seasonal.test.attr = ATA.SeasAttr(corrgram.tcrit=1.65)</code> equation in <code>ATA</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>find.period</code></td>
+<td>
+<p>Find seasonal period(s) automatically. If NULL, 0 is default. When <code>find.period</code>,
+</p>
+
+<ul>
+<li>
+<p>0 : none
+</p>
+</li>
+<li>
+<p>1 : single period with find.freq
+</p>
+</li>
+<li>
+<p>2 : single period with <code>forecast::findfrequency</code>
+</p>
+</li>
+<li>
+<p>3 : multiple period with find.freq &amp; stR
+</p>
+</li>
+<li>
+<p>4 : multiple period with find.freq &amp; tbats
+</p>
+</li>
+<li>
+<p>5 : multiple period with find.freq &amp; stl
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accuracy.type</code></td>
+<td>
+<p>Accuracy measure for optimization of the best ATA Method forecasting. IF NULL, <code>sMAPE</code> is default.
+</p>
+
+<ul>
+<li>
+<p>lik        : maximum likelihood functions
+</p>
+</li>
+<li>
+<p>sigma    : residual variance.
+</p>
+</li>
+<li>
+<p>MAE        : mean absolute error.
+</p>
+</li>
+<li>
+<p>MSE        : mean square error.
+</p>
+</li>
+<li>
+<p>AMSE    : Average MSE over first 'nmse' forecast horizons using k-step forecast.
+</p>
+</li>
+<li>
+<p>GAMSE    : Average MSE over first 'nmse' forecast horizons using one-step forecast.
+</p>
+</li>
+<li>
+<p>RMSE    : root mean squared error.
+</p>
+</li>
+<li>
+<p>MPE        : mean percentage error.
+</p>
+</li>
+<li>
+<p>MAPE    : mean absolute percentage error.
+</p>
+</li>
+<li>
+<p>sMAPE    : symmetric mean absolute percentage error.
+</p>
+</li>
+<li>
+<p>MASE    : mean absolute scaled error.
+</p>
+</li>
+<li>
+<p>OWA        : overall weighted average of MASE and sMAPE.
+</p>
+</li>
+<li>
+<p>MdAE    : median absolute error.
+</p>
+</li>
+<li>
+<p>MdSE    : median square error.
+</p>
+</li>
+<li>
+<p>RMdSE    : root median squared error.
+</p>
+</li>
+<li>
+<p>MdPE    : median percentage error.
+</p>
+</li>
+<li>
+<p>MdAPE    : median absolute percentage error.
+</p>
+</li>
+<li>
+<p>sMdAPE    : symmetric median absolute percentage error.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmse</code></td>
+<td>
+<p>If accuracy.type == "AMSE" or "GAMSE", nmse provides the number of steps for average multistep MSE ('2&lt;=nmse&lt;=30').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level.fixed</code></td>
+<td>
+<p>If TRUE, "pStarQ"  –&gt; First, fits ATA(p,0) where p = p* is optimized for q=0. Then, fits ATA(p*,q) where q is optimized for p = p*.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend.opt</code></td>
+<td>
+<p>When <code>trend.opt</code>,
+</p>
+
+<ul>
+<li>
+<p>none : none
+</p>
+</li>
+<li>
+<p>fixed : "pBullet" –&gt; Fits ATA(p,1) where p = p* is optimized for q = 1.
+</p>
+</li>
+<li>
+<p>search : "qBullet" –&gt; Fits ATA(p,q) where p = p* is optimized for q = q* (q &gt; 0). Then, fits ATA(p*,q) where q is optimized for p = p*.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The forecast horizon.
+When the parameter is NULL; if the frequency of <code>X</code> is 4, the parameter is set to 8; if the frequency of <code>X</code> is 12, the parameter is set to 18; the parameter is set to 6 for other cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train_test_split</code></td>
+<td>
+<p>If <code>Y</code> is NULL, this parameter divides <code>X</code> into two parts: training set (in-sample) and test set (out-sample). <code>train_test_split</code> is number of periods for forecasting and size of test set.
+If the value is between 0 and 1, percentage of length is active.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout</code></td>
+<td>
+<p>Default is FALSE. If TRUE, ATA Method uses the holdout forecasting for accuracy measure to select the best model. In holdout forecasting, the last few data points are removed from the data series.
+The remaining historical data series is called in-sample data (training set), and the holdout data is called validation set (holdout set).
+If TRUE, holdout.set_size will used for holdout data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout.adjustedP</code></td>
+<td>
+<p>Default is TRUE. If TRUE, parP will be adjusted by length of training - validation sets and in-sample set when the holdout forecasting is active.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout.set_size</code></td>
+<td>
+<p>If <code>holdout</code> is TRUE, this parameter will be same as <code>h</code> for defining holdout set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout.onestep</code></td>
+<td>
+<p>Default is FALSE. if TRUE, the dynamic forecast strategy uses a one-step model multiple times (<code>h</code> forecast horizon) where the holdout prediction for the prior time step is used as an input for making a prediction on the following time step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdin</code></td>
+<td>
+<p>Default is FALSE. If TRUE, ATA Method uses the hold-in forecasting for accuracy measure to select the best model. In hold-in forecasting, the last h-length data points are used for accuracy measure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.order</code></td>
+<td>
+<p>If "before", Box-Cox transformation family will be applied and then seasonal decomposition techniques will be applied. If "after", seasonal decomposition techniques will be applied and then Box-Cox transformation family will be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.method</code></td>
+<td>
+<p>Transformation method  –&gt; "Box_Cox", "Sqrt", "Reciprocal", "Log", "NegLog", "Modulus", "BickelDoksum", "Manly", "Dual", "YeoJohnson", "GPower", "GLog". If the transformation process needs shift parameter,
+<code>ATA.Transform</code> will calculate required shift parameter automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.attr</code></td>
+<td>
+<p>Attributes set for Box-Cox transformation. If NULL, bcMethod = "loglik", bcLower = 0, bcUpper = 1, bcBiasAdj = FALSE. If you want to change, please use <code>ATA.BoxCoxAttr</code> function and its output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Box-Cox power transformation family parameter. Default is NULL. When "transform.method" is selected and lambda is set as NULL, required "lambda" parameter will be calculated automatically based on "transform.attr".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift</code></td>
+<td>
+<p>Box-Cox power transformation family shifting parameter. Default is 0. When "transform.method" is selected, required shifting parameter will be calculated automatically according to dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.level</code></td>
+<td>
+<p>"none" is default,
+</p>
+
+<ul>
+<li>
+<p>none    : ATA Method calculates the pth observation in <code>X</code> for level.
+</p>
+</li>
+<li>
+<p>mean     : ATA Method calculates average of first p value in <code>X</code>for level.
+</p>
+</li>
+<li>
+<p>median: ATA Method calculates median of first p value in <code>X</code>for level.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.trend</code></td>
+<td>
+<p>"none" is default,
+</p>
+
+<ul>
+<li>
+<p>none    : ATA Method calculates the qth observation in <code>X</code> for trend.
+</p>
+</li>
+<li>
+<p>mean     : ATA Method calculates average of first q value in <code>X(T)-X(T-1)</code> for trend.
+</p>
+</li>
+<li>
+<p>median: ATA Method calculates median of first q value in <code>X(T)-X(T-1)</code> for trend.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci.level</code></td>
+<td>
+<p>Confidence Interval levels for forecasting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.phi</code></td>
+<td>
+<p>Lower boundary for searching <code>parPHI</code>.If NULL, 0 is default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end.phi</code></td>
+<td>
+<p>Upper boundary for searching <code>parPHI</code>. If NULL, 1 is is default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size.phi</code></td>
+<td>
+<p>Increment step for searching <code>parPHI</code>. If NULL, the step size will be determined as the value that allows the bounds for the optimised value of <code>parPHI</code> to be divided into 20 equal parts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negative.forecast</code></td>
+<td>
+<p>Negative values are allowed for forecasting. Default value is TRUE. If FALSE, all negative values for forecasting are set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onestep</code></td>
+<td>
+<p>Default is FALSE. if TRUE, the dynamic forecast strategy uses a one-step model multiple times (<code>h</code> forecast horizon) where the prediction for the prior time step is used as an input for making a prediction on the following time step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.out</code></td>
+<td>
+<p>Default is TRUE. If FALSE, summary of ATA Method is not shown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.out</code></td>
+<td>
+<p>Default is TRUE. If FALSE, graphics of ATA Method are not shown.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Returns ATA(p,q,phi)(E,T,S) applied to <code>X</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>ata</code>. The generic accessor functions <code>ATA.Forecast</code> and <code>ATA.Accuracy</code> extract useful features of the value returned by <code>ATA</code> and associated functions.
+<code>ata</code> object is a list containing at least the following elements
+</p>
+
+<ul>
+<li>
+<p>actual		: The original time series.
+</p>
+</li>
+<li>
+<p>fitted		: Fitted values (one-step forecasts). The mean is of the fitted values is calculated over the ensemble.
+</p>
+</li>
+<li>
+<p>level		  : Estimated level values.
+</p>
+</li>
+<li>
+<p>trend		  : Estimated trend values.
+</p>
+</li>
+<li>
+<p>residuals	: Original values minus fitted values.
+</p>
+</li>
+<li>
+<p>coefp		  : The weights attached to level observations.
+</p>
+</li>
+<li>
+<p>coefq		  : The weights attached to trend observations.
+</p>
+</li>
+<li>
+<p>p		      : Optimum level parameter.
+</p>
+</li>
+<li>
+<p>q		      : Optimum trend parameter.
+</p>
+</li>
+<li>
+<p>phi		    : Optimum damped trend parameter.
+</p>
+</li>
+<li>
+<p>model.type: Form of trend.
+</p>
+</li>
+<li>
+<p>h		      : The number of steps to forecast ahead.
+</p>
+</li>
+<li>
+<p>forecast	: Point forecasts as a time series.
+</p>
+</li>
+<li>
+<p>out.sample: Test set as a time series.
+</p>
+</li>
+<li>
+<p>method		: The name of the optimum forecasting method as a character string for ATA(P,Q,PHI)(Error,Trend,Season).
+</p>
+</li>
+<li>
+<p>initial.level     : Selected initial level values for the time series forecasting method.
+</p>
+</li>
+<li>
+<p>initial.trend     : Selected initial trend values for the time series forecasting method.
+</p>
+</li>
+<li>
+<p>level.fixed       : A choice of optional level-fixed trended methods.
+</p>
+</li>
+<li>
+<p>trend.opt       : A choice of optional trend and level optimized trended methods (none, trend.fixed or trend.search).
+</p>
+</li>
+<li>
+<p>transform.method  : Box-Cox power transformation family method  –&gt; Box_Cox, Sqrt, Reciprocal, Log, NegLog, Modulus, BickelDoksum, Manly, Dual, YeoJohnson, GPower, GLog.
+</p>
+</li>
+<li>
+<p>transform.order   : Define how to apply Box-Cox power transformation techniques, before or after seasonal decomposition.
+</p>
+</li>
+<li>
+<p>lambda  	: Box-Cox power transformation family parameter.
+</p>
+</li>
+<li>
+<p>shift		  : Box-Cox power transformation family shifting parameter.
+</p>
+</li>
+<li>
+<p>accuracy.type		  : Accuracy measure that is chosen for model selection.
+</p>
+</li>
+<li>
+<p>nmse		  : The number of steps for average multistep MSE.
+</p>
+</li>
+<li>
+<p>accuracy 	: In and out sample accuracy measures and its descriptives that are calculated for optimum model are given.
+</p>
+</li>
+<li>
+<p>par.specs 	: Parameter sets for Information Criteria.
+</p>
+</li>
+<li>
+<p>holdout		: Holdout forecasting is TRUE or FALSE.
+</p>
+</li>
+<li>
+<p>holdout.training 	: Training set in holdout forecasting.
+</p>
+</li>
+<li>
+<p>holdout.validation: Validation set in holdout forecasting.
+</p>
+</li>
+<li>
+<p>holdout.forecast	: Holdout forecast.
+</p>
+</li>
+<li>
+<p>holdout.accuracy	: Accuracy measure chosen for model selection in holdout forecasting.
+</p>
+</li>
+<li>
+<p>holdin		: Hold-in forecasting is TRUE or FALSE.
+</p>
+</li>
+<li>
+<p>is.season	: Indicates whether it contains seasonal pattern.
+</p>
+</li>
+<li>
+<p>seasonal.model		: The name of the selected decomposition method.
+</p>
+</li>
+<li>
+<p>seasonal.type	  	: Form of seasonality.
+</p>
+</li>
+<li>
+<p>seasonal.period		: The number of seasonality periods.
+</p>
+</li>
+<li>
+<p>seasonal.index		: Weights of seasonality.
+</p>
+</li>
+<li>
+<p>seasonal	: Estimated seasonal values.
+</p>
+</li>
+<li>
+<p>seasonal.adjusted	: Deseasonalized time series values.
+</p>
+</li>
+<li>
+<p>execution.time		: The real and CPU time 'in seconds' spent by the system executing that task, including the time spent executing run-time or system services on its behalf.
+</p>
+</li>
+<li>
+<p>calculation.time	: How much real time 'in seconds' the currently running R process has already taken.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Ali Sabri Taylan and Hanife Taylan Selamlar
+</p>
+
+
+<h3>References</h3>
+
+<p>#'Yapar G, Yavuz I, Selamlar HT (2017).
+“Why and How Does Exponential Smoothing Fail? An In Depth Comparison of ATA-Simple and Simple Exponential Smoothing.”
+<em>Turkish Journal of Forecasting</em>, <b>1</b>(1), 30–39.
+</p>
+<p>#'Yapar G, Capar S, Selamlar HT, Yavuz I (2018).
+“Modified Holt's Linear Trend Method.”
+<em>Hacettepe University Journal of Mathematics and Statistics</em>, <b>47</b>(5), 1394–1403.
+</p>
+<p>#'Yapar G (2018).
+“Modified simple exponential smoothing.”
+<em>Hacettepe University Journal of Mathematics and Statistics</em>, <b>47</b>(3), 741–754.
+</p>
+<p>#'Yapar G, Selamlar HT, Capar S, Yavuz I (2019).
+“ATA method.”
+<em>Hacettepe Journal of Mathematics and Statistics</em>, <b>48</b>(6), 1838-1844.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>forecast</code>, <code>stlplus</code>, <code>stR</code>, <code>stl</code>, <code>decompose</code>,
+<code>tbats</code>, <code>seasadj</code>, <code>seasonal</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">trainATA &lt;-  head(touristTR, 84)
+testATA &lt;- window(touristTR, start = 2015, end = 2016.917)
+ata_fit &lt;- ATA(trainATA, h=24, parQ = 1, seasonal.test = TRUE, seasonal.model = "stl")
+ata_fc &lt;- ATA.Forecast(ata_fit, out.sample = testATA)
+ata_accry &lt;- ATA.Accuracy(ata_fc)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.ahazpen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prediction methods for ahazpen</h2>
+
+<h3>Description</h3>
+
+<p>Compute regression coefficient estimates, linear predictor, cumulative hazard function, or
+integrated martingale residuals for a fitted penalized semiparametric additive
+hazards model.  </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ahazpen'
+predict(object, newX, type=c("coef","lp","residuals","cumhaz"),
+        lambda=NULL, ...)
+## S3 method for class 'ahazpen'
+coef(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The result of an <code>ahazpen</code> fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newX</code></td>
+<td>
+<p>New matrix of covariates at which to do
+predictions. <br> Required unless <code>type="coef"</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Value of lambda for at which predictions are
+to be made. This argument is required for <code>type="residuals"</code> and
+<code>type="cumhaz"</code>. Since predictions rely on interpolations between lambda values, it is recommended not to use a lambda-value smaller than the minimum of <code>object$lambda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of prediction. Options are the regression coefficients
+("<code>coef</code>"), the linear
+predictors ("<code>lp</code>"),  the (integrated) martingale residuals
+("<code>residuals</code>"), or the cumulative hazard  ("<code>cumhaz</code>")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For future methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the details in <code>predict.ahaz</code> for information on
+the different types of predictions.
+</p>
+
+
+<h3>Value</h3>
+
+<p> For <code>type="coef"</code> and <code>type="lp"</code>, a
+matrix of regression coefficients, respectively linear predictions for
+each value of the penalty parameter.
+</p>
+<p>For <code>type="residuals"</code>, a matrix of (integrated) martingale residuals
+associated with the nonzero penalized regression coefficients for a
+regularization parameter equal to <code class="reqn">lambda</code>.
+</p>
+<p>For <code>type="cumhaz"</code>, an object with S3 class <code>"cumahaz"</code>
+based on the regression coefficients estimated for a
+regularization parameter equal to <code class="reqn">lambda</code>, the object containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Jump times for the cumulative hazard estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cumhaz</code></td>
+<td>
+<p>The cumulative hazard estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>Status at jump times (1 corresponds to death, 0
+corresponds to entry/exit).</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>ahazpen</code>, <code>print.ahazpen</code>,
+<code>plot.ahazpen</code>, <code>predict.ahaz</code>, <code>plot.cumahaz</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+set.seed(10101)
+
+# Break ties
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Fit additive hazards regression model w/lasso penalty
+fit &lt;- ahazpen(surv, X, dfmax=100)
+
+# Coefficients
+beta &lt;- predict(fit,X,lambda=0.08,type="coef")
+barplot(as.numeric(beta))
+
+# Linear predictions
+linpred &lt;- predict(fit,X,lambda=0.1,type="lp")
+riskgrp &lt;- factor(linpred &lt; median(linpred))
+plot(survfit(surv~riskgrp))
+
+# Residuals
+resid &lt;- predict(fit, X, lambda=0.1, type = "residuals")
+par(mfrow = c(1,2))
+hist(resid[,1],main=colnames(resid)[1])
+hist(resid[,2],main=colnames(resid)[2])
+
+# Cumulative hazard
+cumhaz &lt;- predict(fit,X,lambda=0.1,type="cumhaz")
+plot(cumhaz)
+
+
+</code></pre>
+
+
+</div>

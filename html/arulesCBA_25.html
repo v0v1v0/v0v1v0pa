@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prepareTransactions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepare Data for Associative Classification</h2>
+
+<h3>Description</h3>
+
+<p>Converts data.frame into transactions suitable for classification based on association rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prepareTransactions(
+  formula,
+  data,
+  disc.method = "mdlp",
+  logical2factor = TRUE,
+  match = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame with the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disc.method</code></td>
+<td>
+<p>Discretization method used to discretize continuous
+variables if data is a data.frame (default: <code>"mdlp"</code>). See
+<code>discretizeDF.supervised()</code> for more supervised discretization
+methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logical2factor</code></td>
+<td>
+<p>logical; if <code>data</code> is a data.frame, should logical columns
+be recoded as factor with TRUE/FALSE to generate positive and negative items?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>match</code></td>
+<td>
+<p>typically <code>NULL</code>. Only used internally if data is a
+already a set of transactions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To convert a data.frame into items in a transaction dataset for classification,
+the following steps are performed:
+</p>
+
+<ol>
+<li>
+<p> All continuous features are discretized using class-based
+discretization (default is MDLP) and each range is represented as an item.
+</p>
+</li>
+<li>
+<p> Factors are converted into items, one item for each level.
+</p>
+</li>
+<li>
+<p> Each logical is converted into an item.
+</p>
+</li>
+<li>
+<p> If the class variable is a logical, then a negative class item is added.
+</p>
+</li>
+</ol>
+<p>Steps 1-3 are skipped if <code>data</code> is already a arules::transactions object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class arules::transactions from
+<span class="pkg">arules</span> with an attribute called <code>"disc_info"</code> that contains
+information on the used discretization for each column.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael Hahsler
+</p>
+
+
+<h3>See Also</h3>
+
+<p>arules::transactions, <code>transactions2DF()</code>.
+</p>
+<p>Other preparation: 
+<code>CBA_ruleset()</code>,
+<code>discretizeDF.supervised()</code>,
+<code>mineCARs()</code>,
+<code>transactions2DF()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Perform discretization and convert to transactions
+data("iris")
+iris_trans &lt;- prepareTransactions(Species ~ ., iris)
+
+inspect(head(iris_trans))
+itemInfo(iris_trans)
+
+# A negative class item is added for regular transaction data. Here we get the
+# items "canned beer=TRUE" and "canned beer=FALSE".
+# Note: backticks are needed in formulas with item labels that contain
+# a space or special character.
+data("Groceries")
+g2 &lt;- prepareTransactions(`canned beer` ~ ., Groceries)
+
+inspect(head(g2))
+ii &lt;- itemInfo(g2)
+ii[ii[["variables"]] == "canned beer", ]
+</code></pre>
+
+
+</div>

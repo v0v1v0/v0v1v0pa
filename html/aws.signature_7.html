@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>signature_v2_auth</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Signature Version 2</h2>
+
+<h3>Description</h3>
+
+<p>Generates AWS Signature Version 2
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">signature_v2_auth(
+  datetime = format(Sys.time(), "%Y-%m-%dT%H:%M:%S", tz = "UTC"),
+  verb,
+  service,
+  path,
+  query_args = list(),
+  key = NULL,
+  secret = NULL,
+  region = NULL,
+  force_credentials = FALSE,
+  verbose = getOption("verbose", FALSE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>datetime</code></td>
+<td>
+<p>A character string containing a date in the form of “YYYY-MM-DDTH:M:S”. If missing, it is generated automatically using <code>Sys.time</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+<p>A character string specify an HTTP verb/method (e.g., “GET”).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>service</code></td>
+<td>
+<p>A character string containing the full hostname of an AWS service (e.g., “iam.amazonaws.com”, etc.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>A character string specify the path to the API endpoint.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>query_args</code></td>
+<td>
+<p>A list containing named query arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>An AWS Access Key ID. If <code>NULL</code>, it is retrieved using <code>locate_credentials</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>secret</code></td>
+<td>
+<p>An AWS Secret Access Key. If <code>NULL</code>, it is retrieved using <code>locate_credentials</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region</code></td>
+<td>
+<p>A character string containing the AWS region for the request. If missing, “us-east-1” is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_credentials</code></td>
+<td>
+<p>A logical indicating whether to force use of user-supplied credentials. If <code>FALSE</code> (the default), <code>locate_credentials</code> is used to find credentials. If <code>TRUE</code>, user-supplied values are used regardless of their validity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical indicating whether to be verbose.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function generates an AWS Signature Version 2 for authorizing API requests. The function returns both an updated set of query string parameters, containing the required signature-related entries, as well as a <code>Signature</code> field containing the Signature string itself. Version 2 is mostly deprecated and in most cases users should rely on <code>signature_v4_auth</code> for Version 4 signatures instead.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thomas J. Leeper &lt;thosjleeper@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://docs.aws.amazon.com/general/latest/gr/signature-version-2.html">AWS General Reference: Signature Version 2 Signing Process</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>signature_v4_auth</code>, <code>use_credentials</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# examples from:
+# http://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
+
+true_string &lt;- paste0("GET\n",
+"elasticmapreduce.amazonaws.com\n",
+"/\n",
+"AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE",
+"&amp;Action=DescribeJobFlows",
+"&amp;SignatureMethod=HmacSHA256",
+"&amp;SignatureVersion=2",
+"&amp;Timestamp=2011-10-03T15\
+"&amp;Version=2009-03-31", collapse = "")
+true_sig &lt;- "i91nKc4PWAt0JJIdXwz9HxZCJDdiy6cf/Mj6vPxyYIs="
+
+q1 &lt;- 
+list(Action = "DescribeJobFlows",
+     Version = "2009-03-31",
+     AWSAccessKeyId = "AKIAIOSFODNN7EXAMPLE",
+     SignatureVersion = "2",
+     SignatureMethod = "HmacSHA256",
+     Timestamp = "2011-10-03T15:19:30")
+
+sig1 &lt;- 
+signature_v2_auth(datetime = "2011-10-03T15:19:30",
+                  service = "elasticmapreduce.amazonaws.com",
+                  verb = "GET",
+                  path = "/",
+                  query_args = q1,
+                  key = q1$AWSAccessKeyId,
+                  secret = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
+identical(true_string, sig1$CanonicalRequest)
+identical(true_sig, sig1$Signature)
+
+# leaving out some defaults
+q2 &lt;- 
+list(Action = "DescribeJobFlows",
+     Version = "2009-03-31",
+     Timestamp = "2011-10-03T15:19:30")
+sig2 &lt;- 
+signature_v2_auth(datetime = "2011-10-03T15:19:30",
+                  service = "elasticmapreduce.amazonaws.com",
+                  verb = "GET",
+                  path = "/",
+                  query_args = q2,
+                  key = "AKIAIOSFODNN7EXAMPLE",
+                  secret = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
+identical(true_string, sig2$CanonicalRequest)
+identical(true_sig, sig2$Signature)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

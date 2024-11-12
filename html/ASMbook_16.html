@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simDat17</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate data for Chapter 17: Binomial GLMM</h2>
+
+<h3>Description</h3>
+
+<p>Simulate Number of successful pairs ~ precipitation regressions in 16 populations of woodchat shrikes
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simDat17(
+  nPops = 16,
+  nYears = 10,
+  mu.alpha = 0,
+  mu.beta = -2,
+  sigma.alpha = 1,
+  sigma.beta = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nPops</code></td>
+<td>
+<p>Number of populations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nYears</code></td>
+<td>
+<p>Number of years sampled in each population</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.alpha</code></td>
+<td>
+<p>Mean of random intercepts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.beta</code></td>
+<td>
+<p>Mean of random slopes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.alpha</code></td>
+<td>
+<p>SD of random intercepts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.beta</code></td>
+<td>
+<p>SD of random slopes</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of simulated data and parameters.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nPops</code></td>
+<td>
+<p>Number of populations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nYears</code></td>
+<td>
+<p>Number of years sampled</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.alpha</code></td>
+<td>
+<p>Mean of random intercepts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.alpha</code></td>
+<td>
+<p>SD of random intercepts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu.beta</code></td>
+<td>
+<p>Mean of random slopes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.beta</code></td>
+<td>
+<p>SD of random slopes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>Population index</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precip</code></td>
+<td>
+<p>Precipitation covariate values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Random intercepts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Random slopes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>Number of shrike pairs at each site</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>Number of successful shrike pairs at each site</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc Kéry
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lattice)
+str(dat &lt;- simDat17())      # Implicit default arguments (DOES NOT PRODUCE PLOT FOR SOME REASON)
+xyplot(dat$C/dat$N ~ dat$precip | dat$pop, ylab = "Realized woodchat shrike breeding success ", 
+       xlab = "Spring precipitation index", main = "Realized breeding success", pch = 16, cex = 1.2,
+      col = rgb(0, 0, 0, 0.4))
+
+# Revert to random intercept model. Increased sigma.alpha to emphasize the random intercepts part
+str(dat &lt;- simDat17(nPops = 16, sigma.alpha = 1, sigma.beta = 0))
+xyplot(dat$C/dat$N ~ dat$precip | dat$pop, ylab = "Realized woodchat shrike breeding success ", 
+       xlab = "Spring precipitation index", 
+       main = "Realized breeding success (random-intercepts model)",
+      pch = 16, cex = 1.2, col = rgb(0, 0, 0, 0.4))
+
+# Revert to random-effects one-way binomial ANOVA model: random intercepts, but zero slopes
+str(dat &lt;- simDat17(nPops = 16, sigma.alpha = 1, mu.beta = 0, sigma.beta = 0))
+xyplot(dat$C/dat$N ~ dat$precip | dat$pop, ylab = "Realized woodchat shrike breeding success ", 
+       xlab = "Spring precipitation index",
+       main = "Realized breeding success (random-effects,
+       one-way binomial ANOVA model)", 
+       pch = 16, cex = 1.2, col = rgb(0, 0, 0, 0.4))
+
+# Revert to simple log-linear binomial (i.e., logistic) regression
+#   (= no effects of pop on either intercepts or slopes)
+str(dat &lt;- simDat17(nPops = 16, sigma.alpha = 0, sigma.beta = 0))
+xyplot(dat$C/dat$N ~ dat$precip | dat$pop, ylab = "Realized woodchat shrike breeding success ", 
+       xlab = "Spring precipitation index", 
+       main = "Realized breeding success\n(simple logistic regression model)", 
+       pch = 16, cex = 1.2, col = rgb(0, 0, 0, 0.4))
+
+# Revert to binomial "model-of-the-mean": no effects of either population or precipitation
+str(dat &lt;- simDat17(nPops = 16, sigma.alpha = 0, mu.beta = 0, sigma.beta = 0))
+xyplot(dat$C/dat$N ~ dat$precip | dat$pop, ylab = "Realized woodchat shrike breeding success ", 
+       xlab = "Spring precipitation index", 
+       main = "Realized breeding success (binomial 'model-of-the-mean')",
+      pch = 16, cex = 1.2, col = rgb(0, 0, 0, 0.4))
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulateSS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate sample sizes
+</h2>
+
+<h3>Description</h3>
+
+<p>A function that simulates sample sizes in an efficient manner. Inputs two functions: (1) a decision function that returns 1=reject, or 0=fail to reject, and (2) a data generating function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simulateSS(decFunc, dataGenFunc, nstart = 100, numBatches = 100, repsPerBatch = 100, 
+   power = 0.3, alpha = 0.025, nrepeatSwitch = 3, printSteps = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>decFunc</code></td>
+<td>
+
+<p>decision function, inputs data from dataGenFunc and outputs 1 (reject) or 0 (fail to reject).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataGenFunc</code></td>
+<td>
+
+<p>data generating function, inputs a sample size and outputs simulated data object. Class of the data must match input for decFunc. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+
+<p>starting sample size value
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numBatches</code></td>
+<td>
+
+<p>number of batches (must be at least 5), default=100
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repsPerBatch</code></td>
+<td>
+
+<p>number of replications per batch (must be at least 10), default=100
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+
+<p>power desired
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>one-sided alpha level, used for estimating power from batches by normal approximation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrepeatSwitch</code></td>
+<td>
+
+<p>one of 2,3,4 or 5. default=3. If nrepeatSwitch batch estimates of sample size are the same in a row, then switch to an up-and-down method (adding or subtracting 1 to sample size).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printSteps</code></td>
+<td>
+
+<p>logical, print intermediate steps of algorithm?
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is an algorithm proposed in Fay and Brittain (2022, Chapter 20). Here are the details of the algorithm. For step 1, we pick a starting sample size, say $N_1$, and the number of replications within a batch, $m$,
+and the total number of batches, $b_tot$.
+We simulate $m$ data sets with sample size $N_1$, and get the proportion of rejections, say $P_1$.
+Then we use a normal approximation to estimate the target sample size, say $N_norm$. In step 2, we replicate $m$ data sets with sample size $N_2 = N_norm$
+to get the associated proportion of rejections, say $P_2$. We repeat 2 more batches with $N_3=N_norm/2$ and $N_4=2 N_norm$,
+to get proportions $P_3$, and $P_4$. Then in step 3, we use isotonic regression (which forces monotonicity, power to be non-decreasing with sample size) on the 4 observed pairs ($(N_1,P_1),...,(N_4,P_4)$), and linear interpolation to get our best estimate of
+the sample size at the target power, $N_target$. We use that estimate of $N_target$ for our sample size for the next
+batch of simulations. This idea is of using the best estimate of the target for the next iteration is studied in
+Wu (1985, see Section 3).   Step 4 is iterative, for the $i$th batch we repeat the isotonic regression, except now with $N_i$ estimated from the  first $(i-1)$ observation pairs.  We repeat step 4 until either the number of batches is $b_tot$,
+or the current sample size estimate is the same as the last nrepeatSwitch-1 estimates, in which case we switch to an up-and-down-like method.
+For each iteration of the up-and-down-like method, if the current proportion of rejections from the last batch of $m$ replicates is greater than the target power, then subtract 1 from the
+current sample size estimate, otherwise add 1. Continue with that up-and-down-like method until we reach the number of batches equal to $b_tot$. The up-and-down-like method was added because sometimes the algorithm would get stuck in too large of a sample size estimate.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>vector of estimated sample sizes at the end of each batch</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>vector of power estimates at the end of each batch</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nstar</code></td>
+<td>
+<p>estimate of sample size, not necessarily an integer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nestimate</code></td>
+<td>
+<p>integer estimate of sample size equal to ceiling(Nstar)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Michael P. Fay
+</p>
+
+
+<h3>References</h3>
+
+<p>Fay, M.P. and Brittain, E.H. (2022). Statistical Hypothesis Testing in Context. Cambridge University Press. New York. 
+</p>
+<p>Wu, CJ (1985). Efficient sequential designs with binary data. Journal of the American Statistical Association. 19: 1085-1098.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simple example to show method
+# simulate 2-sample t-test power
+# for this simple case, better to just use power.t.test
+power.t.test(delta=.5,sig.level=0.025,power=.8,
+   type="two.sample",alternative="one.sided")
+decFunc&lt;-function(d){
+  ifelse(t.test(d$y1,d$y2,alternative="less")$p.value&lt;=0.025,1,0)
+}
+dataGenFunc&lt;-function(n){
+  list(y1=rnorm(n,0),y2=rnorm(n,.5))
+}
+# for example use on 20 batches with 20 per batch
+set.seed(1)
+simulateSS(decFunc,dataGenFunc,nstart=100,numBatches=100,repsPerBatch=100,
+   power=0.80, alpha=0.025,printSteps=FALSE)
+</code></pre>
+
+
+</div>

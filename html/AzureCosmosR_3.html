@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bulk_delete</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Delete a set of documents from an Azure Cosmos DB container</h2>
+
+<h3>Description</h3>
+
+<p>Delete a set of documents from an Azure Cosmos DB container
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bulk_delete(container, ...)
+
+## S3 method for class 'cosmos_container'
+bulk_delete(
+  container,
+  query,
+  partition_key,
+  procname = "_AzureCosmosR_bulkDelete",
+  headers = list(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>container</code></td>
+<td>
+<p>A Cosmos DB container object, as obtained by <code>get_cosmos_container</code> or <code>create_cosmos_container</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>query</code></td>
+<td>
+<p>A query specifying which documents to delete.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition_key</code></td>
+<td>
+<p>Optionally, limit the deletion only to documents with this key value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>procname</code></td>
+<td>
+<p>The stored procedure name to use for the server-side import code. Change this if, for some reason, the default name is taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>headers, ...</code></td>
+<td>
+<p>Optional arguments passed to lower-level functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a convenience function to delete multiple documents from a container. It works by creating a stored procedure and then calling it with the supplied query as a parameter. This function is not meant for production use.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The number of rows deleted.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>bulk_import, cosmos_container
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+endp &lt;- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+db &lt;- get_cosmos_database(endp, "mydatabase")
+cont &lt;- create_cosmos_container(db, "mycontainer", partition_key="sex")
+
+ # importing the Star Wars data from dplyr
+bulk_import(cont, dplyr::starwars)
+
+# deleting a subset of documents
+bulk_delete(cont, "select * from mycontainer c where c.gender = 'masculine'")
+
+# deleting documents for a specific partition key value
+bulk_delete(cont, "select * from mycontainer", partition_key="male")
+
+# deleting all documents
+bulk_delete(cont, "select * from mycontainer")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

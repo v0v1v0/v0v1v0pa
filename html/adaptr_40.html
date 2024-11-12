@@ -1,0 +1,291 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>print</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Print methods for adaptive trial objects</h2>
+
+<h3>Description</h3>
+
+<p>Prints contents of the first input <code>x</code> in a human-friendly way, see
+<strong>Details</strong> for more information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'trial_spec'
+print(x, prob_digits = 3, ...)
+
+## S3 method for class 'trial_result'
+print(x, prob_digits = 3, ...)
+
+## S3 method for class 'trial_performance'
+print(x, digits = 3, ...)
+
+## S3 method for class 'trial_results'
+print(
+  x,
+  select_strategy = "control if available",
+  select_last_arm = FALSE,
+  select_preferences = NULL,
+  te_comp = NULL,
+  raw_ests = FALSE,
+  final_ests = NULL,
+  restrict = NULL,
+  digits = 1,
+  cores = NULL,
+  ...
+)
+
+## S3 method for class 'trial_results_summary'
+print(x, digits = 1, ...)
+
+## S3 method for class 'trial_calibration'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object to print, see <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob_digits</code></td>
+<td>
+<p>single integer (default is <code>3</code>), the number of digits used
+when printing probabilities, allocation probabilities and softening powers
+(with <code>2</code> extra digits added for stopping rule probability thresholds in
+trial specifications and for outcome rates in summarised results from
+multiple simulations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments, not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>single integer, the number of digits used when printing
+the numeric results. Default is <code>3</code> for outputs from <code>check_performance()</code>
+and <code>1</code> for outputs from <code>run_trials()</code> and the accompanying <code>summary()</code>
+method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_strategy</code></td>
+<td>
+<p>single character string. If a trial was not stopped
+due to superiority (or had only 1 arm remaining, if <code>select_last_arm</code> is
+set to <code>TRUE</code> in trial designs with a common <code>control</code> arm; see below),
+this parameter specifies which arm will be considered selected when
+calculating trial design performance metrics, as described below;
+this corresponds to the consequence of an inconclusive trial, i.e., which
+arm would then be used in practice.<br>
+The following options are available and must be written exactly as below
+(case sensitive, cannot be abbreviated):
+</p>
+
+<ul>
+<li> <p><code>"control if available"</code> (default): selects the <strong>first</strong>
+<code>control</code> arm for trials with a common <code>control</code> arm <em><strong>if</strong></em> this
+arm is active at end-of-trial, otherwise no arm will be selected. For
+trial designs without a common <code>control</code>, no arm will be selected.
+</p>
+</li>
+<li> <p><code>"none"</code>: selects no arm in trials not ending with superiority.
+</p>
+</li>
+<li> <p><code>"control"</code>: similar to <code>"control if available"</code>, but will throw
+an error if used for trial designs without a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"final control"</code>: selects the <strong>final</strong> <code>control</code> arm regardless
+of whether the trial was stopped for practical equivalence, futility,
+or at the maximum sample size; this strategy can only be specified
+for trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"control or best"</code>: selects the <strong>first</strong> <code>control</code> arm if still
+active at end-of-trial, otherwise selects the best remaining arm
+(defined as the remaining arm with the highest probability of being
+the best in the last adaptive analysis conducted). Only works for
+trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"best"</code>: selects the best remaining arm (as described under
+<code>"control or best"</code>).
+</p>
+</li>
+<li> <p><code>"list or best"</code>: selects the first remaining arm from a specified
+list (specified using <code>select_preferences</code>, technically a character
+vector). If none of these arms are are active at end-of-trial, the best
+remaining arm will be selected (as described above).
+</p>
+</li>
+<li> <p><code>"list"</code>: as specified above, but if no arms on the provided list
+remain active at end-of-trial, no arm is selected.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_last_arm</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>. If <code>TRUE</code>, the
+only remaining active arm (the last <code>control</code>) will be selected in trials
+with a common <code>control</code> arm ending with <code>equivalence</code> or <code>futility</code>, before
+considering the options specified in <code>select_strategy</code>. Must be <code>FALSE</code> for
+trial designs without a common <code>control</code> arm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_preferences</code></td>
+<td>
+<p>character vector specifying a number of arms used
+for selection if one of the <code>"list or best"</code> or <code>"list"</code> options are
+specified for <code>select_strategy</code>. Can only contain valid <code>arms</code>
+available in the trial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>te_comp</code></td>
+<td>
+<p>character string, treatment-effect comparator. Can be either
+<code>NULL</code> (the default) in which case the <strong>first</strong> <code>control</code> arm is used for
+trial designs with a common control arm, or a string naming a single trial
+<code>arm</code>. Will be used when calculating <code>err_te</code> and <code>sq_err_te</code> (the error
+and the squared error of the treatment effect comparing the selected arm to
+the comparator arm, as described below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw_ests</code></td>
+<td>
+<p>single logical. If <code>FALSE</code> (default), the
+posterior estimates (<code>post_ests</code> or <code>post_ests_all</code>, see <code>setup_trial()</code>
+and <code>run_trial()</code>) will be used to calculate <code>err</code> and <code>sq_err</code> (the error
+and the squared error of the estimated compared to the specified effect in
+the selected arm) and <code>err_te</code> and <code>sq_err_te</code> (the error and the squared
+error of the treatment effect comparing the selected arm to the comparator
+arm, as described for <code>te_comp</code> and below). If <code>TRUE</code>, the raw estimates
+(<code>raw_ests</code> or <code>raw_ests_all</code>, see <code>setup_trial()</code> and <code>run_trial()</code>) will
+be used instead of the posterior estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final_ests</code></td>
+<td>
+<p>single logical. If <code>TRUE</code> (recommended) the final estimates
+calculated using outcome data from all patients randomised when trials are
+stopped are used (<code>post_ests_all</code> or <code>raw_ests_all</code>, see <code>setup_trial()</code>
+and <code>run_trial()</code>); if <code>FALSE</code>, the estimates calculated for each arm when
+an arm is stopped (or at the last adaptive analysis if not before) using
+data from patients having reach followed up at this time point and not all
+patients randomised are used (<code>post_ests</code> or <code>raw_ests</code>, see
+<code>setup_trial()</code> and <code>run_trial()</code>). If <code>NULL</code> (the default), this argument
+will be set to <code>FALSE</code> if outcome data are available immediate after
+randomisation for all patients (for backwards compatibility, as final
+posterior estimates may vary slightly in this situation, even if using the
+same data); otherwise it will be said to <code>TRUE</code>. See <code>setup_trial()</code> for
+more details on how these estimates are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrict</code></td>
+<td>
+<p>single character string or <code>NULL</code>. If <code>NULL</code> (default),
+results are summarised for all simulations; if <code>"superior"</code>, results are
+summarised for simulations ending with superiority only; if <code>"selected"</code>,
+results are summarised for simulations ending with a selected arm only
+(according to the specified arm selection strategy for simulations not
+ending with superiority). Some summary measures (e.g., <code>prob_conclusive</code>)
+have substantially different interpretations if restricted, but are
+calculated nonetheless.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p><code>NULL</code> or single integer. If <code>NULL</code>, a default value set by
+<code>setup_cluster()</code> will be used to control whether extractions of simulation
+results are done in parallel on a default cluster or sequentially in the
+main process; if a value has not been specified by <code>setup_cluster()</code>,
+<code>cores</code> will then be set to the value stored in the global <code>"mc.cores"</code>
+option (if previously set by <code style="white-space: pre;">⁠options(mc.cores = &lt;number of cores&gt;⁠</code>), and
+<code>1</code> if that option has not been specified.<br>
+If <code>cores = 1</code>, computations
+will be run sequentially in the primary process, and if <code>cores &gt; 1</code>, a new
+parallel cluster will be setup using the <code>parallel</code> library and removed
+once the function completes. See <code>setup_cluster()</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The behaviour depends on the class of <code>x</code>:
+</p>
+
+<ul><li> <p><code>trial_spec</code>: prints a trial specification setup by
+<code>setup_trial()</code>, <code>setup_trial_binom()</code> or <code>setup_trial_norm()</code>.
+</p>
+</li></ul>
+<ul><li> <p><code>trial_result</code>: prints the results of a single trial simulated by
+<code>run_trial()</code>. More details are saved in the <code>trial_result</code> object and thus
+printed if the <code>sparse</code> argument in <code>run_trial()</code> or <code>run_trials()</code> is set to
+<code>FALSE</code>; if <code>TRUE</code>, fewer details are printed, but the omitted details are
+available by printing the <code>trial_spec</code> object created by <code>setup_trial()</code>,
+<code>setup_trial_binom()</code> or <code>setup_trial_norm()</code>.
+</p>
+</li></ul>
+<ul><li> <p><code>trial_results</code>: prints the results of multiple simulations
+generated using <code>run_trials()</code>. Further documentation on how multiple trials
+are summarised before printing can be found in the <code>summary()</code> function
+documentation.
+</p>
+</li></ul>
+<ul><li> <p><code>trial_results_summary</code>: print method for summary of multiple simulations
+of the same trial specification, generated by using the <code>summary()</code> function
+on an object generated by <code>run_trials()</code>.
+</p>
+</li></ul>
+<h3>Value</h3>
+
+<p>Invisibly returns <code>x</code>.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>print(trial_spec)</code>: Trial specification
+</p>
+</li>
+<li> <p><code>print(trial_result)</code>: Single trial result
+</p>
+</li>
+<li> <p><code>print(trial_performance)</code>: Trial performance metrics
+</p>
+</li>
+<li> <p><code>print(trial_results)</code>: Multiple trial results
+</p>
+</li>
+<li> <p><code>print(trial_results_summary)</code>: Summary of multiple trial results
+</p>
+</li>
+<li> <p><code>print(trial_calibration)</code>: Trial calibration
+</p>
+</li>
+</ul>
+</div>

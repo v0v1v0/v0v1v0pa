@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fapply</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply a function to a forest of trees.</h2>
+
+<h3>Description</h3>
+
+<p>A convenience function, for applying a function to many trees.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fapply(fharp, TFUN, combine = TRUE, combiner_fn, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fharp</code></td>
+<td>
+<p>The output of rmd_to_forestharp. It could also just be a 
+list of TreeHarp objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TFUN</code></td>
+<td>
+<p>A function that works on a single TreeHarp and returns an output. 
+See forestharp-helpers for examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine</code></td>
+<td>
+<p>A logical value that indicates if the output from all function
+applications should be combined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combiner_fn</code></td>
+<td>
+<p>A function to use to combine the individual output from 
+each tree into a single scalar for each forest. It should handle NA 
+values in the input vector or list. If it is missing, it defaults to 
+sum, with na.rm=TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed on to TFUN.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The input is simply a list of TreeHarp objects. First, the TFUN 
+function is lapply-ed to each TreeHarp item, resulting in either a list, 
+or a vector with possible NA elements.
+</p>
+<p>The combiner function should be aware of this sort of output, and summarise
+the list or vector accordingly, handling NA's and returning a <em>scalar</em>.
+</p>
+<p>If you need to create a partial function out of a forestharp helper, 
+use an anonymous function, as shown in the examples below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector, list or a single value. If TFUN returned an error for a 
+particular TreeHarp, that component in the list or vector would be NA. This 
+input vector or list will then be combined by combiner_fn.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ex1 &lt;- quote(X &lt;- rnorm(10, mean=0.9, sd=4))
+ex2 &lt;- quote(Y &lt;- rbeta(10, shape1=3, shape2=5))
+f1 &lt;- lapply(c(ex1, ex2), TreeHarp, quote_arg=TRUE) 
+
+# returns all function calls that begin with "r", like rnorm and rbeta.
+# calls are returned as a list.
+fapply(f1, extract_fn_call, combine =FALSE, pattern="^r.*")
+
+# list is catenated.
+fapply(f1, extract_fn_call, combine =TRUE, pattern="^r.*", 
+       combiner_fn = function(x) {paste0(unlist(x), collapse=",")})
+
+</code></pre>
+
+
+</div>

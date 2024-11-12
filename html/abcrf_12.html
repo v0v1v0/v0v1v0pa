@@ -1,0 +1,211 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.regAbcrf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Predict posterior expectation, median, variance and quantiles
+given a new dataset using a reg-ABC-RF object
+</h2>
+
+<h3>Description</h3>
+
+<p>Based on a reg-ABC-RF object this function predicts the posterior expectation, median, variance, quantiles for the corresponding parameter given new dataset. Somes posterior errors can be 
+computed at an higher computational price.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'regAbcrf'
+predict(object, obs, training, quantiles=c(0.025,0.975),
+paral = FALSE, ncores = if(paral) max(detectCores()-1,1) else 1, rf.weights = FALSE,
+post.err.med = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>regAbcrf</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>a data frame containing the summary statistics of the observed data sets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>training</code></td>
+<td>
+<p>the data frame containing the reference table used to train the <code>regAbcrf</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>numeric vector of probabilities with values in [0,1]. The default value is equal to <code>c(0.025, 0.975)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paral</code></td>
+<td>
+<p>a boolean that indicates if random forests predictions should be parallelized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+<p>the number of CPU cores to use for the regression random forest predictions. If paral=TRUE, it is used the number of CPU cores minus 1. If ncores is not specified and <code>detectCores</code> does not detect the number of CPU cores with success then 1 core is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf.weights</code></td>
+<td>
+<p>a boolean that indicates if the random forest weights used to predict quantities of interest should we returned. The default value is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.err.med</code></td>
+<td>
+<p>a boolean that indicates if posterior errors based on posterior medians should be computed. The default value is FALSE. If computed, this function might take a much more time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>optional arguments to be passed on to the function <code>predict.ranger</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>regAbcrfpredict</code>, which is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>expectation</code></td>
+<td>
+<p>predicted posterior expectation for each oberved data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med</code></td>
+<td>
+<p>predicted posterior median for each oberved data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance</code></td>
+<td>
+<p>predicted posterior variance for each observed data set, computed by reusing weights, this quantity is also the posterior mean squared error,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance.cdf</code></td>
+<td>
+<p>predicted posterior variance for each observed data set, computed by approximation of the cumulative distribution function,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>predicted posterior quantiles for each observed data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>a matrix composed of the weights used to predict quantities of interest. Returned if <code>rf.weights</code> is TRUE,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.NMAE.mean</code></td>
+<td>
+<p>posterior normalized mean absolute error obtained using the out-of-bag posterior expectation (mean) and previously computed random forest weights, for each observed data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.MSE.med</code></td>
+<td>
+<p>posterior mean squared error obtained using the out-of-bag posterior median and previously computed random forest weights, for each observed data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.NMAE.med</code></td>
+<td>
+<p>posterior normalized mean absolute error obtained using the out-of-bag posterior expectation (mean) and previously computed random forest weights, for each observed data set,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.MSE</code></td>
+<td>
+<p>prior mean squared error computed with training out-of-bag prediction based on mean of response variable,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.NMAE</code></td>
+<td>
+<p>prior normalized mean absolute error computed with training out-of-bag predictions based on mean of response variable,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.MSE.med</code></td>
+<td>
+<p>prior mean squared error computed with training out-of-bag predictions based on median of response variable,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.NMAE.med</code></td>
+<td>
+<p>prior normalized mean absolute error with training out-of-bag predictions based on median of response variable,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior.coverage</code></td>
+<td>
+<p>prior credible inteval coverage computed for training instances, if only two quantiles are of interest, NULL otherwise.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Raynal L., Marin J.-M. Pudlo P., Ribatet M., Robert C. P. and Estoup, A. (2019)
+<em>ABC random forests for Bayesian parameter inference</em> Bioinformatics
+<a href="https://doi.org/10.1093/bioinformatics/bty867">doi:10.1093/bioinformatics/bty867</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>regAbcrf</code>,
+<code>predictOOB</code>,
+<code>plot.regAbcrf</code>,
+<code>err.regAbcrf</code>,
+<code>covRegAbcrf</code>,
+<code>ranger</code>,
+<code>densityPlot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(snp)
+modindex &lt;- snp$modindex
+sumsta &lt;- snp$sumsta[modindex == "3",]
+r &lt;- snp$param$r[modindex == "3"]
+r &lt;- r[1:500]
+sumsta &lt;- sumsta[1:500,]
+data2 &lt;- data.frame(r, sumsta)
+model.rf.r &lt;- regAbcrf(r~., data2, ntree=100)
+data(snp.obs)
+predict(model.rf.r, snp.obs, data2)
+</code></pre>
+
+
+</div>

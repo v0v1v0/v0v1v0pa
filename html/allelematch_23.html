@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>amUniqueProfile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Determine optimal parameter values for the identification of unique genotypes
+</h2>
+
+<h3>Description</h3>
+
+<p>Function to automatically run <code>amUnique</code> at a sequence of parameter values to
+determine an optimal setting, and optionally plot the result
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	amUniqueProfile(
+		amDatasetFocal, 
+		multilocusMap = NULL, 
+		alleleMismatch = NULL, 
+		matchThreshold = NULL, 
+		cutHeight = NULL, 
+		guessOptimum = TRUE, 
+		doPlot = TRUE, 
+		consensusMethod = 1, 
+		verbose = TRUE
+		)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>amDatasetFocal</code></td>
+<td>
+
+<p>An <code>amDataset</code> object containing genotypes in which an unknown number of
+individuals are sampled multiple times.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multilocusMap</code></td>
+<td>
+
+<p>Optionally a vector of integers or strings giving the mappings onto loci for all
+genotype columns in amDatasetFocal.<br>
+When omitted, columns are assumed to be paired (i.e., diploid loci with alleles in
+adjacent columns).<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alleleMismatch</code></td>
+<td>
+
+<p>A vector giving a sequence, where elements give the maximum number of mismatching
+alleles which will be tolerated when identifying individuals; also known as the
+m-hat parameter.<br>
+If specified, then <code>matchThreshold</code> and <code>cutHeight</code> should be omitted;
+all three parameters are related.<br>
+See <code>amUnique</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matchThreshold</code></td>
+<td>
+
+<p>A vector giving a sequence, where elements give the minimum dissimilarity score
+which constitutes a match when identifying individuals; also known as the s-hat
+parameter.<br>
+If specified, then <code>alleleMismatch</code> and <code>cutHeight</code> should be omitted;
+all three parameters are related.<br>
+See <code>amUnique</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutHeight</code></td>
+<td>
+
+<p>A vector giving a sequence, where elements give the <code>cutHeight</code> parameter
+used in dynamic tree cutting by <code>amCluster</code>; also known as the d-hat
+parameter.<br>
+If specified, then <code>alleleMismatch</code> and <code>matchThreshold</code> should be
+omitted; all three parameters are related.<br>
+See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doPlot</code></td>
+<td>
+
+<p>If <code>doPlot = TRUE</code>, then a plot showing summary data from multiple runs of
+<code>amUnique</code> is produced.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>guessOptimum</code></td>
+<td>
+
+<p>If <code>guessOptimum = TRUE</code>, then will estimate the optimal value of the
+parameter being profiled by examining the profile for the first minimum associated
+with a drop in multiple matches as sensitivity to differences among samples
+decreases.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>consensusMethod</code></td>
+<td>
+
+<p>The method (an integer) used to determine the consensus multilocus genotype from a
+cluster of multilocus genotypes.<br>
+See <code>amCluster</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>If <code>verbose = TRUE</code>, then the progress of the profiling will be reported to
+the console.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Selecting the appropriate value for <code>alleleMismatch</code>, <code>cutHeight</code>, or
+<code>matchThreshold</code> is an important task. Use this function to assist in this
+process. Typically the optimal value of any of these parameters is found where the
+number of multiple matches is minimized (the majority of samples are similar to only
+one unique genotype). Usually there is a minimum when these parameters are set to be
+very sensitive to differences among samples (i.e., <code>alleleMismatch</code> or
+<code>cutHeight</code> are 0, <code>matchThreshold</code> is 1). Simulations suggest that the next
+most sensitive minimum in multiple matches is the optimal value. This minimum will
+often be associated with a drop in multiple matches as sensitivity drops. For more
+discussion of this important step, see the Data S1 Supplementary documentation and
+tutorials (PDF) located at &lt;doi:10.1111/j.1755-0998.2012.03137.x&gt;.<br></p>
+<p>Using <code>guessOptimum = TRUE</code> will attempt to estimate the location of this minimum
+and add it to the profile plot. Manual assessment of this estimate using the plot is
+strongly recommended.<br></p>
+<p>If none of <code>alleleMismatch</code>, <code>cutHeight</code>, or <code>matchThreshold</code> is given,
+the function runs a sequence of values for <code>alleleMismatch</code> as follows:
+<code>seq(from = 0, to = floor(ncol(amDatasetFocal$multilocus) * 0.4), by = 1)</code><br></p>
+<p><code>multilocusMap</code> is often not required, as <code>amDataset</code> objects will typically
+consist of paired columns of genotypes, where each pair is a separate locus. In cases
+where this is not the case (e.g., gender is given in only one column), a map vector
+must be specified.<br></p>
+<p>Example: <code>amDataset</code> consists of gender followed by 4 diploid loci in paired
+columns<br><code>multilocusMap = c(1, 2, 2, 3, 3, 4, 4, 5, 5)</code><br>
+or equally<br><code>multilocusMap=c("GENDER", "LOC1", "LOC1", "LOC2", "LOC2", "LOC3", "LOC4",
+	"LOC4")</code>
+</p>
+<p>For more information on selecting <code>consensusMethod</code> see <code>amCluster</code>.
+The default <code>consensusMethod = 1</code> is typically adequate.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> containing summary data from multiple runs of <code>amUnique</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Paul Galpern (<a href="mailto:pgalpern@gmail.com">pgalpern@gmail.com</a>)
+</p>
+
+
+<h3>References</h3>
+
+<p>For a complete vignette, please access via the Data S1 Supplementary documentation and
+tutorials (PDF) located at &lt;doi:10.1111/j.1755-0998.2012.03137.x&gt;.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>amUnique</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	## Not run: 
+	data("amExample2")
+	
+	## Produce amDataset object
+	myDataset &lt;- 
+		amDataset(
+			amExample2, 
+			missingCode = "-99", 
+			indexColumn = 1, 
+			metaDataColumn = 2
+			)
+
+	## Usage (uncomment)
+	myUniqueProfile &lt;- 
+		amUniqueProfile(myDataset)
+	
+	## Data set with gender information
+	data("amExample5")
+	
+	## Produce amDataset object
+	myDataset2 &lt;- 
+		amDataset(
+			amExample5, 
+			missingCode = "-99", 
+			indexColumn = 1, 
+			metaDataColumn = 2
+			)
+	
+	## Usage
+	myUniqueProfile &lt;- 
+		amUniqueProfile(
+			myDataset2,
+			multilocusMap = c(1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10,
+			11, 11))
+	
+## End(Not run)
+</code></pre>
+
+
+</div>

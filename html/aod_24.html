@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>iccbin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Intra-Cluster Correlation for Binomial Data</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates point estimates of the intraclass correlation <code class="reqn">\rho</code>
+from clustered binomial data <code class="reqn">{(n_1, y_1), (n_2, y_2), ..., (n_K, y_K)}</code> (with <code class="reqn">K</code> the number of clusters),
+using a 1-way random effect model. Three estimates, following methods referred to as “A”, “B” and “C”
+in Goldstein et al. (2002), can be obtained.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">iccbin(n, y, data, method = c("A", "B", "C"), nAGQ = 1, M = 1000)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Vector of the denominators of the proportions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Vector of the numerators of the proportions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the variables n and y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character (“A”, “B” or “C”) defining the calculation method. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nAGQ</code></td>
+<td>
+<p>Same as in function <code>glmer</code> of package
+<span class="pkg">lme4</span>. Only for methods “A” and “B”. Default to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Number of Monte Carlo (MC) replicates used in method “B”. Default to 1000.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Before computations, the clustered data are split into binary (0/1) observations <code class="reqn">y_{ij}</code> (obs. <code class="reqn">j</code> in cluster
+<code class="reqn">i</code>).
+The calculation methods are described in Goldstein et al. (2002).
+Methods "A" and "B" assume a 1-way generalized linear mixed model,
+and method "C" a 1-way linear mixed model.<br>
+For "A" and "B", function <code>iccbin</code> uses the logistic binomial-Gaussian model:
+</p>
+<p style="text-align: center;"><code class="reqn">y_{ij} | p_{ij} \sim Bernoulli(p_{ij}),</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">logit(p_{ij}) = b_0 + u_i,</code>
+</p>
+
+<p>where <code class="reqn">b_0</code> is a constant and <code class="reqn">u_i</code> a cluster random effect with <code class="reqn">u_i \sim N(0, s^2_u)</code>.
+The ML estimate of the variance component <code class="reqn">s^2_u</code> is calculated with the function <code>glmer</code> of package <span class="pkg">lme4</span>.
+The intra-class correlation <code class="reqn">\rho = Corr[y_{ij}, y_{ij'}]</code> is then calculated with a first-order model linearization
+around <code class="reqn">E[u_i]=0</code> in method “A”, and with Monte Carlo simulations in method “B”.<br>
+For “C”, function <code>iccbin</code> provides the common ANOVA (moments) estimate of <code class="reqn">\rho</code>.
+For details, see for instance Donner (1986), Searle et al. (1992) or Ukoumunne (2002).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of formal class “iccbin”, with 3 slots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>CALL</code></td>
+<td>
+<p>The call of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>features</code></td>
+<td>
+<p>A character vector summarizing the main features of the method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>The point estimate of the intraclass correlation <code class="reqn">\rho</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matthieu Lesnoff <a href="mailto:matthieu.lesnoff@cirad.fr">matthieu.lesnoff@cirad.fr</a>, Renaud Lancelot <a href="mailto:renaud.lancelot@cirad.fr">renaud.lancelot@cirad.fr</a></p>
+
+
+<h3>References</h3>
+
+<p>Donner A., 1986, <em>A review of inference procedures for the intraclass correlation coefficient in the one-way random
+effects model</em>. International Statistical Review 54, 67-82.<br>
+Searle, S.R., Casella, G., McCulloch, C.E., 1992. <em>Variance components</em>. Wiley, New York.<br>
+Ukoumunne, O. C., 2002. <em>A comparison of confidence interval methods for the intraclass
+correlation coefficient in cluster randomized trials</em>. Statistics in Medicine 21, 3757-3774.<br>
+Golstein, H., Browne, H., Rasbash, J., 2002. <em>Partitioning variation in multilevel models</em>.
+Understanding Statistics 1(4), 223-231.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>iccbin-class</code>, <code>glmer</code><br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(rats)
+tmp &lt;- rats[rats$group == "TREAT", ]
+# A: glmm (model linearization)
+iccbin(n, y, data = tmp, method = "A")
+iccbin(n, y, data = tmp, method = "A", nAGQ = 10)
+# B: glmm (Monte Carlo)
+iccbin(n, y, data = tmp, method = "B")
+iccbin(n, y, data = tmp, method = "B", nAGQ = 10, M = 1500)
+# C: lmm (ANOVA moments)
+iccbin(n, y, data = tmp, method = "C")
+
+  ## Not run: 
+  # Example of confidence interval calculation with nonparametric bootstrap
+  require(boot)
+  foo &lt;- function(X, ind) {
+    n &lt;- X$n[ind]
+    y &lt;- X$y[ind]
+    X &lt;- data.frame(n = n, y = y)
+    iccbin(n = n, y = y, data = X, method = "C")@rho[1]
+    }
+  res &lt;- boot(data = tmp[, c("n", "y")], statistic = foo, R = 500, sim = "ordinary", stype = "i")
+  res
+  boot.ci(res, conf = 0.95, type = "basic")
+  
+## End(Not run)
+
+</code></pre>
+
+
+</div>

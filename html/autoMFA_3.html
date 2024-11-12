@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AMFA.inc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Incremental Automated Mixtures of Factor Analyzers</h2>
+
+<h3>Description</h3>
+
+<p>An alternative implementation of AMFA algorithm (Wang and Lin 2020). The number of factors, <em>q</em>, is estimated during the fitting process of each MFA model.
+Instead of employing a grid search over <em>g</em> like the <code>AMFA</code> method, this method starts with a <em>1</em> component MFA model and splits components according to their multivariate kurtosis. This uses the same approach as <code>amofa</code> (Kaya and Salah 2015).
+Once a component has been selected for splitting, the new components are initialised in the same manner as <code>vbmfa</code> (Ghahramani and Beal 2000).
+It keeps trying to split components until all components have had <code>numTries</code> splits attempted with no decrease in BIC, after which the current model is returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AMFA.inc(
+  Y,
+  numTries = 2,
+  eta = 0.005,
+  itmax = 500,
+  tol = 1e-05,
+  conv_measure = "diff",
+  nkmeans = 1,
+  nrandom = 1,
+  varimax = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An <em>n</em> by <em>p</em> data matrix, where <em>n</em> is the number of observations and <em>p</em> is the number of dimensions of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numTries</code></td>
+<td>
+<p>The number of attempts that should be made to split each component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>The smallest possible entry in any of the error matrices <em>D_i</em> (Zhao and Yu 2008).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itmax</code></td>
+<td>
+<p>The maximum number of ECM iterations allowed for the estimation of each MFA model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The ECM algorithm terminates if the measure of convergence falls below this value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv_measure</code></td>
+<td>
+<p>The convergence criterion of the ECM algorithm. The default <code>'diff'</code> stops the ECM iterations if |l^(k+1) - l^(k)| &lt; <code>tol</code> where l^(k) is the log-likelihood at the <em>k</em>th ECM iteration. If <code>'ratio'</code>, then the convergence of the ECM iterations is measured using |(l^(k+1) - l^(k))/l^(k+1)|.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nkmeans</code></td>
+<td>
+<p>The number of times the <em>k</em>-means algorithm will be used to initialise the (single component) starting models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrandom</code></td>
+<td>
+<p>The number of randomly initialised (single component) starting models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varimax</code></td>
+<td>
+<p>Boolean indicating whether the output factor loading matrices should be constrained
+using varimax rotation or not.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+
+<ul>
+<li>
+<p><code>model</code>: A list specifying the final MFA model. This contains: </p>
+
+<ul>
+<li>
+<p><code>B</code>: A <em>p</em> by <em>p</em> by <em>q</em> array containing the factor loading matrices for each component.
+</p>
+</li>
+<li>
+<p><code>D</code>: A <em>p</em> by <em>p</em> by <em>g</em> array of error variance matrices.
+</p>
+</li>
+<li>
+<p><code>mu</code>:  A <em>p</em> by <em>g</em> array containing the mean of each cluster.
+</p>
+</li>
+<li>
+<p><code>pivec</code>: A 1 by <em>g</em> vector containing the mixing
+proportions for each FA in the mixture.
+</p>
+</li>
+<li>
+<p><code>numFactors</code>: A 1 by <em>g</em> vector containing the number of factors for each FA.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>clustering</code>: A list specifying the clustering produced by the final model. This contains: </p>
+
+<ul>
+<li>
+<p><code>responsibilities</code>: A <em>n</em> by <em>g</em> matrix containing the probability
+that each point belongs to each FA in the mixture.
+</p>
+</li>
+<li>
+<p><code>allocations</code>: A <em>n</em> by 1 matrix containing which
+FA in the mixture each point is assigned to based on the responsibilities.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>diagnostics</code>: A list containing various pieces of information related to the fitting process of the algorithm. This contains: </p>
+
+<ul>
+<li>
+<p><code>bic</code>: The BIC of the final model.
+</p>
+</li>
+<li>
+<p><code>logL</code>: The log-likelihood of the final model.
+</p>
+</li>
+<li>
+<p><code>totalTime</code>: The total time taken to fit the final model.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Wang W, Lin T (2020).
+“Automated learning of mixtures of factor analysis models with missing information.”
+<em>TEST</em>.
+ISSN 1133-0686.
+</p>
+<p>Kaya H, Salah AA (2015).
+“Adaptive Mixtures of Factor Analyzers.”
+<em>arXiv preprint arXiv:1507.02801</em>.
+</p>
+<p>Ghahramani Z, Beal MJ (2000).
+“Variational inference for Bayesian Mixtures of Factor Analysers.”
+In <em>Advances in neural information processing systems</em>, 449–455.
+</p>
+<p>Zhao J, Yu PLH (2008).
+“Fast ML Estimation for the Mixture of Factor Analyzers via an ECM Algorithm.”
+<em>IEEE Transactions on Neural Networks</em>, <b>19</b>(11), 1956-1961.
+ISSN 1045-9227.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>amofa</code> <code>vbmfa</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">RNGversion('4.0.3'); set.seed(3) 
+MFA.fit &lt;- AMFA.inc(autoMFA::MFA_testdata, itmax = 1, numTries = 0)
+</code></pre>
+
+
+</div>

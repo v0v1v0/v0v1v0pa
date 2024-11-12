@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flag_roundtrips</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flag Fast Round Trips</h2>
+
+<h3>Description</h3>
+
+<p>Flags locations that imply fast round trips
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flag_roundtrips(x, delta, epsilon, time_unit = "secs", ...)
+
+## S3 method for class 'track_xyt'
+flag_roundtrips(x, delta, epsilon, time_unit = "secs", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[track_xyt]⁠</code> A <code>track_xyt</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> The threshold SDR for flagging. Locations that imply
+both legs of a round trip with <code>SDR &gt; delta/epsilon</code> are flagged. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[numeric]⁠</code> A scaling factor to create the threshold for
+flagging.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_unit</code></td>
+<td>
+<p><code style="white-space: pre;">⁠[character]⁠</code> Character string giving time unit. Should be
+<code>"secs"</code>, <code>"mins"</code>, or <code>"hours"</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Addtional arguments. None currently implemented.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Locations implying a single fast step can be flagged using
+<code>flag_fast_steps()</code>. However, it is more likely that a single
+location is imprecise if it implies an unrealistically fast out-and-back round
+trip. In that case, the user might be willing to scale the threshold SDR.
+In this function, <code>delta</code> gives the base SDR and <code>epsilon</code> is the scaling
+factor, such that locations are considered for flagging if the SDR from the
+previous location (location i - 1) to the focal location (i) [call it <code>sdr1</code>]
+and the focal location (i) to the next location (i + 1) [call it <code>sdr2</code>] both
+have <code>SDR &gt; delta/epsilon</code>.
+</p>
+<p>In that case, the SDR from the previous location (i - 1) to the next location
+(i + 1) is computed; i.e., the SDR assuming we omit the focal location (i)
+[call it <code>sdr3</code>]. The remaining locations should be closer together than
+they are to the omitted location. Thus the focal location is flagged if
+<code>(sdr1 &gt; epsilon * sdr3) &amp; (sdr2 &gt; epsilon * sdr3)</code>.
+</p>
+<p>Note that <code>epsilon</code> both <em>decreases</em> <code>delta</code> in the out-and-back case and
+<em>increases</em> <code>sdr3</code> (between the remaining neighbors).
+</p>
+<p>Internally, flagged locations are dropped from future consideration.
+</p>
+<p>The <code>time_unit</code> should be the same time unit with which the SDR threshold
+was calculated. SDR is typically calculated in <code>m^2/s</code>, so <code>time_unit</code> defaults
+to <code>"secs"</code>. The spatial unit is determined by the CRS, which should typically
+be in meters. The <code>epsilon</code> parameter is unitless.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns <code>x</code> (a <code>track_xyt</code>) with a flagging column added
+(<code>x$fast_roundtrip_</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Brian J. Smith, based on code by Johannes Signer and Tal Avgar
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>flag_duplicates()</code>,
+<code>flag_fast_steps()</code>,
+<code>flag_defunct_clusters()</code>
+</p>
+
+
+</div>

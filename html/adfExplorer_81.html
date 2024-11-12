@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rawToBitmap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert raw data into a bitmap or vice versa</h2>
+
+<h3>Description</h3>
+
+<p>Convert raw data into a bitmap or vice versa (i.e., binary data)
+conform Amiga specifications.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rawToBitmap(x, invert.bytes = F, invert.longs = T)
+
+bitmapToRaw(x, invert.bytes = T, invert.longs = T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>vector</code> of <code>raw</code> data, in case
+<code>rawToBitmap</code> is used. A <code>vector</code> of <code>raw</code>,
+<code>interger</code> or <code>logical</code> values should be used in
+case of <code>bitmapToRaw</code>. In the latter case each value in the
+<code>vector</code> is interpreted as a bit and should be a multiple of
+8 long.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invert.bytes</code></td>
+<td>
+<p>A <code>logical</code> value. When set to <code>TRUE</code>,
+the bit order of bytes are reversed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>invert.longs</code></td>
+<td>
+<p>A <code>logical</code> value. When set to <code>TRUE</code>,
+the bit order of long values (32 bits) are reversed. When <code>x</code>
+does not have a multiple length of 32 bits or 4 bytes, <code>x</code> will
+be padded with zeros to the right, but the result will be trimmed to
+correspond with the length of <code>x</code>. Note that data might get lost
+this way.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A bitmap is simply put a map of bits (binary data, which can
+be interpeted as 0 or 1; or FALSE and TRUE). Bitmaps can have
+several purposes, also on the Commodore Amiga. The Amiga file
+system uses a bitmap to indicates which blocks are occupied with
+data and which are free. Bitmaps can also be used in bitmap images
+where each bit indicates which color should be used for a specific
+pixel in an image. These function can be used to convert raw data
+into usable bitmaps or vice versa.
+</p>
+<p>As the Commodore Amiga is a big-endian system (most significant
+bit first) using a 32 bit CPU, it may sometimes necessary to invert
+the bits of a byte or longs (4 bytes, 32 bits), which can be done
+with the arguments '<code>invert.bytes</code>' and '<code>invert.longs</code>'
+respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a <code>vector</code> of <code>raw</code> data in case of
+<code>bitmapToRaw</code>, and a <code>vector</code> of binary <code>raw</code> values
+in case of <code>rawToBitmap</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pepijn de Vries
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other raw.operations: 
+<code>amigaDateToRaw()</code>,
+<code>amigaIntToRaw()</code>,
+<code>displayRawData()</code>,
+<code>rawToAmigaDate()</code>,
+<code>rawToAmigaInt()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## The bitmap block of the example disk is located at block
+## number 882 (note that this is not true for all disks,
+## the actual location is stored in the root block)
+data(adf.example)
+bitmap.block &lt;- amigaBlock(adf.example, 881)
+
+## bitmap data are stored in bytes 5 up to 224 in this block:
+bitmap.raw &lt;- bitmap.block@data[5:224]
+
+## let's get the bitmap from the raw data:
+bitmap &lt;- rawToBitmap(bitmap.raw)
+
+## Whe can now get the occupied blocks (minus one is used for
+## the discrepancy in indexing):
+which(bitmap != as.raw(0x01)) - 1
+
+## we can also do the reverse:
+bitmap.raw.new &lt;-  bitmapToRaw(bitmap)
+## it should be the same as the original raw data:
+all(bitmap.raw.new == bitmap.raw)
+
+## WARNING: don't use these methods to directly
+## modify an amigaDisk objects bitmap block. The
+## file system on that object may get corrupted.
+## All methods in this package should update the
+## bitmap block automatically and cleanly...
+</code></pre>
+
+
+</div>

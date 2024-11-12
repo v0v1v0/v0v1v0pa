@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CMAES</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Covariance Matrix Adaptation Evolution Strategy
+</h2>
+
+<h3>Description</h3>
+
+<p>The CMA-ES (Covariance Matrix Adaptation Evolution Strategy) is an 
+evolutionary algorithm for difficult non-linear non-convex optimization 
+problems in continuous domain.
+The CMA-ES is typically applied to unconstrained or bounded constraint 
+optimization problems, and search space dimensions between three and fifty.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pureCMAES(par, fun, lower = NULL, upper = NULL, sigma = 0.5,
+                    stopfitness = -Inf, stopeval = 1000*length(par)^2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>objective variables initial point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>objective/target/fitness function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower,upper</code></td>
+<td>
+<p>lower and upper bounds for the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>coordinate wise standard deviation (step size).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopfitness</code></td>
+<td>
+<p>stop if fitness &lt; stopfitness (minimization).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopeval</code></td>
+<td>
+<p>stop after stopeval number of function evaluations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters to be passed to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The CMA-ES implements a stochastic variable-metric method.
+In the very particular case of a convex-quadratic objective function 
+the covariance matrix adapts to the inverse of the Hessian matrix, up
+to a scalar factor and small random fluctuations. The update equations 
+for mean and covariance matrix maximize a likelihood while resembling 
+an expectation-maximization algorithm.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list with components <code>xmin</code> and <code>fmin</code>.
+</p>
+<p>Be patient; for difficult problems or high dimensions the function may run 
+for several minutes; avoid problem dimensions of 30 and more!
+</p>
+
+
+<h3>Note</h3>
+
+<p>There are other implementations of Hansen's CMAES in package ‘cmaes’ 
+(simplified form) and in package ‘parma’ as cmaes() (extended form).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Copyright (c) 2003-2010 Nikolas Hansen for Matlab code PURECMAES;
+converted to R by Hans W Borchers.
+(Hansen's homepage: www.cmap.polytechnique.fr/~nikolaus.hansen/)
+</p>
+
+
+<h3>References</h3>
+
+<p>Hansen, N. (2011). The CMA Evolution Strategy: A Tutorial.<br><a href="https://arxiv.org/abs/1604.00772">https://arxiv.org/abs/1604.00772</a>
+</p>
+<p>Hansen, N., D.V. Arnold, and A. Auger (2013). Evolution Strategies. 
+J. Kacprzyk and W. Pedrycz (Eds.). Handbook of Computational Intelligence,
+Springer-Verlag, 2015.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cmaes::cmaes</code>, <code>parma::cmaes</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+##  Polynomial minimax approximation of data points
+##  (see the Remez algorithm)
+n &lt;- 10; m &lt;- 101           # polynomial of degree 10; no. of data points
+xi &lt;- seq(-1, 1, length = m)
+yi &lt;- 1 / (1 + (5*xi)^2)    # Runge's function
+
+pval &lt;- function(p, x)      # Horner scheme
+    outer(x, (length(p) - 1):0, "^") %*% p
+
+pfit &lt;- function(x, y, n)   # polynomial fitting of degree n
+    qr.solve(outer(x, seq(n, 0), "^"), y)
+
+fn1 &lt;- function(p)           # objective function
+    max(abs(pval(p, xi) - yi))
+
+pf &lt;- pfit(xi, yi, 10)      # start with a least-squares fitting
+sol1 &lt;- pureCMAES(pf, fn1, rep(-200, 11), rep(200, 11))
+zapsmall(sol1$xmin)
+# [1]  -50.24826    0.00000  135.85352    0.00000 -134.20107    0.00000
+# [7]   59.19315    0.00000  -11.55888    0.00000    0.93453
+
+print(sol1$fmin, digits = 10)
+# [1] 0.06546780411
+
+##  Polynomial fitting in the L1 norm
+##  (or use LP or IRLS approaches)
+fn2 &lt;- function(p)
+    sum(abs(pval(p, xi) - yi))
+
+sol2 &lt;- pureCMAES(pf, fn2, rep(-100, 11), rep(100, 11))
+zapsmall(sol2$xmin)
+# [1] -21.93238   0.00000  62.91083   0.00000 -67.84847   0.00000 
+# [7]  34.14398   0.00000  -8.11899   0.00000   0.84533
+
+print(sol2$fmin, digits = 10)
+# [1] 3.061810639
+
+## End(Not run)
+</code></pre>
+
+
+</div>

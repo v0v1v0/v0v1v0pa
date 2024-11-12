@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transfinite</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Boxed Region Transformation
+</h2>
+
+<h3>Description</h3>
+
+<p>Transformation of a box/bound constrained region to an unconstrained one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transfinite(lower, upper, n = length(lower))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p>lower and upper box/bound constraints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>length of upper, lower if both are scalars, to which they get
+repeated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Transforms a constraint region in n-dimensional space bijectively to the
+unconstrained <code class="reqn">R^n</code> space, applying a <code>atanh</code> resp. <code>exp</code>
+transformation to each single variable that is bound constraint.
+</p>
+<p>It provides two functions, <code>h: B = []x...x[] --&gt; R^n</code> and its inverse
+<code>hinv</code>. These functions can, for example, be used to add box/bound
+constraints to a constrained optimization problem that is to be solved with
+a (nonlinear) solver not allowing constraints.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns to functions as components <code>h</code> and <code>hinv</code> of a list. 
+</p>
+
+
+<h3>Note</h3>
+
+<p>Based on an idea of Ravi Varadhan, intrinsically used in his implementation
+of Nelder-Mead in the ‘dfoptim’ package.
+</p>
+<p>For positivity constraints, <code>x&gt;=0</code>, this approach is considered to be
+numerically more stable than <code>x--&gt;exp(x)</code> or <code>x--&gt;x^2</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lower &lt;- c(-Inf, 0,   0)
+upper &lt;- c( Inf, 0.5, 1)
+Tf &lt;- transfinite(lower, upper)
+h &lt;- Tf$h; hinv &lt;- Tf$hinv
+
+## Not run: 
+##  Solve Rosenbrock with one variable restricted
+rosen &lt;- function(x) {
+    n &lt;- length(x)
+    x1 &lt;- x[2:n]; x2 &lt;- x[1:(n-1)]
+    sum(100*(x1-x2^2)^2 + (1-x2)^2)
+}
+f  &lt;- function(x) rosen(hinv(x))    # f must be defined on all of R^n
+x0 &lt;- c(0.1, 0.1, 0.1)              # starting point not on the boundary!
+nm &lt;- nelder_mead(h(x0), f)         # unconstraint Nelder-Mead
+hinv(nm$xmin); nm$fmin              # box/bound constraint solution
+# [1] 0.7085596 0.5000000 0.2500004
+# [1] 0.3353605
+
+## End(Not run)
+</code></pre>
+
+
+</div>

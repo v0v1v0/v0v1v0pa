@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>minimize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find optimal two-stage design by constraint minimization</h2>
+
+<h3>Description</h3>
+
+<p><code>minimize</code> takes an unconditional score and
+a constraint set (or no constraint) and solves the corresponding
+minimization problem using
+<a href="https://cran.r-project.org/package=nloptr"><code>nloptr</code></a>
+(using COBYLA by default).
+An initial design has to be defined. It is also possible to define
+lower- and upper-boundary designs. If this is not done, the boundaries are
+determined automatically heuristically.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">minimize(
+  objective,
+  subject_to,
+  initial_design,
+  lower_boundary_design = get_lower_boundary_design(initial_design),
+  upper_boundary_design = get_upper_boundary_design(initial_design),
+  c2_decreasing = FALSE,
+  check_constraints = TRUE,
+  opts = list(algorithm = "NLOPT_LN_COBYLA", xtol_rel = 1e-05, maxeval = 10000),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>objective function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_to</code></td>
+<td>
+<p>constraint collection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial_design</code></td>
+<td>
+<p>initial guess (x0 for nloptr)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_boundary_design</code></td>
+<td>
+<p>design specifying the lower boundary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_boundary_design</code></td>
+<td>
+<p>design specifying the upper boundary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c2_decreasing</code></td>
+<td>
+<p>if TRUE, the c2_pivots are forced to be monotonically decreasing</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_constraints</code></td>
+<td>
+<p>if TRUE, it is checked if constrains are fulfilled</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>options list passed to nloptr</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further optional arguments passed to <code>nloptr</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list with elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p> The resulting optimal design</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nloptr_return</code></td>
+<td>
+<p> Output of the corresponding nloptr call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call_args</code></td>
+<td>
+<p> The arguments given to the optimization call</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Define Type one error rate
+toer &lt;- Power(Normal(), PointMassPrior(0.0, 1))
+
+# Define Power at delta = 0.4
+pow &lt;- Power(Normal(), PointMassPrior(0.4, 1))
+
+# Define expected sample size at delta = 0.4
+ess &lt;- ExpectedSampleSize(Normal(), PointMassPrior(0.4, 1))
+
+# Compute design minimizing ess subject to power and toer constraints
+
+minimize(
+
+   ess,
+
+   subject_to(
+      toer &lt;= 0.025,
+      pow  &gt;= 0.9
+   ),
+
+   initial_design = TwoStageDesign(50, .0, 2.0, 60.0, 2.0, 5L)
+
+)
+
+
+</code></pre>
+
+
+</div>

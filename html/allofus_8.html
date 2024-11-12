@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aou_collect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Collect a tbl object and convert integer64 columns to double</h2>
+
+<h3>Description</h3>
+
+<p>If you connect to the All of Us database via <code>aou_connect()</code>,
+integer columns will be converted to the int64 class, which can represent
+64-bit integers. This is safer than keeping as R's default integer class,
+because some of the values of the ID columns in All of Us are larger than R
+can handle as integers. However, this can make working with the local table
+more difficult in RStudio as a vector of values will not match the int64
+class. This is not a problem in Jupyter notebooks, meaning that code that
+works on one platform may not work on another. A safe practice is to use
+<code>aou_collect()</code>, which works just like <code>dplyr::collect()</code> except that any
+integer values are converted to doubles. If this is not what you want, set
+<code>convert_int64 = FALSE</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aou_collect(data, convert_int64 = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A reference to a remote database table (or unexecuted query)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convert_int64</code></td>
+<td>
+<p>Do you want to convert integer values to doubles?
+Defaults to <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments passed to dplyr::collect()</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Value</h3>
+
+<p>a local dataframe
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# returns 2 rows, as expected
+dplyr::tbl(con, "concept") %&gt;%
+  dplyr::filter(concept_id %in% c(1112807, 4167538)) %&gt;%
+  aou_collect() %&gt;%
+  dplyr::filter(concept_id %in% c(1112807, 4167538))
+
+default_collect &lt;- tbl(con, "concept") %&gt;%
+  dplyr::filter(concept_id %in% c(1112807, 4167538)) %&gt;%
+  dplyr::collect()
+# returns 2 rows in Jupyter and 0 in RStudio
+dplyr::filter(default_collect, concept_id %in% c(1112807, 4167538))
+
+</code></pre>
+
+
+</div>

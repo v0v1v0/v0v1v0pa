@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AF.cs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable fraction for cross-sectional sampling designs. NOTE! Deprecated function. Use <code>AFglm</code>.</h2>
+
+<h3>Description</h3>
+
+<p><code>AF.cs</code> estimates the model-based adjusted attributable fraction for data from cross-sectional sampling designs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AF.cs(formula, data, exposure, clusterid)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class "<code>formula</code>" (or one that can be coerced to that class): a symbolic description of the model used for adjusting for confounders. The exposure and confounders should be specified as independent (right-hand side) variables. The outcome should be specified as dependent (left-hand side) variable. The formula is used to object a logistic regression by <code>glm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment (<code>formula</code>), typically the environment from which the function is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exposure</code></td>
+<td>
+<p>the name of the exposure variable as a string. The exposure must be binary (0/1) where unexposed is coded as 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterid</code></td>
+<td>
+<p>the name of the cluster identifier variable as a string, if data are clustered.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>Af.cs</code> estimates the attributable fraction for a binary outcome <code>Y</code>
+under the hypothetical scenario where a binary exposure <code>X</code> is eliminated from the population.
+The estimate is adjusted for confounders <code>Z</code> by logistic regression (<code>glm</code>).
+Let the AF be defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AF=1-\frac{Pr(Y_0=1)}{Pr(Y=1)}</code>
+</p>
+
+<p>where <code class="reqn">Pr(Y_0=1)</code> denotes the counterfactual probability of the outcome if
+the exposure would have been eliminated from the population and <code class="reqn">Pr(Y = 1)</code> denotes the factual probability of the outcome.
+If <code>Z</code> is sufficient for confounding control, then <code class="reqn">Pr(Y_0=1)</code> can be expressed as
+<code class="reqn">E_Z\{Pr(Y=1\mid{X=0,Z})\}.</code>
+The function uses logistic regression to estimate <code class="reqn">Pr(Y=1\mid{X=0,Z})</code>, and the marginal sample distribution of <code>Z</code>
+to approximate the outer expectation (Sjölander and Vansteelandt, 2012).
+If <code>clusterid</code> is supplied, then a clustered sandwich formula is used in all variance calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AF.est</code></td>
+<td>
+<p>estimated attributable fraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AF.var</code></td>
+<td>
+<p>estimated variance of <code>AF.est</code>. The variance is obtained by combining the delta method with the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.est</code></td>
+<td>
+<p>estimated factual proportion of cases; <code class="reqn">Pr(Y=1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P.var</code></td>
+<td>
+<p>estimated variance of <code>P.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0.est</code></td>
+<td>
+<p>estimated counterfactual proportion of cases if exposure would be eliminated; <code class="reqn">Pr(Y_0=1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P0.var</code></td>
+<td>
+<p>estimated variance of <code>P0.est</code>. The variance is obtained by the sandwich formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>the fitted model. Fitted using logistic regression, <code>glm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Elisabeth Dahlqwist, Arvid Sjölander
+</p>
+
+
+<h3>References</h3>
+
+<p>Greenland, S. and Drescher, K. (1993). Maximum Likelihood Estimation of the Attributable Fraction from logistic Models. <em>Biometrics</em> <b>49</b>, 865-872.
+</p>
+<p>Sjölander, A. and Vansteelandt, S. (2011). Doubly robust estimation of attributable fractions. <em>Biostatistics</em> <b>12</b>, 112-121.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The new and more general version of the function: <code>AFglm</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate a cross-sectional sample
+expit &lt;- function(x) 1 / (1 + exp( - x))
+n &lt;- 1000
+Z &lt;- rnorm(n = n)
+X &lt;- rbinom(n = n, size = 1, prob = expit(Z))
+Y &lt;- rbinom(n = n, size = 1, prob = expit(Z + X))
+
+# Example 1: non clustered data from a cross-sectional sampling design
+data &lt;- data.frame(Y, X, Z)
+
+# Estimation of the attributable fraction
+AF.cs_est &lt;- AF.cs(formula = Y ~ X + Z + X * Z, data = data, exposure = "X")
+summary(AF.cs_est)
+
+# Example 2: clustered data from a cross-sectional sampling design
+# Duplicate observations in order to create clustered data
+id &lt;- rep(1:n, 2)
+data &lt;- data.frame(id = id, Y = c(Y, Y), X = c(X, X), Z = c(Z, Z))
+
+# Estimation of the attributable fraction
+AF.cs_clust &lt;- AF.cs(formula = Y ~ X + Z + X * Z, data = data,
+                         exposure = "X", clusterid = "id")
+summary(AF.cs_clust)
+</code></pre>
+
+
+</div>

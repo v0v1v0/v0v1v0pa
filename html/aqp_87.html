@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fillHzGaps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Find and Fill Horizon Gaps</h2>
+
+<h3>Description</h3>
+
+<p>This function attempts to find "gaps" in the horizon records of a <code>SoilProfileCollection</code> object and fill with placeholder horizons (profile ID, horizon ID, to/bottom depths, all else <code>NA</code>). Missing horizon records between the top of each profile and <code>to_top</code>, or the bottom of each profile and <code>to_bottom</code> are treated as gaps when those arguments are not <code>NULL</code>. You can use this function to prepare a potentially messy <code>SoilProfileCollection</code> for subsequent analyses that are sensitive to horizon sequence inconsistencies or require a conformal "rectangle" of data spanning known depths.
+</p>
+<p>Gaps are defined as:
+</p>
+
+<ul>
+<li>
+<p> within each profile, for horizons <code>i</code> to <code>n_hz</code>:
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠bottom_i != top_i+1 (but only to i = 1:(n_hz - 1)⁠</code>
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">fillHzGaps(x, flag = TRUE, to_top = 0, to_bottom = max(x))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>SoilProfileCollection</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag</code></td>
+<td>
+<p>logical, flag empty horizons that have been added. default: <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to_top</code></td>
+<td>
+<p>numeric, fill from shallowest top depth in each profile to specified depth? default: <code>0</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to_bottom</code></td>
+<td>
+<p>numeric, fill from deepest bottom depth in each profile to specified depth? default: <code>aqp::max(x)</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a possibly modified <code>SoilProfileCollection</code> object
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A.G. Brown and D.E. Beaudette
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(sp4)
+depths(sp4) &lt;- id ~ top + bottom
+
+# introduce depth logic errors
+idx &lt;- c(2, 6:7, 8, 12)
+sp4$top[idx] &lt;- NA
+
+# check
+horizons(sp4)[idx, ]
+
+# create gaps by removing logic errors
+x &lt;- HzDepthLogicSubset(sp4, byhz = TRUE)
+
+# check on removed horizons (hzID values)
+metadata(x)$removed.horizons
+
+# inspect
+par(mar = c(0, 0, 0, 2))
+plotSPC(x, width = 0.3, default.color = 'royalblue', 
+name = 'hzID', name.style = 'center-center', cex.names = 0.8,
+cex.id = 0.66)
+
+# fill gaps left by HzDepthLogicSubset()
+z &lt;- fillHzGaps(x, flag = TRUE)
+
+# graphical check
+plotSPC(z, width = 0.3, color = '.filledGap', name = 'hzID', 
+show.legend = FALSE, name.style = 'center-center', cex.names = 0.8,
+cex.id = 0.66)
+
+# fill top to 0 cm
+z2 &lt;- fillHzGaps(x, flag = TRUE, to_top = 0)
+plotSPC(z2, width = 0.3, color = '.filledGap', name = 'hzID', show.legend = FALSE)
+
+# fill bottom to max(SPC)
+z3 &lt;- fillHzGaps(x, flag = TRUE, to_top = 0, to_bottom = max(x))
+plotSPC(z3, width = 0.3, color = '.filledGap', name = 'hzID', show.legend = FALSE)
+
+## another example
+data(sp4)
+depths(sp4) &lt;- id ~ top + bottom
+
+# remove 1st horizons from profiles 1:4
+idx &lt;- sp4[,, .FIRST, .HZID]
+replaceHorizons(sp4) &lt;- horizons(sp4)[-idx[1:4], ]
+
+# prepare for dice()
+z &lt;- fillHzGaps(sp4, to_top = 0, to_bottom = 50, flag = TRUE) 
+
+# empty-horizon padding is in place for formula interface to dice()
+d &lt;- dice(z, fm = 0:50 ~ .)
+plotSPC(d, color = 'Ca', show.legend = FALSE)
+plotSPC(d, color = '.filledGap', show.legend = FALSE)
+
+</code></pre>
+
+
+</div>

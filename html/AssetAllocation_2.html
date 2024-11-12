@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>backtest_allocation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Backtesting of asset allocation strategies</h2>
+
+<h3>Description</h3>
+
+<p><code>backtest_allocation</code> computes a backtest of a given portfolio
+allocation rule.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">backtest_allocation(strat, P, R, risk_free = 0, start_date = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>strat</code></td>
+<td>
+<p>A list representing an asset allocation strategy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>An xts object with daily prices of the tickers in strat.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>An xts object with daily returns of the tickers in strat.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>risk_free</code></td>
+<td>
+<p>Either an xts object with daily returns of the risk-free
+asset, or a scalar numeric with the annual risk-free rate in decimals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date</code></td>
+<td>
+<p>Optional starting date</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function first determines the rebalancing dates based
+on <code>strat$rebalance_frequency</code>. Then, it cycles through intermediate
+dates and calculates daily returns based on the allocation. If the optional
+parameter <code>start_date</code> is provided, the backtest will start on that
+date. Otherwise, it will start from the date from which data on all assets
+becomes available.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"List"</code> with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>strat</code></td>
+<td>
+<p>The strat provided to the function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returns</code></td>
+<td>
+<p>An xts object with the daily returns of the strategy</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table_performance</code></td>
+<td>
+<p>A table with performance metrics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rebalance_dates</code></td>
+<td>
+<p>Vector of rebalancing dates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rebalance_weights</code></td>
+<td>
+<p>Vector of rebalancing dates</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: backtesting one of the asset allocations in the package
+us_60_40 &lt;- asset_allocations$static$us_60_40
+bt_us_60_40 &lt;- backtest_allocation(us_60_40,
+                                  ETFs$Prices,
+                                  ETFs$Returns,
+                                  ETFs$risk_free)
+
+# show table with performance metrics
+bt_us_60_40$table_performance
+# Example 2: creating and backtesting an asset allocation from scratch
+
+# create a strategy that invests equally in momentum (MTUM), value (VLUE),
+# low volatility (USMV) and quality (QUAL) ETFs.
+
+factor_strat  &lt;- list(name = "EW Factors",
+                      tickers = c("MTUM", "VLUE", "USMV", "QUAL"),
+                      default_weights = c(0.25, 0.25, 0.25, 0.25),
+                      rebalance_frequency = "month",
+                      portfolio_rule_fn = "constant_weights")
+
+# get data for tickers using getSymbols
+factor_ETFs &lt;- get_data_from_tickers(factor_strat$tickers,
+                                     starting_date = "2020-01-01")
+# backtest the strategy
+bt_factor_strat &lt;- backtest_allocation(factor_strat,
+                                       factor_ETFs$P,
+                                       factor_ETFs$R)
+# show table with performance metrics
+bt_factor_strat$table_performance
+</code></pre>
+
+
+</div>

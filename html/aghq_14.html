@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_quantiles</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantiles</h2>
+
+<h3>Description</h3>
+
+<p>Compute marginal quantiles using AGHQ. This function works by first approximating
+the CDF using <code>aghq::compute_pdf_and_cdf</code> and then inverting the approximation numerically.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_quantiles(
+  obj,
+  q = c(0.025, 0.975),
+  transformation = default_transformation(),
+  ...
+)
+
+## Default S3 method:
+compute_quantiles(
+  obj,
+  q = c(0.025, 0.975),
+  transformation = default_transformation(),
+  interpolation = "auto",
+  ...
+)
+
+## S3 method for class 'list'
+compute_quantiles(
+  obj,
+  q = c(0.025, 0.975),
+  transformation = default_transformation(),
+  ...
+)
+
+## S3 method for class 'aghq'
+compute_quantiles(
+  obj,
+  q = c(0.025, 0.975),
+  transformation = obj$transformation,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>Either the output of <code>aghq::aghq()</code>, its list of marginal distributions
+(element <code>marginals</code>), or an individual <code>data.frame</code> containing one of
+these marginal distributions as output by <code>aghq::marginal_posterior()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>Numeric vector of values in (0,1). The quantiles to compute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transformation</code></td>
+<td>
+<p>Optional. Calculate marginal quantiles for a transformation of the parameter
+whose posterior was normalized using adaptive quadrature.
+<code>transformation</code> is either: a) an <code>aghqtrans</code> object returned by <code>aghq::make_transformation</code>,
+or b) a list that will be passed to that function internally. See <code>?aghq::make_transformation</code> for details.
+Note that since <code>g</code> has to be monotone anyways, this just returns <code>sort(g(q))</code> instead of <code>q</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Used to pass additional arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+<p>Which method to use for interpolating the marginal posterior, <code>'polynomial'</code> (default)
+or <code>'spline'</code>? If <code>k &gt; 3</code> then the polynomial may be unstable and you should use the spline, but the spline
+doesn't work <em>unless</em> <code>k &gt; 3</code> so it's not the default. See <code>interpolate_marginal_posterior()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named numeric vector containing the quantiles you asked for, for the
+variable whose marginal posterior you provided.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other summaries: 
+<code>compute_pdf_and_cdf()</code>,
+<code>interpolate_marginal_posterior()</code>,
+<code>marginal_posterior()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfteta2d &lt;- function(eta,y) {
+  # eta is now (eta1,eta2)
+  # y is now (y1,y2)
+  n &lt;- length(y)
+  n1 &lt;- ceiling(n/2)
+  n2 &lt;- floor(n/2)
+  y1 &lt;- y[1:n1]
+  y2 &lt;- y[(n1+1):(n1+n2)]
+  eta1 &lt;- eta[1]
+  eta2 &lt;- eta[2]
+  sum(y1) * eta1 - (length(y1) + 1) * exp(eta1) - sum(lgamma(y1+1)) + eta1 +
+    sum(y2) * eta2 - (length(y2) + 1) * exp(eta2) - sum(lgamma(y2+1)) + eta2
+}
+set.seed(84343124)
+n1 &lt;- 5
+n2 &lt;- 5
+n &lt;- n1+n2
+y1 &lt;- rpois(n1,5)
+y2 &lt;- rpois(n2,5)
+objfunc2d &lt;- function(x) logfteta2d(x,c(y1,y2))
+funlist2d &lt;- list(
+  fn = objfunc2d,
+  gr = function(x) numDeriv::grad(objfunc2d,x),
+  he = function(x) numDeriv::hessian(objfunc2d,x)
+)
+opt_sparsetrust_2d &lt;- optimize_theta(funlist2d,c(1.5,1.5))
+margpost &lt;- marginal_posterior(opt_sparsetrust_2d,3,1) # margpost for theta1
+etaquant &lt;- compute_quantiles(margpost)
+etaquant
+# lambda = exp(eta)
+exp(etaquant)
+# Compare to truth
+qgamma(.025,1+sum(y1),1+n1)
+qgamma(.975,1+sum(y1),1+n1)
+
+
+
+</code></pre>
+
+
+</div>

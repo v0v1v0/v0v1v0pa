@@ -1,0 +1,454 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotMap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Display results of a simulation on a map</h2>
+
+<h3>Description</h3>
+
+<p>This function generates an interactive map that let the user visually explore
+the results of an Antares simulation. By default the function starts a Shiny 
+gadget that let the user which variables to represent.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotMap(
+  x,
+  refStudy = NULL,
+  mapLayout,
+  colAreaVar = "none",
+  sizeAreaVars = c(),
+  areaChartType = c("bar", "pie", "polar-area", "polar-radius"),
+  uniqueScale = FALSE,
+  showLabels = FALSE,
+  popupAreaVars = c(),
+  labelAreaVar = "none",
+  colLinkVar = "none",
+  sizeLinkVar = "none",
+  popupLinkVars = c(),
+  closePopupOnClick = TRUE,
+  type = c("detail", "avg"),
+  timeId = NULL,
+  mcYear = "average",
+  main = "",
+  typeSizeAreaVars = FALSE,
+  aliasSizeAreaVars = c(),
+  compare = NULL,
+  compareOpts = list(),
+  interactive = getInteractivity(),
+  options = plotMapOptions(),
+  width = NULL,
+  height = NULL,
+  dateRange = NULL,
+  xyCompare = c("union", "intersect"),
+  h5requestFiltering = list(),
+  timeSteph5 = "hourly",
+  mcYearh5 = NULL,
+  tablesh5 = c("areas", "links"),
+  sizeMiniPlot = FALSE,
+  language = "en",
+  hidden = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>antaresDataList</code> created with 
+<code>readAntares</code> and containing areas and links data.
+It can be a list of <code>antaresData</code> objects. 
+In this case, one chart is created for each object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refStudy</code></td>
+<td>
+<p>An object of class <code>antaresData</code> created with function 
+<code>readAntares</code> containing data for areas and or
+districts. Can also contains an opts who refer to a h5 file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mapLayout</code></td>
+<td>
+<p>Object created with function <code>mapLayout</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colAreaVar</code></td>
+<td>
+<p>Name of a variable present in <code>x$areas</code>. The values of this variable
+are represented by the color of the areas on the map. If <code>"none"</code>, then
+the default color is used for all areas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeAreaVars</code></td>
+<td>
+<p>Vector of variables present in <code>x$areas</code> to associate with the size of 
+areas on the map. If this parameter has length equal to 0, all areas have the
+same size. If it has length equal to one, then the radius of the areas change
+depending on the values of the variable choosen. If it has length greater than
+1 then areas are represented by a polar area chart where the size of each section
+depends on the values of each variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areaChartType</code></td>
+<td>
+<p>If parameter <code>sizeAreaVars</code> contains multiple variables, this parameter
+determines the type of representation. Possible values are <code>"bar"</code> for
+bar charts, <code>"pie"</code> for pie charts, <code>"polar-area"</code> and 
+<code>"polar-radius"</code> for polar area charts where the values are represented
+respectively by the area or the radius of the slices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniqueScale</code></td>
+<td>
+<p>If the map contains polar or bar charts, should the different variables 
+represented use the same scale or should each variable have its own scale ?
+This parameter should be TRUE only if the variables have the same unit and 
+are comparable : for instance production variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showLabels</code></td>
+<td>
+<p>Used only when <code>sizeAreaVars</code> contains multiple variables. If it is 
+<code>TRUE</code>, then values of each variable are displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popupAreaVars</code></td>
+<td>
+<p>Vector of variables to display when user clicks on an area.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labelAreaVar</code></td>
+<td>
+<p>Variable to display inside the areas. This parameter is used only if 
+parameter <code>sizeAreaVars</code> contains zero or one variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colLinkVar</code></td>
+<td>
+<p>Name of a variable present in <code>x$links</code>. The values of this variable
+are represented by the color of the links on the map. If <code>"none"</code>, then
+the default color is used for all links</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeLinkVar</code></td>
+<td>
+<p>Name of a variable present in <code>x$links</code>. Its values are represented by
+the line width of the links on the map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popupLinkVars</code></td>
+<td>
+<p>Vector of variables to display when user clicks on a link</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closePopupOnClick</code></td>
+<td>
+<p><code>LogicalValue</code>, if <code>TRUE</code> the popups will automatically be closed with each click. If <code>FALSE</code>, the popups will stay open.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>If <code>type="avg"</code>, the data is averaged by area/and or link and
+represented on the map. If it is equal to <code>"detail"</code>, only one time
+step at a time. In interactive mode, an input control permits to choose the
+time step shown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeId</code></td>
+<td>
+<p>time id present in the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcYear</code></td>
+<td>
+<p>If <code>x</code>, contains multiple Monte-Carlo scenarios, this parameter 
+determine which scenario is displayed. Must be an integer representing the
+index of the scenario or the word "average". In this case data are 
+averaged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>Title of the map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>typeSizeAreaVars</code></td>
+<td>
+<p><code>logical</code>. Select <code>sizeAreaVars</code> using alias ? Default to <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aliasSizeAreaVars</code></td>
+<td>
+<p>If <code>typeSizeAreaVars</code> is set to TRUE, name of alias. You can find the list 
+of alias with the function <code>showAliases</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compare</code></td>
+<td>
+<p>An optional character vector containing names of parameters. When it is set,
+two charts are outputed with their own input controls. Alternatively, it can
+be a named list with names corresponding to parameter names and values being
+list with the initial values of the given parameter for each chart. See details
+if you are drawing a map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compareOpts</code></td>
+<td>
+<p>List of options that indicates the number of charts to create and their 
+position. Check out the documentation of 
+<code>compareOptions</code> to see available options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interactive</code></td>
+<td>
+<p>LogicalValue. If <code>TRUE</code>, then a shiny gadget is launched that lets
+the user interactively choose the areas or districts to display.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>List of parameters that override some default visual settings. See the
+help of <code>plotMapOptions</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>Width of the graph expressed in pixels or in percentage of 
+the parent element. For instance "500px" and "100%" are valid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Height of the graph expressed in pixels or in percentage of 
+the parent element. For instance "500px" and "100%" are valid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dateRange</code></td>
+<td>
+<p>A vector of two dates. Only data points between these two dates are 
+displayed. If NULL, then all data is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xyCompare</code></td>
+<td>
+<p>Use when you compare studies, can be "union" or "intersect". If union, all
+of mcYears in one of studies will be selectable. If intersect, only mcYears in all
+studies will be selectable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h5requestFiltering</code></td>
+<td>
+<p>Contains arguments used by default for h5 request,
+typically h5requestFiltering = list(mcYears = 3)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeSteph5</code></td>
+<td>
+<p><code>character</code> timeStep to read in h5 file. Only for Non interactive mode.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcYearh5</code></td>
+<td>
+<p><code>numeric</code> mcYear to read for h5. Only for Non interactive mode.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tablesh5</code></td>
+<td>
+<p><code>character</code> tables for h5 ("areas" "links", "clusters" or "disticts"). Only for Non interactive mode.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeMiniPlot</code></td>
+<td>
+<p><code>boolean</code> variable size for miniplot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>language</code></td>
+<td>
+<p><code>character</code> language use for label. Defaut to 'en'. Can be 'fr'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hidden</code></td>
+<td>
+<p><code>logical</code> Names of input to hide. Defaut to NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments for <code>manipulateWidget</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>compare argument can take following values :
+</p>
+
+<ul>
+<li>
+<p> "mcYear"
+</p>
+</li>
+<li>
+<p> "type"
+</p>
+</li>
+<li>
+<p> "colAreaVar"
+</p>
+</li>
+<li>
+<p> "sizeAreaVars"
+</p>
+</li>
+<li>
+<p> "areaChartType"
+</p>
+</li>
+<li>
+<p> "showLabels"
+</p>
+</li>
+<li>
+<p> "popupAreaVars"
+</p>
+</li>
+<li>
+<p> "labelAreaVar"
+</p>
+</li>
+<li>
+<p> "colLinkVar"
+</p>
+</li>
+<li>
+<p> "sizeLinkVar"
+</p>
+</li>
+<li>
+<p> "popupLinkVars"
+</p>
+</li>
+<li>
+<p> "typeSizeAreaVars"
+</p>
+</li>
+<li>
+<p> "aliasSizeAreaVars"
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An htmlwidget of class "leaflet". It can be modified with package 
+<code>leaflet</code>. By default the function starts a shiny gadget that lets the
+user play with most of the parameters of the function. The function returns
+a leaflet map when the user clicks on the button <code>"OK"</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+mydata &lt;- readAntares(areas = "all", links = "all", timeStep = "daily",
+                      select = "nostat")
+
+# Place areas on a map. Ths has to be done once for a given study. Then the
+# object returned by "mapLayout" may be saved and reloaded with
+# functions save and load
+
+layout &lt;- readLayout()
+ml &lt;- mapLayout(layout = layout)
+save("ml", file = "ml.rda")
+
+plotMap(x = mydata, mapLayout = ml)
+
+# Specify the variables to use to control the color or size of elements.
+plotMap(mydata, mapLayout =  ml, 
+        sizeAreaVars = c("WIND", "SOLAR", "H. ROR"),
+        sizeLinkVar = "FLOW LIN.")
+
+# Change default graphical properties
+plotMap(x = mydata, mapLayout = ml, options = list(colArea="red", colLink = "orange"))
+plotMap(x = list(mydata, mydata), mapLayout =  ml)
+
+# Use custom alias
+setAlias("custom_alias", "short description", c("OIL", "GAS", "COAL")) 
+plotMap(x = mydata, mapLayout = ml, typeSizeAreaVars = TRUE, 
+    aliasSizeAreaVars = "custom_alias")
+    
+plotMap(x = mydata, mapLayout = ml, interactive = FALSE, 
+    language = "fr", aliasSizeAreaVars = "Renouvelable", typeSizeAreaVars = TRUE)
+
+# Use h5 for dynamic request / exploration in a study
+# Set path of simulaiton
+setSimulationPath(path = path1)
+
+# Convert your study in h5 format
+writeAntaresH5(path = myNewPath)
+
+# Redefine sim path with h5 file
+opts &lt;- setSimulationPath(path = myNewPath)
+plotMap(x = opts, mapLayout = ml)
+
+# Compare elements in a single study
+plotMap(x = opts, mapLayout = ml,  .compare = "mcYear")
+
+# Compare 2 studies
+plotMap(x = list(opts, opts2), mapLayout = ml)
+
+# Compare 2 studies with argument refStudies 
+plotMap(x = opts, refStudy = opts2, mapLayout = ml)
+plotMap(x = opts, refStudy = opts2, mapLayout = ml, interactive = FALSE, mcYearh5 = 2) 
+plotMap(x = opts, refStudy = opts2, mapLayout = ml, h5requestFiltering = 
+list(mcYears = myMcYear))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

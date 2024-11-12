@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>run_trial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate a single trial</h2>
+
+<h3>Description</h3>
+
+<p>This function conducts a single trial simulation using a trial specification
+as specified by <code>setup_trial()</code>, <code>setup_trial_binom()</code> or
+<code>setup_trial_norm()</code>.<br>
+During simulation, the function randomises "patients", randomly generates
+outcomes, calculates the probabilities that each <code>arm</code> is the best (and
+better than the control, if any). This is followed by checking inferiority,
+superiority, equivalence and/or futility as desired; dropping arms, and
+re-adjusting allocation probabilities according to the criteria specified in
+the trial specification. If there is no common <code>control</code> arm, the trial
+simulation will be stopped at the final specified adaptive analysis, when 1
+arm is superior to the others, or when all arms are considered equivalent (if
+equivalence is assessed). If a common <code>control</code> arm is specified, all other
+arms will be compared to that, and if 1 of these pairwise comparisons crosses
+the applicable superiority threshold at an adaptive analysis, that arm will
+become the new control and the old control will be considered inferior and
+dropped. If multiple non-control arms cross the applicable superiority
+threshold in the same adaptive analysis, the one with the highest probability
+of being the overall best will become the new control. Equivalence/futility
+will also be checked if specified, and equivalent or futile arms will be
+dropped in designs with a common <code>control</code> arm and the entire trial will be
+stopped if all remaining arms are equivalent in designs without a common
+<code>control</code> arm. The trial simulation will be stopped when only 1 arm is left,
+when the final arms are all equivalent, or after the final specified adaptive
+analysis.<br>
+After stopping (regardless of reason), a final analysis including outcome
+data from all patients randomised to all arms will be conducted (with the
+final <code>control</code> arm, if any, used as the <code>control</code> in this analysis).
+Results from this analysis will be saved, but not used with regards to the
+adaptive stopping rules. This is particularly relevant if less patients have
+available outcome data at the last adaptive analyses than the total number of
+patients randomised (as specified in <code>setup_trial()</code>, <code>setup_trial_binom()</code>,
+or <code>setup_trial_norm()</code>), as the final analysis will then include all
+patients randomised, which may be more than in the last adaptive analysis
+conducted.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">run_trial(trial_spec, seed = NULL, sparse = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trial_spec</code></td>
+<td>
+<p><code>trial_spec</code> object, generated and validated by the
+<code>setup_trial()</code>, <code>setup_trial_binom()</code> or <code>setup_trial_norm()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>single integer or <code>NULL</code> (default). If a value is provided, this
+value will be used as the random seed when running and the global random
+seed will be restored after the function has run, so it is not affected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>single logical; if <code>FALSE</code> (default) everything listed below is
+included in the returned object. If <code>TRUE</code>, only a limited amount of data
+are included in the returned object. This can be practical when running
+many simulations and saving the results using the <code>run_trials()</code> function
+(which relies on this function), as the output file will thus be
+substantially smaller. However, printing of individual trial results will
+be substantially less detailed for sparse results and non-sparse results
+are required by <code>plot_history()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>trial_result</code> object containing everything listed below if
+<code>sparse</code> (as described above) is <code>FALSE</code>. Otherwise only <code>final_status</code>,
+<code>final_n</code>, <code>followed_n</code>, <code>trial_res</code>, <code>seed</code>, and <code>sparse</code> are included.
+</p>
+
+<ul>
+<li> <p><code>final_status</code>: either <code>"superiority"</code>, <code>"equivalence"</code>,
+<code>"futility"</code>, or <code>"max"</code> (stopped at the last possible adaptive
+analysis), as calculated during the adaptive analyses.
+</p>
+</li>
+<li> <p><code>final_n</code>: the total number of patients randomised.
+</p>
+</li>
+<li> <p><code>followed_n</code>: the total number of patients with available outcome
+data at the last adaptive analysis conducted.
+</p>
+</li>
+<li> <p><code>max_n</code>: the pre-specified maximum number of patients with outcome
+data available at the last possible adaptive analysis.
+</p>
+</li>
+<li> <p><code>max_randomised</code>: the pre-specified maximum number of patients
+randomised at the last possible adaptive analysis.
+</p>
+</li>
+<li> <p><code>looks</code>: numeric vector, the total number of patients with outcome
+data available at each conducted adaptive analysis.
+</p>
+</li>
+<li> <p><code>planned_looks</code>: numeric vector, the cumulated number of patients
+planned to have outcome data available at each adaptive analysis, even
+those not conducted if the simulation is stopped before the final
+possible analysis.
+</p>
+</li>
+<li> <p><code>randomised_at_looks</code>: numeric vector, the cumulated number of
+patients  randomised at each conducted adaptive analysis (only
+including the relevant numbers for the analyses actually conducted).
+</p>
+</li>
+<li> <p><code>start_control</code>: character, initial common <code>control</code> arm (if
+specified).
+</p>
+</li>
+<li> <p><code>final_control</code>: character, final common <code>control</code> arm
+(if relevant).
+</p>
+</li>
+<li> <p><code>control_prob_fixed</code>: fixed common <code>control</code> arm probabilities (if
+specified; see <code>setup_trial()</code>).
+</p>
+</li>
+<li> <p><code>inferiority</code>, <code>superiority</code>, <code>equivalence_prob</code>,
+<code>equivalence_diff</code>, <code>equivalence_only_first</code>, <code>futility_prob</code>,
+<code>futility_diff</code>, <code>futility_only_first</code>, <code>highest_is_best</code>, and
+<code>soften_power</code>: as specified in <code>setup_trial()</code>.
+</p>
+</li>
+<li> <p><code>best_arm</code>: the best <code>arm</code>(s), as described in <code>setup_trial()</code>.
+</p>
+</li>
+<li> <p><code>trial_res</code>: a <code>data.frame</code> containing most of the information
+specified for each arm in <code>setup_trial()</code> including <code>true_ys</code> (true
+outcomes as specified in <code>setup_trial()</code>) and for each arm the sum of
+the outcomes (<code>sum_ys</code>/<code>sum_ys_all</code>; i.e., the total number of events
+for binary outcomes or the totals of continuous outcomes) and sum of
+patients (<code>ns</code>/<code>ns_all</code>), summary statistics for the raw outcome data
+(<code>raw_ests</code>/<code>raw_ests_all</code>, calculated as specified in <code>setup_trial()</code>,
+defaults to mean values, i.e., event rates for binary outcomes or means
+for continuous outcomes) and posterior estimates
+(<code>post_ests</code>/<code>post_ests_all</code>, <code>post_errs</code>/<code>post_errs_all</code>,
+<code>lo_cri</code>/<code>lo_cri_all</code>, and <code>hi_cri</code>/<code>hi_cri_all</code>, calculated as
+specified in <code>setup_trial()</code>), <code>final_status</code> of each arm
+(<code>"inferior"</code>, <code>"superior"</code>, <code>"equivalence"</code>, <code>"futile"</code>, <code>"active"</code>,
+or <code>"control"</code> (currently active control arm, including if the current
+control when stopped for equivalence)), <code>status_look</code> (specifying the
+cumulated number of patients with outcome data available when an
+adaptive analysis changed the <code>final_status</code> to <code>"superior"</code>,
+<code>"inferior"</code>, <code>"equivalence"</code>, or <code>"futile"</code>), <code>status_probs</code>, the
+probability (in the last adaptive analysis for each arm) that each
+arm was the best/better than the common control arm (if any)/equivalent
+to the common control arm (if any and stopped for equivalence; <code>NA</code> if
+the control arm was stopped due to the last remaining other arm(s)
+being stopped for equivalence)/futile if stopped for futility at the
+last analysis it was included in, <code>final_alloc</code>, the final allocation
+probability for each arm the last time patients were randomised to it,
+including for arms stopped at the maximum sample size, and
+<code>probs_best_last</code>, the probabilities of each remaining arm being the
+overall best in the last conducted adaptive analysis (<code>NA</code> for
+previously dropped arms).<br><strong>Note:</strong> for the variables in the <code>data.frame</code> where a version
+including the <code style="white-space: pre;">⁠_all⁠</code>-suffix is included, the versions WITHOUT this
+suffix are calculated using patients with available outcome data at the
+time of analysis, while the versions WITH the <code style="white-space: pre;">⁠_all⁠</code>-suffixes are
+calculated using outcome data for all patients randomised at the time
+of analysis, even if they have not reached the time of follow-up yet
+(see <code>setup_trial()</code>).
+</p>
+</li>
+<li> <p><code>all_looks</code>: a list of lists containing one list per conducted
+trial look (adaptive analysis). These lists contain the variables
+<code>arms</code>, <code>old_status</code> (status before the analysis of the current round
+was conducted), <code>new_status</code> (as specified above, status after current
+analysis has been conducted), <code>sum_ys</code>/<code>sum_ys_all</code> (as described
+above), <code>ns</code>/<code>ns_all</code> (as described above), <code>old_alloc</code> (the allocation
+probability used during this look), <code>probs_best</code> (the probabilities of
+each arm being the best in the current adaptive analysis), <code>new_alloc</code>
+(the allocation probabilities after updating these in the current
+adaptive analysis; NA for all arms when the trial is stopped and no
+further adaptive analyses will be conducted), <code>probs_better_first</code> (if
+a common control is provided, specifying the probabilities that each
+arm was better than the control in the first analysis conducted during
+that look), <code>probs_better</code> (as <code>probs_better_first</code>, but updated if
+another arm becomes the new control), <code>probs_equivalence_first</code> and
+<code>probs_equivalence</code> (as for <code>probs_better</code>/<code>probs_better_first</code>, but
+for equivalence if equivalence is assessed). The last variables are
+<code>NA</code> if the arm was not active in the applicable adaptive analysis or
+if they would not be included during the next adaptive analysis.
+</p>
+</li>
+<li> <p><code>allocs</code>: a character vector containing the allocations of all
+patients in the order of randomization.
+</p>
+</li>
+<li> <p><code>ys</code>: a numeric vector containing the outcomes of all patients in
+the order of randomization (<code>0</code> or <code>1</code> for binary outcomes).
+</p>
+</li>
+<li> <p><code>seed</code>: the random seed used, if specified.
+</p>
+</li>
+<li> <p><code>description</code>, <code>add_info</code>, <code>cri_width</code>, <code>n_draws</code>, <code>robust</code>: as
+specified in <code>setup_trial()</code>, <code>setup_trial_binom()</code> or
+<code>setup_trial_norm()</code>.
+</p>
+</li>
+<li> <p><code>sparse</code>: single logical, corresponding to the <code>sparse</code> input.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup a trial specification
+binom_trial &lt;- setup_trial_binom(arms = c("A", "B", "C", "D"),
+                                 true_ys = c(0.20, 0.18, 0.22, 0.24),
+                                 data_looks = 1:20 * 100)
+
+# Run trial with a specified random seed
+res &lt;- run_trial(binom_trial, seed = 12345)
+
+# Print results with 3 decimals
+print(res, digits = 3)
+
+</code></pre>
+
+
+</div>

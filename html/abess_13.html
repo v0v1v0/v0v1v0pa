@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate.data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate simulated data</h2>
+
+<h3>Description</h3>
+
+<p>Generate simulated data under the
+generalized linear model and Cox proportional hazard model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generate.data(
+  n,
+  p,
+  support.size = NULL,
+  rho = 0,
+  family = c("gaussian", "binomial", "poisson", "cox", "mgaussian", "multinomial",
+    "gamma", "ordinal"),
+  beta = NULL,
+  cortype = 1,
+  snr = 10,
+  sigma = NULL,
+  weibull.shape = 1,
+  uniform.max = 1,
+  y.dim = 3,
+  class.num = 3,
+  seed = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The number of predictors of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>support.size</code></td>
+<td>
+<p>The number of nonzero coefficients in the underlying regression
+model. Can be omitted if <code>beta</code> is supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>A parameter used to characterize the pairwise correlation in
+predictors. Default is <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The distribution of the simulated response. <code>"gaussian"</code> for
+univariate quantitative response, <code>"binomial"</code> for binary classification response,
+<code>"poisson"</code> for counting response, <code>"cox"</code> for left-censored response,
+<code>"mgaussian"</code> for multivariate quantitative response,
+<code>"mgaussian"</code> for multi-classification response, 
+<code>"ordinal"</code> for ordinal response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The coefficient values in the underlying regression model.
+If it is supplied, <code>support.size</code> would be omitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cortype</code></td>
+<td>
+<p>The correlation structure.
+<code>cortype = 1</code> denotes the independence structure,
+where the covariance matrix has <code class="reqn">(i,j)</code> entry equals <code class="reqn">I(i \neq j)</code>.
+<code>cortype = 2</code> denotes the exponential structure,
+where the covariance matrix has <code class="reqn">(i,j)</code> entry equals <code class="reqn">rho^{|i-j|}</code>.
+<code>cortype = 3</code> denotes the constant structure,
+where the non-diagonal entries of covariance
+matrix are <code class="reqn">rho</code> and diagonal entries are 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snr</code></td>
+<td>
+<p>A numerical value controlling the signal-to-noise ratio (SNR). The SNR is defined as
+as the variance of <code class="reqn">x\beta</code> divided
+by the variance of a gaussian noise: <code class="reqn">\frac{Var(x\beta)}{\sigma^2}</code>.
+The gaussian noise <code class="reqn">\epsilon</code> is set with mean 0 and variance.
+The noise is added to the linear predictor <code class="reqn">\eta</code> = <code class="reqn">x\beta</code>. Default is <code>snr = 10</code>.
+Note that this arguments's effect is overridden if <code>sigma</code> is supplied with a non-null value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>The variance of the gaussian noise. Default <code>sigma = NULL</code> implies it is determined by <code>snr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weibull.shape</code></td>
+<td>
+<p>The shape parameter of the Weibull distribution.
+It works only when <code>family = "cox"</code>.
+Default: <code>weibull.shape = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniform.max</code></td>
+<td>
+<p>A parameter controlling censored rate.
+A large value implies a small censored rate;
+otherwise, a large censored rate.
+It works only when <code>family = "cox"</code>.
+Default is <code>uniform.max = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.dim</code></td>
+<td>
+<p>Response's Dimension. It works only when <code>family = "mgaussian"</code>. Default: <code>y.dim = 3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class.num</code></td>
+<td>
+<p>The number of class. It works only when <code>family = "multinomial"</code>. Default: <code>class.num = 3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>random seed. Default: <code>seed = 1</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For <code>family = "gaussian"</code>, the data model is
+</p>
+<p style="text-align: center;"><code class="reqn">Y = X \beta + \epsilon.</code>
+</p>
+
+<p>The underlying regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [m, 100m] and <code class="reqn">m=5 \sqrt{2log(p)/n}.</code>
+</p>
+<p>For <code>family= "binomial"</code>, the data model is </p>
+<p style="text-align: center;"><code class="reqn">Prob(Y = 1) = \exp(X
+\beta + \epsilon)/(1 + \exp(X \beta + \epsilon)).</code>
+</p>
+
+<p>The underlying regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [2m, 10m] and <code class="reqn">m = 5 \sqrt{2log(p)/n}.</code>
+</p>
+<p>For <code>family = "poisson"</code>, the data is modeled to have
+an exponential distribution:
+</p>
+<p style="text-align: center;"><code class="reqn">Y = Exp(\exp(X \beta + \epsilon)).</code>
+</p>
+
+<p>The underlying regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [2m, 10m] and <code class="reqn">m = \sqrt{2log(p)/n}/3.</code>
+</p>
+<p>For <code>family = "gamma"</code>, the data is modeled to have
+a gamma distribution:
+</p>
+<p style="text-align: center;"><code class="reqn">Y = Gamma(X \beta + \epsilon + 10, shape),</code>
+</p>
+
+<p>where <code class="reqn">shape</code> is shape parameter in a gamma distribution.
+The underlying regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [2m, 100m] and <code class="reqn">m = \sqrt{2log(p)/n}.</code>
+</p>
+<p>For <code>family = "ordinal"</code>, the data is modeled to have
+an ordinal distribution.
+</p>
+<p>For <code>family = "cox"</code>, the model for failure time <code class="reqn">T</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">T = (-\log(U / \exp(X \beta)))^{1/weibull.shape},</code>
+</p>
+
+<p>where <code class="reqn">U</code> is a uniform random variable with range [0, 1].
+The centering time <code class="reqn">C</code> is generated from
+uniform distribution <code class="reqn">[0, uniform.max]</code>,
+then we define the censor status as
+<code class="reqn">\delta = I(T \le C)</code> and observed time as <code class="reqn">R = \min\{T, C\}</code>.
+The underlying regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [2m, 10m],
+where <code class="reqn">m = 5 \sqrt{2log(p)/n}</code>.
+</p>
+<p>For <code>family = "mgaussian"</code>, the data model is
+</p>
+<p style="text-align: center;"><code class="reqn">Y = X \beta + E.</code>
+</p>
+
+<p>The non-zero values of regression matrix <code class="reqn">\beta</code> are sampled from
+uniform distribution [m, 100m] and <code class="reqn">m=5 \sqrt{2log(p)/n}.</code>
+</p>
+<p>For <code>family= "multinomial"</code>, the data model is </p>
+<p style="text-align: center;"><code class="reqn">Prob(Y = 1) = \exp(X \beta + E)/(1 + \exp(X \beta + E)).</code>
+</p>
+
+<p>The non-zero values of regression coefficient <code class="reqn">\beta</code> has
+uniform distribution [2m, 10m] and <code class="reqn">m = 5 \sqrt{2log(p)/n}.</code>
+</p>
+<p>In the above models, <code class="reqn">\epsilon \sim N(0, \sigma^2 )</code> and <code class="reqn">E \sim MVN(0, \sigma^2 \times I_{q \times q})</code>,
+where <code class="reqn">\sigma^2</code> is determined by the <code>snr</code> and q is <code>y.dim</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> object comprising:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Design matrix of predictors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The coefficients used in the underlying regression model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jin Zhu
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate simulated data
+n &lt;- 200
+p &lt;- 20
+support.size &lt;- 5
+dataset &lt;- generate.data(n, p, support.size)
+str(dataset)
+</code></pre>
+
+
+</div>

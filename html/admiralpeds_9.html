@@ -1,0 +1,280 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_params_growth_height</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Anthropometric indicators (Z-Scores/Percentiles-for-Height/Length)
+based on Standard Growth Charts</h2>
+
+<h3>Description</h3>
+
+<p>Derive Anthropometric indicators (Z-Scores/Percentiles-for-Height/Length)
+based on Standard Growth Charts for Weight by Height/Length
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_params_growth_height(
+  dataset,
+  sex,
+  height,
+  height_unit,
+  meta_criteria,
+  parameter,
+  analysis_var,
+  who_correction = FALSE,
+  set_values_to_sds = NULL,
+  set_values_to_pctl = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified in <code>sex</code>, <code>height</code>, <code>height_unit</code>, <code>parameter</code>, <code>analysis_var</code>
+are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>Sex
+</p>
+<p>A character vector is expected.
+</p>
+<p>Expected Values: <code>M</code>, <code>F</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Current Height/length
+</p>
+<p>A numeric vector is expected. Note that this is the actual height/length at the current visit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height_unit</code></td>
+<td>
+<p>Height/Length Unit
+A character vector is expected.
+</p>
+<p>Expected values: <code>cm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meta_criteria</code></td>
+<td>
+<p>Metadata dataset
+</p>
+<p>A metadata dataset with the following expected variables:
+<code>HEIGHT_LENGTH</code>, <code>HEIGHT_LENGTHU</code>, <code>SEX</code>, <code>L</code>, <code>M</code>, <code>S</code>
+</p>
+<p>The dataset can be derived from WHO or user-defined datasets.
+The WHO growth chart metadata datasets are available in the package and will
+require small modifications.
+</p>
+<p>Datasets <code>who_wt_for_lgth_boys</code>/<code>who_wt_for_lgth_girls</code> are applicable for
+subject age &lt; 730.5 days.
+</p>
+<p>If the <code>height</code> value from <code>dataset</code> falls between two <code>HEIGHT_LENGTH</code> values in
+<code>meta_criteria</code>, then the <code>L</code>/<code>M</code>/<code>S</code> values that are chosen/mapped will be the
+<code>HEIGHT_LENGTH</code> that has the smaller absolute difference to the value in <code>height</code>.
+e.g. If dataset has a current age of 50.49 cm, and the metadata contains records
+for 50 and 51 cm, the <code>L</code>/<code>M</code>/<code>S</code> corresponding to the 50 cm record will be used.
+</p>
+
+<ul>
+<li> <p><code>HEIGHT_LENGTH</code> - Height/Length
+</p>
+</li>
+<li> <p><code>HEIGHT_LENGTHU</code> - Height/Length Unit
+</p>
+</li>
+<li> <p><code>SEX</code> - Sex
+</p>
+</li>
+<li> <p><code>L</code> - Power in the Box-Cox transformation to normality
+</p>
+</li>
+<li> <p><code>M</code> - Median
+</p>
+</li>
+<li> <p><code>S</code> - Coefficient of variation
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter</code></td>
+<td>
+<p>Anthropometric measurement parameter to calculate z-score or percentile
+</p>
+<p>A condition is expected with the input dataset <code>VSTESTCD</code>/<code>PARAMCD</code>
+for which we want growth derivations:
+</p>
+<p>e.g. <code>parameter = VSTESTCD == "WEIGHT"</code>.
+</p>
+<p>There is WHO metadata available for Weight available in the <code>admiralpeds</code> package.
+Weight measures are expected to be in the unit "kg".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>analysis_var</code></td>
+<td>
+<p>Variable containing anthropometric measurement
+</p>
+<p>A numeric vector is expected, e.g. <code>AVAL</code>, <code>VSSTRESN</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>who_correction</code></td>
+<td>
+<p>WHO adjustment for weight-based indicators
+</p>
+<p>A logical scalar, e.g. <code>TRUE</code>/<code>FALSE</code> is expected.
+WHO constructed a restricted application of the LMS method for weight-based indicators.
+More details on these exact rules applied can be found at the document page 302 of the
+<a href="https://www.who.int/publications/i/item/924154693X">WHO Child Growth Standards Guidelines</a>.
+If set to <code>TRUE</code> the WHO correction is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to_sds</code></td>
+<td>
+<p>Variables to be set for Z-Scores
+</p>
+<p>The specified variables are set to the specified values for the new
+observations. For example,
+<code>set_values_to_sds(exprs(PARAMCD = "WGTHSDS", PARAM = "Weight-for-height z-score"))</code>
+defines the parameter code and parameter.
+</p>
+<p>The formula to calculate the Z-score is as follows:
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{((\frac{obs}{M})^L - 1)}{L * S}</code>
+</p>
+
+<p>where "obs" is the observed value for the respective anthropometric measure being calculated.
+</p>
+<p><em>Permitted Values</em>: List of variable-value pairs
+</p>
+<p>If left as default value, <code>NULL</code>, then parameter not derived in output dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to_pctl</code></td>
+<td>
+<p>Variables to be set for Percentile
+</p>
+<p>The specified variables are set to the specified values for the new
+observations. For example,
+<code>set_values_to_pctl(exprs(PARAMCD = "WGTHPCTL", PARAM = "Weight-for-height percentile"))</code>
+defines the parameter code and parameter.
+</p>
+<p><em>Permitted Values</em>: List of variable-value pair
+</p>
+<p>If left as default value, <code>NULL</code>, then parameter not derived in output dataset</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The input dataset additional records with the new parameter added.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Vital Signs Functions for adding Parameters/Records
+<code>derive_params_growth_age()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr, warn.conflicts = FALSE)
+library(lubridate, warn.conflicts = FALSE)
+library(rlang, warn.conflicts = FALSE)
+library(admiral, warn.conflicts = FALSE)
+
+# derive weight for height/length only for those under 2 years old using WHO
+# weight for length reference file
+advs &lt;- dm_peds %&gt;%
+  select(USUBJID, BRTHDTC, SEX) %&gt;%
+  right_join(., vs_peds, by = "USUBJID") %&gt;%
+  mutate(
+    VSDT = ymd(VSDTC),
+    BRTHDT = ymd(BRTHDTC)
+  ) %&gt;%
+  derive_vars_duration(
+    new_var = AAGECUR,
+    new_var_unit = AAGECURU,
+    start_date = BRTHDT,
+    end_date = VSDT,
+    out_unit = "days"
+  )
+
+heights &lt;- vs_peds %&gt;%
+  filter(VSTESTCD == "HEIGHT") %&gt;%
+  select(USUBJID, VSSTRESN, VSSTRESU, VSDTC) %&gt;%
+  rename(
+    HGTTMP = VSSTRESN,
+    HGTTMPU = VSSTRESU
+  )
+
+advs &lt;- advs %&gt;%
+  right_join(., heights, by = c("USUBJID", "VSDTC"))
+
+advs_under2 &lt;- advs %&gt;%
+  filter(AAGECUR &lt; 730.5)
+
+who_under2 &lt;- bind_rows(
+  (admiralpeds::who_wt_for_lgth_boys %&gt;%
+    mutate(
+      SEX = "M",
+      height_unit = "cm"
+    )
+  ),
+  (admiralpeds::who_wt_for_lgth_girls %&gt;%
+    mutate(
+      SEX = "F",
+      height_unit = "cm"
+    )
+  )
+) %&gt;%
+  rename(
+    HEIGHT_LENGTH = Length,
+    HEIGHT_LENGTHU = height_unit
+  )
+
+derive_params_growth_height(
+  advs_under2,
+  sex = SEX,
+  height = HGTTMP,
+  height_unit = HGTTMPU,
+  meta_criteria = who_under2,
+  parameter = VSTESTCD == "WEIGHT",
+  analysis_var = VSSTRESN,
+  who_correction = TRUE,
+  set_values_to_sds = exprs(
+    PARAMCD = "WGTHSDS",
+    PARAM = "Weight-for-height/length z-score"
+  ),
+  set_values_to_pctl = exprs(
+    PARAMCD = "WGTHPCTL",
+    PARAM = "Weight-for-height/length percentile"
+  )
+)
+</code></pre>
+
+
+</div>

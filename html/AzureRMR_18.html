@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_azure_login</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Login to Azure Resource Manager</h2>
+
+<h3>Description</h3>
+
+<p>Login to Azure Resource Manager
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_azure_login(tenant = "common", app = .az_cli_app_id,
+  password = NULL, username = NULL, certificate = NULL,
+  auth_type = NULL, version = 2, host = "https://management.azure.com/",
+  aad_host = "https://login.microsoftonline.com/", scopes = ".default",
+  config_file = NULL, token = NULL,
+  graph_host = "https://graph.microsoft.com/", ...)
+
+get_azure_login(tenant = "common", selection = NULL, app = NULL,
+  scopes = NULL, auth_type = NULL, refresh = TRUE)
+
+delete_azure_login(tenant = "common", confirm = TRUE)
+
+list_azure_logins()
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tenant</code></td>
+<td>
+<p>The Azure Active Directory tenant for which to obtain a login client. Can be a name ("myaadtenant"), a fully qualified domain name ("myaadtenant.onmicrosoft.com" or "mycompanyname.com"), or a GUID. The default is to login via the "common" tenant, which will infer your actual tenant from your credentials.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>app</code></td>
+<td>
+<p>The client/app ID to use to authenticate with Azure Active Directory. The default is to login interactively using the Azure CLI cross-platform app, but you can supply your own app credentials as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>If <code>auth_type == "client_credentials"</code>, the app secret; if <code>auth_type == "resource_owner"</code>, your account password.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>username</code></td>
+<td>
+<p>If <code>auth_type == "resource_owner"</code>, your username.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>certificate</code></td>
+<td>
+<p>If 'auth_type == "client_credentials", a certificate to authenticate with. This is a more secure alternative to using an app secret.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auth_type</code></td>
+<td>
+<p>The OAuth authentication method to use, one of "client_credentials", "authorization_code", "device_code" or "resource_owner". If <code>NULL</code>, this is chosen based on the presence of the <code>username</code> and <code>password</code> arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>The Azure Active Directory version to use for authenticating.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>host</code></td>
+<td>
+<p>Your ARM host. Defaults to <code style="white-space: pre;">⁠https://management.azure.com/⁠</code>. Change this if you are using a government or private cloud.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aad_host</code></td>
+<td>
+<p>Azure Active Directory host for authentication. Defaults to <code style="white-space: pre;">⁠https://login.microsoftonline.com/⁠</code>. Change this if you are using a government or private cloud.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scopes</code></td>
+<td>
+<p>The Azure Service Management scopes (permissions) to obtain for this login. Only for <code>version=2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>config_file</code></td>
+<td>
+<p>Optionally, a JSON file containing any of the arguments listed above. Arguments supplied in this file take priority over those supplied on the command line. You can also use the output from the Azure CLI <code style="white-space: pre;">⁠az ad sp create-for-rbac⁠</code> command.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>Optionally, an OAuth 2.0 token, of class AzureToken. This allows you to reuse the authentication details for an existing session. If supplied, the other arguments above to <code>create_azure_login</code> will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph_host</code></td>
+<td>
+<p>The Microsoft Graph endpoint. See 'Microsoft Graph integration' below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>For <code>create_azure_login</code>, other arguments passed to <code>get_azure_token</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>For <code>get_azure_login</code>, if you have multiple logins for a given tenant, which one to use. This can be a number, or the input MD5 hash of the token used for the login. If not supplied, <code>get_azure_login</code> will print a menu and ask you to choose a login.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refresh</code></td>
+<td>
+<p>For <code>get_azure_login</code>, whether to refresh the authentication token on loading the client.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confirm</code></td>
+<td>
+<p>For <code>delete_azure_login</code>, whether to ask for confirmation before deleting.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>create_azure_login</code> creates a login client to authenticate with Azure Resource Manager (ARM), using the supplied arguments. The Azure Active Directory (AAD) authentication token is obtained using get_azure_token, which automatically caches and reuses tokens for subsequent sessions. Note that credentials are only cached if you allowed AzureRMR to create a data directory at package startup.
+</p>
+<p><code>create_azure_login()</code> without any arguments is roughly equivalent to the Azure CLI command <code style="white-space: pre;">⁠az login⁠</code>.
+</p>
+<p><code>get_azure_login</code> returns a login client by retrieving previously saved credentials. It searches for saved credentials according to the supplied tenant; if multiple logins are found, it will prompt for you to choose one.
+</p>
+<p>One difference between <code>create_azure_login</code> and <code>get_azure_login</code> is the former will delete any previously saved credentials that match the arguments it was given. You can use this to force AzureRMR to remove obsolete tokens that may be lying around.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>get_azure_login</code> and <code>create_azure_login</code>, an object of class <code>az_rm</code>, representing the ARM login client. For <code>list_azure_logins</code>, a (possibly nested) list of such objects.
+</p>
+<p>If the AzureRMR data directory for saving credentials does not exist, <code>get_azure_login</code> will throw an error.
+</p>
+
+
+<h3>Microsoft Graph integration</h3>
+
+<p>If the AzureGraph package is installed and the <code>graph_host</code> argument is not <code>NULL</code>, <code>create_azure_login</code> will also create a login client for Microsoft Graph with the same credentials. This is to facilitate working with registered apps and service principals, eg when managing roles and permissions. Some Azure services also require creating service principals as part of creating a resource (eg Azure Kubernetes Service), and keeping the Graph credentials consistent with ARM helps ensure nothing breaks.
+</p>
+
+
+<h3>Linux DSVM note</h3>
+
+<p>If you are using a Linux <a href="https://azure.microsoft.com/en-us/products/virtual-machines/data-science-virtual-machines/">Data Science Virtual Machine</a> in Azure, you may have problems running <code>create_azure_login()</code> (ie, without any arguments). In this case, try <code>create_azure_login(auth_type="device_code")</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>az_rm, AzureAuth::get_azure_token for more details on authentication methods, AzureGraph::create_graph_login for the corresponding function to create a Microsoft Graph login client
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager overview</a>,
+<a href="https://learn.microsoft.com/en-us/rest/api/resources/">REST API reference</a>
+</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/active-directory/develop/authentication-scenarios">Authentication in Azure Active Directory</a>
+</p>
+<p><a href="https://learn.microsoft.com/en-us/cli/azure/?view=azure-cli-latest">Azure CLI documentation</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# without any arguments, this will create a client using your AAD credentials
+az &lt;- create_azure_login()
+
+# retrieve the login in subsequent sessions
+az &lt;- get_azure_login()
+
+# this will create a Resource Manager client for the AAD tenant 'myaadtenant.onmicrosoft.com',
+# using the client_credentials method
+az &lt;- create_azure_login("myaadtenant", app="app_id", password="password")
+
+# you can also login using credentials in a json file
+az &lt;- create_azure_login(config_file="~/creds.json")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

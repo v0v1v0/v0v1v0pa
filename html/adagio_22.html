@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Historize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Historize function
+</h2>
+
+<h3>Description</h3>
+
+<p>Provides storage for function calls.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Historize(fun, len = 0, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>Function of one or several variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>len</code></td>
+<td>
+<p>If &gt; 0, input values will be stored, too.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters to be handed to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Historize() adds storage to the function. If <code>len=0</code> then only
+function values will be stored in a vector, if <code>len&gt;0</code> then
+variables will be stored in a vector, and function values will be stored
+in a matrix, one line for every function call.
+</p>
+<p>If <code>Fn = Historize(...)</code> is the 'historized' function, then the
+storage can be retrieved with <code>Fn()</code>, and can be cleared with
+<code>Fn(NULL)</code>.
+</p>
+<p>Filling the storage will take extra time and can slow down the
+function calls. Especially also storing the variables used in the
+call (with <code>len&gt;0</code>) will make it considerably slower.
+</p>
+<p>Functions can have multivariate output; the user is asked to take
+care of handling the output vector or matrix correctly. The function
+may even require additional parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list, $input the input variables as matrix, $H2 the function
+values as vector, $nvars the number of input variables of the function,
+and $ncalls the number or recorded function calls.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Can also be applied to functions that output a vector (same length
+for every call).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Hans W. Borchers
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>trace</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">f &lt;- function(x) sum(x^2)
+F &lt;- Historize(f, len = 1)
+c( F(c(1,1)), F(c(1,2)), F(c(2,1)), F(c(2,2)) )
+#&gt; [1] 2 5 5 8
+F()
+#&gt; $input
+#&gt;      [,1] [,2]
+#&gt; [1,]    1    1
+#&gt; [2,]    1    2
+#&gt; [3,]    2    1
+#&gt; [4,]    2    2
+#&gt; 
+#&gt; $values
+#&gt; [1] 2 5 5 8
+#&gt; 
+#&gt; $nvars
+#&gt; [1] 2
+#&gt; 
+#&gt; $ncalls
+#&gt; [1] 4
+F(NULL)     # reset memory
+
+
+## Rastrigin under Differential Evolution
+
+Fn &lt;- Historize(fnRastrigin)
+dm &lt;- 10
+lb &lt;- rep(-5.2, dm); ub &lt;- -lb
+
+sol &lt;- simpleDE(Fn, lower = lb, upper = ub)
+fvalues &lt;- Fn()$values
+fvals &lt;- cummin(fvalues)
+
+## Not run: 
+plot(fvalues, type = 'p', col = 7, pch = '.', cex = 2,
+     main = "Simple DE optimization", xlab = '', ylab = '')
+lines(fvals, col = 2, lwd = 2)
+legend(length(fvalues), max(fvalues),
+       c("Intermediate values", "cummulated min"),
+       xjust = 1, col = c(7, 2), lwd = 2)
+grid()
+## End(Not run)
+</code></pre>
+
+
+</div>

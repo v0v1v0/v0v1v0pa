@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>asmbPLSDA.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation for asmbPLS-DA to find the best combinations of quantiles for classification</h2>
+
+<h3>Description</h3>
+
+<p>Function to find the best combinations of quantiles used for classification via
+cross-validation. Usually should be conducted before 
+<code>asmbPLSDA.fit</code> to obtain the quantile combinations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">asmbPLSDA.cv(
+  X.matrix,
+  Y.matrix,
+  PLS.comp,
+  X.dim,
+  quantile.comb.table,
+  outcome.type,
+  method = NULL,
+  measure = "B_accuracy",
+  k = 5,
+  ncv = 5,
+  expected.measure.increase = 0.005,
+  center = TRUE,
+  scale = TRUE,
+  maxiter = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X.matrix</code></td>
+<td>
+<p>Predictors matrix. Samples in rows, variables in columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y.matrix</code></td>
+<td>
+<p>Outcome matrix. Samples in rows, this is a matrix with one 
+column (binary) or multiple columns (more than 2 levels, dummy variables).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PLS.comp</code></td>
+<td>
+<p>Number of PLS components in asmbPLS-DA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.dim</code></td>
+<td>
+<p>A vector containing the number of predictors in each block 
+(ordered).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile.comb.table</code></td>
+<td>
+<p>A matrix containing user-defined quantile 
+combinations used for CV, whose column number equals to the 
+number of blocks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome.type</code></td>
+<td>
+<p>The type of the outcome Y. "<code>binary</code>" for binary 
+outcome, and "<code>multiclass</code>" for categorical outcome with more than 2 
+levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Decision rule used for CV. For binary outcome, the 
+methods include "<code>fixed_cutoff</code>", "<code>Euclidean_distance_X</code>" and
+"<code>Mahalanobis_distance_X</code>". For categorical outcome with more than 2 
+levels, the methods include "<code>Max_Y</code>", "<code>Euclidean_distance_X</code>",
+"<code>Mahalanobis_distance_X</code>", "<code>Euclidean_distance_Y</code>", and 
+"<code>PCA_Mahalanobis_distance_Y</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>measure</code></td>
+<td>
+<p>Five measures are available: overall accuracy <code>accuracy</code>,
+balanced accuracy <code>B_accuracy</code>, precision <code>precision</code>, recall
+<code>recall</code>, F1 score <code>F1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of folds of CV procedure. The default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncv</code></td>
+<td>
+<p>The number of repetitions of CV. The default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expected.measure.increase</code></td>
+<td>
+<p>The measure you expect to increase after 
+including one more PLS component, which will affect the selection of optimal 
+PLS components. The default is 0.005.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>A logical value indicating whether weighted mean center should 
+be implemented for <code>X.matrix</code> and <code>Y.matrix</code>. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>A logical value indicating whether scale should be 
+implemented for <code>X.matrix</code>. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>A integer indicating the maximum number of iteration. The
+default number is 100.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>asmbPLSDA.cv</code> returns a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>quantile_table_CV</code></td>
+<td>
+<p>A matrix containing the selected quantile 
+combination and the corresponding measures of CV for each PLS component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimal_nPLS</code></td>
+<td>
+<p>Optimal number of PLS components.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Use the example dataset
+data(asmbPLSDA.example)
+X.matrix = asmbPLSDA.example$X.matrix
+Y.matrix.binary = asmbPLSDA.example$Y.matrix.binary
+Y.matrix.multiclass = asmbPLSDA.example$Y.matrix.morethan2levels
+X.dim = asmbPLSDA.example$X.dim
+PLS.comp = asmbPLSDA.example$PLS.comp
+quantile.comb.table.cv = asmbPLSDA.example$quantile.comb.table.cv
+
+## cv to find the best quantile combinations for model fitting (binary outcome)
+cv.results.binary &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                  Y.matrix = Y.matrix.binary, 
+                                  PLS.comp = PLS.comp, 
+                                  X.dim = X.dim, 
+                                  quantile.comb.table = quantile.comb.table.cv, 
+                                  outcome.type = "binary",
+                                  k = 3,
+                                  ncv = 3)
+quantile.comb.binary &lt;- cv.results.binary$quantile_table_CV[,1:length(X.dim)]
+n.PLS.binary &lt;- cv.results.binary$optimal_nPLS
+
+## asmbPLSDA fit using the selected quantile combination (binary outcome)
+asmbPLSDA.fit.binary &lt;- asmbPLSDA.fit(X.matrix = X.matrix, 
+                                      Y.matrix = Y.matrix.binary, 
+                                      PLS.comp = n.PLS.binary, 
+                                      X.dim = X.dim, 
+                                      quantile.comb = quantile.comb.binary,
+                                      outcome.type = "binary")
+
+
+## cv to find the best quantile combinations for model fitting 
+## (categorical outcome with more than 2 levels)
+cv.results.multiclass &lt;- asmbPLSDA.cv(X.matrix = X.matrix, 
+                                      Y.matrix = Y.matrix.multiclass, 
+                                      PLS.comp = PLS.comp, 
+                                      X.dim = X.dim, 
+                                      quantile.comb.table = quantile.comb.table.cv, 
+                                      outcome.type = "multiclass",
+                                      k = 3,
+                                      ncv = 2)
+quantile.comb.multiclass &lt;- cv.results.multiclass$quantile_table_CV[,1:length(X.dim)]
+n.PLS.multiclass &lt;- cv.results.multiclass$optimal_nPLS
+
+## asmbPLSDA fit (categorical outcome with more than 2 levels)
+asmbPLSDA.fit.multiclass &lt;- asmbPLSDA.fit(X.matrix = X.matrix, 
+                                          Y.matrix = Y.matrix.multiclass, 
+                                          PLS.comp = n.PLS.multiclass, 
+                                          X.dim = X.dim, 
+                                          quantile.comb = quantile.comb.multiclass,
+                                          outcome.type = "multiclass")
+
+</code></pre>
+
+
+</div>

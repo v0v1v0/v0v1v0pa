@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate_ehat_variance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate within-day variance of estimated effort (Ehat)</h2>
+
+<h3>Description</h3>
+
+<p>This function multiple outputs from <code>simulate_bus_route</code> 
+to estimate the variance in estimated effort, <code class="reqn">\widehat{E}</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate_ehat_variance(data)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe of output from <code>simulate_bus_route</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The variance in <code class="reqn">\widehat{E}</code> is estimated from multiple simulated surveys
+on a single theoretical day (Within-day variance of <code class="reqn">\widehat{E}</code>. The variance is estimated by 
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{n(n-1)}\sum(\widehat{T}_{ph}-\overline{\widehat{T}}_{ph})^2</code>
+</p>
+
+<p>where <code class="reqn">\widehat{T}_{ph}</code> is the total estimated party hours for an individual survey 
+(i.e., <code class="reqn">\widehat{E}</code>), and <code class="reqn">\overline{\widehat{T}}_{ph}</code> is the mean of the <code class="reqn">\widehat{E}</code>, 
+and <em>n</em> is how many simulations were run. The equation above matches the variables
+used in Jones et al. (1990).
+</p>
+<p>Jones et al. (1990) stated that estimating within-day variance would require
+several crews conducting two or more randomized surveys along a given route on the 
+same day. They use this conservative estimator of variance for building confidence 
+intervals around the estimates of effort.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The variance in estimated effort, <code>Ehat</code> (<code class="reqn">\widehat{E}</code>), from Robson
+and Jones (1989) and Jones et al. (1990).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Steven H. Ranney
+</p>
+
+
+<h3>References</h3>
+
+<p>Jones, C. M., D. Robson, D. Otis, S. Gloss. 1990. Use of a computer 
+model to determine the behavior of a new survey estimator of recreational angling.
+Transactions of the American Fisheries Society 119:41-54.
+</p>
+<p>Robson, D., and C. M. Jones. 1989. The theoretical basis of an 
+access site angler survey design. Biometrics 45:83-98.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#Set up a simulation to run repeatedly
+## Not run: 
+start_time = c(0, 1.5)
+wait_time = c(1, 6.5)
+fishing_day_length &lt;- 12
+n_anglers = c(50, 300)
+n_sites = 2
+sampling_prob &lt;- sum(wait_time)/fishing_day_length
+mean_catch_rate &lt;- 2.5
+
+# Simulate the creel survey n times
+times &lt;- 100
+
+sims &lt;- 
+  matrix(data = NA, nrow = times, ncol = 5) %&gt;% 
+  as.data.frame()
+
+names(sims) = c("Ehat", "catch_rate_ROM", "true_catch", "true_effort", "mean_lambda")
+
+for(i in 1:times){
+  
+sims[i, ] &lt;- simulate_bus_route(start_time, wait_time, n_anglers, n_sites, 
+                                sampling_prob, mean_catch_rate)
+  
+}
+
+estimate_ehat_variance(sims)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

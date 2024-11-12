@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fillNA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fill missing values (NA) with averaged neighboring data</h2>
+
+<h3>Description</h3>
+
+<p>Fill missing values of a given variable in a VoxelSpace object
+with averaged neighboring values.
+</p>
+<p>Neighboring values are selected among voxels within a user-defined radius
+in meter and whose sampling rate (number of pulses that went through the
+voxel) is above a user-defined threshold. Distance between voxels is the
+euclidian distance between voxel centers. Fill-value may be capped by
+user-defined minimal and maximal values.
+</p>
+<p>Default radius (if not defined by user) is set to largest dimension of voxel
+size <code>max(getVoxelSize(vxsp))</code>. It guarantees that default neighborhood is
+isotropic.
+</p>
+<p>In some cases, for instance poorly sampled area, neighboring values may all
+be missing or discarded. A fallback value can be provided to "force fill"
+suche voxels. An other option is to run again the function with larger
+radius or lower sampling threshold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fillNA(
+  vxsp,
+  variable.name,
+  variable.min = -Inf,
+  variable.max = Inf,
+  variable.fallback,
+  radius,
+  pulse.min = 10
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vxsp</code></td>
+<td>
+<p>a <code>VoxelSpace</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.name</code></td>
+<td>
+<p>a character, the name of a variable in the VoxelSpace</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.min</code></td>
+<td>
+<p>a numeric, minimal value for the fill values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.max</code></td>
+<td>
+<p>a numeric, maximal value for the fill values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable.fallback</code></td>
+<td>
+<p>a numeric, optional fallback value in case no fill
+value can be estimated from neighboring voxels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>a numeric, the radius in meter that defines the neighborhood of
+a voxel. The function looks for the voxels whose center is inside a sphere
+of radius <code>radius</code> centered at current voxel center. Default is set to
+<code>max(getVoxelSize(vxsp))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pulse.min</code></td>
+<td>
+<p>a numeric, minimal sampling intensity (i.e. number of pulses
+that went through a voxel) to include neighboring voxel in the estimation of
+the averaged fill value.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># read voxel space
+vxsp &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+# Randomly add some NA in PAD variable
+vx &lt;- vxsp@data
+ind &lt;- sample(vx[PadBVTotal &gt; 0, which = TRUE], 3)
+# print initial values
+vx[ind, .(i, j, k, PadBVTotal)]
+vx[ind, PadBVTotal := NA]
+# fill NA in PAD variable
+fillNA(vxsp, "PadBVTotal", variable.max = 5)
+# print filled values
+vx[ind, .(i, j, k, PadBVTotal)]
+
+</code></pre>
+
+
+</div>

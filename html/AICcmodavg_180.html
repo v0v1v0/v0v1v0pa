@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bictabCustom</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create Model Selection Tables from User-supplied Input Based on (Q)BIC
+</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a model selection table from model input
+(log-likelihood, number of estimated parameters) supplied by the user
+instead of extracting the values automatically from a list of
+candidate models.  The models are ranked based on the BIC (Schwarz
+1978) or on a quasi-likelihood analogue (QBIC) corrected for
+overdispersion.  The table ranks the models based on the selected
+information criteria and also provides delta BIC and BIC weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bictabCustom(logL, K, modnames = NULL, nobs = NULL, sort = TRUE,
+             c.hat = 1) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>logL</code></td>
+<td>
+
+<p>a vector of log-likelihood values for the models in the candidate
+model set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+
+<p>a vector containing the number of estimated parameters for each
+model in the candidate model set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modnames</code></td>
+<td>
+
+<p>a character vector of model names to facilitate the identification of
+each model in the model selection table. If <code>NULL</code>, the function
+uses the names in the cand.set list of candidate models (i.e., a named
+list).  If no names appear in the list and no character vector is
+provided, generic names (e.g., <code>Mod1</code>, <code>Mod2</code>) are supplied in
+the table in the same order as in the list of candidate models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+
+<p>the sample size required to compute the AICc or QAICc.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+
+<p>logical.  If <code>TRUE</code>, the model selection table is ranked according
+to the (Q)BIC values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat</code></td>
+<td>
+
+<p>value of overdispersion parameter (i.e., variance inflation factor)
+such as that obtained from <code>c_hat</code>.  Note that values of
+<code>c.hat</code> different from 1 are only appropriate for binomial GLM's
+with trials &gt; 1 (i.e., success/trial or cbind(success, failure)
+syntax), with Poisson GLM's, single-season or dynamic occupancy
+models (MacKenzie et al. 2002, 2003), <em>N</em>-mixture models (Royle
+2004, Dail and Madsen 2011), or capture-mark-recapture models (e.g.,
+Lebreton et al. 1992).  If c.hat &gt; 1, <code>bictabCustom</code> will return
+the quasi-likelihood analogue of the information criterion requested.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>bictabCustom</code> constructs a model selection table based on BIC or
+QBIC.  This function is most useful when model input is imported into
+R from other software (e.g., Program MARK, PRESENCE) or for model
+classes that are not yet supported by <code>bictab</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>bictabCustom</code> creates an object of class <code>bictab</code> with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Modname</code></td>
+<td>
+<p>the name of each model of the candidate model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K </code></td>
+<td>
+<p>the number of estimated parameters for each model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>(Q)BIC </code></td>
+<td>
+<p>the information criteria requested for each model
+(BIC, QBIC).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Delta_(Q)BIC </code></td>
+<td>
+<p>the appropriate delta BIC component depending
+on the information criteria selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ModelLik </code></td>
+<td>
+<p>the relative likelihood of the model given the
+data (exp(-0.5*delta[i])).  This is not to be confused with the
+likelihood of the parameters given the data.  The relative likelihood
+can then be normalized across all models to get the model probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>(Q)BICWt</code></td>
+<td>
+<p>the BIC weights, also termed "model probabilities"
+sensu Burnham and Anderson (2002) and Anderson (2008).  These
+measures indicate the level of support (i.e., weight of evidence) in
+favor of any given model being the most parsimonious among the
+candidate model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cum.Wt </code></td>
+<td>
+<p>the cumulative BIC weights.  These are only meaningful
+if results in table are sorted in decreasing order of BIC weights
+(i.e., sort = TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat</code></td>
+<td>
+<p>if c.hat was specified as an argument, it is included in
+the table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LL</code></td>
+<td>
+<p>if c.hat = 1 and parameters estimated by maximum likelihood,
+the log-likelihood of each model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Quasi.LL</code></td>
+<td>
+<p>if c.hat &gt; 1, the quasi log-likelihood of each model.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Anderson, D. R. (2008) <em>Model-based Inference in the Life Sciences:
+a primer on evidence</em>. Springer: New York.
+</p>
+<p>Burnham, K. P., Anderson, D. R. (2002) <em>Model Selection and
+Multimodel Inference: a practical information-theoretic
+approach</em>. Second edition. Springer: New York.
+</p>
+<p>Dail, D., Madsen, L. (2011) Models for estimating abundance from 
+repeated counts of an open population. <em>Biometrics</em> <b>67</b>,
+577–587. 
+</p>
+<p>Lebreton, J.-D., Burnham, K. P., Clobert, J., Anderson, D. R. (1992)
+Modeling survival and testing biological hypotheses using marked
+animals: a unified approach with case-studies. <em>Ecological
+Monographs</em> <b>62</b>, 67–118. 
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Lachman, G. B., Droege, S., Royle,
+J. A., Langtimm, C. A. (2002) Estimating site occupancy rates when
+detection probabilities are less than one. <em>Ecology</em> <b>83</b>,
+2248–2255.
+</p>
+<p>MacKenzie, D. I., Nichols, J. D., Hines, J. E., Knutson, M. G.,
+Franklin, A. B. (2003) Estimating site occupancy, colonization, and
+local extinction when a species is detected imperfectly. <em>Ecology</em>
+<b>84</b>, 2200–2207.
+</p>
+<p>Mazerolle, M. J. (2006) Improving data analysis in herpetology: using
+Akaike's Information Criterion (AIC) to assess the strength of
+biological hypotheses. <em>Amphibia-Reptilia</em> <b>27</b>, 169–180.
+</p>
+<p>Royle, J. A. (2004) <em>N</em>-mixture models for estimating population
+size from spatially replicated counts. <em>Biometrics</em> <b>60</b>,
+108–115.
+</p>
+<p>Schwarz, G. (1978) Estimating the dimension of a model. <em>Annals of
+Statistics</em> <b>6</b>, 461–464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AICcCustom</code>, <code>aictabCustom</code>,
+<code>confset</code>, <code>c_hat</code>, <code>evidence</code>,
+<code>ictab</code>, <code>modavgCustom</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##vector with model LL's
+LL &lt;- c(-38.8876, -35.1783, -64.8970)
+
+##vector with number of parameters
+Ks &lt;- c(7, 9, 4)
+
+##create a vector of names to trace back models in set
+Modnames &lt;- c("Cm1", "Cm2", "Cm3")
+
+##generate BIC table
+bictabCustom(logL = LL, K = Ks, modnames = Modnames, nobs = 121,
+             sort = TRUE)
+</code></pre>
+
+
+</div>

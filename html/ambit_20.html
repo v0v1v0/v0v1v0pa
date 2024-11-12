@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test_asymnorm_est</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computing the feasible statistic of the trawl function CLT</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the feasible statistics associated with the
+CLT for the trawl function estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">test_asymnorm_est(
+  data,
+  Delta,
+  trawlfct,
+  trawlfct_par,
+  biascor = FALSE,
+  k = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data set based on observations of
+<code class="reqn">X_0, X_{\Delta_n}, \ldots, X_{(n-1)\Delta_n}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Delta</code></td>
+<td>
+<p>The width Delta of the observation grid</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trawlfct</code></td>
+<td>
+<p>The trawl function for which the
+asymptotic variance will be computed (Exp, supIG or LM)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trawlfct_par</code></td>
+<td>
+<p>The parameter vector of the trawl function
+(Exp: lambda, supIG: delta, gamma, LM: alpha, H)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biascor</code></td>
+<td>
+<p>A binary variable determining whether a bias correction should
+be computed, the default is FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The optional parameter specifying the time point in
+<code class="reqn">0, 1, \ldots, n-1</code>;
+the test statistic will be computed for the time point <code class="reqn">k \Delta_n</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As derived in
+Sauri and Veraart (2022), the feasible statistic, for <code class="reqn">t&gt;0</code>,  is given by
+</p>
+<p style="text-align: center;"><code class="reqn">T(t)_n:=\frac{\sqrt{n\Delta_{n}}}{\sqrt{\widehat{\sigma_{a}^2(t)}}}
+\left(\hat{a}(t)-a(t)-bias(t)\right).</code>
+</p>
+
+<p>For <code class="reqn">t=0</code>, we have </p>
+<p style="text-align: center;"><code class="reqn">T(t)_n:=\frac{\sqrt{n\Delta_{n}}}{\sqrt{RQ_n}}
+\left(\hat{a}(0)-a(0)-bias(0)\right),</code>
+</p>
+<p> where
+</p>
+<p style="text-align: center;"><code class="reqn">RQ_n:=\frac{1}{\sqrt{2 n\Delta_{n}}}
+\sum_{k=0}^{n-2}(X_{(k+1)\Delta_n}-X_{k\Delta_n})^4.</code>
+</p>
+
+<p>We set <code class="reqn">bias(t)=0</code> in the case
+when biascor==FALSE and <code class="reqn">bias(t)=0.5 * \Delta * \hat a'(t)</code> otherwise.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns the vector of the feasible statistics
+<code class="reqn">(T(0)_n, T((\Delta)_n, \ldots, T((n-2)\Delta_n))</code> if no bias correction
+is required and <code class="reqn">(T(0)_n, T((\Delta)_n, \ldots, T((n-3)\Delta_n))</code> if
+bias correction is required if k is not provided, otherwise it returns the
+value <code class="reqn">T(k \Delta_n)_n</code>. If the estimated asymptotic variance is &lt;= 0,
+the value of the test statistic is set to 999.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##Simulate a trawl process
+##Determine the sampling grid
+my_n &lt;- 1000
+my_delta &lt;- 0.1
+my_t &lt;- my_n*my_delta
+
+###Choose the model parameter
+#Exponential trawl function:
+my_lambda &lt;- 2
+#Poisson marginal distribution trawl
+my_v &lt;- 1
+
+#Set the seed
+set.seed(123)
+#Simulate the trawl process
+Poi_data &lt;- sim_weighted_trawl(my_n, my_delta,
+                               "Exp", my_lambda, "Poi", my_v)$path
+
+#Compute the test statistic for time t=0
+##Either one can use:
+test_asymnorm_est(Poi_data, my_delta,
+                  trawlfct="Exp", trawlfct_par=my_lambda)[1]
+#or:
+test_asymnorm_est(Poi_data, my_delta,
+                  trawlfct="Exp", trawlfct_par=my_lambda, k=0)
+</code></pre>
+
+
+</div>

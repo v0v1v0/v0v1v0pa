@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.ivreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Methods for Instrumental-Variable Regression</h2>
+
+<h3>Description</h3>
+
+<p>Methods to standard generics for instrumental-variable regressions
+fitted by <code>ivreg</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ivreg'
+summary(object, vcov. = NULL, df = NULL, diagnostics = FALSE, ...)
+## S3 method for class 'ivreg'
+anova(object, object2, test = "F", vcov = NULL, ...)
+
+## S3 method for class 'ivreg'
+terms(x, component = c("regressors", "instruments"), ...)
+## S3 method for class 'ivreg'
+model.matrix(object, component = c("projected", "regressors", "instruments"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object, object2, x</code></td>
+<td>
+<p>an object of class <code>"ivreg"</code> as fitted by
+<code>ivreg</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov., vcov</code></td>
+<td>
+<p>a specification of the covariance matrix of the estimated
+coefficients. This can be specified as a matrix or as a function yielding a matrix
+when applied to the fitted model. If it is a function it is also employed in the two
+diagnostic F tests (if <code>diagnostics = TRUE</code> in the <code>summary()</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>the degrees of freedom to be used. By default this is set to
+residual degrees of freedom for which a t or F test is computed. Alternatively,
+it can be set to <code>Inf</code> (or equivalently <code>0</code>) for which a z or Chi-squared
+test is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagnostics</code></td>
+<td>
+<p>logical. Should diagnostic tests for the instrumental-variable
+regression be carried out? These encompass an F test of the first stage regression
+for weak instruments, a Wu-Hausman test for endogeneity, and a Sargan
+test of overidentifying restrictions (only if there are more instruments than
+regressors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>character specifying whether to compute the large sample Chi-squared
+statistic (with asymptotic Chi-squared distribution) or the finite sample F statistic
+(with approximate F distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>component</code></td>
+<td>
+<p>character specifying for which component of the
+terms or model matrix should be extracted. <code>"projected"</code> gives the matrix of
+regressors projected on the image of the instruments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>ivreg</code> is the high-level interface to the work-horse function <code>ivreg.fit</code>,
+a set of standard methods (including <code>summary</code>, <code>vcov</code>, <code>anova</code>,
+<code>hatvalues</code>, <code>predict</code>, <code>terms</code>, <code>model.matrix</code>, <code>update</code>, <code>bread</code>,
+<code>estfun</code>) is available.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ivreg</code>, <code>lm.fit</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## data
+data("CigarettesSW")
+CigarettesSW &lt;- transform(CigarettesSW,
+  rprice  = price/cpi,
+  rincome = income/population/cpi,
+  tdiff   = (taxs - tax)/cpi
+)
+
+## model 
+fm &lt;- ivreg(log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff + I(tax/cpi),
+  data = CigarettesSW, subset = year == "1995")
+summary(fm)
+summary(fm, vcov = sandwich, df = Inf, diagnostics = TRUE)
+
+## ANOVA
+fm2 &lt;- ivreg(log(packs) ~ log(rprice) | tdiff, data = CigarettesSW, subset = year == "1995")
+anova(fm, fm2, vcov = sandwich, test = "Chisq")
+</code></pre>
+
+
+</div>

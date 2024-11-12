@@ -1,0 +1,235 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Transform</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Change-of-Parameter Functions for Aster Models</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a change-of-parameter for an aster model or the
+derivative of such a change-of-parameter.  Validate certain parameter vectors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transformSaturated(parm, data, from = c("theta", "phi", "xi", "mu"),
+  to = c("theta", "phi", "xi", "mu"), differential,
+  model.type = c("unconditional", "conditional"),
+  tolerance = 8 * .Machine$double.eps)
+transformConditional(parm, modmat, data, from = "beta",
+  to = c("theta", "phi", "xi", "mu"), differential,
+  offset, tolerance = 8 * .Machine$double.eps)
+transformUnconditional(parm, modmat, data, from = c("beta", "tau"),
+  to = c("beta", "theta", "phi", "xi", "mu", "tau"),
+  differential, offset, tolerance = 8 * .Machine$double.eps)
+jacobian(parm, data,
+    transform = c("saturated", "conditional", "unconditional"),
+    from = c("beta", "theta", "phi", "xi", "mu", "tau"),
+    to = c("beta", "theta", "phi", "xi", "mu", "tau"),
+    modmat, offset, tolerance = 8 * .Machine$double.eps)
+validtheta(data, theta, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+is.validtheta(data, theta, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+validxi(data, xi, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+is.validxi(data, xi, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>parameter vector to transform,
+a numerical vector of length <code>nrow(data$redata)</code>
+for <code>transformSaturated</code> or of length <code>ncol(modmat)</code>
+for <code>transformConditional</code> and <code>transformUnconditional</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an object of class <code>"asterdata"</code> produced by
+<code>asterdata</code> or “by hand” such that
+<code>is.validasterdata(data)</code> returns <code>TRUE</code>.  The specification
+of the aster model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>the kind of parameter which <code>parm</code> is.  May be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>the kind of parameter to which <code>parm</code> is to be converted.
+May be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>differential</code></td>
+<td>
+<p>if not missing a numeric vector of the same length
+as <code>parm</code>.  If missing the change-of-parameter is calculated.
+If not missing the directional derivative of the change-of-parameter
+is calculated (see Details section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modmat</code></td>
+<td>
+<p>the model matrix for a canonical affine submodel, a
+numerical matrix having <code>nrow(data$redata)</code> rows
+and <code>length(beta)</code> columns for <code>transformConditional</code>
+or <code>length(parm)</code> columns for <code>transformUnconditional</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>the offset vector for a canonical affine submodel, a
+numerical vector of length <code>nrow(data$redata)</code>.  May be missing,
+in which case offset vector equal to zero is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>conditional canonical parameter vector to validate,
+a numerical vector of length <code>nrow(data$redata)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>conditional canonical parameter vector to validate,
+a numerical vector of length <code>nrow(data$redata)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.type</code></td>
+<td>
+<p>which kind of model (see Details section).
+May be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>numeric &gt;= 0.  Relative errors smaller
+than <code>tolerance</code> are not considered in checking validity
+of <code>xi</code> for multinomial data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>the “transform” function that will be called to
+calculate derivatives, e. g., <code>transform == "saturated"</code> means the
+function <code>transformSaturated</code> will be called.  May be abbreviated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>differential</code> is missing, the returned value is a new parameter
+vector of the specified type.  If <code>differential</code> is not missing,
+the returned value is the derivative evaluated at <code>parm</code>
+and <code>differential</code>, that is, if <code class="reqn">f</code> is the change-of variable
+function and <code class="reqn">\psi</code> is the <code>from</code> parameter, then
+<code class="reqn">f(\psi)</code> is calculated when the differential is missing and
+<code class="reqn">f'(\psi)(\delta)</code> is calculated when the
+differential <code class="reqn">\delta</code> is not missing, where the latter is defined by
+</p>
+<p style="text-align: center;"><code class="reqn">f(\psi + \delta) \approx f(\psi) + f'(\psi)(\delta)</code>
+</p>
+<p> for small <code class="reqn">\delta</code>.
+</p>
+<p>The kinds of parameters are <code>"theta"</code> the conditional canonical parameter
+for the saturated model, <code>"phi"</code> the unconditional canonical parameter
+for the saturated model, <code>"xi"</code> the conditional mean value parameter
+for the saturated model, <code>"mu"</code> the unconditional mean value parameter
+for the saturated model,
+<code>"beta"</code> the regression coefficient parameter for a canonical affine
+submodel (<code class="reqn">\theta = a + M \beta</code> for a conditional
+canonical affine submodel or
+<code class="reqn">\varphi = a + M \beta</code> for an unconditional
+canonical affine submodel, where <code class="reqn">a</code> is the offset vector
+and <code class="reqn">M</code> is the model matrix),
+<code>"tau"</code> the mean value parameter for an unconditional canonical affine
+submodel (<code class="reqn">\tau = M^T \mu</code>,
+where <code class="reqn">M</code> is the model matrix).
+</p>
+<p>Only the conditional canonical parameter vector <code class="reqn">\theta</code> and
+the conditional mean value parameter vector <code class="reqn">\xi</code> can be checked
+directly.  (To check the validity of another parameter, transform to one
+of these and check that.)  This means that in conversions to these parameters
+the output vector is checked rather than the input vector, and conversions
+(apparently) not involving these parameters (which do go through these
+parameters inside the transformation function) a conversion to one of
+these parameters is what is checked rather than the input vector.
+</p>
+<p>There is a difference between conditional and unconditional aster models
+in the way they treat zero predecessors.  For a conditional aster model,
+if the observed value of the predecessor is zero, then the successor is
+zero almost surely and can have any parameter value for <code class="reqn">\theta</code>
+or <code class="reqn">\xi</code>.  For an unconditional aster model,
+if the expected value of the predecessor is zero, then the successor is
+zero almost surely and can have any parameter value for <code class="reqn">\theta</code>
+or <code class="reqn">\xi</code>.
+</p>
+<p>Since zero values are not allowed at initial nodes (not
+considered valid by the function <code>validasterdata</code>), the only
+way predecessor data can be zero almost surely in an unconditional aster model
+is if the delta vector (<code>data$redelta</code>) is not zero so we have a limiting
+model.
+</p>
+<p>The function <code>jacobian</code> turns the derivative considered as
+a linear transformation calculated by the “transform” functions
+into the matrix that represents the linear transformation (sometimes
+called the Jacobian matrix of the transformation).  The arguments
+<code>modmat</code> and <code>offset</code> are only used if
+<code>transform == "conditional"</code> or <code>transform == "unconditional"</code>,
+and (as with the “transform” functions) the argument <code>offset</code>
+may be missing, in which case the zero vector is used.  Not all of the
+candidate values for <code>from</code> and <code>to</code> arguments
+for the <code>jacobian</code> function are valid: the value must be valid for
+the “transform” function that will be called.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a numeric vector of the same length as <code>parm</code>.  The new parameter if
+<code>deriv == FALSE</code> or the transform of the differential
+if <code>deriv = TRUE</code>.  See details.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>asterdata</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(echinacea)
+theta &lt;- rnorm(nrow(echinacea$redata), 0, 0.1)
+phi &lt;- transformSaturated(theta, echinacea, from = "theta", to = "phi")
+## rarely (if ever) want jacobian for unsaturated model transform
+## result here is 5130 by 5130 matrix
+## Not run: jack &lt;- jacobian(theta, echinacea, from = "theta", to = "phi")
+</code></pre>
+
+
+</div>

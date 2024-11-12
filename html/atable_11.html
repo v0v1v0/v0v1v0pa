@@ -1,0 +1,395 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atable</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Tables for Reporting of Clinical Trials</h2>
+
+<h3>Description</h3>
+
+<p>Applies descriptive statistics and hypothesis tests to data, and arranges the results for printing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atable(x, ...)
+
+## S3 method for class 'data.frame'
+atable(
+  x,
+  target_cols,
+  group_col = NULL,
+  split_cols = NULL,
+  format_to = atable_options("format_to"),
+  drop_levels = TRUE,
+  add_levels_for_NA = FALSE,
+  blocks = NULL,
+  add_margins = atable_options("add_margins"),
+  indent_character = NULL,
+  indent = atable_options("indent"),
+  ...
+)
+
+## S3 method for class 'formula'
+atable(formula, data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object. If <code>x</code> is a data.frame, it must have unique and syntactically valid colnames,
+see <code>is_syntactically_valid_name</code>. If <code>x</code> is a formula, then its format must
+be <code>target_cols ~ group_col | split_cols</code>. See other arguments for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed from and to other methods. You can use the ellipsis ... to modify atable:
+For example the default-statistics for numeric variables are mean and sd. To change these statistics pass
+a function to argument <code>statistics.numeric</code>, that calculates the statistics you prefer for your data.
+</p>
+<p>See examples below how to modify atable by ... .
+</p>
+<p>Actually <code>statistics.numeric</code> is passed to <code>statistics</code> and thus documented there,
+but for convenience it also documented here.
+</p>
+<p>Here is a list of the statistics and hypothesis tests that can be modified by <code>...</code> :
+</p>
+
+<dl>
+<dt><code>statistics.numeric</code></dt>
+<dd>
+<p>: Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>atable:::statistics.numeric</code> when atable is called.
+The function must mimic <code>statistics</code>: see the help there.</p>
+</dd>
+<dt><code>statistics.factor</code></dt>
+<dd>
+<p>: Analog to argument statistics.numeric.</p>
+</dd>
+<dt><code>statistics.ordered</code></dt>
+<dd>
+<p>: Analog to argument statistics.numeric.</p>
+</dd>
+<dt><code>two_sample_htest.numeric</code></dt>
+<dd>
+<p>: Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>atable:::two_sample_htest.numeric</code> when atable is called.
+The function must mimic <code>two_sample_htest</code>: see the help there.</p>
+</dd>
+<dt><code>two_sample_htest.factor</code></dt>
+<dd>
+<p>: Analog to argument two_sample_htest.numeric</p>
+</dd>
+<dt><code>two_sample_htest.ordered</code></dt>
+<dd>
+<p>: Analog to argument two_sample_htest.numeric</p>
+</dd>
+<dt><code>multi_sample_htest.numeric</code></dt>
+<dd>
+<p>: Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>atable:::multi_sample_htest.numeric</code> when atable is called.
+The function must mimic <code>multi_sample_htest</code>: see the help there.</p>
+</dd>
+<dt><code>multi_sample_htest.factor</code></dt>
+<dd>
+<p>: Analog to argument multi_sample_htest.numeric</p>
+</dd>
+<dt><code>multi_sample_htest.ordered</code></dt>
+<dd>
+<p>: Analog to argument multi_sample_htest.numeric</p>
+</dd>
+<dt><code>format_statistics.statistics_numeric</code></dt>
+<dd>
+<p>: Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>atable:::format_statistics.statistics_numeric</code>.
+The function must mimic <code>format_statistics</code>: see the help there.</p>
+</dd>
+<dt><code>format_statistics.statistics_factor</code></dt>
+<dd>
+<p>: Analog to argument format_statistics.statistics_numeric</p>
+</dd>
+<dt><code>format_tests.htest</code></dt>
+<dd>
+<p>: Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>format_tests.htest</code>.
+The function must mimic <code>format_tests</code>: see the help there.</p>
+</dd>
+<dt><code>format_tests.htest_with_effect_size</code></dt>
+<dd>
+<p>: Analog to argument format_tests.htest</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_cols</code></td>
+<td>
+<p>A character vector containing some column names of <code>x</code>.
+</p>
+<p>Descriptive statistics and hypothesis test are applied to these columns depending on their class.
+The descriptive statistics are defined by <code>statistics</code>;
+their representation and format by <code>format_statistics</code>.
+</p>
+<p>Hypothesis test are defined by <code>two_sample_htest</code> or <code>multi_sample_htest</code>
+(depending on the number of levels of <code>group_col</code>);
+their representation and format by <code>format_tests</code>.
+Note that atable always adds one name to <code>target_cols</code> to count the number of obsservations.
+This name is stored in <code>atable_options('colname_for_observations')</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_col</code></td>
+<td>
+<p>A character of length 1 containing a column of <code>x</code> or <code>NULL</code>.
+This column defines the groups that are compared by the hypothesis tests.
+<code>as.factor</code> is applied to this column before further processing.
+Default is <code>NULL</code>, meaning that no hypothesis tests are applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_cols</code></td>
+<td>
+<p>A character vector containing some of <code>colnames(x)</code> or <code>NULL</code>.
+<code>x</code> is splitted by these columns before descriptive statistics and hypothesis test are applied.
+<code>as.factor</code> is applied to this column before further processing.
+Default is <code>NULL</code>, meaning that no splitting is done.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format_to</code></td>
+<td>
+<p>A character vector of length 1. Specifies the format of the output of <code>atable</code>.
+Possible values are <code>'Latex'</code>, <code>'Word'</code>, <code>'Raw'</code>, <code>'HTML'</code>, <code>'Console'</code>,
+<code>'markdown'</code>, <code>'md'</code>.
+Default is defined in <code>atable_options</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_levels</code></td>
+<td>
+<p>A logical. If <code>TRUE</code> then <code>droplevels</code> is called on <code>group_col</code>
+and <code>split_cols</code> before further processing. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_levels_for_NA</code></td>
+<td>
+<p>If <code>TRUE</code> then <code>addNA</code> is called on <code>group_col</code> and
+<code>split_cols</code> before further processing. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocks</code></td>
+<td>
+<p><code>NULL</code> or a list. If blocks is a list, then the names of the list must be non-NA characters.
+The elements of the list must be some of <code>target_cols</code>, retaining the order of <code>target_cols</code>.
+Also in this case <code>split_cols</code> must be <code>NULL</code> as simultaneous blocking and splitting is not supported.
+Default is <code>NULL</code>, meaning that no blocking is done. Variables of a block are additionally indented.
+Blocking has no effect on the statistics, it only affects the indentation of the resulting table. See Examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_margins</code></td>
+<td>
+<p>A logical with length one, <code>TRUE</code> or <code>FALSE</code>. Default is defined
+in <code>atable_options</code> as <code>FALSE</code>. When <code>add_margins</code> is <code>TRUE</code> and
+<code>group_col</code> is not <code>NULL</code>, a column containing the results of an ungrouped <code>atable</code>-call is added to
+the results. See Examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indent_character</code></td>
+<td>
+<p>A character with length 1 or <code>NULL</code> (default). This character is used for indentation in the resulting
+table. If <code>NULL</code>, then the value stored in <code>atable_options</code> is taken instead, depending on <code>format_to</code>.
+<code>indent_data_frame</code> does the indentation. See help there.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indent</code></td>
+<td>
+<p>A logical with length one, <code>TRUE</code> or <code>FALSE</code>. Default is defined
+in <code>atable_options</code>. Decides if indentation is done or not. The resulting table will have a different layout.
+If FALSE, then <code>blocks</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula of the form <code>target_cols ~ group_col | split_cols</code>.
+The <code>|</code> separates the <code>group_col</code> from the <code>split_cols</code>.
+Read the <code>|</code> as 'given' as in a conditional probability <code>P(target_cols | split_cols)</code>.
+<code>target_cols</code> and <code>split_cols</code> may contain multiple names separated by <code>+</code>.
+<code>group_col</code> must be a single name if given.
+<code>group_col</code> and <code>split_cols</code> may be omitted and can be replaced by <code>1</code> in this case.
+The <code>|</code> may also be omitted if no <code>split_cols</code> are given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Passed to <code>atable(x = data, ...)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Results depend on <code>format_to</code>:
+</p>
+
+<dl>
+<dt>
+<code>'Raw'</code>: </dt>
+<dd>
+<p>A list with two elements called <code>'statistics_result'</code> and <code>'tests_result'</code>, that
+contain all results of the descriptive statistics and the hypothesis tests.
+This format useful, when extracting a specific result unformulated
+(when <code>format_to</code> is not <code>'Raw'</code> all numbers are also returned, but as rounded
+characters for printing and squeezed into a data.frame).
+</p>
+
+<dl>
+<dt>
+<code>'statistics_result'</code>: </dt>
+<dd>
+<p> contains a data.frame with colnames <code>split_cols, group_col, target_cols</code>.
+<code>split_cols</code> and <code>group_col</code> retain their original values (now as factor).
+<code>target_cols</code> contain lists with the results of function <code>statistics</code>.
+As the result of function <code>statistics</code> is also a list, <code>target_cols</code> contain lists of lists.  </p>
+</dd>
+<dt>
+<code>'tests_result'</code>: </dt>
+<dd>
+<p>has the same structure as <code>'statistics_result'</code>, but contains the results
+of <code>two_sample_htest</code> and <code>multi_sample_htest</code>.
+Note that <code>tests_result</code> only exists if <code>split_cols</code> is not <code>NULL</code>.</p>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>'Word'</code>: </dt>
+<dd>
+<p>A data.frame.
+Column <code>atable_options('colname_for_group')</code> contains
+all combinations of the levels of <code>split_cols</code> and
+the names of the results of function <code>format_statistics</code>.
+</p>
+<p>Further columns are the levels of <code>group_col</code> the names of the results of <code>format_tests</code>.
+</p>
+<p>The levels of <code>split_cols</code> and the statistics are arranged vertically.
+The hypothesis test are arranged horizontally.
+</p>
+</dd>
+<dt>
+<code>'HTML'</code>: </dt>
+<dd>
+<p>Same as for <code>format_to = 'Word'</code> but a different character indents
+the first column.</p>
+</dd>
+</dl>
+<p>#' </p>
+<dl>
+<dt>
+<code>'Console'</code>: </dt>
+<dd>
+<p>Meant for printing in the R console for interactive analysis.
+Same as for <code>format_to = 'Word'</code> but a different character indents the first column.</p>
+</dd>
+<dt>
+<code>'Latex'</code>: </dt>
+<dd>
+<p>Same as for <code>format_to = 'Word'</code> but a different character indents
+the first column and with <code>translate_to_LaTeX</code> applied afterwards. </p>
+</dd>
+</dl>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>atable(data.frame)</code>: applies descriptive statistics and hypothesis tests, arranges the results for printing.
+</p>
+</li>
+<li> <p><code>atable(formula)</code>: parses the formula and passes its parts to <code>atable</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># See vignette for more examples:
+# utils::vignette('atable_usage', package = 'atable')
+
+# Analyse datasets::ToothGrowth:
+# Length of tooth for each dose level and delivery method:
+atable::atable(datasets::ToothGrowth,
+  target_cols = 'len',
+  group_col = 'supp',
+  split_cols = 'dose',
+  format_to = 'Word')
+# Print in .docx with e.g. flextable::regulartable and officer::body_add_table
+
+# Analyse datasets::ChickWeight:
+# Weight of chickens for each time point and diet:
+atable(weight ~ Diet | Time, datasets::ChickWeight, format_to = 'Latex')
+# Print as .pdf with e.g. Hmisc::latex
+
+# Analyse atable::test_data:
+atable(Numeric + Logical + Factor + Ordered ~ Group | Split1 + Split2,
+  atable::test_data, format_to = 'HTML')
+# Print as .html with e.g. knitr::kable and options(knitr.kable.NA = '')
+
+# Modify atable: calculate median and MAD for numeric variables
+new_stats  &lt;- function(x, ...){list(Median = median(x, na.rm = TRUE),
+                                    MAD = mad(x, na.rm = TRUE))}
+atable(atable::test_data,
+       target_cols = c('Numeric', 'Numeric2'),
+       statistics.numeric = new_stats,
+       format_to = 'Console')
+# Print in Console with format_to = 'Console'.
+
+# Analyse mtcars and add labels and units of via package Hmisc
+mtcars &lt;- within(datasets::mtcars, {gear &lt;- factor(gear)})
+# Add labels and units.
+attr(mtcars$mpg, 'alias') = 'Consumption [Miles (US)/ gallon]'
+Hmisc::label(mtcars$qsec) = 'Quarter Mile Time'
+units(mtcars$qsec) = 's'
+
+# apply atable
+atable::atable(mpg + hp + gear + qsec ~ cyl | vs,
+               mtcars,
+               format_to = 'Console')
+
+# Blocks
+# In datasets::mtcars the variables cyl, disp and mpg are related to the engine and am and gear are
+# related to the gearbox. So grouping them together is desireable.
+atable::atable(datasets::mtcars,
+               target_cols = c("cyl", "disp", "hp", "am", "gear", "qsec") ,
+               blocks = list("Engine" = c("cyl", "disp", "hp"),
+                             "Gearbox" = c("am", "gear")),
+               format_to = "Console")
+# Note that Variable qsec is not blocked and thus not indented.
+
+
+
+# add_margins
+atable::atable(atable::test_data,
+               target_cols = "Numeric",
+               group_col = "Group",
+               split_cols = "Split1",
+               add_margins = TRUE,
+               format_to = "Console")
+# The column 'Total' contains the results of the ungrouped atable-call:
+# The number of observations is the sum of observations of the groups.
+# The default of add_margins can be changed via atable_options.
+
+</code></pre>
+
+
+</div>

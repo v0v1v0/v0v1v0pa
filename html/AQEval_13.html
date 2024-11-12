@@ -1,0 +1,226 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>isolate.signal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>isolateContribution</h2>
+
+<h3>Description</h3>
+
+<p>Environmental time-series signal processing:
+Contribution isolation based on background subtraction,
+deseasonalisation and/or deweathering.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">isolateContribution(
+  data,
+  pollutant,
+  background = NULL,
+  deseason = TRUE,
+  deweather = TRUE,
+  method = 2,
+  add.term = NULL,
+  formula = NULL,
+  output = "mean",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data source, typically <code>data.frame</code>
+(or similar), containing all time-series to be used when
+applying signal processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pollutant</code></td>
+<td>
+<p>The column name of the <code>data</code>
+time-series to be signal processed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>background</code></td>
+<td>
+<p>(optional) if supplied, the background
+time-series to use as a background correction.
+See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deseason</code></td>
+<td>
+<p>logical or character vector, if
+<code>TRUE</code> (default), the <code>pollutant</code> is
+deseasonalised using <code>day.hour</code> and <code>year.day</code>
+frequency terms, all calculate from the <code>data</code>
+time stamp, assumed to be <code>date</code> in <code>data</code>.
+Other options: <code>FALSE</code> to turn off
+deseasonalisation; or a character vector of frequency
+terms if user-defining. See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deweather</code></td>
+<td>
+<p>logical or character vector, if
+<code>TRUE</code> (default), the data is deweathered using
+wind speed and direction, assumed to be <code>ws</code>
+and <code>wd</code> in <code>data</code>). Other options: <code>FALSE</code>
+to turn off deweathering; or a character vector of
+<code>data</code> column names if user-defining. See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>numeric, contribution isolation method
+(default 2). See Note.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.term</code></td>
+<td>
+<p>extra terms to add to the contribution
+isolation model; ignore for now (in development).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>(optional) Signal isolate model formula;
+this allows user to set the signal isolation model formula
+directly, but means function arguments <code>background</code>,
+<code>deseason</code> and <code>deweather</code> will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>output options; currently, <code>'mean'</code>, <code>'model'</code>,
+and <code>'all'</code>; but please note these are in development and may be
+subject to change.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments; ignore for now (in development)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>isolateContribution</code> estimates and
+subtracts <code>pollutant</code> variance associated with
+factors that may hinder break-point/segment analysis:
+</p>
+
+<ul>
+<li> <p><strong>Background Correction</strong> If applied, this fits
+the supplied <code>background</code> time-series as a
+spline term: <code>s(background)</code>.
+</p>
+</li>
+<li> <p><strong>Seasonality</strong> If applied, this fits regular
+frequency terms, e.g. <code>day.hour</code>, <code>year.day</code>,
+as spline terms, default TRUE is equivalent to
+<code>s(day.hour)</code> and <code>s(year.day)</code>. All terms are
+calculated from <code>date</code> column in <code>data</code>.
+</p>
+</li>
+<li> <p><strong>Weather</strong> If applied, this fits time-series of
+identified meteorological measurements, e.g. wind speed
+and direction (<code>ws</code> and <code>wd</code> in <code>data</code>).
+If both <code>ws</code> and <code>wd</code> are present these are
+fitted as a tensor term <code>te(ws, wd)</code>. Other
+<code>deweather</code>ing terms, if included, are fitted
+as spline term <code>s(term)</code>. The default <code>TRUE</code>
+is equivalent to <code>te(ws, wd)</code>.
+</p>
+</li>
+</ul>
+<p>Using the supplied arguments, it builds a signal
+(<code>mgcv</code>) GAM model, calculates,
+and returns the mean-centred residuals as an
+estimate of the isolated local contribution.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>isolateContribution</code> returns a vector of
+predictions of the <code>pollutant</code> time-series after
+the requested signal isolation.
+</p>
+
+
+<h3>Note</h3>
+
+<p><code>method</code> was included as part of method
+development and testing work, and retained for now.
+Please ignore for now.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl Ropkins
+</p>
+
+
+<h3>References</h3>
+
+<p>Regarding <code>mgcv</code> GAM fitting methods, see
+Wood (2017) for general introduction and package
+documentation regarding coding (<code>mgcv</code>):
+</p>
+<p>Wood, S.N. (2017) Generalized Additive Models:
+an introduction with R (2nd edition), Chapman and Hall/CRC.
+</p>
+<p>Regarding <code>isolateContribution</code>, see:
+</p>
+<p>Ropkins et al (In Prep).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Regarding seasonal terms and frequency
+analysis, see also <code>stl</code> and
+<code>spectralFrequency</code>.
+</p>
+<p><code>mgcv</code>, <code>gam</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#fitting a simple deseasonalisation, deweathering
+#and background correction (dswb) model to no2:
+
+aq.data$dswb.no2 &lt;- isolateContribution(aq.data,
+                        "no2", background="bg.no2")
+
+#compare at 7 day resolution:
+temp &lt;- openair::timeAverage(aq.data, "7 day")
+
+#without dswb
+quantBreakPoints(temp, "no2", test=FALSE, h=0.1)
+
+#with dswb
+quantBreakPoints(temp, "dswb.no2", test=FALSE, h=0.1)
+</code></pre>
+
+
+</div>

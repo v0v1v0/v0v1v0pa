@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ggautoimage</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Display images using ggplot2</h2>
+
+<h3>Description</h3>
+
+<p><code>ggautoimage</code> produces a sequence of images in a manner 
+similar to <code>autoimage</code> using the 
+<code>ggplot2</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ggautoimage(
+  x,
+  y,
+  z,
+  f,
+  proj = "none",
+  parameters,
+  orientation,
+  lines,
+  points,
+  interp.args
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector specifying the x coordinate locations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector specifying the y coordinate locations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>A numeric vector specifying the response for each (x,y)
+location.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>A factor variable distinguishing between different facets,
+i.e., the different images to be constructed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proj</code></td>
+<td>
+<p>A character string indicating what projection should be
+used for the included <code>x</code> and <code>y</code> coordinates.  The 
+default is <code>"none"</code>.  The other valid choices correspond to 
+the <code>"projection"</code> argument in the 
+<code>mapproject</code> function, which is used for the
+projection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>A numeric vector specifying the values of the 
+<code>parameters</code> argument in the 
+<code>mapproject</code>.  This may be necessary when
+<code>proj != "none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orientation</code></td>
+<td>
+<p>A vector <code>c(latitude,longitude,rotation)</code> 
+which describes where the "North Pole" should be when computing 
+the projection.  See <code>mapproject</code> for more
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lines</code></td>
+<td>
+<p>A named list with components <code>x</code> and <code>y</code>
+specifiying the locations to be connected by lines.  Distinct
+lines should be separated by <code>NA</code> values.  See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>points</code></td>
+<td>
+<p>A named list with components <code>x</code> and <code>y</code>
+specifiying the locations to be plot points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interp.args</code></td>
+<td>
+<p>A named list with component matching the 
+non <code>xyz</code> arguments of the 
+<code>mba.surf</code> function.  Used to customize
+interpolation, when required.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>x</code> and <code>y</code> do not form a regular grid, then the 
+<code>mba.surf</code> function is used to
+interpolate the locations onto a regular grid before constructing
+the image.  This interpolation can be customized by passing
+<code>interp.args</code> through <code>...</code>.  <code>interp.args</code> should
+be a named list with components matching the non <code>xyz</code> 
+arguments of the <code>mba.surf</code> function.
+</p>
+<p>When <code>proj != "none"</code>, the <code>mapproject</code> 
+function is used to project the <code>x</code> and <code>y</code> coordinates. 
+In that case, <code>proj</code> must correspond to one of the choices for
+the <code>projection</code> argument in the 
+<code>mapproject</code> function.  Necessary arguments
+for <code>mapproject</code> should be provided through
+the <code>parameters</code> and <code>orientation</code> arguments. 
+See Examples or <code>mapproject</code> for more 
+details.
+</p>
+<p>Lines can be added to each image by providing the <code>lines</code>
+argument.  In that case, <code>lines</code>
+should be a list with components <code>x</code> and <code>y</code> 
+specifying the locations to draw the lines.  If more than
+one unconnected line should be drawn, then the coordinates
+should be separated by NA.  e.g., to draw a line from (1, 1) to
+(2, 2) and (3, 3) to (4, 4) (with a gap between the two lines), 
+you would specify lines as 
+lines(x = c(1:2, NA, 3:4), y =c(1:2, NA, 3:4)).  Also, see 
+Examples.
+</p>
+<p>Points can be added to each image by providing the <code>points</code>
+argument.  In that case, <code>points</code>
+should be a list with components <code>x</code> and <code>y</code> 
+specifying the locations to draw the points.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>autoimage</code>,
+<code>image.plot</code>, <code>axis</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(narccap)
+# setup image for two days of narccap data
+x &lt;- rep(c(lon), 2)
+y &lt;- rep(c(lat), 2)
+z &lt;- c(tasmax[, , 1:2])
+f &lt;- factor(rep(c("day 1", "day 2"), each = length(lon)))
+# load national borders
+data("worldMapEnv", package = "maps")
+lines &lt;- maps::map("world", plot = FALSE)
+# obtain us captial cities
+data(us.cities, package = "maps")
+cap &lt;- us.cities[us.cities$capital == 2, ]
+# convert to list format
+points &lt;- list(x = cap$lon, y = cap$lat)
+
+## Not run: 
+# basic images
+ggautoimage(x, y, z, f)
+# basic images with national borders and U.S. captials
+ggautoimage(x, y, z, f, lines = lines, points = points)
+# project coordinates with national borders and U.S. capitals
+ggautoimage(x, y, z, f, lines = lines, points = points,
+            proj = "bonne", parameters = 40)
+# finer interpolation grid
+ggautoimage(x, y, z, f, lines = lines, points = points,
+            interp.args = list(no.X = 100, no.Y = 100))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

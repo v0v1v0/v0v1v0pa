@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auth</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Authenticate for the  API</h2>
+
+<h3>Description</h3>
+
+<p>Run authentication for a network using the AT protocol (e.g.,
+<a href="https://bsky.app/">'Blue Sky'</a>) and save the token permanently.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auth(
+  user,
+  password,
+  domain = "https://bsky.app/",
+  verbose = TRUE,
+  overwrite = FALSE,
+  token = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>user</code></td>
+<td>
+<p>Your user handle (e.g, benguinaudeau.bsky.social).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>password</code></td>
+<td>
+<p>Your app password (usually created on
+<a href="https://bsky.app/settings/app-passwords">https://bsky.app/settings/app-passwords</a>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+<p>For now https://bsky.app/, but could change in the future.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether to print status messages to the Console
+(<code>TRUE</code>/<code>FALSE</code>). Package default (when <code>NULL</code>) is to have
+status messages. Can be changed with <code>Sys.setenv(ATR_VERBOSE =
+  FALSE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>If TRUE, overwrites old token without asking for
+confirmation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>(Stale) token object. Usually you don't need to use this. But if
+you manage your own tokens and they get stale, you can use this parameter
+and request a fresh token.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>After requesting the token, it is saved in the location returned by
+<code>file.path(tools::R_user_dir("atrrr", "cache"), Sys.getenv("BSKY_TOKEN", unset = "token.rds"))</code>. If you have multiple tokens, you can use
+<code>Sys.setenv(BSKY_TOKEN = "filename.rds")</code> to save/load the token with a
+different name.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An authentication token (invisible)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# request a token
+auth() # this will guide you through all steps
+
+# the token is stored in the location returned by this command
+file.path(tools::R_user_dir("atrrr", "cache"),
+          Sys.getenv("BSKY_TOKEN", unset = "token.rds"))
+
+# to use a different than the default file name for the token, set BSKY_TOKEN
+Sys.setenv(BSKY_TOKEN = "identity-2.rds")
+
+# now either rename your token file or request a new token
+auth()
+
+# the cache now contains two tokens
+list.files(tools::R_user_dir("atrrr", "cache"))
+
+# functions that interact with the API also take a .token argument with the
+# path. For example:
+tok_path &lt;- file.path(tools::R_user_dir("atrrr", "cache"), "identity-2.rds")
+get_skeets_authored_by(actor = "benguinaudeau.bsky.social", parse = TRUE,
+                       .token = tok_path)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

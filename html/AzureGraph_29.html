@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ms_graph_pager</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pager object for Graph list results</h2>
+
+<h3>Description</h3>
+
+<p>Class representing an <em>iterator</em> for a set of paged query results.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An R6 object of class <code>ms_graph_pager</code>.
+</p>
+
+
+<h3>Fields</h3>
+
+
+<ul>
+<li> <p><code>token</code>: The token used to authenticate with the Graph host.
+</p>
+</li>
+<li> <p><code>output</code>: What the pager should yield on each iteration, either "data.frame","list" or "object". See 'Value' below.
+</p>
+</li>
+</ul>
+<h3>Methods</h3>
+
+
+<ul>
+<li> <p><code>new(...)</code>: Initialize a new user object. See 'Initialization' below.
+</p>
+</li>
+<li> <p><code>has_data()</code>: Returns TRUE if there are pages remaining in the iterator, or FALSE otherwise.
+</p>
+</li>
+</ul>
+<h3>Active bindings</h3>
+
+
+<ul><li> <p><code>value</code>: The returned value on each iteration of the pager.
+</p>
+</li></ul>
+<h3>Initialization</h3>
+
+<p>The recommended way to create objects of this class is via the <code>ms_object$get_list_pager()</code> method, but it can also be initialized directly. The arguments to the <code>new()</code> method are:
+</p>
+
+<ul>
+<li> <p><code>token</code>: The token used to authenticate with the Graph host.
+</p>
+</li>
+<li> <p><code>first_page</code>: A list containing the first page of results, generally from a call to <code>call_graph_endpoint()</code> or the <code>do_operation()</code> method of an AzureGraph R6 object.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠next_link_name,value_name⁠</code>: The names of the components of <code>first_page</code> containing the link to the next page, and the set of values for the page respectively. The default values are <code style="white-space: pre;">⁠@odata.nextLink⁠</code> and <code>value</code>.
+</p>
+</li>
+<li> <p><code>generate_objects</code>: Whether the iterator should return a list containing the parsed JSON for the page values, or convert it into a list of R6 objects. See 'Value' below.
+</p>
+</li>
+<li> <p><code>type_filter</code>: Any extra arguments required to initialise the returned objects. Only used if <code>generate_objects</code> is TRUE.
+</p>
+</li>
+<li> <p><code>default_generator</code>: The default generator object to use when converting a list of properties into an R6 object, if the class can't be detected. Defaults to <code>ms_object</code>. Only used if <code>generate_objects</code> is TRUE.
+</p>
+</li>
+<li> <p><code>...</code>: Any extra arguments required to initialise the returned objects. Only used if <code>generate_objects</code> is TRUE.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>The <code>value</code> active binding returns the page values for each iteration of the pager. This can take one of 3 forms, based on the initial format of the first page and the <code>generate_objects</code> argument.
+</p>
+<p>If the first page of results is a data frame (each item has been converted into a row), then the pager will return results as data frames. In this case, the <code>output</code> field is automatically set to "data.frame" and the <code>generate_objects</code> initialization argument is ignored. Usually this will be the case when the results are meant to represent external data, eg items in a SharePoint list.
+</p>
+<p>If the first page of results is a list, the <code>generate_objects</code> argument sets whether to convert the items in each page into R6 objects defined by the AzureGraph class framework. If <code>generate_objects</code> is TRUE, the <code>output</code> field is set to "object", and if <code>generate_objects</code> is FALSE, the <code>output</code> field is set to "list".
+</p>
+
+
+<h3>See Also</h3>
+
+<p>ms_object, extract_list_values
+</p>
+<p><a href="https://learn.microsoft.com/en-us/graph/overview">Microsoft Graph overview</a>,
+<a href="https://learn.microsoft.com/en-us/graph/paging">Paging documentation</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# list direct memberships
+firstpage &lt;- call_graph_endpoint(token, "me/memberOf")
+
+pager &lt;- ms_graph_pager$new(token, firstpage)
+pager$has_data()
+pager$value
+
+# once all the pages have been returned
+isFALSE(pager$has_data())
+is.null(pager$value)
+
+# returning items, 1 per page, as raw lists of properties
+firstpage &lt;- call_graph_endpoint(token, "me/memberOf", options=list(`$top`=1))
+pager &lt;- ms_graph_pager$new(token, firstpage, generate_objects=FALSE)
+lst &lt;- NULL
+while(pager$has_data())
+    lst &lt;- c(lst, pager$value)
+
+# returning items as a data frame
+firstdf &lt;- call_graph_endpoint(token, "me/memberOf", options=list(`$top`=1),
+                               simplify=TRUE)
+pager &lt;- ms_graph_pager$new(token, firstdf)
+df &lt;- NULL
+while(pager$has_data())
+    df &lt;- vctrs::vec_rbin(df, pager$value)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

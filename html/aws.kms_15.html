@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate_data_key</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate data keys</h2>
+
+<h3>Description</h3>
+
+<p>Generate data keys for local encryption
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generate_data_key(key, spec = c("AES_256", "AES_128"), plaintext = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>A character string specifying a key ID, Amazon Resource Name (ARN), alias name, or alias ARN. When using an alias name, prefix it with “alias/”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p>A character string specifying the length of the data encryption key, either “AES_256” or “AES_128”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plaintext</code></td>
+<td>
+<p>A logical indicating whether to return the data key in plain text, as well as in encrypted form.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>kmsHTTP</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function generates and returns a “data key” for use in local encrption. The suggested workflow from AWS is to encrypt, do the following:
+</p>
+
+<ol>
+<li>
+<p> Use this operation (<code>generate_data_key</code>) to get a data encryption key.
+</p>
+</li>
+<li>
+<p> Use the plaintext data encryption key (returned in the Plaintext field of the response) to encrypt data locally, then erase the plaintext data key from memory.
+</p>
+</li>
+<li>
+<p> Store the encrypted data key (returned in the CiphertextBlob field of the response) alongside the locally encrypted data.
+</p>
+</li>
+</ol>
+<p>Then to decrypt locally:
+</p>
+
+<ol>
+<li>
+<p> Use <code>decrypt</code> to decrypt the encrypted data key into a plaintext copy of the data key.
+</p>
+</li>
+<li>
+<p> Use the plaintext data key to decrypt data locally, then erase the plaintext data key from memory.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p><code>encrypt</code> returns a base64-encoded binary object as a character string.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html">https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>create_kms_key</code>, <code>generate_blob</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  # create a (CMK) key
+  k &lt;- create_kms_key()
+  
+  # generate a data key for local encryption
+  datakey &lt;- generate_data_key(key = k)
+  
+  ## encrypt something locally using datakey$Plaintext
+  ## then delete the plaintext key
+  datakey$Plaintext &lt;- NULL
+  
+  # decrypt the encrypted data key
+  datakey$Plaintext &lt;- decrypt(datakey$CiphertextBlob, k, encode = FALSE)
+  ## then use this to decrypt locally
+  
+  # cleanup
+  delete_kms_key(k)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>confAdjust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjust spectrum confidence levels for multiple comparisons</h2>
+
+<h3>Description</h3>
+
+<p>Adjust spectrum confidence levels for multiple comparisons, using the Bonferroni correction
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">confAdjust(spec,npts,dt,tbw=3,ntap=5,flow=NULL,fhigh=NULL,output=T,
+    xmin=df,xmax=NULL,pl=1,genplot=T,verbose=T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p>A data frame with three columns: frequency, power, background power. If more than 3 columns are input, the results are assumed to come from periodogram, mtm, mtmML96, lowspec or mtmPL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npts</code></td>
+<td>
+<p>Number of points in stratigraphic series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>Sampling interval of stratigraphic series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tbw</code></td>
+<td>
+<p>MTM time-bandwidth product.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntap</code></td>
+<td>
+<p>Number of DPSS tapers to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flow</code></td>
+<td>
+<p>Vector of lower bounds for each frequency band of interest. Order must match fhigh.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fhigh</code></td>
+<td>
+<p>Vector of upper bounds for each frequency band of interest. Order must match flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Output data frame? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmin</code></td>
+<td>
+<p>Smallest frequency for plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xmax</code></td>
+<td>
+<p>Largest frequency for plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pl</code></td>
+<td>
+<p>Plotting option (1-4): 1=linear frequency &amp; log power, 2=log frequency &amp; power, 3=linear frequency &amp; power, 4=log frequency &amp; linear power.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Multiple testing is a common problem in the evaluation of power spectrum peaks 
+(Vaughan et al., 2011; Crampton et al., PNAS).  To address the issue of multiple testing, 
+a range of approaches have been advocated. This function will conduct an assessment 
+using the Bonferroni correction, which is the simplest, and also the most conservative,
+of the common approaches (it is overly pessimistic).
+</p>
+<p>If one is exclusively concerned with particular frequency bands a priori 
+(e.g., those associated with Milankovitch cycles), the statistical power of the method
+can be improved by restricting the analysis to those frequency bands (use options 'flow' and 'fhigh').
+</p>
+<p>Application of multiple testing corrections does not guarantee that the spectral background
+is appropriate.  To address this issue, carefully examine the fit of the spectral background,
+and also conduct simulations with the function testBackground.
+</p>
+
+
+<h3>References</h3>
+
+<p>J.S. Campton, S.R. Meyers, R.A. Cooper, P.M Sadler, M. Foote, D. Harte, 2018, 
+<em>Pacing of Paleozoic macroevolutionary rates by Milankovitch grand cycles</em>: Proceedings of the National Academy of Sciences, doi:10.1073/pnas.1714342115.
+</p>
+<p>S. Vaughan, R.J. Bailey, and D.G. Smith, 2011, 
+<em>Detecting cycles in stratigraphic data: Spectral analysis in the presence of red noise</em>. Paleoceanography 26, PA4211, doi:10.1029/2011PA002195.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>testBackground</code>,<code>multiTest</code>, <code>lowspec</code>, and <code>periodogram</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generate example series with periods of 400 ka, 100 ka, 40 ka and 20 ka
+ex = cycles(freqs=c(1/400,1/100,1/40,1/20),start=1,end=1000,dt=5)
+
+# add AR1 noise
+noise = ar1(npts=200,dt=5,sd=.5)
+ex[2] = ex[2] + noise[2]
+
+# first, let's use mtm with conventional AR1 background
+spec=mtm(ex,padfac=1,ar1=TRUE,output=1)
+
+# when blindly prospecting for cycles, it is necessary to consider all of the 
+#  observed frequencies in the test
+confAdjust(spec,npts=200,dt=5,tbw=3,ntap=5,output=FALSE)
+
+# if, a priori, you are only concerned with the Milankovitch frequency bands, 
+#  restrict your analysis to those bands (as constrained by available sedimentation
+#  rate estimates and the frequency resolution of the spectrum). in the example below, 
+#  the mtm bandwidth resolution is employed to search frequencies nearby the 
+#  Milankovitch-target periods.
+flow=c((1/400)-0.003,(1/100)-0.003,(1/41)-0.003,(1/20)-0.003)
+fhigh=c((1/400)+0.003,(1/100)+0.003,(1/41)+0.003,(1/20)+0.003)
+confAdjust(spec,npts=200,dt=5,tbw=3,ntap=5,flow=flow,fhigh=fhigh,output=FALSE)
+
+# now try with the lowspec method. this uses prewhitening, so it has one less data point.
+spec=lowspec(ex,padfac=1,output=1)
+flow=c((1/400)-0.003015075,(1/100)-0.003015075,(1/41)-0.003015075,(1/20)-0.003015075)
+fhigh=c((1/400)+0.003015075,(1/100)+0.003015075,(1/41)+0.003015075,(1/20)+0.003015075)
+confAdjust(spec,npts=199,dt=5,tbw=3,ntap=5,flow=flow,fhigh=fhigh,output=FALSE)
+
+# for comparison...
+confAdjust(spec,npts=199,dt=5,tbw=3,ntap=5,output=FALSE)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>inla.st</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Space-time bayesian INLA estimator</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates a space time linear model using the bayesian INLA. It is a wrapper of the INLA::inla function (Lindgren and Rue (2015) <a href="https://doi.org/10.18637/jss.v063.i19">doi:10.18637/jss.v063.i19</a>; Bivand, Gomez-Rubio and Rue (2015) <a href="https://doi.org/10.18637/jss.v063.i20">doi:10.18637/jss.v063.i20</a>) adapted to panel data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">inla.st(
+  formula,
+  d,
+  W,
+  RHO,
+  PHI,
+  var.agg,
+  normalization = FALSE,
+  improve = TRUE,
+  fhyper = NULL,
+  probit = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula of the model to be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>Spatial matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RHO</code></td>
+<td>
+<p>Parameter of spatial dependence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PHI</code></td>
+<td>
+<p>Parameter of temporal dependence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.agg</code></td>
+<td>
+<p>Indexes of the panel dimensions. The first argument is the spatial dimension, the second argument is the temporal dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalization</code></td>
+<td>
+<p>Boolean. If TRUE the data are normalized before estimation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>improve</code></td>
+<td>
+<p>Please refer to the documentation of the INLA package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fhyper</code></td>
+<td>
+<p>Plase refer to the documentation of the INLA package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probit</code></td>
+<td>
+<p>Plase refer to the documentation of the INLA package</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters. Please, refer to the documentation of the INLA package</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a model of class "inla". Please, refer to the documentation of the INLA package for additional information
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(terra)
+set.seed(123)
+sd = sim_data_fe(dataset=regsamp,N=100,TT=8,spatial = 80,
+                 Tau = -0.2,Rho = 0.4, Beta = 2,sdDev = 2,
+                 startingT = 10,LONGLAT = TRUE)
+est_inla = inla.st(formula = Y~-1+X1,d = sd[[1]]@data,
+               W = sd[[2]],PHI=-0.2,RHO=0.4,
+               var.agg=c('Cod_Provincia','Anno'),
+               family='gaussian',
+               improve=TRUE,
+               normalization=FALSE,
+               control.family = list(hyper = list(prec=list(initial=25,fixed=TRUE))),
+               control.predictor = list(compute = TRUE),
+               control.compute = list(dic = TRUE, cpo = TRUE),
+               control.inla = list(print.joint.hyper = TRUE))
+summary(est_inla)
+
+
+</code></pre>
+
+
+</div>

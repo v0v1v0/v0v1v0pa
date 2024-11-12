@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>age_groups</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Split Ages into Age Groups</h2>
+
+<h3>Description</h3>
+
+<p>Split ages into age groups defined by the <code>split</code> argument. This allows for easier demographic (antimicrobial resistance) analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">age_groups(x, split_at = c(12, 25, 55, 75), na.rm = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>age, e.g. calculated with <code>age()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_at</code></td>
+<td>
+<p>values to split <code>x</code> at - the default is age groups 0-11, 12-24, 25-54, 55-74 and 75+. See <em>Details</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>a logical to indicate whether missing values should be removed</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To split ages, the input for the <code>split_at</code> argument can be:
+</p>
+
+<ul>
+<li>
+<p> A numeric vector. A value of e.g. <code>c(10, 20)</code> will split <code>x</code> on 0-9, 10-19 and 20+. A value of only <code>50</code> will split <code>x</code> on 0-49 and 50+.
+The default is to split on young children (0-11), youth (12-24), young adults (25-54), middle-aged adults (55-74) and elderly (75+).
+</p>
+</li>
+<li>
+<p> A character:
+</p>
+
+<ul>
+<li> <p><code>"children"</code> or <code>"kids"</code>, equivalent of: <code>c(0, 1, 2, 4, 6, 13, 18)</code>. This will split on 0, 1, 2-3, 4-5, 6-12, 13-17 and 18+.
+</p>
+</li>
+<li> <p><code>"elderly"</code> or <code>"seniors"</code>, equivalent of: <code>c(65, 75, 85)</code>. This will split on 0-64, 65-74, 75-84, 85+.
+</p>
+</li>
+<li> <p><code>"fives"</code>, equivalent of: <code>1:20 * 5</code>. This will split on 0-4, 5-9, ..., 95-99, 100+.
+</p>
+</li>
+<li> <p><code>"tens"</code>, equivalent of: <code>1:10 * 10</code>. This will split on 0-9, 10-19, ..., 90-99, 100+.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Ordered factor
+</p>
+
+
+<h3>See Also</h3>
+
+<p>To determine ages, based on one or more reference dates, use the <code>age()</code> function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ages &lt;- c(3, 8, 16, 54, 31, 76, 101, 43, 21)
+
+# split into 0-49 and 50+
+age_groups(ages, 50)
+
+# split into 0-19, 20-49 and 50+
+age_groups(ages, c(20, 50))
+
+# split into groups of ten years
+age_groups(ages, 1:10 * 10)
+age_groups(ages, split_at = "tens")
+
+# split into groups of five years
+age_groups(ages, 1:20 * 5)
+age_groups(ages, split_at = "fives")
+
+# split specifically for children
+age_groups(ages, c(1, 2, 4, 6, 13, 18))
+age_groups(ages, "children")
+
+
+# resistance of ciprofloxacin per age group
+if (require("dplyr") &amp;&amp; require("ggplot2")) {
+  example_isolates %&gt;%
+    filter_first_isolate() %&gt;%
+    filter(mo == as.mo("Escherichia coli")) %&gt;%
+    group_by(age_group = age_groups(age)) %&gt;%
+    select(age_group, CIP) %&gt;%
+    ggplot_sir(
+      x = "age_group",
+      minimum = 0,
+      x.title = "Age Group",
+      title = "Ciprofloxacin resistance per age group"
+    )
+}
+
+</code></pre>
+
+
+</div>

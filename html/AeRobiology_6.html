@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>interpollen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Interpolation of Missing Data in a Pollen Database by Different Methods</h2>
+
+<h3>Description</h3>
+
+<p>Function to simultaneously replace all missing data of an historical database of several pollen types by using different methods of interpolation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">interpollen(data, method = "lineal", maxdays = 30, plot = TRUE,
+  factor = 2, ndays = 3, spar = 0.5, data2 = NULL, data3 = NULL,
+  data4 = NULL, data5 = NULL, mincorr = 0.6, result = "wide")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> object including the general database where interpollation must be performed. This <code>data.frame</code> must include a first column in <code>Date</code> format and the rest of columns in <code>numeric</code> format. Each column must contain information of one pollen type. It is not necessary to insert missing gaps; the function will automatically detect them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A <code>character</code> string specifying the method applied to calculate and generate the pollen missing data. The implemented methods that can be used are: <code>"lineal"</code>, <code>"movingmean"</code>, <code>"spline"</code>, <code>"tseries"</code> or <code>"neighbour"</code>. A more detailed information about the different methods may be consulted in Details. The <code>method</code> argument will be <code>"lineal"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdays</code></td>
+<td>
+<p>A <code>numeric (interger)</code> value specifying the maximum number of consecutive days with missing data that the algorithm is going to interpolate. If the gap is bigger than the argument value, the gap will not be interpolated. Not valid with <code>"tseries"</code> method. The <code>maxdays</code> argument will be <code>30</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A <code>logical</code> argument. If <code>TRUE</code>, graphical previews of the input database will be plot at the end of the interpolation process. All the interpolated gaps will be marked in red. The <code>plot</code> argument will be <code>TRUE</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor</code></td>
+<td>
+<p>A <code>numeric (interger)</code> value bigger than <code>1</code>. Only valid if the <code>"movingmean"</code> method is chosen. The argument specifies the factor which will multiply the gap size to stablish the range of the moving mean that will fulfill the gap. A more detailed information about the selection of the factor may be consulted in Details. The argument <code>factor</code> will be <code>1</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndays</code></td>
+<td>
+<p>A <code>numeric (interger)</code> value bigger than <code>1</code>. Only valid if the <code>"spline"</code> method is chosen. Specifies the number of days beyond each side of the gap which are used to perform the spline regression. The argument <code>ndays</code> will be <code>3</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spar</code></td>
+<td>
+<p>A <code>numeric (double)</code> value ranging <code>0_1</code> specifying the degree of smoothness of the spline regression adjustment. As smooth as the adjustment is, more data are considered as outliers for the spline regression. Only valid if the <code>"spline"</code> method is chosen. The argument <code>"spar"</code> will be <code>0.5</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data2, data3, data4, data5</code></td>
+<td>
+<p>A <code>data.frame</code> object (each one) including database of a neighbour pollen station which will be used to interpolate missing data in the target station. Only valid if the "neighbour" method is chosen. This <code>data.frame</code> must include a first column in <code>Date</code> format and the rest of columns in <code>numeric</code> format belonging to each pollen type by column. It is not necessary to insert the missing gaps; the function will automatically detect them. The arguments will be <code>NULL</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mincorr</code></td>
+<td>
+<p>A <code>numeric (double)</code> value ranging <code>0_1</code>. It specifies the minimal correlation coefficient (Spearman correlations) that neighbour stations must have with the target station to be taken into account for the interpolation. Only valid if the <code>"neighbour"</code> method is chosen. The argument <code>"mincorr"</code> will be <code>0.6</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result</code></td>
+<td>
+<p>A <code>character</code> string specifying the format of the resulting <code>data.frame</code>. Only <code>"wide"</code> or <code>"long"</code>. The <code>result</code> argument will be <code>"wide"</code> by default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows to interpolate missing data in a pollen database using 4 different methods which are described below. Interpolation for each pollen type will be automatically done for gaps smaller than the <code>"maxdays"</code> argument. <br></p>
+
+<ul>
+<li> <p><code>"lineal"</code> method. The interpolation will be carried out by tracing a straight line between the gap extremes.
+</p>
+</li>
+<li> <p><code>"movingmean"</code> method. It calculates the moving mean of the pollen daily concentrations with a window size of the gap size multiplicated by the <code>factor</code> argument and replace the missing data with the moving mean for these days. It is a dynamic function and for each gap of the database, the window size of the moving mean changes depending of each gap size.
+</p>
+</li>
+<li> <p><code>"spline"</code> method. The interpolation will be carried out by performing a spline regression with the previous and following days to the gap. The number of days of each side of the gap that will be taken into account for calculating the spline regression are specified by <code>ndays</code> argument. The smoothness of the adjustment of the spline regression can be specified by the <code>spar</code> argument.
+</p>
+</li>
+<li> <p><code>"tseries"</code> method. The interpolation will be carried out by analysing the time series of pollen database. It performs a seasonal_trend decomposition based on LOESS (Cleveland et al., 1990). The seasonality of the historical database is extracted and used to predict the missing data by performing a linear regression with the target year.
+</p>
+</li>
+<li> <p><code>"neighbour"</code> method. Other near stations provided by the user are used to interpolate the missing data of the target station. First of all, a Spearman correlation is performed between the target station and the neighbour stations to discard the neighbour stations with a correlation coefficient smaller than <code>mincorr</code> value. For each gap, a linear regression is performed between the neighbour stations and the target stations to determine the equation which converts the pollen concentrations of the neighbour stations into the pollen concentration of the target station. Only neighbour stations without any missing data during the gap period are taken into account for each gap.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>This function returns different results:
+</p>
+
+<ul>
+<li>
+<p> If <code>result = "wide"</code>, returns a <code>data.frame</code> including the original data and completed with the interpolated data.
+</p>
+</li>
+<li>
+<p> If <code>result = "long"</code>, returns a <code>data.frame</code> containing your data in long format (the first column for date, the second for pollen type, the third for concentration and an additional fourth column with <code>1</code> if this data has been interpolated or <code>0</code> if not).
+</p>
+</li>
+<li>
+<p> If <code>plot = TRUE</code>, plots for each year and pollen type with daily values are represented in the active graphic window. Interpolated values are marked in red. If <code>method</code> argument is <code>"tseries"</code>, the seasonality is also represented in grey.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Cleveland RB, Cleveland WS, McRae JE, Terpenning I (1990) STL: a seasonal_trend decomposition procedure based on loess. J Off Stat 6(1):3_33.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ma</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("munich_pollen")
+interpollen(munich_pollen, method = "lineal", plot = FALSE)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sdafilter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter Argos locations</h2>
+
+<h3>Description</h3>
+
+<p>This function filters location data obtained from Argos, using the Freitas et al. (2008) algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sdafilter(lat, lon, dtime, lc, vmax = 2, ang = c(15, 25), distlim = c(2500, 5000))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p> a numeric vector of latitudes, in decimal degrees</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lon</code></td>
+<td>
+<p> a numeric vector of longitudes, in decimal degrees</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtime</code></td>
+<td>
+<p> a vector of class POSIXct with date and time for each location</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lc</code></td>
+<td>
+<p> a numeric or character vector of Argos location classes. Argos locations Z can be entered as "Z", "z" or -9</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmax</code></td>
+<td>
+<p> speed threshold, in m/s. Default is 2 m/s</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ang</code></td>
+<td>
+<p> angles of the spikes to be removed. Default is c(15,25). No spikes are removed if <code>ang</code>=-1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distlim</code></td>
+<td>
+<p> lengths of the above spikes, in meters. Default is c(2500,5000)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Locations are filtered using the algorithm described in Freitas et al. (2008).
+The algorithm first removes all locations with location class Z (-9), which are
+the points for which the location process failed. Then all locations requiring
+unrealistic swimming speeds are removed, using the MacConnell et al. (1992) algorithm,
+unless the point is located at less than 5 km from the previous location. This procedure enables retaining
+good quality locations for which high swimming speeds result from location being taken
+very close to each other in time. The default maximum speed threshold is 2 m/s. 
+The last step is optional, and enables to remove
+unlikely spikes from the animal's path. The angles of the spikes should be specified
+in <code>ang</code>, and their respective length in <code>distlim</code>. The default
+is c(15,25) for <code>ang</code> and c(2500,5000) for <code>distlim</code>, meaning that all spikes
+with angles smaller than 15 and 25 degrees will be removed if their extension is higher than
+2500 m and 5000 m respectively. No spikes are removed if <code>ang</code>=-1. <code>ang</code>
+and <code>distlim</code> vectors must have the same length.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a vector with the following elements: <code>"removed"</code> (location removed by the filter),
+<code>"not"</code> (location not removed) and <code>"end_location"</code> (location at the end
+of the track where the algorithm could not be applied).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Carla Freitas, with contributions from Anne Goarant and Catriona MacLeod</p>
+
+
+<h3>References</h3>
+
+<p>Freitas, C., Lydersen, C., Ims, R.A., Fedak, M.A. and Kovacs, K.M. (2008) A simple new 
+algorithm to filter marine mammal Argos locations <em>Marine Mammal Science</em> 24:315-325.
+</p>
+<p>McConnell, B.J., Chambers, C. and Fedak, M.A. (1992) Foraging ecology of southern
+elephant seals in relation to the bathymetry and productivity of the Southern Ocean.
+<em>Antarctic Science</em> 4:393-398.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vmask</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(seal)
+lat&lt;-seal$lat
+lon&lt;-seal$lon
+dtime&lt;-seal$dtime
+lc&lt;-seal$lc
+
+# plot unfiltered data
+plot(lon,lat,col="lightgrey",type="l",xlim=c(5,18),
+ylim=c(77.1,79.1),xlab="Longitude",ylab="Latitude")
+
+# filter by speed only
+mfilter&lt;-vmask(lat,lon,dtime,2)
+mfilter[1:10]
+lines(lon[which(mfilter=="not")],lat[which(mfilter=="not")],col="red")
+
+# filter data using sdafilter
+cfilter&lt;-sdafilter(lat, lon, dtime, lc)
+cfilter[1:20]
+lines(lon[which(cfilter=="not")],lat[which(cfilter=="not")],col="blue")
+
+# check number of locations (by location class) removed by each filter
+table(lc,mfilter)
+table(lc,cfilter)
+
+</code></pre>
+
+
+</div>

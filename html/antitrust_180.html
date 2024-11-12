@@ -1,0 +1,383 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CES-Functions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>(Nested) Constant Elasticity of Substitution Demand Calibration and Merger Simulation</h2>
+
+<h3>Description</h3>
+
+<p>Calibrates consumer demand using (Nested) Constant Elasticity of
+Substitution (CES) and then simulates the price effect of a merger between two firms
+under the assumption that all firms in the market are playing a
+differentiated products Bertrand pricing game.
+</p>
+<p>Let k denote the number of products produced by all firms playing the
+Bertrand pricing game below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ces(
+  prices,
+  shares,
+  margins,
+  diversions,
+  ownerPre,
+  ownerPost,
+  normIndex = ifelse(sum(shares) &lt; 1, NA, 1),
+  mktElast = NA_real_,
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceOutside = 1,
+  priceStart = prices,
+  isMax = FALSE,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+
+ces.alm(
+  prices,
+  shares,
+  margins,
+  ownerPre,
+  ownerPost,
+  mktElast = NA_real_,
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceOutside = 1,
+  priceStart = prices,
+  isMax = FALSE,
+  parmsStart,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+
+ces.nests(
+  prices,
+  shares,
+  margins,
+  ownerPre,
+  ownerPost,
+  nests = rep(1, length(shares)),
+  normIndex = ifelse(sum(shares) &lt; 1, NA, 1),
+  insideSize = NA_real_,
+  mcDelta = rep(0, length(prices)),
+  subset = rep(TRUE, length(prices)),
+  priceOutside = 1,
+  priceStart = prices,
+  isMax = FALSE,
+  constraint = TRUE,
+  parmsStart,
+  control.slopes,
+  control.equ,
+  labels = paste("Prod", 1:length(prices), sep = ""),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>prices</code></td>
+<td>
+<p>A length k vector of product prices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shares</code></td>
+<td>
+<p>A length k vector of product revenue shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margins</code></td>
+<td>
+<p>A length k vector of product margins, some of which may
+equal NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diversions</code></td>
+<td>
+<p>A k x k matrix of diversion ratios with diagonal
+elements equal to -1. Default is missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPre</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product pre-merger OR
+a k x k matrix of pre-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ownerPost</code></td>
+<td>
+<p>EITHER a vector of length k whose values
+indicate which firm produced a product after the merger OR
+a k x k matrix of post-merger ownership shares.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normIndex</code></td>
+<td>
+<p>An integer specifying the product index against which
+the mean values of all other products are normalized. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mktElast</code></td>
+<td>
+<p>a negative value indicating market elasticity. Default is NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>insideSize</code></td>
+<td>
+<p>total revenues included in the market.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcDelta</code></td>
+<td>
+<p>A vector of length k where each element equals the
+proportional change in a product's marginal costs due to
+the merger. Default is 0, which assumes that the merger does not
+affect any products' marginal cost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>A vector of length k where each element equals TRUE if
+the product indexed by that element should be included in the
+post-merger simulation and FALSE if it should be excluded.Default is a
+length k vector of TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceOutside</code></td>
+<td>
+<p>A length 1 vector indicating the price of the
+outside good. Default is 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceStart</code></td>
+<td>
+<p>A length k vector of starting values used to solve for
+equilibrium price. Default is the ‘prices’ vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isMax</code></td>
+<td>
+<p>If TRUE, checks to see whether computed price equilibrium
+locally maximizes firm profits and returns a warning if not. Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.slopes</code></td>
+<td>
+<p>A list of  <code>optim</code>  control parameters passed to the
+calibration routine optimizer (typically the <code>calcSlopes</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.equ</code></td>
+<td>
+<p>A list of  <code>BBsolve</code> control parameters passed
+to the non-linear equation solver (typically the <code>calcPrices</code> method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A k-length vector of labels. Default is "Prod#", where
+‘#’ is a number between 1 and the length of ‘prices’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional options to feed to the <code>BBsolve</code>
+optimizer used to solve for equilibrium prices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parmsStart</code></td>
+<td>
+<p>A vector of starting values used to solve for
+price coefficient and nest parameters. The first element should
+always be the price coefficient and the remaining elements should be
+nesting parameters. Theory requires the nesting parameters to be
+greater than the price coefficient. If missing then the random
+draws with the appropriate restrictions are employed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nests</code></td>
+<td>
+<p>A length k vector identifying the nest that each
+product belongs to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraint</code></td>
+<td>
+<p>if TRUE, then the nesting parameters for all
+non-singleton nests are assumed equal. If FALSE, then each
+non-singleton nest is permitted to have its own value. Default is
+TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Using product prices, revenue shares and all of the
+product margins from at least one firm, <code>ces</code> is able to
+recover the price coefficient and product mean valuations in a
+Constant Elasticity of Substitution demand model. <code>ces</code> then uses these
+calibrated parameters to simulate the price effects of a merger between two firms under the
+assumption that that all firms in the market are playing a
+differentiated products Bertrand pricing game.
+</p>
+<p><code>ces.alm</code> is identical to <code>ces</code> except that it assumes that an outside product exists and uses additional margin information to estimate the share of the outside good.
+</p>
+<p><code>ces.nests</code> is identical to <code>ces</code> except that it includes the ‘nests’
+argument which may be used to assign products to different
+nests. Nests are useful because they allow for richer substitution
+patterns between products. Products within the same nest are assumed
+to be closer substitutes than products in different nests. The degree
+of substitutability between products located in different nests is
+controlled by the value of the nesting parameter sigma.
+The nesting parameters for singleton nests (nests containing
+only one product) are not identified and normalized to 1.  The vector of
+sigmas is calibrated from the prices, revenue shares, and margins supplied
+by the user.
+</p>
+<p>By default, all non-singleton nests are assumed to have a common value for sigma.
+This constraint may be relaxed  by setting ‘constraint’ to
+FALSE. In this case, at least one product margin must be supplied from
+a product within each nest.
+</p>
+<p>In both  <code>ces</code> and  <code>ces.nests</code>, if revenue shares sum to 1,
+then one product's mean value is not identified and must be normalized
+to 1. ‘normIndex’ may be used to specify the index (position) of the
+product whose mean value is to be normalized. If the sum of revenue shares
+is less than 1, both of these functions assume that the exists a k+1st
+product in the market whose price and mean value are both normalized
+to 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>ces</code> returns an instance of class <code>CES</code>.
+<code>ces.alm</code> returns an instance of class <code>CESALM</code>.
+<code>ces.nests</code> returns an instance of <code>CESNests</code>, a
+child class of <code>CES</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Charles Taragin <a href="mailto:ctaragin+antitrustr@gmail.com">ctaragin+antitrustr@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Anderson, Simon, Palma, Andre, and Francois Thisse (1992).
+<em>Discrete Choice Theory of Product Differentiation</em>.
+The MIT Press, Cambridge, Mass.
+</p>
+<p>Epstein, Roy and Rubinfeld, Daniel (2004).
+“Effects of Mergers Involving Differentiated Products.”
+</p>
+<p>Sheu G (2011).
+“Price, Quality, and Variety: Measuring the Gains From Trade in Differentiated
+Products.”
+U.S Department of Justice.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>logit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Calibration and simulation results from a merger between Budweiser and
+## Old Style. Assume that typical consumer spends 1% of income on beer,
+## and that total beer expenditure in US is 1e9
+## Source: Epstein/Rubenfeld 2004, pg 80
+
+prodNames &lt;- c("BUD","OLD STYLE","MILLER","MILLER-LITE","OTHER-LITE","OTHER-REG")
+ownerPre &lt;-c("BUD","OLD STYLE","MILLER","MILLER","OTHER-LITE","OTHER-REG")
+ownerPost &lt;-c("BUD","BUD","MILLER","MILLER","OTHER-LITE","OTHER-REG")
+nests &lt;- c("R","R","R","L","L","R")
+
+price    &lt;- c(.0441,.0328,.0409,.0396,.0387,.0497)
+shares   &lt;- c(.071,.137,.251,.179,.093,.269)
+margins  &lt;- c(.3830,.5515,.5421,.5557,.4453,.3769)
+
+names(price) &lt;-
+  names(shares) &lt;-
+  names(margins) &lt;-
+  prodNames
+
+result.ces &lt;-ces(price,shares,margins,ownerPre=ownerPre,ownerPost=ownerPost,
+                 labels=prodNames)
+
+print(result.ces)           # return predicted price change
+summary(result.ces)         # summarize merger simulation
+
+elast(result.ces,TRUE)      # returns premerger elasticities
+elast(result.ces,FALSE)     # returns postmerger elasticities
+
+diversion(result.ces,TRUE)  # return premerger diversion ratios
+diversion(result.ces,FALSE) # return postmerger diversion ratios
+
+cmcr(result.ces)            #calculate compensating marginal cost reduction
+upp(result.ces)             #calculate Upwards Pricing Pressure Index
+
+CV(result.ces)              #calculate compensating variation as a percent of
+#representative consumer income
+
+## Implement the Hypothetical Monopolist Test
+## for BUD and OLD STYLE using a 5\% SSNIP
+
+HypoMonTest(result.ces,prodIndex=1:2)
+
+
+## Get a detailed description of the 'CES' class slots
+showClass("CES")
+
+## Show all methods attached to the 'CES' Class
+showMethods(classes="CES")
+
+## Show which class have their own 'elast' method
+showMethods("elast")
+
+## Show the method definition for 'elast' and Class 'CES'
+getMethod("elast","CES")
+
+</code></pre>
+
+
+</div>

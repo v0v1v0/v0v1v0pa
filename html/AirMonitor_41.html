@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monitor_getCurrentStatus</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get current status of monitors</h2>
+
+<h3>Description</h3>
+
+<p>This function augments <code>monitor$meta</code> with summary information derived
+from <code>monitor$data</code> reflecting recent measurements.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monitor_getCurrentStatus(
+  monitor,
+  enddate = NULL,
+  minHours = 18,
+  dayBoundary = c("clock", "LST")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>monitor</code></td>
+<td>
+<p><em>mts_monitor</em> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>enddate</code></td>
+<td>
+<p>Time relative to which current status is calculated. By
+default, it is the latest time in <code>monitor$data$datetime</code>. This time can
+be given as a POSIXct time, or a string/numeric value in ymd format (<em>e.g.</em>
+20190301). This time converted to UTC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minHours</code></td>
+<td>
+<p>Minimum number of valid hourly records required to calculate
+<code>yesterday_PM2.5_avg</code>. Days with fewer valid records will be assigned <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dayBoundary</code></td>
+<td>
+<p>Treatment of daylight savings time:  "clock" uses daylight
+savings time as defined in the local timezone, "LST" uses "local standard time"
+all year round. (See <code>monitor_dailyStatistic()</code> for more details.)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>monitor$meta</code> table augmented with current status
+information for each time series.
+</p>
+
+
+<h3>"Last" and "Previous"</h3>
+
+<p>The goal of this function is to provide useful information about what
+happened recently with each time series in the provided <em>mts_monitor</em> object.
+Devices don't always consistently report data, however, and it is not alwlays
+useful to have <code>NA</code>'s reported when there is recent valid data at earlier
+times. To address this, <code>monitor_getCurrentStatus()</code> uses <em>last</em> and
+<em>previous</em> valid times. These are the time when a monitor most recently
+reported data, and the most recent time of valid data before that,
+respectively. By reporting on these times, this function ensures that valid
+data is returned and provides information on how outdated this information
+is. This information can be used in maps to show AQI colored dots when data
+is only a few hours old but gray dots when data is older than some threshold.
+</p>
+
+
+<h3>Calculating latency</h3>
+
+<p>According to https://docs.airnowapi.org/docs/HourlyDataFactSheet.pdf
+a datum assigned to 2pm represents the average of data between 2pm and 3pm.
+So, if we check at 3:15pm and see that we have a value for 2pm but not 3pm
+then the data are completely up-to-date with zero latency.
+</p>
+<p><code>monitor_getCurrentStatus()</code> defines latency as the difference between
+a time index and the next most recent time index associated with a
+valid value. If there is no more recent time index, then the difference is
+measured to the given <code>enddate</code> parameter. Because <em>mts_monitor</em>
+objects are defined on an hourly axis, these differences have units of hours.
+</p>
+<p>For example, if the recorded values for a monitor are
+<code>[16.2, 15.8, 16.4, NA, 14.0, 12.5, NA, NA, 13.3, NA]</code>, then the <em>last</em>
+valid value is 13.3 with an index is 9, and the <em>previous</em> valid value is 12.4
+with an index of 6. The <em>last</em> latency is then 1 (hour before the end), and the
+<em>previous</em> latency is 3 (hours before the last valid value).
+</p>
+
+
+<h3>Summary data</h3>
+
+<p>The table created by <code>monitor_getCurrentStatus()</code> includes per-time series
+summary information calculated from <code>monitor$data</code>.
+The additional data fields added to <code>monitor$meta</code> are listed below:
+</p>
+
+<dl>
+<dt>currentStatus_processingTime</dt>
+<dd>
+<p>Time at which this function was run</p>
+</dd>
+<dt>currentStatus_enddate</dt>
+<dd>
+<p>Time relative to which "currency" is calculated</p>
+</dd>
+<dt>last_validIndex</dt>
+<dd>
+<p>Row index of the last valid mesurement in <code>monitor$data</code></p>
+</dd>
+<dt>previous_validIndex</dt>
+<dd>
+<p>Row index of the previous valid measurement in <code>monitor$data</code></p>
+</dd>
+<dt>last_validTime</dt>
+<dd>
+<p>UTC time associated with <code>last_validIndex</code></p>
+</dd>
+<dt>previous_validTime</dt>
+<dd>
+<p>UTC time associated with <code>previous_validIndex</code></p>
+</dd>
+<dt>last_latency</dt>
+<dd>
+<p>Hours between <code>last_validTime</code> and <code>endtime</code></p>
+</dd>
+<dt>previous_latency</dt>
+<dd>
+<p>Hours between <code>previous_validTime</code> and<code>last_validTime</code></p>
+</dd>
+<dt>last_validLocalTimestamp</dt>
+<dd>
+<p>Local time representation of <code>last_validTime</code></p>
+</dd>
+<dt>previous_validLocalTimestamp</dt>
+<dd>
+<p>Local time representation of <code>previous_validTime</code></p>
+</dd>
+<dt>last_PM2.5</dt>
+<dd>
+<p>Last valid PM2.5 measurement</p>
+</dd>
+<dt>previous_PM2.5</dt>
+<dd>
+<p>Previous valid PM2.5 measurement</p>
+</dd>
+<dt>last_nowcast</dt>
+<dd>
+<p>Last valid PM2.5 NowCast value</p>
+</dd>
+<dt>previous_nowcast</dt>
+<dd>
+<p>Previous valid PM2.5 NowCast value</p>
+</dd>
+<dt>yesterday_PM2.5_avg</dt>
+<dd>
+<p>Daily average PM2.5 for the day prior to <code>enddate</code></p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Fail gracefully if any resources are not available
+try({
+
+library(AirMonitor)
+
+monitor &lt;- airnow_loadLatest()
+# TODO:  Needed before rebuilding of v2 database with fullAQSID
+monitor$meta$fullAQSID &lt;- paste0("840", monitor$meta$AQSID)
+
+currentStatus &lt;-
+  monitor %&gt;%
+  monitor_filter(stateCode == "WA") %&gt;%
+  monitor_getCurrentStatus()
+
+}, silent = FALSE)
+
+</code></pre>
+
+
+</div>

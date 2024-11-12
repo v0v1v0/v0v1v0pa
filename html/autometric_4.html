@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>log_read</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a log.</h2>
+
+<h3>Description</h3>
+
+<p>Read a log file into R.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">log_read(
+  path,
+  units_cpu = c("percentage", "fraction"),
+  units_memory = c("megabytes", "bytes", "kilobytes", "gigabytes"),
+  units_time = c("seconds", "minutes", "hours", "days"),
+  hidden = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Character vector of paths to files and/or directories
+of logs to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units_cpu</code></td>
+<td>
+<p>Character string with the units of the <code>cpu</code> field.
+Defaults to <code>"percentage"</code> and must be in <code>c("percentage", "fraction")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units_memory</code></td>
+<td>
+<p>Character string with the units of the
+<code>memory</code> field. Defaults to <code>"megabytes"</code> and must be in
+<code>c("megabytes", "bytes", "kilobytes", "gigabytes")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units_time</code></td>
+<td>
+<p>Character string, units of the <code>time</code> field.
+Defaults to <code>"seconds"</code> and must be in
+<code>c("seconds", "minutes", "hours", "days")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hidden</code></td>
+<td>
+<p><code>TRUE</code> to include hidden files in the files and directories
+listed in <code>path</code>, <code>FALSE</code> to omit.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>log_read()</code> is capable of reading a log file where both
+<code>autometric</code> and other processes have printed. Whenever <code>autometric</code>
+writes to a log, it bounds the beginning and end of the text
+with the keyword  <code>"__AUTOMETRIC__"</code>.
+that way, <code>log_read()</code> knows to only read and process the correct
+lines of the file.
+</p>
+<p>In addition, it automatically converts the log data
+into the units  <code>units_time</code>,
+<code>units_cpu</code>, and <code>units_memory</code> arguments.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame of metrics from the log with one row per log entry
+and columns with metadata and resource usage metrics.
+<code>log_read()</code> automatically converts the data into the units
+chosen with arguments <code>units_time</code>, <code>units_cpu</code>, and <code>units_memory</code>.
+The returned data frame has the following columns:
+</p>
+
+<ul>
+<li> <p><code>version</code>: Version of the package used to write the log entry.
+</p>
+</li>
+<li> <p><code>pid</code>: Process ID monitored.
+</p>
+</li>
+<li> <p><code>status</code>: A status code for the log entry. Status 0 means
+logging succeeded. A status code not equal to 0 indicates
+something went wrong and the metrics should not be trusted.
+</p>
+</li>
+<li> <p><code>time</code>: numeric time stamp at which the entry was logged.
+<code>log_read()</code> automatically recenters this column so that time 0
+indicates the first logged entry.
+Use the <code>units_time</code> argument to customize the units of this field.
+</p>
+</li>
+<li> <p><code>core</code>: CPU load of the process scaled relative to a single
+CPU core. Measures the amount of time the process spends running
+during a given interval of elapsed time.
+</p>
+<p>On Mac OS, the package uses native system calls to get CPU core usage.
+On Linux and Windows, the package calculates it manually using.
+user + kernel clock cycles that ran during a sampling interval.
+It measures the clock cycles that the process executed during
+the interval, converts the clock cycles into seconds,
+then divides the result by the elapsed time of the interval.
+The length of the sampling interval is the <code>seconds</code> argument
+supplied to <code>log_start()</code>, or length of time between
+calls to <code>log_print()</code>.
+The first <code>core</code> measurement is 0 to reflect that a full sampling
+interval has not elapsed yet.
+</p>
+<p><code>core</code> can be read in as a percentage or fraction, depending on
+the <code>units_cpu</code> argument.
+</p>
+</li>
+<li> <p><code>cpu</code>: <code>core</code> divided by the number of logical CPU cores.
+This metric measures the load on the machine as a whole,
+not just the CPU core it runs on.
+Use the <code>units_cpu</code> argument to customize the units of this field.
+</p>
+</li>
+<li> <p><code>rss</code>: resident set size, the total amount of memory used by the
+process at the time of logging. This include the memory unique
+to the process (unique set size USS) and shared memory.
+Use the <code>units_memory</code> argument to customize the units of this field.
+</p>
+</li>
+<li> <p><code>virtual</code>: total virtual memory available to the process.
+The process does not necessarily use all this memory, but
+it can request more virtual memory throughout its life cycle.
+Use the <code>units_memory</code> argument to customize the units of this field.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">  path &lt;- tempfile()
+  log_start(seconds = 0.5, path = path)
+  Sys.sleep(2)
+  log_stop()
+  Sys.sleep(2)
+  log_read(path)
+  unlink(path)
+</code></pre>
+
+
+</div>

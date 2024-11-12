@@ -1,0 +1,427 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weighted averaging transfer functions</h2>
+
+<h3>Description</h3>
+
+<p>Implements the weighted averaging transfer function
+methodology. Tolerance down-weighting and inverse and classicial
+deshrinking are supported.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wa(x, ...)
+
+## Default S3 method:
+wa(x, env,
+   deshrink = c("inverse", "classical", "expanded", "none", "monotonic"),
+   tol.dw = FALSE, useN2 = TRUE,
+   na.tol = c("min","mean","max"),
+   small.tol = c("min","mean","fraction","absolute"),
+   min.tol = NULL, f = 0.1, ...)
+
+## S3 method for class 'formula'
+wa(formula, data, subset, na.action,
+   deshrink = c("inverse", "classical", "expanded", "none", "monotonic"),
+   tol.dw = FALSE, useN2 = TRUE, na.tol = c("min","mean","max"),
+   small.tol = c("min","mean","fraction","absolute"), min.tol = NULL,
+   f = 0.1,..., model = FALSE)
+
+## S3 method for class 'wa'
+fitted(object, ...)
+
+## S3 method for class 'wa'
+residuals(object, ...)
+
+## S3 method for class 'wa'
+coef(object, ...)
+
+waFit(x, y, tol.dw, useN2, deshrink, na.tol, small.tol,
+      min.tol, f)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The species training set data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env, y</code></td>
+<td>
+<p>The response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deshrink</code></td>
+<td>
+<p>Which deshrinking method to use? One of
+<code>"inverse"</code> or <code>"classical"</code>, <code>"expanded"</code>,
+<code>"none"</code>, or <code>"monotonic"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol.dw</code></td>
+<td>
+<p>logical; should species with wider tolerances be given
+lower weight?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useN2</code></td>
+<td>
+<p>logical; should Hill's N2 values be used to produce
+un-biased tolerances?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.tol</code></td>
+<td>
+<p>character; method to use to replace missing (<code>NA</code>)
+tolerances in WA computations. Missing values are replaced with the
+minimum, average or maximum tolerance observed that is not
+missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>small.tol</code></td>
+<td>
+<p>character; method to replace small tolerances. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.tol</code></td>
+<td>
+<p>numeric; threshold below which tolerances are treated
+as being ‘small’. Default is not to replace small tolerances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>numeric, <code class="reqn">0 &lt; f &lt; 1</code>; fraction of environmental gradient
+<code>env</code> to replace small tolerances with if <code>small.tol =
+      "fraction"</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a model formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object
+coercible by <code>as.data.frame</code> to a data frame) containing
+the variables specified on the RHS of the model formula. If not found in
+<code>data</code>, the  variables are taken from
+<code>environment(formula)</code>, typically the environment from which
+<code>wa</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when
+the data contain <code>NA</code>s.  The default is set by the
+<code>na.action</code> setting of <code>options</code>, and is <code>na.fail</code> if
+that is unset.  The 'factory-fresh' default is <code>na.omit</code>.
+Another possible value is <code>NULL</code>, no action. Value
+<code>na.exclude</code> can be useful.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>logical. If <code>TRUE</code> the model frame is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an Object of class <code>"wa"</code>, the result of a call to
+<code>wa</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A typical model has the form <code>response ~ terms</code>
+where <code>response</code> is the (numeric) response vector (the variable to
+be predicted) and <code>terms</code> is a series of terms which specifies a
+linear predictor for <code>response</code>.  A terms specification of the
+form <code>first + second</code> indicates all the terms in <code>first</code>
+together with all the terms in <code>second</code> with duplicates
+removed. A specification of <code>.</code> is shorthand for all terms in
+<code>data</code> not already included in the model.
+</p>
+<p>Species that have very small tolerances can dominate reconstructed
+values if tolerance down-weighting is used. In <code>wa</code>, small
+tolerances are defined as a tolerance that is <code class="reqn">&lt;</code>
+<code>min.tol</code>. The default is to not replace small tolerances, and
+the user needs to specify suitable values of <code>min.tol</code>. Function
+<code>tolerance</code> may be of use in computing tolerances before
+fitting the WA model.
+</p>
+<p>Small tolerances can be adjusted in several ways:
+</p>
+
+<dl>
+<dt>
+<code>min</code> </dt>
+<dd>
+<p>small tolerances are replaced by the smallest
+observed tolerance that is greater than, or equal to,
+<code>min.tol</code>. With this method, the replaced values will be no
+smaller than any other observed tolerance. This is the default in
+<span class="pkg">analogue</span>.</p>
+</dd>
+<dt>
+<code>mean</code> </dt>
+<dd>
+<p>small tolerances are replaced by the average
+observed tolerance from the set that are greater than, or equal
+to, <code>min.tol</code>.</p>
+</dd>
+<dt>
+<code>fraction</code> </dt>
+<dd>
+<p>small tolerances are replaced by the
+fraction, <code>f</code>, of the observed environmental gradient in the
+training set, <code>env</code>.</p>
+</dd>
+<dt>
+<code>absolute</code> </dt>
+<dd>
+<p>small tolerances are replaced by
+<code>min.tol</code>.</p>
+</dd>
+</dl>
+<p>Function <code>waFit</code> is the workhorse implementing the actual WA
+computations. It performs no checks on the input data and returns a
+simple list containing the optima, tolernances, model tolerances,
+fitted values, coefficients and the numbers of samples and
+species. See Value below for details of each component.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"wa"</code>, a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>wa.optima</code></td>
+<td>
+<p>The WA optima for each species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerances</code></td>
+<td>
+<p>The actual tolerances calculated (these are weighted
+standard deviations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.tol</code></td>
+<td>
+<p>The tolerances used in the WA model
+computations. These will be similar to <code>tol</code>, but will no
+contain any <code>NA</code>s and any small tolerances will have been
+replaced with the appropriate value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>The fitted values of the response for each of the
+training set samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>Model residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>Deshrinking coefficients. Note that in the case of
+<code>deshrink = "monotonic"</code> this is a list with components <code>sm</code>
+(the representation of the smooth term as returned by
+<code>smoothCon</code>) and <code>p</code> (solutions to the least squares
+fit with monotonic constraints, the result of a call to
+<code>pcls</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmse</code></td>
+<td>
+<p>The RMSE of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r.squared</code></td>
+<td>
+<p>The coefficient of determination of the observed and
+fitted values of the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>avg.bias, max.bias</code></td>
+<td>
+<p>The average and maximum bias statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.samp, n.spp</code></td>
+<td>
+<p>The number of samples and species in the training
+set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deshrink</code></td>
+<td>
+<p>The deshrinking regression method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol.dw</code></td>
+<td>
+<p>logical; was tolerance down-weighting applied?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig.x</code></td>
+<td>
+<p>The training set species data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig.env</code></td>
+<td>
+<p>The response data for the training set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options.tol</code></td>
+<td>
+<p>A list, containing the values of the arguments
+<code>useN2</code>, <code>na.tol</code>, <code>small.tol</code>, <code>min.tol</code>, and
+<code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms, model</code></td>
+<td>
+<p>Model <code>terms</code> and <code>model.frame</code>
+components. Only returned by the <code>formula</code> method of
+<code>wa</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson and Jari Oksanen</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mat</code> for an alternative transfer function method.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(ImbrieKipp)
+data(SumSST)
+
+## fit the WA model
+mod &lt;- wa(SumSST ~., data = ImbrieKipp)
+mod
+
+## extract the fitted values
+fitted(mod)
+
+## residuals for the training set
+residuals(mod)
+
+## deshrinking coefficients
+coef(mod)
+
+## diagnostics plots
+par(mfrow = c(1,2))
+plot(mod)
+par(mfrow = c(1,1))
+
+## caterpillar plot of optima and tolerances
+caterpillarPlot(mod)                 ## observed tolerances
+caterpillarPlot(mod, type = "model") ## with tolerances used in WA model
+
+## plot diagnostics for the WA model
+par(mfrow = c(1,2))
+plot(mod)
+par(mfrow = c(1,1))
+
+## tolerance DW
+mod2 &lt;- wa(SumSST ~ ., data = ImbrieKipp, tol.dw = TRUE,
+           min.tol = 2, small.tol = "min")
+mod2
+
+## compare actual tolerances to working values
+with(mod2, rbind(tolerances, model.tol))
+
+## tolerance DW
+mod3 &lt;- wa(SumSST ~ ., data = ImbrieKipp, tol.dw = TRUE,
+           min.tol = 2, small.tol = "mean")
+mod3
+
+## fit a WA model with monotonic deshrinking
+mod4 &lt;- wa(SumSST ~., data = ImbrieKipp, deshrink = "monotonic")
+mod4
+
+## extract the fitted values
+fitted(mod4)
+
+## residuals for the training set
+residuals(mod4)
+
+
+</code></pre>
+
+
+</div>

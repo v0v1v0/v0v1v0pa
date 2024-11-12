@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aw_calculate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Estimated Population</h2>
+
+<h3>Description</h3>
+
+<p><code>aw_calculate</code> multiplies the given <code>value</code> by the area weight. This
+is the fourth step in the interpolation process after aw_weight.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aw_calculate(.data, value, areaWeight, newVar)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A given intersected dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>A column within <code>source</code> to be interpolated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>areaWeight</code></td>
+<td>
+<p>The name of the variable containing area weight per feature</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newVar</code></td>
+<td>
+<p>Optional; a new field name to store the interpolated value in. If not specified,
+the <code>value</code> argument will be used as the new field name.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An intersected file of class sf with a new field of interest recalculated with area weight
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+
+race &lt;- select(ar_stl_race, GEOID, TOTAL_E)
+wards &lt;- select(ar_stl_wards, WARD)
+
+wards %&gt;%
+    aw_intersect(source = race, areaVar = "area") %&gt;%
+    aw_total(source = race, id = GEOID, areaVar = "area", totalVar = "totalArea",
+             weight = "sum", type = "extensive") %&gt;%
+    aw_weight(areaVar = "area", totalVar = "totalArea", areaWeight = "areaWeight") -&gt; intersect
+
+aw_calculate(intersect, value = "TOTAL_E", areaWeight = "areaWeight")
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aum_line_search_grid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>aum line search grid</h2>
+
+<h3>Description</h3>
+
+<p>Line search for predicted values, with grid search to check.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aum_line_search_grid(error.diff.df, 
+    feature.mat, weight.vec, 
+    pred.vec = NULL, 
+    maxIterations = nrow(error.diff.df), 
+    n.grid = 10L, add.breakpoints = FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>error.diff.df</code></td>
+<td>
+<p><code>aum_diffs</code> data frame with B rows, one for each breakpoint in
+example-specific error functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature.mat</code></td>
+<td>
+<p>N x p matrix of numeric features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.vec</code></td>
+<td>
+<p>p-vector of numeric linear model coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.vec</code></td>
+<td>
+<p>N-vector of numeric predicted values. If missing, <code>feature.mat</code> and
+<code>weight.vec</code> will be used to compute predicted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIterations</code></td>
+<td>
+<p>positive int: max number of line search iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.grid</code></td>
+<td>
+<p>positive int: number of grid points for checking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.breakpoints</code></td>
+<td>
+<p>add breakpoints from exact search to grid search.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of class aum_line_search_grid.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Toby Dylan Hocking &lt;toby.hocking@r-project.org&gt; [aut, cre], Jadon Fowler [aut] (Contributed exact line search C++ code)</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require("data.table"))setDTthreads(1L)#for CRAN check.
+
+## Example 1: two binary data.
+(bin.diffs &lt;- aum::aum_diffs_binary(c(1,0)))
+if(requireNamespace("ggplot2"))plot(bin.diffs)
+bin.line.search &lt;- aum::aum_line_search_grid(bin.diffs, pred.vec=c(-10,10))
+if(requireNamespace("ggplot2"))plot(bin.line.search)
+
+if(requireNamespace("penaltyLearning")){
+
+  ## Example 2: two changepoint examples, one with three breakpoints.
+  data(neuroblastomaProcessed, package="penaltyLearning", envir=environment())
+  nb.err &lt;- with(neuroblastomaProcessed$errors, data.frame(
+    example=paste0(profile.id, ".", chromosome),
+    min.lambda,
+    max.lambda,
+    fp, fn))
+  (diffs.subtrain &lt;- aum::aum_diffs_penalty(nb.err, c("4.2", "1.1")))
+  if(requireNamespace("ggplot2"))plot(diffs.subtrain)
+  (nb.line.search &lt;- aum::aum_line_search_grid(diffs.subtrain, pred.vec=c(-1,1)))
+  if(requireNamespace("ggplot2"))plot(nb.line.search)
+
+  ## Example 3: 50 changepoint examples, with linear model.
+  X.sc &lt;- scale(neuroblastomaProcessed$feature.mat[1:50,])
+  keep &lt;- apply(is.finite(X.sc), 2, all)
+  X.subtrain &lt;- X.sc[,keep]
+  weight.vec &lt;- rep(0, ncol(X.subtrain))
+  diffs.subtrain &lt;- aum::aum_diffs_penalty(nb.err, rownames(X.subtrain))
+  nb.weight.search &lt;- aum::aum_line_search_grid(
+    diffs.subtrain,
+    feature.mat=X.subtrain,
+    weight.vec=weight.vec,
+    maxIterations = 200)
+  if(requireNamespace("ggplot2"))plot(nb.weight.search)
+
+}
+
+## Example 4: counting intersections and intervals at each
+## iteration/step size, when there are ties.
+(bin.diffs &lt;- aum::aum_diffs_binary(c(0,0,0,1,1,1)))
+bin.line.search &lt;- aum::aum_line_search_grid(
+  bin.diffs, pred.vec=c(2,3,-1,1,-2,0), n.grid=21) 
+if(require("ggplot2")){
+  plot(bin.line.search)+
+    geom_text(aes(
+      step.size, Inf, label=sprintf(
+        "%d,%d", intersections, intervals)),
+      vjust=1.1,
+      data=data.frame(
+        panel="threshold", bin.line.search$line_search_result))
+}
+
+</code></pre>
+
+
+</div>

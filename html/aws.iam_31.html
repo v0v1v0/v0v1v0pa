@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_session_token</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Temporary Session Tokens</h2>
+
+<h3>Description</h3>
+
+<p>Get a temporary credentials (i.e., a Session Token)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_session_token(duration = 900, id, code, tags, use = FALSE, ...)
+
+get_federation_token(duration = 900, name, policy, use = FALSE, ...)
+
+get_caller_identity(...)
+
+assume_role(
+  role,
+  session,
+  duration,
+  id,
+  code,
+  externalid,
+  policy,
+  tags,
+  transitive.tags,
+  use = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>duration</code></td>
+<td>
+<p>numeric, optional, duration for which the
+credentials should be valid, in seconds, between 900 and
+129600. If not set, the back-end can decided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>string, optional, the serial number or Amazon Resource
+Number for a multi-factor authentication (MFA) device.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>If <code>id</code> is specified, the value provided by the MFA device.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tags</code></td>
+<td>
+<p>named character vector or named list of scalars,
+optional, if specified then the supplied key/value pairs (names
+are keys) are passed as session tags.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+<p>logical (default <code>FALSE</code>), specifying whether to
+use these credentials for subsequent requests. If <code>TRUE</code>,
+any currently used credentials are stored in a package
+environment (see <code>save_credentials</code>) and the
+requested tokens overwrite them in the relevant environment
+variables. <code>restore_credentials()</code> can then be used
+to restore environment variables based on those from the saved
+environment and <code>delete_saved_credentials()</code> deletes
+the credentials without restoring them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>stsHTTP</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The name of the federated user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>policy</code></td>
+<td>
+<p>A character string specifying a JSON-formatted role
+policy. For <code>assume_role</code>, if <code>role</code> is an object of
+class “iam_role”, this will be inferred automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>role</code></td>
+<td>
+<p>string, role ARN or an object of class “iam_role”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session</code></td>
+<td>
+<p>string, name of the temporary session, can be
+arbitrary and is mainly used to disambiguate multiple sessions
+using the same role.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>externalid</code></td>
+<td>
+<p>A unique identifier that is used by third parties when assuming roles in their customers' accounts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transitive.tags</code></td>
+<td>
+<p>character vector, optional, specifies names
+of the session tags which will be passed to subsequent sessions
+in the role chain.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>get_caller_identity</code> returns the account ID and ARN
+for the currently credentialled user. This can be used to
+confirm that an assumed role has indeed been assumed.
+</p>
+<p><code>get_session_token</code> and <code>get_federation_token</code>
+generate and return temporary credentials.
+</p>
+<p>Details about the underlying behavior of the various API
+endpoints can be found at
+<a href="http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html">Requesting Temporary Security Credentials</a>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list.
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_GetCallerIdentity.html">API Reference: GetCallerIdentity</a>
+<a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_GetSessionToken.html">API Reference: GetSessionToken</a>
+<a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_GetFederationToken.html">API Reference: GetFederationToken</a>
+<a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html">API Reference: AssumeRole</a>
+<a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithSAML.html">API Reference: AssumeRoleWithSAML</a>
+<a href="http://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html">API Reference: AssumeRoleWithWebIdentity</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+get_caller_identity() # check current identity
+
+x &lt;- get_session_token() # get token (T1) but do not use
+set_credentials(x)       # now use those credentials
+
+x &lt;- get_session_token(use = TRUE) # get and use another temp token (T2)
+get_caller_identity() # check that token is in use
+
+# assume a role
+r &lt;- assume_role("arn:aws:iam::111111111111:role/my-role", "test", use=TRUE)
+get_caller_identity() # check that the role has been assumed
+
+restore_credentials() # return to credentials of T2
+restore_credentials() # return to credentials of T1
+restore_credentials() # return to root credentials
+get_caller_identity() # check identity, again
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rmd2word</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Converts R markdown code to Word and PDF documents</h2>
+
+<h3>Description</h3>
+
+<p>Creates Word documents from input R markdown documents. On a Windows
+Operating System, accessible PDF documents may be created from these Word
+files if the software
+<a href="https://github.com/cognidox/OfficeToPDF">OfficeToPDF</a> is installed.
+The convenience function <code>install_otp</code> can be used to install
+this software. Zip archives of the Word and/or PDF files may be created.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rmd2word(
+  x,
+  doc = "accessr",
+  pdf = isTRUE(.Platform$OS.type == "windows"),
+  dir,
+  zip = if (length(x) == 1 &amp; !add) FALSE else TRUE,
+  add = FALSE,
+  quiet = TRUE,
+  rm_word = FALSE,
+  rm_pdf = FALSE,
+  inc_word = FALSE,
+  params = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A character vector containing the names (<strong>no extension</strong>) of
+the <code>.Rmd</code> files to convert  if they are in the current working
+directory, or paths to the files, either absolute or relative to the
+current working directory, e.g., <code>DIRECTORY/file1</code>.  The <code>.html</code>
+files are created in the same directory as their respective <code>.Rmd</code>
+file.  If <code>x</code> is missing then an html file is created from each of
+the <code>.Rmd</code> files in the current working directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doc</code></td>
+<td>
+<p>An optional character vector (<strong>including the file
+extension</strong>) to specify template Word documents on which to base the style
+of the respective output Word documents. This determines what is passed as
+the argument <code>reference_docx</code> to
+<code>word_document</code>, via
+<code>officedown::rdocx_document</code>.
+Different templates may be used for different files.
+<code>rep_len(doc, length(x))</code> is used to force <code>length(doc)</code> to have
+the same length as <code>x</code>. See <strong>Details</strong> for some built-in
+options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>A logical scalar.  Should <code>OfficeToPDF.exe</code> be used to
+create PDF files from the Word documents that are produced?  If
+<code>pdf = FALSE</code> then any zip archives created contain only Word files.
+PDF files will only be produced if the Operating System is
+<code>"windows"</code>, that is, <code>.Platform$OS.type == "windows"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>A path to the directory in which the file <code>OfficeToPDF.exe</code>
+sits.  This is not needed if this file sits in the current working
+directory or a directory in the list returned by <code>searchpaths()</code>.
+Otherwise, it may be a path relative to the current working directory
+or an absolute path.  If <code>dir</code> is missing then <code>rmd2word</code> will
+look in <code>system.file(package = "accessr")</code>, which is the default
+installation location of <code>install_otp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zip</code></td>
+<td>
+<p>A logical scalar or character vector indicating whether PDF
+files should be put into a zip archive.  If <code>zip = FALSE</code> then no
+zip archive is created.  Otherwise, an archive is created in each unique
+directory involved in <code>x</code>.  If <code>zip = TRUE</code> then any archive
+created has the name <code>accessr_word.zip</code>.  If <code>zip</code> is a
+character vector of zip file names (no extension) then these names are
+used to name the zip archives.  The names are recycled to the length of
+the number of unique directories if necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>A logical scalar that determines what happens if the output
+zip file already exists.  If <code>add = TRUE</code> then files are added to the
+zip file and if <code>add = FALSE</code> then the zip file is deleted and will
+only contain newly-created files.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>A logical scalar.  Passed to <code>render</code> as
+the argument <code>quiet</code>.  The default, <code>quite = TRUE</code> suppresses
+all printing during rendering of the document.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm_word</code></td>
+<td>
+<p>A logical scalar.  If <code>rm_word = TRUE</code> then all the Word
+files created are deleted.  Otherwise, they are not deleted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rm_pdf</code></td>
+<td>
+<p>A logical scalar.  If <code>rm_pdf = TRUE</code> and a zip archive
+of PDF files is produced then the individual PDF files are deleted.
+Otherwise, they are not deleted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inc_word</code></td>
+<td>
+<p>A logical scalar.  If <code>inc_word = TRUE</code> then the Word
+files are included in the zip file created.  Otherwise, they are not
+included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>A list of named parameters to pass as the argument
+<code>params</code> to <code>render</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to
+<code>word_document</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Information such as <code>title</code>, <code>author</code>, <code>lang</code> etc in
+the YAML header in the Rmd file are used but <code>output</code> is ignored.
+</p>
+<p>The simplest setup is to have the <code>.Rmd</code> files in the current
+working directory, in which case <code>rmd2word()</code> will create Word documents
+from all these Rmd files, but the <code>.Rmd</code> files may be in different
+directories.
+</p>
+<p>It is possible to have the <code>.Rmd</code> files in different
+directories, but any non-<code>"default"</code> values in <code>doc</code> must be
+such that the <code>reference_docx</code> argument of
+<code>word_document</code> finds a template Word file.
+If the template is in the same directory as its respective <code>.Rmd</code>
+component in  <code>x</code> then the filename, e.g. <code>"template.docx"</code> will
+suffice.  Otherwise, a path to the template should be given, either
+relative to the directory in which the <code>.Rmd</code> file sits, or an
+absolute path.
+</p>
+<p>For information on how to create a template Word document see Richard
+Layton's guide
+<a href="https://rmarkdown.rstudio.com/articles_docx.html">Happy collaboration
+with Rmd to docx</a>.
+</p>
+<p>There are some built-in template options:
+</p>
+
+<ul>
+<li> <p><code>doc = "officedown"</code>: uses
+<code>rdocx_document</code>'s default,
+</p>
+</li>
+<li> <p><code>doc = "accessr"</code>: similar to <code>"officedown"</code> but with
+narrower margins and black text for titles and darker hyperlinks, to
+avoid contrast issues,
+</p>
+</li>
+<li> <p><code>doc = "18"</code>: like <code>"accessr"</code> but with 18pt text,
+</p>
+</li>
+<li> <p><code>doc = "exam"</code>: creates a Word file with a header
+"Examination paper for STAT0002" on the left and "Page x of n" on the
+right.
+</p>
+</li>
+</ul>
+<p>To use your own template(s), provide their filename(s).
+A component equal to <code>"officedown"</code> chooses
+<code>rdocx_document</code>'s default.
+A component equal to <code>"accessr"</code> chooses <code>accessr</code>'s internal
+template file, which has narrower margins and darker blue fonts for titles
+and hyperlinks, to avoid contrast issues.  To use your own template(s),
+provide their filenames.  See <strong>Details</strong> for more information.
+</p>
+<p>The <code>render</code> function creates a Word file from
+each input <code>.Rmd</code> file.  Then
+<a href="https://github.com/cognidox/OfficeToPDF">OfficeToPDF</a> is used to
+convert the Word file to a PDF file.  The file <code>OfficeToPDF.exe</code>
+needs to be downloaded from the
+<a href="https://github.com/cognidox/OfficeToPDF/releases">OfficeToPDF
+releases</a> page and placed in the directory specified by the argument
+<code>dir</code>, or in a directory that is in the list returned by
+<code>searchpaths</code>.
+If <code>OfficeToPDF.exe</code> cannot be found then an error is thrown.
+A warning will be given if any of the PDF files could not be produced.
+This will occur if there is an existing PDF file of the same name open
+in another application.
+</p>
+
+
+<h3>Value</h3>
+
+<p>In addition to creating the Word and PDF files, and perhaps zip
+files, a list containing the following vector components is returned
+invisibly:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>error_codes </code></td>
+<td>
+<p>If <code>pdf = TRUE</code>, numeric values returned from
+<code>system</code>.
+If <code>wait = FALSE</code> then these values will be 0 (the success value)
+even if some of the PDF files could not be produced.  The error code 17234
+indicates that a PDF file was open in another application.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>files </code></td>
+<td>
+<p>(absolute) paths and file names of all files created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zips </code></td>
+<td>
+<p>(relative) paths and names of all zip files created (if
+<code>zip = TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Layton, Richard. (2015) Happy collaboration with Rmd to docx.
+R Markdown from RStudio article.
+<a href="https://rmarkdown.rstudio.com/articles_docx.html">https://rmarkdown.rstudio.com/articles_docx.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>install_otp</code> to install
+<a href="https://github.com/cognidox/OfficeToPDF">OfficeToPDF</a>.
+</p>
+<p><code>rmd2many</code>, <code>rmd2ioslides</code>,
+<code>rmd2slidy</code>, <code>rmd2html</code> for other output formats.
+</p>
+<p>The <a href="https://paulnorthrop.github.io/accessr/">accessr
+package page on Github</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create a Word file from example.Rmd
+got_hux &lt;- requireNamespace("huxtable", quietly = TRUE)
+got_flex &lt;- requireNamespace("flextable", quietly = TRUE)
+got_pandoc &lt;- rmarkdown::pandoc_available("1.14")
+got_all &lt;- got_hux &amp;&amp; got_flex &amp;&amp; got_pandoc
+# This example needs packages huxtable and flextable
+# We pass pdf = FALSE because OfficeToPDF is needed to convert Word to PDF
+# and this is only relevant on  Windows Operating System.
+if (got_all) {
+  ex_file &lt;- system.file(package = "accessr", "examples", "example.Rmd")
+  file.copy(ex_file, tdir &lt;- tempdir(check = TRUE), overwrite = TRUE)
+  ex_file &lt;- list.files(tdir, pattern = "example.Rmd", full.names = TRUE)
+  ex_file &lt;- sub(".Rmd", "", ex_file)
+  rmd2word(ex_file, pdf = FALSE)
+}
+</code></pre>
+
+
+</div>

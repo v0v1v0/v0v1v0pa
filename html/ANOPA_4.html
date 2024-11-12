@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anopa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ANOPA: analysis of proportions using Anscombe transform.</h2>
+
+<h3>Description</h3>
+
+<p>The function 'anopa()' performs an ANOPA for designs with up to 4 factors
+according to the 'ANOPA' framework. See Laurencelle and Cousineau (2023) for more.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anopa(formula = NULL, data = NULL, WSFactors = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula with the factors on the left-hand side. See below for writing the
+formula to match the data format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Dataframe in one of wide, long, or compiled format;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WSFactors</code></td>
+<td>
+<p>For within-subjet designs, provide the factor names and their number of levels.
+This is expressed as a vector of strings such as "Moment(2)".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note the following limitations:
+</p>
+
+<ol>
+<li>
+<p> The main analysis performed by <code>anopa()</code> is currently restricted to four
+factors in total (between and/or within). Contact the author if you plan to analyse
+more complex designs.
+</p>
+</li>
+<li>
+<p> If you have repeated-measure design, the data <em>must</em> be provided in wide or
+long format. The correlation between successes cannot be assessed once the data are
+in a compiled format.
+</p>
+</li>
+<li>
+<p> The data can be given in three formats:
+</p>
+
+<ul>
+<li> <p><code>wide</code>: In the wide format, there is one line for each participant, and
+one column for each between-subject factors in the design. In the column(s), the level
+of the factor is given (as a number, a string, or a factor). For within-subject
+factors, the columns contains 0 or 1 based on the status of the measurement.
+</p>
+</li>
+<li> <p><code>long</code>: In the long format, there is an identifier column for each participant,
+a factor column and a level number for that factor. If there are n participants
+and m factors, there will be in total n x m lines.
+</p>
+</li>
+<li> <p><code>compiled</code>: In the compiled format, there are as many lines as there are cells in the
+design. If there are two factors, with two levels each, there will be 4 lines.
+</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>See the vignette <a href="../articles/B-DataFormatsForProportions.html"><code>DataFormatsForProportions</code></a>
+for more on data format and how to write their formula.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An omnibus analyses of the given proportions. Each factor's significance is
+assessed, as well as their interactions when there is more than one factor. For
+decomposition of the main analyses, follow the analysis with <code>emProportions()</code>,
+<code>contrastProportions()</code>, or <code>posthocProportions()</code>)
+</p>
+
+
+<h3>References</h3>
+
+<p>Laurencelle L, Cousineau D (2023).
+“Analysis of proportions using arcsine transform with any experimental design.”
+<em>Frontiers in Psychology</em>, <b>13</b>, 1045436.
+<a href="https://doi.org/10.3389/fpsyg.2022.1045436">doi:10.3389/fpsyg.2022.1045436</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># -- FIRST EXAMPLE --
+# Basic example using a single between-subject factor design with the data in compiled format. 
+# Ficticious data present success (1) or failure (0) of the observation according
+# to the state of residency (three levels: Florida, Kentucky or Montana) for 
+# 3 possible cells. There are 175 observations (with unequal n, Montana having only)
+# 45 observations). 
+minimalBSExample
+# The data are in compiled format, consequently the data frame has only three lines.
+# The complete data frame in wide format would be composed of 175 lines, one per participant.
+
+# The following formula using curly braces is describing this data format
+# (note the semicolon to separate the number of successes from the number of observations):
+formula &lt;- {s; n} ~ state
+
+# The analysis is performed using the function `anopa()` with a formula and data:
+w &lt;- anopa(formula, minimalBSExample) 
+summary(w)
+# As seen, the proportions of success do not differ across states.
+
+# To see the proportions when the data is in compiled format, simply divide the 
+# number of success (s) by the total number of observations (n):
+minimalBSExample$s / minimalBSExample$n
+
+# A plot of the proportions with error bars (default 95% confidence intervals) is
+# easily obtained with
+anopaPlot(w)
+
+# The data can be re-formated into different formats with, 
+# e.g., `toRaw()`, `toLong()`, `toWide()`
+head(toWide(w))
+# In this format, only 1s and 0s are shown, one participant per line.
+# See the vignette `DataFormatsForFrequencies` for more.
+
+# -- SECOND EXAMPLE --
+# Real-data example using a three-factor design with the data in compiled format:
+ArringtonEtAl2002
+
+#  This dataset, shown in compiled format, has three cells missing 
+# (e.g., fishes whose location is African, are Detrivore, feeding Nocturnally)
+w &lt;- anopa( {s;n} ~ Location * Trophism * Diel, ArringtonEtAl2002 )
+
+# The function `anopa()` generates the missing cells with 0 success over 0 observations.
+# Afterwards, cells with missing values are imputed  based on the option:
+getOption("ANOPA.zeros")
+# where 0.05 is 1/20 of a success over one observations (arcsine transforms allows 
+# fractions of success; it remains to be studied what imputation strategy is best...)
+
+# The analysis suggests a main effect of Trophism (type of food ingested)
+# but the interaction Trophism by Diel (moment of feeding) is not to be neglected...
+summary(w) # or summarize(w)
+
+# The above presents both the uncorrected statistics as well as the corrected
+# ones for small samples [@w76]. You can obtain only the uncorrected...
+uncorrected(w)
+
+#... or the corrected ones
+corrected(w)
+
+
+# You can also ask easier outputs with:
+explain(w)   # human-readable ouptut NOT YET DONE
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_bootstrap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap a model</h2>
+
+<h3>Description</h3>
+
+<p>Samples individuals with replacement from the database, and estimates the model for each sample.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_bootstrap(
+  apollo_beta,
+  apollo_fixed,
+  apollo_probabilities,
+  apollo_inputs,
+  estimate_settings = list(estimationRoutine = "bgw", maxIterations = 200, writeIter =
+    FALSE, hessianRoutine = "none", printLevel = 2L, silent = FALSE, maxLik_settings =
+    list()),
+  bootstrap_settings = list(nRep = 30, samples = NA, calledByEstimate = FALSE, recycle =
+    TRUE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apollo_beta</code></td>
+<td>
+<p>Named numeric vector. Names and values for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_fixed</code></td>
+<td>
+<p>Character vector. Names (as defined in <code>apollo_beta</code>) of parameters whose value should not change during estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_probabilities</code></td>
+<td>
+<p>Function. Returns probabilities of the model to be estimated. Must receive three arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters.
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: List containing options of the model. See apollo_validateInputs.
+</p>
+</li>
+<li> <p><strong><code>functionality</code></strong>: Character. Can be either <strong><code>"components"</code></strong>, <strong><code>"conditionals"</code></strong>, <strong><code>"estimate"</code></strong> (default), <strong><code>"gradient"</code></strong>, <strong><code>"output"</code></strong>, <strong><code>"prediction"</code></strong>, <strong><code>"preprocess"</code></strong>, <strong><code>"raw"</code></strong>, <strong><code>"report"</code></strong>, <strong><code>"shares_LL"</code></strong>, <strong><code>"validate"</code></strong> or <strong><code>"zero_LL"</code></strong>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_inputs</code></td>
+<td>
+<p>List grouping most common inputs. Created by function apollo_validateInputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate_settings</code></td>
+<td>
+<p>List. Options controlling the estimation process. See apollo_estimate. 
+<code>hessianRoutine="none"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap_settings</code></td>
+<td>
+<p>List containing settings for the sampling procedure. User input is required for all settings except those with a default or marked as optional. 
+</p>
+
+<ul>
+<li> <p><strong>calledByEstimate</strong>: Logical. TRUE if <code>apollo_bootstrap</code> is called by apollo_estimate. FALSE by default.
+</p>
+</li>
+<li> <p><strong>nRep</strong>: Numeric scalar. Number of times the model must be estimated with different samples. Default is 30.
+</p>
+</li>
+<li> <p><strong>recycle</strong>: Logical. If TRUE, the function will look for old output files and append new repetitions to them. If FALSE, output files will be overwritten.
+</p>
+</li>
+<li> <p><strong>samples</strong>: Numeric matrix or data.frame. Optional argument. Must have as many rows as 
+observations in the <code>database</code>, and as many columns as number of repetitions
+wanted. Each column represents a re-sample, and each element the number of times 
+that observation must be included in the sample. If this argument is provided, 
+then <code>nRep</code> is ignored. Note that this allows sampling at the observation 
+rather than the individual level, which is not recommended for panel data.
+</p>
+</li>
+<li> <p><strong>seed</strong>: <strong>DEPRECATED, <code>apollo_control$seed</code> is used since v0.2.5</strong>. Numeric scalar (integer). 
+Random number generator seed to generate the bootstrap samples. Only used if <code>samples</code> 
+is <code>NA</code>. Default is 24.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements a basic block bootstrap. It estimates the model parameters on <code>nRep</code> different samples.
+Each new sample is constructed by sampling <strong>with replacement</strong> from the original full sample. Each new sample has as many 
+individuals as the original sample, though some of them may be repeated. Sampling is done at the <strong>individual</strong> level, 
+therefore if different individuals have different number of observations, each re-sample does not necessarily have the same number of observations.
+</p>
+<p>If the sampling should be done at the individual level (not recommended for panel data), then the optional 
+<code>bootstrap_settings$samples</code> argument should be provided.
+</p>
+<p>For each sample, only the parameters and log-likelihood are estimated. Standard errors are not calculated (they may be added in 
+future versions). The composition of the re-samples is stored in a file, but is stable with the same seed.
+</p>
+<p>This function writes three different files to the working or output directory:
+</p>
+
+<ul>
+<li> <p><strong><code>modelName_bootstrap_params.csv</code></strong>: estimated parameters, final log-likelihood, and number of observations for each re-sample
+</p>
+</li>
+<li> <p><strong><code>modelName_bootstrap_samples.csv</code></strong>: composition of each re-sample.
+</p>
+</li>
+<li> <p><strong><code>modelName_bootstrap_vcov.csv</code></strong>: variance-covariance matrix of the estimated parameters across re-samples.
+</p>
+</li>
+</ul>
+<p>The first two files are updated throughout the run of this function, while the last one is only written once the function finishes.
+</p>
+<p>When run, this function will look for the first two files above in the working/output directory. If they are found, the function will
+attempt to pick up re-sampling from where those files left off. This is useful in cases where the original bootstrapping was 
+interrupted, or when additional re-sampling runs are to be performed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with three elements.
+</p>
+
+<ul>
+<li> <p><strong><code>estimates</code></strong>: Matrix containing the parameter estimates for each repetition. As many rows as repetitions and as many columns as parameters.
+</p>
+</li>
+<li> <p><strong><code>LL</code></strong>: Vector of final log-likelihoods of each repetition.
+</p>
+</li>
+<li> <p><strong><code>varcov</code></strong>: Covariance matrix of the estimated parameters across the repetitions.
+</p>
+</li>
+</ul>
+<p>This function also writes three output files to the working/output directory, with the following names ('x' represents the model name):
+</p>
+
+<ul>
+<li> <p><strong>x_bootstrap_params.csv</strong>: Table containing the parameter estimates, log-likelihood, and number of observations for each repetition.
+</p>
+</li>
+<li> <p><strong>x_bootstrap_samples.csv</strong>: Table containing the description of the sample used in each repetition. Same format than <code>bootstrap_settings$samples</code>.
+</p>
+</li>
+<li> <p><strong>x_bootstrap_vcov</strong>: Table containing the covariance matrix of estimated parameters across the repetitions.
+</p>
+</li>
+</ul>
+</div>

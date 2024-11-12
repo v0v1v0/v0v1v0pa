@@ -1,0 +1,307 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auglag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Nonlinear optimization with constraints
+</h2>
+
+<h3>Description</h3>
+
+<p>Augmented Lagrangian Minimization Algorithm for optimizing smooth nonlinear objective functions with constraints. Linear or nonlinear equality and inequality constraints are allowed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auglag(par, fn, gr, hin, hin.jac, heq, heq.jac, 
+control.outer=list(), control.optim = list(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>Starting vector of parameter values.  Any initial vector, even those violating inequality constraints, may be specified.  This is in contrast to <code>constrOptim.nl</code> which requires  "feasible" initial values with respect to inequality constraints</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+
+<p>Nonlinear objective function that is to be optimized. 
+A scalar function that takes a real vector as argument and 
+returns a scalar that is the value of the function at that point 
+(see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gr</code></td>
+<td>
+
+<p>The gradient of the objective function <code>fn</code> evaluated at the 
+argument.  This is a vector-function that takes a real 
+vector as argument and returns a real vector of the same length.  
+It defaults to "NULL", which means that gradient is evaluated numerically.  Computations are dramatically faster in high-dimensional problems when the exact gradient is provided.  See *Example*. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hin</code></td>
+<td>
+
+<p>a vector function specifying inequality constraints such that hin[j] &gt; 0 for all j
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hin.jac</code></td>
+<td>
+
+<p>Jacobian of <code>hin</code>.  If unspecified, it will be computed using finite-difference, but computations will be faster if specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heq</code></td>
+<td>
+
+<p>a vector function specifying equality constraints such that heq[j] = 0 for all j
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heq.jac</code></td>
+<td>
+
+<p>Jacobian of <code>heq</code>.  If unspecified, it will be computed using finite-difference, but computations will be faster if specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.outer</code></td>
+<td>
+<p>A list of control parameters to be used by the outer loop in <code>constrOptim.nl</code>.  See *Details* for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.optim</code></td>
+<td>
+<p>A list of control parameters to be used by the unconstrained optimization algorithm in the inner loop. Identical to that used in <code>optim</code> or in <code>nlminb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>fn</code>, <code>gr</code>, <code>hin</code>, <code>heq</code>.  All of them must accept any specified arguments, either explicitly or by having a ... argument, but they do not need to use them all.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Argument <code>control.outer</code> is a list specifing any changes to default values of algorithm control parameters for the outer loop.  Note that the names of these must be specified completely.  Partial matching will not work. The list items are as follows:
+</p>
+<p><code>lam0</code>: Initial value for the Lagrangian parameter.
+</p>
+<p><code>sig0</code>: A scaling parameter for penalty term that is augmented to the Lagrangian.
+</p>
+<p><code>eps</code>: Tolerance for convergence of outer iterations of the barrier and/or augmented lagrangian algorithm
+</p>
+<p><code>itmax</code>: Maximum number of outer iterations.
+</p>
+<p><code>ilack.max</code>: Maximum number of outer iterations where no change in parameters is tolerated.
+</p>
+<p><code>trace</code>: A logical variable indicating whether information on outer iterations should be printed out.  If TRUE, at each outer iteration information is displayed on: (i) how well the inequality and equalities are satisfied, (ii) current parameter values, and (iii) current objective function value.
+</p>
+<p><code>method</code>: Unconstrained optimization algorithm for inner loop optimization.  User can specify any algorithm in <code>optim</code>(). The default is the "BFGS" variable metric method.  However, the user can also invoke the <code>nlminb</code>() algorithm by specifying method="nlminb", which can often perform better than "BFGS."
+</p>
+<p><code>NMinit</code>: A logical variable indicating whether "Nelder-Mead" algorithm should be used in optim() for the first outer iteration.
+</p>
+<p><code>i.scale</code>: A vector of length equal to number of inequalities that may be used to scale the inequalities or it can be a scalar in which case all the inequalities are scaled by the same value. 
+</p>
+<p><code>e.scale</code>: A vector of length equal to number of equalities that may be used to scale the equalities or it can be a scalar in which case all the equalities are scaled by the same value. 
+</p>
+<p><code>kkt2.check</code>: A logical variable (TRUE/FALSE) indicating whether the second-order KKT condition should be checked.  Deafult is TRUE.  It may be set to FALSE in problems where the Hessian computation can b etime consuming.  
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>Parameters that optimize the nonlinear objective function, satisfying constraints, if convergence is successful.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>The value of the objective function at termination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>A vector of length 2 denoting the number of times the objective <code>fn</code> and the <code>gr</code> were evaluated, respectively.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>An integer code indicating type of convergence.  <code>0</code> indicates successful convergence. Positive integer codes indicate failure to converge.    
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outer.iterations</code></td>
+<td>
+<p>Number of outer iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Values of the Lagrangian parameter.  This is a vector of same length as the total number of inequalities and equalities.  It must be zero for inactive inequalities; non-negative for active inequalities; and can have any sign for equalities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>Value of augmented penalty parameter for the quadratic term</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>Gradient of the augmented Lagrangian function at convergence. It should be small.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>Hessian of the augmented Lagrangian function at convergence. It should be positive (negative) definite for minimization (maximization)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ineq</code></td>
+<td>
+<p>Values of inequlaity constraints at convergence. All of them must be non-negative</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equal</code></td>
+<td>
+<p>Values of equlaity constraints at convergence. All of them must be close to zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kkt1</code></td>
+<td>
+<p>A logical variable indicating whether or not the first-order KKT conditions were satisfied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kkt2</code></td>
+<td>
+<p>A logical variable indicating whether or not the second-order KKT conditions were satisfied.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ravi Varadhan, Center on Aging and Health, Johns Hopkins University.
+</p>
+
+
+<h3>References</h3>
+
+<p>Lange K, <em>Optimization</em>, 2004, Springer.
+</p>
+<p>Madsen K, Nielsen HB, Tingleff O, <em>Optimization With Constraints</em>, 2004, IMM, Technical University of Denmark.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See Also <code>constrOptim.nl</code>, <code>nlminb</code>, <code>optim</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+fn &lt;- function(x) (x[1] + 3*x[2] + x[3])^2 + 4 * (x[1] - x[2])^2
+
+gr &lt;- function(x) {
+g &lt;- rep(NA, 3)
+g[1] &lt;- 2*(x[1] + 3*x[2] + x[3]) + 8*(x[1] - x[2]) 
+g[2] &lt;- 6*(x[1] + 3*x[2] + x[3]) - 8*(x[1] - x[2]) 
+g[3] &lt;- 2*(x[1] + 3*x[2] + x[3])
+g
+}
+
+heq &lt;- function(x) {
+h &lt;- rep(NA, 1)
+h[1] &lt;- x[1] + x[2] + x[3] - 1
+h
+}
+
+
+heq.jac &lt;- function(x) {
+j &lt;- matrix(NA, 1, length(x))
+j[1, ] &lt;- c(1, 1, 1)
+j
+}
+
+hin &lt;- function(x) {
+h &lt;- rep(NA, 1)
+h[1] &lt;- 6*x[2] + 4*x[3] - x[1]^3 - 3
+h[2] &lt;- x[1]
+h[3] &lt;- x[2]
+h[4] &lt;- x[3]
+h
+}
+
+
+hin.jac &lt;- function(x) {
+j &lt;- matrix(NA, 4, length(x))
+j[1, ] &lt;- c(-3*x[1]^2, 6, 4)
+j[2, ] &lt;- c(1, 0, 0)
+j[3, ] &lt;- c(0, 1, 0)
+j[4, ] &lt;- c(0, 0, 1)
+j
+}
+
+# Note: `auglag' accepts infeasible starting values
+#
+p0 &lt;- runif(3)
+ans &lt;- auglag(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac) 
+ans
+
+# Not specifying the gradient and the Jacobians
+set.seed(12)
+p0 &lt;- runif(3)
+ans2 &lt;- auglag(par=p0, fn=fn, heq=heq, hin=hin) 
+ans2
+
+# Using "nlminb" algorithm
+ans3 &lt;- auglag(par=p0, fn=fn, heq=heq, hin=hin, control.outer=list(method="nlminb")) 
+ans3
+
+# Turning off the second-order KKT condition check
+ans4 &lt;- auglag(par=p0, fn=fn, heq=heq, hin=hin, control.outer=list(kkt2.check=FALSE)) 
+ans4
+
+</code></pre>
+
+
+</div>

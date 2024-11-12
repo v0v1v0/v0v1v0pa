@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DockerRegistry</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Docker registry class</h2>
+
+<h3>Description</h3>
+
+<p>Class representing a <a href="https://docs.docker.com/registry/">Docker registry</a>. Note that this class can be used to interface with any Docker registry that supports the HTTP V2 API, not just those created via the Azure Container Registry service. Use the docker_registry function to instantiate new objects of this class.
+</p>
+
+
+<h3>Methods</h3>
+
+<p>The following methods are available, in addition to those provided by the AzureRMR::az_resource class:
+</p>
+
+<ul>
+<li> <p><code>login(...)</code>: Do a local login to the registry via <code style="white-space: pre;">⁠docker login⁠</code>; necessary if you want to push and pull images. By default, instantiating a new object of this class will also log you in. See 'Details' below.
+</p>
+</li>
+<li> <p><code>push(src_image, dest_image, ...)</code>: Push an image to the registry, using <code style="white-space: pre;">⁠docker tag⁠</code> and <code style="white-space: pre;">⁠docker push⁠</code>.
+</p>
+</li>
+<li> <p><code>pull(image, ...)</code>: Pull an image from the registry, using <code style="white-space: pre;">⁠docker pull⁠</code>.
+</p>
+</li>
+<li> <p><code>get_image_manifest(image, tag="latest")</code>: Gets the manifest for an image.
+</p>
+</li>
+<li> <p><code>get_image_digest(image, tag="latest")</code>: Gets the digest (SHA hash) for an image.
+</p>
+</li>
+<li> <p><code>delete_image(image, digest, confirm=TRUE)</code>: Deletes an image from the registry.
+</p>
+</li>
+<li> <p><code>list_repositories()</code>: Lists the repositories (images) in the registry.
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>The arguments to the <code>login()</code> method are:
+</p>
+
+<ul>
+<li> <p><code>tenant</code>: The Azure Active Directory (AAD) tenant for the registry.
+</p>
+</li>
+<li> <p><code>username</code>: The username that Docker will use to authenticate with the registry. This can be either the admin username, if the registry was created with an admin account, or the ID of a registered app that has access to the registry.
+</p>
+</li>
+<li> <p><code>password</code>: The password that Docker will use to authenticate with the registry.
+</p>
+</li>
+<li> <p><code>app</code>: The app ID to use to authenticate with the registry. Set this to NULL to authenticate with a username and password, rather than via AAD.
+</p>
+</li>
+<li> <p><code>...</code>: Further arguments passed to AzureAuth::get_azure_token.
+</p>
+</li>
+<li> <p><code>token</code>: An Azure token object. If supplied, all authentication details will be inferred from this.
+</p>
+</li>
+</ul>
+<p>The <code>login()</code>, <code>push()</code> and <code>pull()</code> methods for this class call the <code>docker</code> commandline tool under the hood. This allows all the features supported by Docker to be available immediately, with a minimum of effort. Any calls to the <code>docker</code> tool will also contain the full commandline as the <code>cmdline</code> attribute of the (invisible) returned value; this allows scripts to be developed that can be run outside R.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>acr, docker_registry, call_docker
+</p>
+<p><a href="https://docs.docker.com/engine/reference/commandline/cli/">Docker commandline reference</a>
+</p>
+<p><a href="https://docs.docker.com/registry/spec/api/">Docker registry API</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+reg &lt;- docker_registry("myregistry")
+
+reg$list_repositories()
+
+# create an image from a Dockerfile in the current directory
+call_docker(c("build", "-t", "myimage", "."))
+
+# push the image
+reg$push("myimage")
+
+reg$get_image_manifest("myimage")
+reg$get_image_digest("myimage")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

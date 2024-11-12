@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>droplet_ssh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Remotely execute ssh code, upload &amp; download files.</h2>
+
+<h3>Description</h3>
+
+<p>Assumes that you have ssh &amp; scp installed, and password-less login set up on
+the droplet.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">droplet_ssh(
+  droplet,
+  ...,
+  user = "root",
+  keyfile = NULL,
+  ssh_passwd = NULL,
+  verbose = FALSE
+)
+
+droplet_upload(
+  droplet,
+  local,
+  remote,
+  user = "root",
+  keyfile = NULL,
+  ssh_passwd = NULL,
+  verbose = FALSE
+)
+
+droplet_download(
+  droplet,
+  remote,
+  local,
+  user = "root",
+  keyfile = NULL,
+  ssh_passwd = NULL,
+  verbose = FALSE,
+  overwrite = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>droplet</code></td>
+<td>
+<p>A droplet, or something that can be coerced to a droplet by
+<code>as.droplet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Shell commands to run. Multiple commands are combined with
+<code>&amp;&amp;</code> so that execution will halt after the first failure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>user</code></td>
+<td>
+<p>User name. Defaults to "root".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keyfile</code></td>
+<td>
+<p>Optional private key file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ssh_passwd</code></td>
+<td>
+<p>Optional passphrase or callback function for authentication.
+Refer to the <code>ssh::ssh_connect</code> documentation for more
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If TRUE, will print command before executing it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>local, remote</code></td>
+<td>
+<p>Local and remote paths.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>If TRUE, then overwrite destination files if they already
+exist.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Uploads and downloads are recursive, so if you specify a directory,
+everything inside the directory will also be downloaded.
+</p>
+<p>With the chang to package <code>ssh</code>, we create ssh session objects
+(C pointers) internally, and cache them, then look them up in the cache
+based on combination of user and IP address. That is, there's separate
+sessions for each user for the same IP address.
+</p>
+<p>ssh sessions are cleaned up at the end of your R session.
+</p>
+
+
+<h3>Value</h3>
+
+<p>On success, the droplet (invisibly). On failure, throws an error.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+d &lt;- droplet_create() %&gt;% droplet_wait()
+
+# Upgrade system packages
+d %&gt;%
+  droplet_ssh("apt-get update") %&gt;%
+  droplet_ssh("sudo apt-get upgrade -y --force-yes") %&gt;%
+  droplet_ssh("apt-get autoremove -y")
+
+# Install R
+d %&gt;%
+  droplet_ssh("apt-get install r-base-core r-base-dev --yes --force-yes")
+
+# Upload and download files -------------------------------------------------
+
+tmp &lt;- tempfile()
+saveRDS(mtcars, tmp)
+d %&gt;% droplet_upload(tmp, ".")
+d %&gt;% droplet_ssh("ls")
+
+tmp2 &lt;- tempdir()
+d %&gt;% droplet_download(basename(tmp), tmp2)
+mtcars2 &lt;- readRDS(file.path(tmp2, basename(tmp)))
+
+stopifnot(all.equal(mtcars, mtcars2))
+
+
+## another upload/download example
+tmp &lt;- tempfile(fileext = ".txt")
+writeLines("foo bar", tmp)
+readLines(tmp)
+d %&gt;% droplet_upload(tmp, ".")
+d %&gt;% droplet_ssh("ls")
+
+tmp2 &lt;- tempdir()
+unlink(tmp)
+d %&gt;% droplet_download(basename(tmp), tmp2)
+readLines(file.path(tmp2, basename(tmp)))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

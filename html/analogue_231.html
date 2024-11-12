@@ -1,0 +1,435 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Stratiplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Palaeoecological stratigraphic diagrams</h2>
+
+<h3>Description</h3>
+
+<p>Draws palaeoecological stratigraphic diagrams of one or more variables
+as a function of depth/age, with the time dimension flowing from the
+bottom to the top of the y-axis, using the <span class="pkg">Lattice</span> graphics
+package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Stratiplot(x, ...)
+
+## Default S3 method:
+Stratiplot(x, y, type = "l", ylab = NULL, xlab = "",
+           pages = 1, rev = TRUE, ylim, sort = c("none", "wa", "var"),
+           svar = NULL, rev.sort = FALSE, strip = FALSE, topPad =6,
+           varTypes = "relative", absoluteSize = 0.5,
+           zoneNames = NULL, drawLegend = TRUE, na.action = "na.omit",
+           labelValues = NULL, labelAt = NULL, labelRot = 60, yticks,
+           ...)
+
+## S3 method for class 'formula'
+Stratiplot(formula, data, subset,
+           na.action = "na.pass", type = "l",
+           ylab = NULL, xlab = "", pages = 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix-like object; the variables to be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>numeric vector of depths/ages corresponding to rows in
+<code>x</code>. Length of <code>y</code> must be the same as <code>nrow(x)</code> or
+exactly equal to <code>nrow(x) / ncol(x)</code>. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>"formula"</code> (or one that can be
+coerced to that class): a symbolic description of the model to be
+fitted. The details of plot specification are given under
+‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character; The type of plotting. Can be a vector. Note
+that not all Lattice ‘type’s are supported and some new types
+are allowed. See <code>panel.Stratiplot</code> for further
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object
+coercible by <code>as.data.frame</code> to a data frame) containing
+the variables to plot. If not found in <code>data</code>, the variables
+are taken from <code>environment(formula)</code>, typically the
+environment from which <code>Stratiplot</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be  used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when
+the data contain <code>NA</code>s. The default is <code>"na.omit"</code> for the
+default method, which strips <code>NA</code>s from the stacked data,
+whereas the default for the formula method is <code>"na.pass"</code> which
+results in <code>NA</code> being passed on to the plotting function. See
+Details for further information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab, xlab</code></td>
+<td>
+<p>the x- and y-axis labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pages</code></td>
+<td>
+<p>numeric; the number of pages to draw the plot over. May
+be useful for data sets with many species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rev</code></td>
+<td>
+<p>logical; should the y-axis limits be reversed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>user supplied limits for the y-axis (time/depth). If not
+supplied, suitable limits will be determined from the data. As such,
+in general use <code>ylim</code> need not be supplied. If you choose to
+supply your own <code>ylim</code> values, note the default for argument
+<code>rev</code>; the default will reverse the values you supply to
+<code>ylim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>character; how should the variables (columns) of <code>x</code>
+be sorted on the plot. <code>"wa"</code> sorts by weighted averages
+of variable <code>svar</code> if not <code>NULL</code> or of <code>y</code>
+otherwise. The default when <code>"wa"</code> is specified is to
+order by wiehgted average of the depth/time axis – <code>y</code>. If
+<code>"var"</code>, then ordering is done as per the <strong>order</strong> of
+<code>svar</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svar</code></td>
+<td>
+<p>vector; optional variable to sort columns of <code>x</code> by.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rev.sort</code></td>
+<td>
+<p>logical; should the sorting order be reversed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strip</code></td>
+<td>
+<p>logical; Should panels have strips containing variable
+labels drawn on them? Default is <code>FALSE</code>, which labels each
+panel with a label resulting in a more familiar plot style.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topPad</code></td>
+<td>
+<p>numeric; additional padding for the top axis to
+accomodate long variable names. This is a temporary fudge until the
+actual space required can be automagically calculated from the
+variable names themselves. The currently gets most of the way there,
+but <code>topPad</code> is used to add some extra space if required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varTypes</code></td>
+<td>
+<p>a character vector of length 1 or equal in length to
+the number of variables plotted. If length 1, the vector is expanded
+to the required length. Two values are allowed; i.
+<code>"relative"</code>, and ii. <code>"absolute"</code>. <code>"relative"</code>
+treats the indicated variable as a percentage type variable and the
+panel width is scaled relative to the percentage type variables
+plotted. <code>"absolute"</code> treats the indicated variable as an
+absolute variable whose panel width should be independent of the
+other panels. Use <code>"absolute"</code> for variables that are not
+species compositional data or other percentage type data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absoluteSize</code></td>
+<td>
+<p>numeric, length 1. This controls the width of
+panels for variables marked as <code>"absolute"</code>, and is the
+proportion of the largest non-<code>"absolute"</code> panel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zoneNames</code></td>
+<td>
+<p>character vector of labels, one per zone, with which
+to label the zone legend, if drawn (see argument
+<code>drawLegend</code>). See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drawLegend</code></td>
+<td>
+<p>logical; should a legend for the zones</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labelValues</code></td>
+<td>
+<p>a vector of labels for the variables
+plotted. Should be equal in length to the number or variables in the
+resulting plot. The main use for <code>labelValues</code> is to provide
+non-standard labels for the variables, including a vector of
+expressions. See Examples for an illustration of this.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labelAt, labelRot</code></td>
+<td>
+<p>these control the placement and rotation,
+respectively, of the variable labels. <code>labelAt</code> is the
+coordinate at which the label is drawn; currently only one value is
+used so you can't place labels in different locations depending on
+which panel is drawn. This will be fixed in a future version. The
+default location for the label is the panel mid-point.
+<code>labelAt</code> controls the rotation of the label; it is a numeric
+value in degree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yticks</code></td>
+<td>
+<p>This is passed to the <code>scales</code> argument of
+<code>xyplot</code> as component <code>at</code>. This should be a
+numeric vector of tick locations for the y (depth/age) axis. Setting
+this to <code>NULL</code> or <code>FALSE</code> suppresses ticks on the y
+axis. The default uses <code>TRUE</code>, which uses the default choices
+for <code>at</code> used by <code>xyplot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to
+<code>panel.Stratiplot</code> and the underlying
+<code>xyplot</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function now includes preliminary code to handle both relative
+(proportional or percentage data) and absolute data types, and
+mixtures thereof. Mixtures can be specified by supplying a vector of
+types to <code>varTypes</code>, in the same order as the variables are drawn
+on the plot.
+</p>
+<p>Plots can be specified symbolically using a formula. A typical model
+has the form <code>Y ~ variables</code>, where <code>Y</code> is either the core
+depths or sample ages/dates (to be plotted on the y-axis) and
+<code>variables</code> is a series of terms which specifies the variables to
+plot against <code>Y</code>. Terms should be specified with the form
+<code>var1 + var2 + var3</code> to plot only those variables. Other,
+standard, notation for formulae apply, such as model formulae used in
+<code>lm</code>.
+</p>
+<p>For the formula method the default for argument <code>na.action</code> is
+<code>"na.pass"</code>, which results in any <code>NA</code> values being passed
+on to the plotting code. This allows for plotting of proxies that been
+measured on different levels of the stratigraphy. Should you wish to
+have <code>NA</code> removed from the data before plotting, use
+<code>na.action = "na.omit"</code>, though do note this will remove all rows
+where any column/variable takes the value <code>NA</code>. The default
+<code>Stratiplot</code> method, which is used by the formula method for
+plotting, will strip any <code>NA</code> values from the data provided to
+it. This allows the function to correctly handle the situation where
+proxies are measured on different levels of the core <em>and</em> you
+are displaying the data using lines of polygons. If the <code>NA</code> were
+not dropped by <code>Stratiplot.default</code>, any <code>NA</code> values would
+show up as breaks in the line or polygon drawn for each panel.
+</p>
+<p>In summary, the two methods have different defaults for
+<code>na.action</code> to allow them to handle proxies measured on different
+levels of the same core. This does mean that you can not use the
+formula interface <strong>and</strong> strip NA's at the
+<code>Stratiplot.default</code> level. If you need that level of control use
+<code>Stratiplot.default</code> directly by not providing a formula as
+argument <code>x</code> and by supplying data for the y-axis via argument
+<code>y</code>. See Examples for an illustration of these features.
+</p>
+<p>Note that <code>formula</code> is <strong>not</strong> passed on to
+<code>xyplot</code>. Instead, the formula is parsed and
+evaluated within <code>Stratiplot</code> and an appropriate data structure
+formed to facilitate plotting via <code>xyplot</code>. As
+such, the special features of <span class="pkg">Lattice</span> formulae cannot be used.
+</p>
+<p>If zones are drawn on the stratigraphic plot, the <code>zoneNames</code>
+argument can be used to supply a set of names with which to label the
+zones using a legend. This legend is drawn on the right-hand side of
+the the straigraphic diagram if <code>drawLegend = TRUE</code> is
+supplied. The <code>zoneNames</code> must be supplied in stratigraphic
+order, as that is the order in which they are drawn in the
+legend. Whether this ordering is reversed or not will depend on the
+value of argument <code>rev</code>. It is up to the user to provide the
+labels in the correct order. Zones are specified by the zone
+boundaries (excluding the core sequence top and bottom), and as a
+result 1 more label is required than the number of zone boundaries
+supplied. If no <code>zoneNames</code> is not supplied, but a legend is
+requested, suitable names will be produced. If you do not wish to have
+any labelling at all, then set <code>zoneNames = ""</code> as this will get
+recycled to the correct length. See the Example section for an
+illustration of how this drawing zones works. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A side effect of calling <code>Stratiplot</code> is that a plot is drawn on
+the currently active device. A Lattice plot object of class
+<code>"trellis"</code> is returned invisibly. This is a change from pre
+0.17-0 version of the package.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The function currently doesn't know about ages/dates and will
+interpret these as ‘depths’ instead. This will be fixed in a
+future version.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>xyplot</code>,
+<code>panel.Stratiplot</code>, <code>panel.Loess</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(V12.122)
+Depths &lt;- as.numeric(rownames(V12.122))
+
+(plt &lt;- Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+                   data = V12.122,  type = c("h","l","g","smooth")))
+
+## Order taxa by WA in depth --- ephasises change over time
+(plt &lt;- Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+                   data = V12.122, type = c("h"), sort = "wa"))
+
+## Using the default interface
+spp.want &lt;- c("O.univ","G.ruber","G.tenel","G.pacR")
+(plt &lt;- Stratiplot(V12.122[, spp.want], y = Depths,
+                   type = c("poly", "g")))
+
+## Adding zones to a Stratigraphic plot
+## Default labelling and draw zone legend
+## Here we choose 4 arbitrary Depths as the zone boundaries
+set.seed(123)
+Zones &lt;-sample(Depths, 4)
+Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+           data = V12.122, type = c("poly","g"),
+           zones = Zones)
+
+## As before, but supplying your own zone labels
+zone.labs &lt;- c("A","B","C","D","E")
+Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+           data = V12.122, type = c("poly","g"),
+           zones = Zones, zoneNames = zone.labs)
+
+## Suppress the drawing of the zone legend
+Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+           data = V12.122, type = c("poly","g"),
+           zones = Zones, drawLegend = FALSE)
+
+## Add zones and draw a legend, but do not label the zones
+Stratiplot(Depths ~ O.univ + G.ruber + G.tenel + G.pacR,
+           data = V12.122, type = c("poly","g"),
+           zones = Zones, zoneNames = "")
+
+## Show illustration of NA handling
+set.seed(42)
+dat &lt;- data.frame(Depth = 1:20, LOI = runif(20), TC = NA)
+dat &lt;- within(dat, TC[sample(20, 10)] &lt;- runif(10))
+## default is 'na.action = "na.pass"'
+Stratiplot(Depth ~ LOI + TC, data = dat, type = c("l","p"))
+## to remove rows with NA, use 'na.action = "na.omit"'
+Stratiplot(Depth ~ LOI + TC, data = dat, type = c("l","p"),
+           na.action = "na.omit")
+
+## Example of two proxies measured on different levels of core
+## (Here measurements on alternate levels)
+set.seed(5)
+dat2a &lt;- data.frame(Depth = seq(1, by = 2, length = 20), LOI = runif(20))
+dat2b &lt;- data.frame(Depth = seq(0, by = 2, length = 20), TC = runif(20))
+dat2 &lt;- join(dat2a, dat2b, na.replace = FALSE, split = FALSE)
+dat2 &lt;- dat2[order(dat2$Depth), ]
+head(dat2)
+
+## Default is to allow NA through formula, but drop them when plotting
+Stratiplot(Depth ~ LOI + TC, data = dat2, type = c("l","p"))
+
+## compare with this if we didn't suppress NA in default Stratiplot
+## method (can't use formula interface for this yet
+Stratiplot(dat2[,-1], dat2[,1], type = c("l","p"),
+           na.action = "na.pass")
+## Notice no lines are draw as there a no "sections" ithout missing
+## levels. If you want/desire this behaviour then you can't use formula
+## interface yet as there is no way to specify the na.action separately
+
+## Works with matrices
+M &lt;- as.matrix(V12.122)
+Stratiplot(M, Depths, type = c("h"))
+
+## Custom variable labels using expressions
+df &lt;- data.frame(Age = 1:10, Var1 = rnorm(10), Var2 = rnorm(10),
+                 Var3 = rnorm(10))
+## Use a vector of expressions to label variables on plot
+## See ?plotmath for syntax of expressions
+exprs &lt;- expression(delta^{15}*N,       # label for Var1
+                    delta^{18}*O,       # label for Var2
+                    delta^{13}*C)       # label for Var3
+Stratiplot(Age ~ ., data = df, labelValues = exprs, varTypes = "absolute")
+</code></pre>
+
+
+</div>

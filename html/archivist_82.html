@@ -1,0 +1,361 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>saveToLocalRepo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Save an Artifact into a Repository</h2>
+
+<h3>Description</h3>
+
+<p><code>saveToLocalRepo</code> function saves desired artifacts to the local Repository in a given directory.
+To learn more about artifacts visit archivistPackage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">saveToLocalRepo(
+  artifact,
+  repoDir = aoptions("repoDir"),
+  archiveData = TRUE,
+  archiveTags = TRUE,
+  archiveMiniature = TRUE,
+  archiveSessionInfo = TRUE,
+  force = TRUE,
+  value = FALSE,
+  ...,
+  userTags = c(),
+  use_flocks = aoptions("use_flocks"),
+  silent = aoptions("silent"),
+  ascii = FALSE,
+  artifactName = deparse(substitute(artifact))
+)
+
+saveToRepo(
+  artifact,
+  repoDir = aoptions("repoDir"),
+  archiveData = TRUE,
+  archiveTags = TRUE,
+  archiveMiniature = TRUE,
+  archiveSessionInfo = TRUE,
+  force = TRUE,
+  value = FALSE,
+  ...,
+  userTags = c(),
+  use_flocks = aoptions("use_flocks"),
+  silent = aoptions("silent"),
+  ascii = FALSE,
+  artifactName = deparse(substitute(artifact))
+)
+
+asave(
+  artifact,
+  repoDir = aoptions("repoDir"),
+  archiveData = TRUE,
+  archiveTags = TRUE,
+  archiveMiniature = TRUE,
+  archiveSessionInfo = TRUE,
+  force = TRUE,
+  value = FALSE,
+  ...,
+  userTags = c(),
+  use_flocks = aoptions("use_flocks"),
+  silent = aoptions("silent"),
+  ascii = FALSE,
+  artifactName = deparse(substitute(artifact))
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>artifact</code></td>
+<td>
+<p>An arbitrary R artifact to be saved. For supported artifacts see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repoDir</code></td>
+<td>
+<p>A character denoting an existing directory in which an artifact will be saved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>archiveData</code></td>
+<td>
+<p>A logical value denoting whether to archive the data from the <code>artifact</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>archiveTags</code></td>
+<td>
+<p>A logical value denoting whether to archive Tags from the <code>artifact</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>archiveMiniature</code></td>
+<td>
+<p>A logical value denoting whether to archive a miniature of the <code>artifact</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>archiveSessionInfo</code></td>
+<td>
+<p>A logical value denoting whether to archive the session info that describes the context in this given artifact was created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force</code></td>
+<td>
+<p>A logical value denoting whether to archive <code>artifact</code> if it was already archived in
+a Repository.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>A logical value. Should the result be (default <code>value = FALSE</code>) the <code>md5hash</code>
+of a stored artifact or should the result be an input artifact (<code>value = TRUE</code>), so that valuing code
+can be used. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Graphical parameters denoting width and height of a miniature. See details.
+Further arguments passed to head. See Details section about <code>firtsRows</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>userTags</code></td>
+<td>
+<p>A character vector with Tags. These Tags will be added to the repository along with the artifact.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_flocks</code></td>
+<td>
+<p>A logical value. If <code>TRUE</code> then <code>flock</code> package is used to lock access to a database. By default it's <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>If TRUE produces no warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ascii</code></td>
+<td>
+<p>A logical value. An <code>ascii</code> argument is passed to save function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>artifactName</code></td>
+<td>
+<p>The name of the artifact with which it should be archived. If <code>NULL</code> then object's MD5 hash will be used instead.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>saveToLocalRepo</code> function saves desired artifacts to the local Repository in a given directory.
+Artifacts are saved in the local Repository, which is a SQLite database named <code>backpack</code>.
+After every <code>saveToLocalRepo</code> call the database is refreshed, so the artifact is available
+immediately in the database for other collaborators.
+Each artifact is archived in a <code>md5hash.rda</code> file. This file will be saved in a folder
+(under <code>repoDir</code> directory) named <code>gallery</code>. For each artifact, <code>md5hash</code> is a
+unique string of length 32 that is produced by
+digest function, which uses a cryptographical MD5 hash algorithm.
+</p>
+<p>By default, a miniature of an artifact and (if possible) a data set needed to compute this artifact are extracted.
+They are also going to be saved in a file named by their <code>md5hash</code> in the <code>gallery</code> folder
+that exists in the directory specified in the <code>repoDir</code> argument. Moreover, a specific <code>Tag</code>-relation
+is going to be added to the <code>backpack</code> dataset in case there is a need to load
+the artifact with it's related data set - see loadFromLocalRepo or loadFromRemoteRepo. Default settings
+may be changed by using the <code>archiveData</code>, <code>archiveTag</code> or <code>archiveMiniature</code> arguments with the
+<code>FALSE</code> value.
+</p>
+<p><code>Tags</code> are artifact's attributes, different for various artifact's classes. For more detailed
+information check Tags
+</p>
+<p>Archived artifact can be searched in the <code>backpack</code> dataset by using the
+searchInLocalRepo or searchInRemoteRepo functions. Artifacts can be searched by their Tags,
+<code>names</code>, <code>classes</code> or <code>archiving date</code>.
+</p>
+<p><code>firstRows</code> parameter.
+</p>
+<p>If the artifact is of class <code>data.frame</code> or user set <code>archiveData = TRUE</code> for artifact that stores data within it,
+it is possible to specify
+how many rows of that data (or that <code>data.frame</code>) should be archived in a <code>miniature</code>.
+This can be done by adding the argument <code>firstRows</code> with the
+n corresponding to the number of rows (as in head).
+Note that, the data can be extracted only from the artifacts that are supported by
+the <span class="pkg">archivist</span> package; see Tags.
+</p>
+<p>Graphical parameters.
+</p>
+<p>If the artifact is of class <code>lattice</code>, <code>ggplot</code> or <code>recordedplot</code>, and
+<code>archiveMiniature = TRUE</code>, then it is
+possible to set the miniature's <code>width</code> and <code>height</code> parameters. By default they are set to
+<code>width = 800</code>, <code>height = 600</code>.
+</p>
+<p>Supported artifact's classes are listed here Tags.
+</p>
+
+
+<h3>Value</h3>
+
+<p>As a result of calling this function a character string is returned, which determines
+the <code>md5hash</code> of the artifact. If
+<code>archiveData</code> is <code>TRUE</code>, the result will also
+have an attribute, named <code>data</code>, which determines <code>md5hash</code> of the data needed
+to compute the artifact.
+</p>
+
+
+<h3>Contact</h3>
+
+<p>Bug reports and feature requests can be sent to 
+<a href="https://github.com/pbiecek/archivist/issues">https://github.com/pbiecek/archivist/issues</a>
+</p>
+
+
+<h3>Note</h3>
+
+<p>In the following way one can specify his own <code>Tags</code> for artifacts by setting artifact's attribute
+before call of the <code>saveToLocalRepo</code> function:
+<code>attr(x, "tags" ) = c( "name1", "name2" )</code>, where <code>x</code> is an artifact
+and <code>name1, name2</code> are <code>Tags</code> specified by a user.
+It can be also done in a new, simpler way by using <code>userTags</code> parameter like this:
+</p>
+
+<ul><li> <p><code>saveToLocalRepo(model, repoDir, userTags = c("my_model", "do not delete"))</code>.
+</p>
+</li></ul>
+<p>Specifying additional <code>Tags</code> by attributes can be beneficial when one uses addHooksToPrint.
+</p>
+<p>Important: if one wants to archive data from artifacts which is one of:
+<code>survfit, glmnet, qda, lda, trellis, htest</code> class, and this dataset is transformed within
+the artifact's formula then <code>saveToLocalRepo</code> will not archive this dataset. <code>saveToLocalRepo</code>
+only archives datasets that already exist in any of R environments.
+</p>
+<p>Example: The data set will not be archived here.
+</p>
+
+<ul>
+<li> <p><code>z &lt;- lda(Sp ~ ., Iris, prior = c(1,1,1)/3, subset = train[,-8])</code>
+</p>
+</li>
+<li> <p><code>saveToLocalRepo( z, repoDir )</code>
+</p>
+</li>
+</ul>
+<p>Example: The data set will be archived here.
+</p>
+
+<ul>
+<li> <p><code>train2 &lt;- train[,-8]</code>
+</p>
+</li>
+<li> <p><code>z &lt;- lda(Sp ~ ., Iris, prior = c(1,1,1)/3, subset = train2)</code>
+</p>
+</li>
+<li> <p><code>saveToLocalRepo( z, repoDir )</code>
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Marcin Kosinski , <a href="mailto:m.p.kosinski@gmail.com">m.p.kosinski@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Biecek P and Kosinski M (2017). "archivist: An R Package for Managing,
+Recording and Restoring Data Analysis Results." _Journal of Statistical
+Software_, *82*(11), pp. 1-28. doi: 10.18637/jss.v082.i11 (URL:
+http://doi.org/10.18637/jss.v082.i11).
+URL https://github.com/pbiecek/archivist
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For more detailed information check the <span class="pkg">archivist</span> package
+<a href="http://pbiecek.github.io/archivist/">Use Cases</a>.
+The list of supported artifacts and their tags is available on <code>wiki</code> on <span class="pkg">archivist</span>
+<a href="https://github.com/pbiecek/archivist/wiki/archivist-package---Tags">Github Repository</a>.
+</p>
+<p>Other archivist: 
+<code>Repository</code>,
+<code>Tags</code>,
+<code>%a%()</code>,
+<code>addHooksToPrint()</code>,
+<code>addTagsRepo()</code>,
+<code>aformat()</code>,
+<code>ahistory()</code>,
+<code>alink()</code>,
+<code>aoptions()</code>,
+<code>archivistPackage</code>,
+<code>aread()</code>,
+<code>areadLocal()</code>,
+<code>asearch()</code>,
+<code>asearchLocal()</code>,
+<code>asession()</code>,
+<code>atrace()</code>,
+<code>cache()</code>,
+<code>copyLocalRepo()</code>,
+<code>createLocalRepo()</code>,
+<code>createMDGallery()</code>,
+<code>deleteLocalRepo()</code>,
+<code>getRemoteHook()</code>,
+<code>getTagsLocal()</code>,
+<code>loadFromLocalRepo()</code>,
+<code>md5hash</code>,
+<code>removeTagsRepo()</code>,
+<code>restoreLibs()</code>,
+<code>rmFromLocalRepo()</code>,
+<code>searchInLocalRepo()</code>,
+<code>setLocalRepo()</code>,
+<code>shinySearchInLocalRepo()</code>,
+<code>showLocalRepo()</code>,
+<code>splitTagsLocal()</code>,
+<code>summaryLocalRepo()</code>,
+<code>zipLocalRepo()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+exampleRepoDir &lt;- tempfile(tmpdir = ".")
+createLocalRepo(repoDir = exampleRepoDir)
+data(swiss)
+saveToLocalRepo(swiss, repoDir=exampleRepoDir, archiveSessionInfo = TRUE)
+showLocalRepo(method = "md5hashes", repoDir = exampleRepoDir)
+showLocalRepo(method = "tags", repoDir = exampleRepoDir)
+
+loadFromLocalRepo(md5hash = '2a6e492cb6982f230e48cf46023e2e4f',
+  repoDir = system.file("graphGallery", package = "archivist"), value = TRUE) -&gt; model
+
+saveToLocalRepo(model, repoDir=exampleRepoDir,
+             userTags = c("do not delete", "my favourite model"))
+aoptions('repoDir', system.file("graphGallery", package = "archivist"))
+showLocalRepo(method = "tags")
+data(iris)
+asave(iris, silent = FALSE) # iris was used in pl
+aoptions('repoDir', NULL, unset = TRUE)
+deleteLocalRepo(exampleRepoDir, TRUE)
+rm(exampleRepoDir)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

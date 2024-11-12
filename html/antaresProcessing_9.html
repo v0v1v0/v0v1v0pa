@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>externalDependency</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>External Dependencies in imports and exports</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the dependency in imports and export for each area or districts at a
+given time step. Dependency in imports represents moments where imports are required
+to have no loss of load. Dependency in exports represents moments where exports are required to
+have no spilled energy.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">externalDependency(x, timeStep = "annual", synthesis = FALSE, opts = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object created with function <code>readAntares</code>. It
+must contain data for areas and/or districts. More specifically this
+function requires the columns <code>generatingMaxPower</code>
+(or <code>hstorPMaxAvg</code> for Antares v6 and earlier), and <code>netLoad</code>. To
+get these columns, one has to invoke <code>readAntares</code>
+with the parameter <code>hydroStorageMaxPower = TRUE</code> and
+<code>addNetLoad</code> (see examples).
+</p>
+<p>Moreover it needs to have a hourly time step.
+</p>
+<p>This object must also contain linkCapacity if there was virtual areas
+remove by <code>removeVirtualAreas</code> to be able to
+calculate pumping and storage capacities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeStep</code></td>
+<td>
+<p>Desired time step for the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>synthesis</code></td>
+<td>
+<p>If TRUE, average external dependencies are returned. Else the function
+returns external dependencies per Monte-Carlo scenario.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>opts</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.table of class <code>antaresDataTable</code> with the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>Area name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeId</code></td>
+<td>
+<p>Time id and other time columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pumping</code></td>
+<td>
+<p>capacity of pumping</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>storage</code></td>
+<td>
+<p>capacity of storage</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsLevel</code></td>
+<td>
+<p>netLoad + pumping</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importsLevel</code></td>
+<td>
+<p>netLoad - 'AVL DTG' - hydroStorageMaxPower - storage &gt; 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exportsFrequency</code></td>
+<td>
+<p>number of time step where this criteria is satisfied
+</p>
+<p>criteria : netLoad + pumping &lt; 0
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>importsFrequency</code></td>
+<td>
+<p>number of time step where this criteria is satisfied
+</p>
+<p>criteria : netLoad - 'AVL DTG' - hydroStorageMaxPower - storage &gt; 0
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Data required by the function
+showAliases("externalDependency")
+
+mydata &lt;- readAntares(select = "externalDependency")
+addNetLoad(mydata)
+externalDependency(mydata)
+
+# if there are some virtual pumping/storage areas, remove them with
+# removeVirtualAreas
+mydata &lt;- removeVirtualAreas(mydata, c("pumping", "storage"))
+externalDependency(mydata, ignoreMustRun = TRUE)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

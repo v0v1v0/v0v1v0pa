@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_searchStart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Searches for better starting values.</h2>
+
+<h3>Description</h3>
+
+<p>Given a set of starting values and a range for them, searches for points with a better likelihood and steeper gradients.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_searchStart(
+  apollo_beta,
+  apollo_fixed,
+  apollo_probabilities,
+  apollo_inputs,
+  searchStart_settings = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apollo_beta</code></td>
+<td>
+<p>Named numeric vector. Names and values for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_fixed</code></td>
+<td>
+<p>Character vector. Names (as defined in <code>apollo_beta</code>) of parameters whose value should not change during estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_probabilities</code></td>
+<td>
+<p>Function. Returns probabilities of the model to be estimated. Must receive three arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters.
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: List containing options of the model. See apollo_validateInputs.
+</p>
+</li>
+<li> <p><strong><code>functionality</code></strong>: Character. Can be either <strong><code>"components"</code></strong>, <strong><code>"conditionals"</code></strong>, <strong><code>"estimate"</code></strong> (default), <strong><code>"gradient"</code></strong>, <strong><code>"output"</code></strong>, <strong><code>"prediction"</code></strong>, <strong><code>"preprocess"</code></strong>, <strong><code>"raw"</code></strong>, <strong><code>"report"</code></strong>, <strong><code>"shares_LL"</code></strong>, <strong><code>"validate"</code></strong> or <strong><code>"zero_LL"</code></strong>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_inputs</code></td>
+<td>
+<p>List grouping most common inputs. Created by function apollo_validateInputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>searchStart_settings</code></td>
+<td>
+<p>List. Contains settings for this function. User input is required for all settings except those with a default or marked as optional. 
+</p>
+
+<ul>
+<li> <p><strong><code>apolloBetaMax</code></strong>: Vector. Maximum possible value of parameters when generating candidates. Ignored if smartStart is TRUE. Default is <code>apollo_beta + 0.1</code>.
+</p>
+</li>
+<li> <p><strong><code>apolloBetaMin</code></strong>: Vector. Minimum possible value of parameters when generating candidates. Ignored if smartStart is TRUE. Default is <code>apollo_beta - 0.1</code>.
+</p>
+</li>
+<li> <p><strong><code>bfgsIter</code></strong>: Numeric scalar. Number od BFGS iterations to perform at each stage to each remaining candidate. Default is 20.
+</p>
+</li>
+<li> <p><strong><code>dTest</code></strong>: Numeric scalar. Tolerance for test 1. A candidate is discarded if its distance in parameter space to a better one is smaller than <code>dTest</code>. Default is 1.
+</p>
+</li>
+<li> <p><strong><code>gTest</code></strong>: Numeric scalar. Tolerance for test 2. A candidate is discarded if the norm of its gradient is smaller than <code>gTest</code> AND its LL is further than <code>llTest</code> from a better candidate. Default is <code>10^(-3)</code>.
+</p>
+</li>
+<li> <p><strong><code>llTest</code></strong>: Numeric scalar. Tolerance for test 2. A candidate is discarded if the norm of its gradient is smaller than <code>gTest</code> AND its LL is further than <code>llTest</code> from a better candidate. Default is 3.
+</p>
+</li>
+<li> <p><strong><code>maxStages</code></strong>: Numeric scalar. Maximum number of search stages. The algorithm will stop when there is only one candidate left, or if it reaches this number of stages. Default is 5.
+</p>
+</li>
+<li> <p><strong><code>nCandidates</code></strong>: Numeric scalar. Number of candidate sets of parameters to be used at the start. Should be an integer bigger than 1. Default is 100.
+</p>
+</li>
+<li> <p><strong><code>smartStart</code></strong>: Boolean. If TRUE, candidates are randomly generated with more chances in the directions the Hessian indicates improvement of the LL function. Default is FALSE.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function implements a simplified version of the algorithm proposed by Bierlaire, M., Themans, M. &amp; Zufferey, N. (2010), A Heuristic for Nonlinear Global Optimization, INFORMS Journal on Computing, 22(1), pp.59-70. The main difference
+lies in it implementing only two out of three tests on the candidates described by the authors. The implemented algorithm has the
+following steps.
+</p>
+
+<ol>
+<li>
+<p> Randomly draw <code>nCandidates</code> candidates from an interval given by the user.
+</p>
+</li>
+<li>
+<p> Label all candidates with a valid log-likelihood (LL) as active.
+</p>
+</li>
+<li>
+<p> Apply <code>bfgsIter</code> iterations of the BFGS algorithm to each active candidate.
+</p>
+</li>
+<li>
+<p> Apply the following tests to each active candidate:
+</p>
+
+<ol>
+<li>
+<p> Has the BGFS search converged?
+</p>
+</li>
+<li>
+<p> Are the candidate parameters after BFGS closer than <code>dTest</code> from any other candidate with higher LL?
+</p>
+</li>
+<li>
+<p> Is the LL of the candidate after BFGS further than <code>distLL</code> from a candidate with better LL, and its gradient smaller than <code>gTest</code>?
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Mark any candidates for which at least one test results in yes as inactive.
+</p>
+</li>
+<li>
+<p> Go back to step 3, unless only one candidate is active, or the maximum number of iterations (<code>maxStages</code>) has been reached.
+</p>
+</li>
+</ol>
+<p>This function will write a CSV file to the working/output directory summarising progress. This file is called <code>modelName</code>_searchStart.csv .
+</p>
+
+
+<h3>Value</h3>
+
+<p>named vector of model parameters. These are the best values found.
+</p>
+
+
+</div>

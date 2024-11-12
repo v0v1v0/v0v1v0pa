@@ -1,0 +1,397 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>align_taxa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Align Australian plant scientific names to the APC or APNI</h2>
+
+<h3>Description</h3>
+
+<p>For a list of Australian plant names, find taxonomic or scientific name
+alignments to the APC or APNI through standardizing formatting and fixing
+spelling errors.
+</p>
+<p>Usage case: Users will run this function if they wish to see the details
+of the matching algorithms, the many output columns that the matching
+function compares to as it seeks the best alignment. They may also select
+this function if they want to adjust the “fuzziness” level for fuzzy
+matches, options not allowed in create_taxonomic_update_lookup. This
+function is the first half of create_taxonomic_update_lookup.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">align_taxa(
+  original_name,
+  output = NULL,
+  full = FALSE,
+  resources = load_taxonomic_resources(),
+  quiet = FALSE,
+  fuzzy_abs_dist = 3,
+  fuzzy_rel_dist = 0.2,
+  fuzzy_matches = TRUE,
+  imprecise_fuzzy_matches = FALSE,
+  APNI_matches = TRUE,
+  identifier = NA_character_
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>original_name</code></td>
+<td>
+<p>A list of names to query for taxonomic alignments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>(optional) The name of the file to save the results to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full</code></td>
+<td>
+<p>Parameter to determine how many columns are output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resources</code></td>
+<td>
+<p>the taxonomic resources used to align the taxa names.
+Loading this can be slow, so call <code>load_taxonomic_resources</code>
+separately to greatly speed this function up and pass the resources in.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Logical to indicate whether to display messages while
+aligning taxa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fuzzy_abs_dist</code></td>
+<td>
+<p>The number of characters allowed to be different for a
+fuzzy match.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fuzzy_rel_dist</code></td>
+<td>
+<p>The proportion of characters allowed to be different
+for a fuzzy match.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fuzzy_matches</code></td>
+<td>
+<p>Fuzzy matches are turned on as a default.
+The relative and absolute distances allowed for fuzzy matches to species and
+infraspecific taxon names are defined by the parameters <code>fuzzy_abs_dist</code>
+and <code>fuzzy_rel_dist</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imprecise_fuzzy_matches</code></td>
+<td>
+<p>Imprecise fuzzy matches uses the
+fuzzy matching function with lenient levels set (absolute distance of
+5 characters; relative distance = 0.25).
+It offers a way to get a wider range of possible names, possibly
+corresponding to very distant spelling mistakes.
+This is FALSE as default and all outputs should be checked as it often
+makes erroneous matches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>APNI_matches</code></td>
+<td>
+<p>Name matches to the APNI (Australian Plant Names Index)
+are turned on as a default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>identifier</code></td>
+<td>
+<p>A dataset, location or other identifier,
+which defaults to NA.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> This function finds taxonomic alignments in APC or scientific name
+alignments in APNI.
+</p>
+</li>
+<li>
+<p> It uses the internal function <code>match_taxa</code> to attempt to match input
+strings to taxon names in the APC/APNI.
+</p>
+</li>
+<li>
+<p> It sequentially searches for matches against more than 20 different string
+patterns, prioritising exact matches (to accepted names as well as
+synonyms, orthographic variants) over fuzzy matches.
+</p>
+</li>
+<li>
+<p> It prioritises matches to taxa in the APC over names in the APNI.
+</p>
+</li>
+<li>
+<p> It identifies string patterns in input names that suggest a name can only
+be aligned to a genus (hybrids that are not in the APC/APNI; graded species;
+taxa not identified to species), and indicates these names only have a
+genus-rank match.
+</p>
+</li>
+</ul>
+<p>Notes:
+</p>
+
+<ul>
+<li>
+<p> If you will be running the function APCalign::create_taxonomic_update_lookup
+many times, it is best to load the taxonomic resources separately using
+resources &lt;- load_taxonomic_resources(), then add the argument
+resources = resources
+</p>
+</li>
+<li>
+<p> The name Banksia cerrata does not align as the fuzzy matching algorithm
+does not allow the first letter of the genus and species epithet to change.
+</p>
+</li>
+<li>
+<p> With this function you have the option of changing the fuzzy matching
+parameters. The defaults, with fuzzy matches only allowing changes of 3
+(or fewer) characters AND 20% (or less) of characters has been carefully
+calibrated to catch just about all typos, but very, very rarely mis-align
+a name. If you wish to introduce less conservative fuzzy matching it is
+recommended you manually check the aligned names.
+</p>
+</li>
+<li>
+<p> It is recommended that you begin with imprecise_fuzzy_matches = FALSE (the
+default), as quite a few of the less precise fuzzy matches are likely to be
+erroneous. This argument should be turned on only if you plan to check all
+alignments manually.
+</p>
+</li>
+<li>
+<p> The argument identifier allows you to add a fix text string to all genus-
+and family- level names, such as identifier = "Royal NP" would return "Acacia
+sp. [Royal NP]".
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A tibble with columns that include original_name, aligned_name,
+taxonomic_dataset, taxon_rank, aligned_reason, alignment_code.
+</p>
+
+<ul>
+<li>
+<p> original_name: the original plant name input.
+</p>
+</li>
+<li>
+<p> aligned_name: the original plant name after the function standardise_names
+has standardised the syntax of infraspecific taxon designations.
+</p>
+</li>
+<li>
+<p> taxonomic_dataset: the source of the aligned names (APC or APNI).
+</p>
+</li>
+<li>
+<p> taxon_rank: the taxonomic rank of the aligned name.
+</p>
+</li>
+<li>
+<p> aligned_reason: the explanation of a specific taxon name alignment
+(from an original name to an aligned name).
+</p>
+</li>
+<li>
+<p> alignment_code: a code that accompanies the aligned_reason, indicating the
+relative sequence of the match during the alignment process.
+</p>
+</li>
+<li>
+<p> cleaned_name: original name with punctuation and infraspecific taxon
+designation terms standardised by the function standardise_names;
+streamlines exact matches.
+</p>
+</li>
+<li>
+<p> stripped_name: cleaned name with punctuation and infraspecific taxon
+designation terms removed by the function strip_names;
+improves fuzzy matches.
+</p>
+</li>
+<li>
+<p> stripped_name2: cleaned name with punctuation, infraspecific taxon
+designation terms, and other filler words removed by
+the function <code>strip_names_extra</code>;
+required for matches to <code style="white-space: pre;">⁠first two word⁠</code> and <code style="white-space: pre;">⁠first three words⁠</code>.
+</p>
+</li>
+<li>
+<p> trinomial: the first three words in <code>stripped_name2</code>, required for matches
+that ignore all other text in the original_name;
+improves phrase name matches.
+</p>
+</li>
+<li>
+<p> binomial: the first two words in <code>stripped_name2</code>, required for matches
+that ignore all other text in the original_name;
+improves phrase name matches.
+</p>
+</li>
+<li>
+<p> genus: the first two words in <code>cleaned_name</code>;
+required for genus-rank matches and reprocessing of genus-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_genus: fuzzy match of genus column to best match among
+APC-accepted names;
+required for fuzzy matches of genus-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_genus_synonym: fuzzy match of genus column to best match among
+APC-synonymous names, only considering different matches to those documented
+under APC-accepted genera; required for fuzzy matches of genus-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_genus_APNI: fuzzy match of genus column to best match among
+APNI names, only considering different matches to those documented under
+APC-accepted and APC-known genera; required for fuzzy matches of
+genus-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_family: fuzzy match of genus column to best match among
+APC-accepted family names; required for fuzzy matches of family-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_family_synonym: fuzzy match of genus column to best match
+among APC-synonymous family names; required for fuzzy matches of
+family-rank names.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APC: fuzzy match of stripped_name to APC-accepted
+names; created for yet-to-be-aligned names at the match step 05a
+in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APC_synonym: fuzzy match of stripped_name to
+APC-synonymous names; created for yet-to-be-aligned names at the
+match step 05b in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APC_imprecise: imprecise fuzzy match of stripped_name
+to APC-accepted names; created for yet-to-be-aligned names at the
+match step 07a in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APC_synonym_imprecise: imprecise fuzzy match of
+stripped_name to APC-accepted names; created for yet-to-be-aligned names
+at the match step 07b in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_binomial: fuzzy match of binomial column to best match among
+APC-accepted names; created for yet-to-be-aligned names at
+match step 10c in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_binomial_APC_synonym: fuzzy match of binomial column to best
+match among APC-synonymous names; created for yet-to-be-aligned names at
+match step 10d in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_trinomial: fuzzy match of trinomial column to best match
+among APC-accepted names; created for yet-to-be-aligned names at
+match step 09c in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_trinomial_synonym: fuzzy match of trinomial column to best
+match among APC-synonymous names; created for yet-to-be-aligned names at
+match step 09d in the function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APNI: fuzzy match of stripped_name to APNI names;
+created for yet-to-be-aligned names at the match step 11a in the
+function <code>match_taxa</code>.
+</p>
+</li>
+<li>
+<p> fuzzy_match_cleaned_APNI_imprecise: imprecise fuzzy match of
+stripped_name to APNI names; created for yet-to-be-aligned names
+at the match step 11b in the function <code>match_taxa</code>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>load_taxonomic_resources</code>
+</p>
+<p>Other taxonomic alignment functions: 
+<code>create_taxonomic_update_lookup()</code>,
+<code>update_taxonomy()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+resources &lt;- load_taxonomic_resources()
+
+# example 1
+align_taxa(c("Poa annua", "Abies alba"), resources=resources)
+
+# example 2
+input &lt;- c("Banksia serrata", "Banksia serrate", "Banksia cerrata", 
+"Banksia serrrrata", "Dryandra sp.", "Banksia big red flowers")
+
+aligned_taxa &lt;-
+  APCalign::align_taxa(
+    original_name = input,
+    identifier = "APCalign test",
+    full = TRUE,
+    resources=resources
+  ) 
+  
+
+
+
+</code></pre>
+
+
+</div>

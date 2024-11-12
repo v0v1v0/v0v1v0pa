@@ -1,0 +1,410 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simDynoccSpatial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simulate data under a dynamic occupancy model with spatial autocorrelation
+</h2>
+
+<h3>Description</h3>
+
+<p>Function to simulate detection/nondetection data under a general dynamic site-occupancy model with autocorrelation, including:
+</p>
+<p>* Annual variation in the probabilities of patch persistence, colonization and detection is specified by the bounds of a uniform distribution.
+</p>
+<p>* One covariate is allowed to affect a parameter: a site covariate for psi1, site-by-year covariates for phi and gamma, and an observational covariate for p. Covariates are generated internally from uniform(-2, 2) distributions.
+</p>
+<p>* Additional heterogeneity among sites in persistence and colonization or both.
+</p>
+<p>* Additional detection heterogeneity at the site or survey level, with the possibility of a temporal trend in this heterogeneity over the years. E.g., an annual trend in detection heterogeneity at the site or the survey level is specified by the first and second value, which correspond to the heterogeneity in the first and the last year. Hence, trend.sd.site = c(0, 1) will result in a linear trend in the magnitude of site heterogeneity in detection from 0 in the first year to 1 in the last year.
+</p>
+<p>* A single, spatially structured covariate for habitat suitability may affect all parameters via coefficient beta.XAC; for a biologically reasonable way, choose coefficients with the same sign for all 4 (mediated by underlying density). That spatial covariate is simulated as a Gaussian random field with negative exponential correlation function with 'range parameter' theta.XAC.
+</p>
+<p>* Autologistic effects (beta.Xautolog) in persistence and colonization probability can be chosen, which fits a logistic regression of these parameters on the proportion of occupied neighboring cells (in a queen's or 2nd order neighborhood) during the previous time step.
+</p>
+<p>* Additional detection heterogeneity can be introduced at the site- or the individual survey level, with the possibility of a temporal trend in this heterogeneity. For instance, an annual trend in detection heterogeneity at the site or the survey level is specified by the value in the first and the last year. Hence, trend.sd.site = c(0, 1) will result in a linear trend in the magnitude of site heterogeneity in detection from 0 in the first year to 1 in the last year.
+</p>
+<p>Previous versions used <span class="pkg">RandomFields</span>, but that is not currently available on CRAN. <span class="pkg">fields</span> is now used instead, but it cannot deal with large values of <code>side</code> and <code>theta.XAC</code>. If you have <span class="pkg">RandomFields</span> installed (perhaps by getting it from the CRAN archive), you can load a version of <code>simDynoccSpatial</code> that supports it with <code>source(system.file("RandomFieldsSupport", "simDynoccSpatial.R", package="AHMbook"))</code>.
+</p>
+<p>See also <code>simDynoccSpatialData</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simDynoccSpatial(side = 50, nyears = 10, nsurveys = 3,
+      mean.psi1 = 0.4, beta.Xpsi1 = 0,
+      range.phi = c(0.8, 0.8), beta.Xphi = 0,
+      range.gamma = c(0.1, 0.1), beta.Xgamma = 0,
+      range.p = c(0.4, 0.4), beta.Xp = 0,
+      theta.XAC = 5000, beta.XAC = c(0, 0, 0, 0), beta.Xautolog = c(0, 0),
+      trend.sd.site = c(0, 0), trend.sd.survey = c(0, 0),
+      seed.XAC = NA, seed = NULL, show.plots = TRUE, ask.plot = TRUE, verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>side</code></td>
+<td>
+
+<p>side length of square simulation area; the number of sites, or cells, M = side^2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyears</code></td>
+<td>
+
+<p>Number of years (or 'seasons').
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsurveys</code></td>
+<td>
+
+<p>Number of replicate surveys (= occasions) within a year.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.psi1</code></td>
+<td>
+
+<p>average occupancy probability in first year.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.Xpsi1</code></td>
+<td>
+
+<p>coefficient of environmental covariate in probability of initial occupancy.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.phi</code></td>
+<td>
+
+<p>bounds of uniform distribution from which annual probability of persistence is randomly drawn.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.Xphi</code></td>
+<td>
+
+<p>coefficient of environmental covariate in probability of persistence.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.gamma</code></td>
+<td>
+
+<p>bounds of uniform distribution from which annual probability of colonization is randomly drawn.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.Xgamma</code></td>
+<td>
+
+<p>coefficient of environmental covariate in probability of colonization.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range.p</code></td>
+<td>
+
+<p>bounds of uniform distribution from which probability of detection is randomly drawn.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.Xp</code></td>
+<td>
+
+<p>coefficient of environmental covariate in probability of detection.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.XAC</code></td>
+<td>
+
+<p>'range parameter' of a covariate with exponential spatial correlation (i.e., a Gaussian random field is used as an environmental covariate); must be &gt; 0.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.XAC</code></td>
+<td>
+
+<p>vector of coefficients of that field for the 4 model parameters: psi1, phi, gamma, and p (in that order).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.Xautolog</code></td>
+<td>
+
+<p>vector of coefficients of autologistic covariate in the following order: persistence (phi), colonization (gamma); the autocovariate is computed at every season as the proportion of occupied cells in a queen's neighborhood around each cell.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend.sd.site</code></td>
+<td>
+
+<p>initial and final values of sd of normal distribution to model logit-normal noise in p at the site level; a linear trend is assumed over time; if the two values are the same, a constant value is assumed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend.sd.survey</code></td>
+<td>
+
+<p>initial and final values of sd of normal distribution to model logit-normal noise in p at the 'survey' level; if they are different, a linear trend is assumed over time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.XAC</code></td>
+<td>
+
+<p>the seed to be used for simulation of the spatially structured covariate for habitat suitability.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>the seed to be used for simulation of values apart from the spatially structured covariate for habitat suitability; using the same value for seed.XAC with different values for seed allows generation of different data sets with the same habitat suitability covariate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.plots</code></td>
+<td>
+
+<p>if TRUE, summary plots are displayed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ask.plot</code></td>
+<td>
+
+<p>If TRUE, pause between plots of results; set to FALSE if running simulations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>if TRUE, output will be written to the console.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the values of the arguments input and the following additional elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>M </code></td>
+<td>
+<p>scalar, total number of pixels in the study area, side^2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid </code></td>
+<td>
+<p>2-column matrix, x and y coordinates of each pixel</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>amatrix </code></td>
+<td>
+<p>M x M matrix, [i,j] = 1 if cells i and j are neighbors, 0 otherwise</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xpsi1 </code></td>
+<td>
+<p>side x side matrix, value of covariate affecting initial occupancy</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xphi </code></td>
+<td>
+<p>side x side x nyears array, value of covariate affecting persistence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xgamma </code></td>
+<td>
+<p>side x side x nyears array, value of covariate affecting colonization</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xp </code></td>
+<td>
+<p>side x side x nsurveys x nyears array, value of covariate affecting detection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XAC </code></td>
+<td>
+<p>side x side matrix, the spatially correlated covariate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xauto </code></td>
+<td>
+<p>side x side x nyears array, the autocovariate, the proportion of neighboring cells occupied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xautoobs </code></td>
+<td>
+<p>side x side x nyears array, the observed autocovariate, the proportion of neighboring cells where the species was detected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.site </code></td>
+<td>
+<p>vector nyears, year-specific values of SD of Gaussian random site effects in p</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.survey </code></td>
+<td>
+<p>vector nyears, year-specific values of SD of Gaussian random survey effects in p</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.phi </code></td>
+<td>
+<p>vector nyears-1, mean persistence for each interval</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.gamma </code></td>
+<td>
+<p>vector nyears-1, mean colonization for each interval</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.p </code></td>
+<td>
+<p>vector nyears, mean detection probability for each year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi </code></td>
+<td>
+<p>side x side x nyears array, probability of occupancy for each site and year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.psi </code></td>
+<td>
+<p>vector nyears, mean occupancy over cells for each year</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.app </code></td>
+<td>
+<p>vector nyears, apparent occupancy, proportion of cells where species detected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z </code></td>
+<td>
+<p>side x side x years array, true occupancy state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zobs </code></td>
+<td>
+<p>side x side x years array, observed occupancy state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nocc </code></td>
+<td>
+<p>vector nyears, true number of occupied cells</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nocc.obs </code></td>
+<td>
+<p>vector nyears, number of cells where the species was detected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi </code></td>
+<td>
+<p>side x side x nyears-1 array, probability of persistence in each interval between years</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma </code></td>
+<td>
+<p>side x side x nyears-1 array, probability of colonization in each interval between years</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p </code></td>
+<td>
+<p>side x side x nsurveys x nyears array, probability of detection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y </code></td>
+<td>
+<p>side x side x nsurveys x nyears array, the observed detection history</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>umf </code></td>
+<td>
+<p>an unmarked data frame object with the simulated data</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc Kéry &amp; Andy Royle
+</p>
+
+
+<h3>References</h3>
+
+<p>Kéry, M. &amp; Royle, J.A. (2021) <em>Applied Hierarchical Modeling in Ecology</em> AHM2 - 9.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate data with the default arguments and look at the structure
+try(str(simDynoccSpatial()))  # Fails if RandomFields is not available
+
+str(simDynoccSpatial(side=50, theta.XAC=1))
+
+</code></pre>
+
+
+</div>

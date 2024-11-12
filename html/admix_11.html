@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BVdk_varCov_estimators</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of the variance of the estimators in admixture models with symmetric unknown density.</h2>
+
+<h3>Description</h3>
+
+<p>Semiparametric estimation of the variance of the estimators, i.e. the mixture weight p and the location shift parameter mu
+considering the admixture model with probability density function l:
+l(x) = p*f(x-mu) + (1-p)*g(x), x in R,
+where g is the known component of the two-component mixture, p is the unknown proportion, f is the unknown component density and
+mu is the location shift. See 'Details' below for more information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BVdk_varCov_estimators(data, loc, p, comp.dist, comp.param)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The observed sample under study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loc</code></td>
+<td>
+<p>The estimated location shift parameter, related to the unknown symmetric density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The estimated unknown component weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.dist</code></td>
+<td>
+<p>A list with two elements corresponding to component distributions (specified with R native names for these distributions) involved
+in the admixture model. Unknown elements must be specified as 'NULL' objects, e.g. when 'f' is unknown: list(f=NULL, g='norm').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comp.param</code></td>
+<td>
+<p>A list with two elements corresponding to the parameters of the component distributions, each element being a list
+itself. The names used in this list must correspond to the native R argument names for these distributions.
+Unknown elements must be specified as 'NULL' objects, e.g. if 'f' is unknown: list(f=NULL, g=list(mean=0,sd=1)).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See formulas pp.28–30 in Appendix of Bordes, L. and Vandekerkhove, P. (2010); Semiparametric two-component mixture
+model when a component is known: an asymptotically normal estimator; Math. Meth. Stat.; 19, pp. 22–41.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing 1) the variance-covariance matrix of the estimators (assessed at the specific time points 'u' and 'v'
+such that u=v=mean(data)); 2) the variance of the mixture weight estimator; 3) the variance
+of the location shift estimator; 4) the variance of the unknown component cumulative distribution
+function at points 'u' and 'v' (useless for most of applications, explaining why 'u' and 'v'
+are set equal to mean(data) by default, with no corresponding arguments here).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Milhaud <a href="mailto:xavier.milhaud.research@gmail.com">xavier.milhaud.research@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data:
+list.comp &lt;- list(f = 'norm', g = 'norm')
+list.param &lt;- list(f = c(mean = 4, sd = 1), g = c(mean = 7, sd = 0.5))
+sim.data &lt;- rsimmix(n=140, unknownComp_weight=0.9, comp.dist=list.comp, comp.param=list.param)
+## Estimate the location shift and mixture weight parameters in real-life setting:
+list.comp &lt;- list(f = NULL, g = 'norm')
+list.param &lt;- list(f = NULL, g = c(mean = 7, sd = 0.5))
+estimators &lt;- BVdk_estimParam(data = sim.data[['mixt.data']], method = "L-BFGS-B",
+                              comp.dist = list.comp, comp.param = list.param)
+## Estimate the variance of the two estimators (first mixture weight, then location shift):
+BVdk_varCov_estimators(data = sim.data[['mixt.data']], loc = estimators[2], p = estimators[1],
+                       comp.dist = list.comp, comp.param = list.param)
+
+</code></pre>
+
+
+</div>

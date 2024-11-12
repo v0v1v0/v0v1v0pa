@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>merge.VoxelSpace</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge two voxel spaces</h2>
+
+<h3>Description</h3>
+
+<p>Merge of two <code>VoxelSpace</code> object.
+Voxel spaces must have same sptial extension and resolution, and some
+shared column names.
+</p>
+
+
+<h4>Merging modes</h4>
+
+<p>Variables <code style="white-space: pre;">⁠i, j, k &amp; ground_distance⁠</code> are merged.
+</p>
+<p>Variables <code style="white-space: pre;">⁠nbEchos, nbSampling, lgTotal, bsEntering, bsIntercepted, bsPotential, weightedEffectiveFreepathLength &amp; weightedFreepathLength⁠</code>
+are summed-up.
+</p>
+<p>Variables <code style="white-space: pre;">⁠sdLength, angleMean and distLaser⁠</code> are weighted means with
+<code>nbSampling</code> (the number of pulses) as weights.
+</p>
+<p>Attenuation FPL variables (<code style="white-space: pre;">⁠attenuation_FPL_biasedMLE, attenuation_FPL_biasCorrection, attenuation_FPL_unbiasedMLE) &amp; lMeanTotal⁠</code>
+are calculated analytically.
+</p>
+<p>Transmittance and attenuation variables (except the FPL attenuation
+variables listed above) are weighted means with bsEntering as weights.
+</p>
+<p>Any other variables will not be merged. In particular PAD variables
+are not merged and should be recalculated with
+<code>plantAreaDensity()</code> on the merged voxel space.
+</p>
+<div class="sourceCode"><pre>vxsp &lt;- plantAreaDensity(merge(vxsp1, vxsp2))
+</pre></div>
+
+
+
+<h4>Merging multiple voxel spaces</h4>
+
+<p>Merging several voxel spaces works as follow : vxsp1 and vxsp2 merged
+into vxsp12. vxsp12 &amp; vxsp3 merged into vxsp123, etc. The process can be
+synthesized with the <code>Reduce()</code> function.
+</p>
+<div class="sourceCode"><pre>vxsp &lt;- Reduce(merge, list(vxsp1, vxsp2, vxsp3))
+</pre></div>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'VoxelSpace'
+merge(x, y, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p><code>VoxelSpace</code> objects to be merged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A merged <code>VoxelSpace</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># merge same voxel space to confirm merging behavior
+vxsp1 &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+vxsp2 &lt;- readVoxelSpace(system.file("extdata", "tls_sample.vox", package = "AMAPVox"))
+vxsp &lt;- merge(vxsp1, vxsp2)
+all(vxsp$nbSampling == vxsp1$nbSampling + vxsp2$nbSampling)
+
+# with PAD
+vxsp &lt;- plantAreaDensity(merge(vxsp1, vxsp2), pulse.min = 1)
+all((vxsp$pad_transmittance - vxsp1$PadBVTotal) &lt; 1e-7) # equal at float precision
+
+</code></pre>
+
+
+</div>

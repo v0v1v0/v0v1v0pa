@@ -1,0 +1,306 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_interactive_cma</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Interactive exploration and CMA computation.</h2>
+
+<h3>Description</h3>
+
+<p>Interactively plots the data for one of more patients, allowing the real-time
+exploration of the various CMAs and their parameters.
+It can use <code>Rstudio</code>'s <code>manipulate</code> library (deprecated) or
+<code>Shiny</code> (recommended).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_interactive_cma(
+  data = NULL,
+  ID = NULL,
+  cma.class = c("simple", "per episode", "sliding window")[1],
+  print.full.params = FALSE,
+  ID.colname = NA,
+  event.date.colname = NA,
+  event.duration.colname = NA,
+  event.daily.dose.colname = NA,
+  medication.class.colname = NA,
+  medication.groups = NULL,
+  date.format = "%m/%d/%Y",
+  followup.window.start.max = 5 * 365,
+  followup.window.duration.max = 5 * 365,
+  observation.window.start.max = followup.window.start.max,
+  observation.window.duration.max = followup.window.duration.max,
+  align.all.patients = FALSE,
+  align.first.event.at.zero = FALSE,
+  maximum.permissible.gap.max = 2 * 365,
+  sliding.window.start.max = followup.window.start.max,
+  sliding.window.duration.max = 2 * 365,
+  sliding.window.step.duration.max = 2 * 365,
+  backend = c("shiny", "rstudio")[1],
+  use.system.browser = FALSE,
+  get.colnames.fnc = function(d) names(d),
+  get.patients.fnc = function(d, idcol) unique(d[[idcol]]),
+  get.data.for.patients.fnc = function(patientid, d, idcol, cols = NA, maxrows = NA)
+    d[d[[idcol]] %in% patientid, ],
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Usually a <em><code>data.frame</code></em> containing the events (prescribing
+or dispensing) used to compute the CMA. Must contain, at a minimum, the patient
+unique ID, the event date and duration, and might also contain the daily
+dosage and medication type (the actual column names are defined in the
+following four parameters). Alternatively, this can be any other data source
+(for example, a connection to a database), in which case the user must redefine
+the arguments <code>get.colnames.fnc</code>, <code>get.patients.fnc</code> and
+<code>get.data.for.patients.fnc</code> appropriately. Currently, this works only when
+using Shiny for interactive rendering. For a working example, please see
+the vignette describing the interfacing with databases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>The ID (as given in the <code>ID.colname</code> column) of the patient
+whose data to interactively plot (if absent, pick the first one); please not
+that this an be interactively selected during plotting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cma.class</code></td>
+<td>
+<p>The type of CMAs to plot; can be "simple" (CMA0 to CMA9),
+"per episode", or "sliding window".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.full.params</code></td>
+<td>
+<p>A <em>logical</em> specifying if the values of all the
+parameters used to generate the current plot should be printed in the console
+(if <em>TRUE</em>, it can generate extremely verbose output!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in <code>data</code>
+containing the unique patient ID, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.date.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the start date of the event (in the format given in
+the <code>date.format</code> parameter), or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.duration.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the event duration (in days), or <code>NA</code> if not
+defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.daily.dose.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the prescribed daily dose, or <code>NA</code> if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colname</code></td>
+<td>
+<p>A <em>string</em>, the name of the column in
+<code>data</code> containing the classes/types/groups of medication, or <code>NA</code>
+if not defined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.groups</code></td>
+<td>
+<p>A <em>named character vector</em> defining the
+medication classes, the name of a column in the data the defines the groups,
+or <code>NULL</code> if none (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.format</code></td>
+<td>
+<p>A <em>string</em> giving the format of the dates used in the
+<code>data</code> and the other parameters; see the <code>format</code> parameters of the
+<code>as.Date</code> function for details (NB, this concerns only the
+dates given as strings and not as <code>Date</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.start.max</code></td>
+<td>
+<p>The maximum number of days when the
+follow-up window can start.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followup.window.duration.max</code></td>
+<td>
+<p>The maximum duration of the follow-up
+window in days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observation.window.start.max</code></td>
+<td>
+<p>The maximum number of days when the
+observation window can start.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observation.window.duration.max</code></td>
+<td>
+<p>The maximum duration of the
+observation window in days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>align.all.patients</code></td>
+<td>
+<p>Should the patients be aligend?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>align.first.event.at.zero</code></td>
+<td>
+<p>Should the first event be put at zero?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum.permissible.gap.max</code></td>
+<td>
+<p>The maximum permissible gap in days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sliding.window.start.max</code></td>
+<td>
+<p>The maximum number of days when the sliding
+windows can start.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sliding.window.duration.max</code></td>
+<td>
+<p>The maximum duration of the sliding
+windows in days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sliding.window.step.duration.max</code></td>
+<td>
+<p>The maximum sliding window step in
+days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backend</code></td>
+<td>
+<p>The plotting backend to use; "shiny" (the default) tries to
+use the Shiny framework, while "rstudio" uses the manipulate RStudio
+capability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.system.browser</code></td>
+<td>
+<p>For shiny, use the system browser?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get.colnames.fnc</code></td>
+<td>
+<p>A <em>function</em> taking as parameter the data source
+and returning the column names. Must be overridden when the data source is
+not derived from a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get.patients.fnc</code></td>
+<td>
+<p>A <em>function</em> taking as parameter the data source
+and the patient ID column name, and returns the list of all patient IDs.
+Must be overridden when the data source is not derived from a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get.data.for.patients.fnc</code></td>
+<td>
+<p>A <em>function</em> taking as parameter a (set
+of) patient ID(s), the data source, and the patient ID column name, and returns
+the list of all patient IDs. Must be overridden when the data source is not
+derived from a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>manipulate</code> is kept for backward compatibility only, as it is much
+more limited than <code>Shiny</code> and will receive no new development in the
+future.
+<code>Shiny</code> currently allows the use of any other data source besides a
+default (and usual) <code>data.frame</code> (or derived), such a connection to an
+<code>SQL</code> database. In this case, the user <em>must</em> redefine the three
+argument functions <code>get.colnames.fnc</code>, <code>get.patients.fnc</code> and
+<code>get.data.for.patients.fnc</code> which collectively define an interface for
+listing the column names, all the patient IDs, and for retreiving the actual
+data for a (set of) patient ID(s). A fully worked example is described in
+the vignette detailing the access to standard databases storaging the
+patient information.
+For more info please see the vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Nothing
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The vignette *AdhereR: Interactive plotting (and more) with Shiny*.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(AdhereR);
+plot_interactive_cma(med.events,
+                     ID.colname="PATIENT_ID",
+                     event.date.colname="DATE",
+                     event.duration.colname="DURATION",
+                     event.daily.dose.colname="PERDAY",
+                     medication.class.colname="CATEGORY");
+## End(Not run)
+</code></pre>
+
+
+</div>

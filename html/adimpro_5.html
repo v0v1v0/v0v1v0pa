@@ -1,0 +1,352 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>awsimage</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Propagation-Separation approach for smoothing of 2D images</h2>
+
+<h3>Description</h3>
+
+<p>This functions implement the Propagation-Separation approach 
+(local constant and local polynomial model) for smoothing images.
+Function <code>awsaniso</code> uses anisotropic location weights. This is done by evaluating local gradient estimates obtained from the actual estimated color values. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">awsimage(object, hmax=4, aws=TRUE, varmodel=NULL, ladjust=1.25,
+         mask=NULL, xind = NULL, yind = NULL,
+         wghts=c(1,1,1,1), scorr=TRUE,
+         lkern="Plateau", plateau=NULL, homogen=TRUE, earlystop=TRUE,
+         demo=FALSE, graph=FALSE,
+         max.pixel=4.e2, clip = FALSE, compress=TRUE)
+awspimage(object, hmax=12, aws=TRUE, degree=1, varmodel = NULL,
+          ladjust=1.0, xind = NULL, yind = NULL, 
+          wghts=c(1,1,1,1), scorr= TRUE,
+          lkern="Plateau", plateau=NULL, homogen=TRUE, earlystop=TRUE,
+          demo=FALSE, graph=FALSE, 
+          max.pixel= 4.e2, clip = FALSE, compress=TRUE)
+awsaniso(object, hmax = 4, g = 3, rho = 0, aws = TRUE, varmodel = NULL,
+          ladjust = 1, xind = NULL, yind = NULL, wghts = c(1, 1, 1, 1), 
+          scorr = TRUE, lkern = "Triangle", demo = FALSE, graph = FALSE,
+          satexp = 0.25, max.pixel = 400, clip = FALSE, compress = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Image object, class "adimpro", as from
+<code>read.image</code>, <code>read.raw</code>, or <code>make.image</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax</code></td>
+<td>
+<p> Maximum bandwidth to use in the iteration procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p> Bandwidth for anisotropic smoothing gradient estimates,
+preferably <code class="reqn">g \ge 3</code> for images with line type texture and small 
+<code class="reqn">g \approx 1</code> for improving edges between homogeneous regions (function <code>awsaniso</code> only).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p> Regularization parameter for anisotropic smoothing gradient estimates,
+preferably <code class="reqn">\rho = 0</code> for images with line type texture and large 
+<code class="reqn">\rho \approx 3</code> for improving edges between homogeneous regions. (function <code>awsaniso</code> only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aws</code></td>
+<td>
+<p> (logical). If <code>TRUE</code> the propagation - separation
+(PS) approach from Polzehl and Spokoiny (2006) is used.
+<code>aws=FALSE</code> turns off the statistical penalty resulting in a
+nonadaptive kernel estimate using a kernel with bandwidth <code>hmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p> Degree of the local polynomial model for
+<code>awspimage</code>. 0, 1, or 2 only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmodel</code></td>
+<td>
+ <p><code>varmodel</code> specifies how variances are to be
+estimated. This can be a homogeneous variance estimate
+(<code>varmodel="None"</code>) assuming uncorrelated errors (both spatial
+and between channels). Alternatives are an adaptive homogeneous or linear 
+(function of the mean) variance estimate that depends on estimated
+correlations and on residuals from the last iteration step. 
+The default <code>varmodel=NULL</code> corresponds to
+<code>varmodel == "Linear"</code> if <code>img$gamma==FALSE</code> and
+<code>varmodel == "Constant"</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ladjust</code></td>
+<td>
+<p> adjustment factor for lambda (&gt;=1). Default values for
+lambda are selected for Gaussian distributions and default settings of 
+parameters <code>lkern</code> and <code>plateau</code>. Skewed or heavy
+tailed distributions may require slightly larger values for lambda
+to meet the propagation condition. <code>ladjust</code> allows to increase
+lambda in such situations. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p> logical array of the same size as the image or
+<code>NULL</code> (default). Smoothing is restricted to the smallest rectangle
+including all pixel where <code>mask==TRUE</code> and restricts
+computations to these pixel. This need not be a
+connected area (Typical usage: smooth all bright regions)!
+Only used if <code>is.null(xind)</code> <code>&amp;&amp;</code>
+<code>is.null(yind)</code>. Inactive if 
+<code>mask==NULL</code>. Can only be used if <code>varmodel="None"</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xind, yind</code></td>
+<td>
+<p>Restrict smoothing to rectangular area defined by pixel
+indices <code>xind,yind</code> in x- and y-direction. Full range
+if <code>NULL</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts</code></td>
+<td>
+<p> allows to weight the information from
+different (up to 4) color channels. The weights are used in the
+statistical penalty of the PS-procedure. Note that lambda-values are selected for <code>wghts==c(1,1,1,1)</code>,
+please use parameter <code>ladjust</code> to set an appropriate value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+<p> (logical). Specifies whether  spatial correlation is to be
+estimated. Defaults to <code>TRUE</code>.  Is set to <code>FALSE</code> if
+<code>mask</code> is not <code>NULL</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkern</code></td>
+<td>
+<p> Specifies the location kernel. Defaults to
+"Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
+The use of "Triangle" corresponds to the Epanechnicov kernel 
+nonparametric kernel regression. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plateau</code></td>
+<td>
+<p>Extension of the plateau in the statistical kernel. Can take
+values from (0,1), defaults to <code>0.25</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>homogen</code></td>
+<td>
+<p>If TRUE the algorithm determines, in each design point i, a circle of maximum radius,
+such that the statistical penalty <code>s_{ij}</code> for all points j within the
+circle is less than the value specified in <code>plateau</code>. In subsequent 
+iteration steps the statistical penalty  for such points is set to zero. 
+This is only used if <code>plateau&gt;0</code>. This results in more stable intermediate estimates and in a smoother reconstruction. <code>homogen=TRUE</code>
+leads to increased memory requirements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>earlystop</code></td>
+<td>
+<p>If TRUE the algorithm determines, in each design point i, a circle of minimal radius,
+such that the circle includes all point j with positive weights <code>w_{ij}</code>.
+if this radius is considerably smaller than the actual bandwidth then the
+estimate in point i is fixed. This should considarably reduce computing time 
+in case of large <code>hmax</code>.<code>earlystop=TRUE</code>
+slightly increases memory requirements. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>demo</code></td>
+<td>
+<p> (logical). If <code>demo=TRUE</code> the function pauses after each
+iteration. Defaults to <code>FALSE</code>.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graph</code></td>
+<td>
+<p> (logical). If  <code>graph=TRUE</code> intermediate results are
+illustrated after each iteration step. Defaults to <code>FALSE</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.pixel</code></td>
+<td>
+<p> Maximum dimension of images for display
+if <code>graph=TRUE</code>. If the true dimension is larger, the 
+images are downscaled for display. See also <code>show.image</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>satexp</code></td>
+<td>
+<p>exponent used for scaling saturation in anisotropy visualization (function <code>awsaniso</code> only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clip</code></td>
+<td>
+<p> (logical). If <code>TRUE</code> a clipping region is selected, see
+<code>clip.image</code>, using the information contained in
+<code>xind</code> or <code>yind</code>. If both are <code>NULL</code> a clipping
+region can be defined by left mouse clicks. The image <code>object</code>
+is reduced to the clipping region before smoothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p> logical, determines if image data are stored in raw-format. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function implements the Propagation-Separation (PS) approach to 
+nonparametric smoothing (formerly introduced as Adaptive Weights Smoothing) 
+for varying coefficient likelihood (awsimage) and local polynomial
+(awspimage) models for greyscale and color images. 
+</p>
+<p>The distribution of grey (color) values is considered to be
+Gaussian. Noise can be colored.
+</p>
+<p>The numerical complexity of the procedure is mainly determined by
+<code>hmax</code>. The number of iterations is <code>2*log(hmax)/log(1.25)</code>.
+Comlexity in each iteration step is <code>Const*hakt*n</code> with <code>hakt</code>
+being the actual bandwith in the iteration step and <code>n</code> the number of pixels. 
+<code>hmax</code> determines the maximal possible variance reduction.
+</p>
+<p>All other parameters of the approach only depend on the specified
+values for <code>skern/lkern</code> and are therefore set internally to
+meaningful default values.
+</p>
+<p>For a detailed description of the procedure see references below.
+</p>
+<p>The script used to control the values of parameter <code>lambda</code> is stored in
+directory inst/adjust.
+</p>
+
+
+<h3>Value</h3>
+
+<p> Object of class <code>"adimpro"</code>
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>img </code></td>
+<td>
+<p>Contains the reconstructed image. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni </code></td>
+<td>
+<p>Contains the sum of weights, i.e. <code>trace(W_i)</code>, in all grid points <code>i</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ni0 </code></td>
+<td>
+<p>Contains the maximum sum of weights for an nonadaptive kernel estimate with the same bandwidth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmax </code></td>
+<td>
+<p>Bandwidth used in the last iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call </code></td>
+<td>
+<p>The arguments of the function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcoef </code></td>
+<td>
+<p>Estimated coefficients in the variance model for the
+color channels, if <code>varmodel</code> is "Constant" or "Linear". </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wghts </code></td>
+<td>
+<p>The weights used for the color channels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scorr</code></td>
+<td>
+<p>Estimated spatial correlations for each channel, if <code>scorr=TRUE</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chcorr</code></td>
+<td>
+<p>Estimated correlations between
+color channels, if <code>scorr=TRUE</code> </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Karsten Tabelow <a href="mailto:tabelow@wias-berlin.de">tabelow@wias-berlin.de</a> and Joerg Polzehl <a href="mailto:polzehl@wias-berlin.de">polzehl@wias-berlin.de</a></p>
+
+
+<h3>References</h3>
+
+<p>Polzehl and Spokoiny (2006). Propagation-Separation Approach for Local
+Likelihood Estimation. Probability Theory and Related Fields. 3 (135)
+335 - 362.
+</p>
+<p>Polzehl and Spokoiny (2005). Structural adaptive smoothing
+adaptive smoothing by
+Propagation-Separation-methods. WIAS-Preprint No. 1068.
+</p>
+<p>Polzehl, J. and Tabelow, K. (2007). Adaptive smoothing of digital
+images, Journal of Statistical Software 19 (1). 
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>read.image</code>, <code>read.raw</code>, <code>make.image</code>, <code>show.image</code>, <code>clip.image</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: demo(awsimage)
+</code></pre>
+
+
+</div>

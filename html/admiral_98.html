@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_analysis_ratio</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Ratio Variable</h2>
+
+<h3>Description</h3>
+
+<p>Derives a ratio variable for a BDS dataset based on user specified variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_analysis_ratio(dataset, numer_var, denom_var, new_var = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>numer_var</code> and <code>denom_var</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numer_var</code></td>
+<td>
+<p>Variable containing numeric values to be used in the numerator of
+the ratio calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>denom_var</code></td>
+<td>
+<p>Variable containing numeric values to be used in the denominator of
+the ratio calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>A user-defined variable that will be appended to the dataset.
+The default behavior will take the denominator variable and prefix it with <code>R2</code>
+and append to the dataset. Using this argument will override this default behavior.
+</p>
+<p>Default is <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A user wishing to calculate a Ratio to Baseline, <code>AVAL / BASE</code> will
+have returned a new variable <code>R2BASE</code> that will be appended to the input dataset.
+Ratio to Analysis Range Lower Limit <code>AVAL / ANRLO</code> will return a new variable
+<code>R2ANRLO</code>, and Ratio to Analysis Range  Upper Limit <code>AVAL / ANRHI</code> will return
+a new variable <code>R2ANRLO</code>. Please note how the denominator variable has the prefix
+<code style="white-space: pre;">⁠R2----⁠</code>. A user can override the default returned variables by using the
+<code>new_var</code> argument. Also, values of 0 in the denominator will return <code>NA</code> in
+the derivation.
+</p>
+<p>Reference CDISC ADaM Implementation Guide
+Version 1.1 Section 3.3.4 Analysis Parameter Variables for BDS Datasets
+</p>
+
+
+<h3>Value</h3>
+
+<p>The input dataset with a ratio variable appended
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions that returns variable appended to dataset: 
+<code>derive_basetype_records()</code>,
+<code>derive_var_anrind()</code>,
+<code>derive_var_atoxgr()</code>,
+<code>derive_var_atoxgr_dir()</code>,
+<code>derive_var_base()</code>,
+<code>derive_var_chg()</code>,
+<code>derive_var_ontrtfl()</code>,
+<code>derive_var_pchg()</code>,
+<code>derive_var_shift()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+data &lt;- tribble(
+  ~USUBJID, ~PARAMCD, ~SEQ, ~AVAL, ~BASE, ~ANRLO, ~ANRHI,
+  "P01", "ALT", 1, 27, 27, 6, 34,
+  "P01", "ALT", 2, 41, 27, 6, 34,
+  "P01", "ALT", 3, 17, 27, 6, 34,
+  "P02", "ALB", 1, 38, 38, 33, 49,
+  "P02", "ALB", 2, 39, 38, 33, 49,
+  "P02", "ALB", 3, 37, 38, 33, 49
+)
+
+# Returns "R2" prefixed variables
+data %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = BASE) %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = ANRLO) %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = ANRHI)
+
+# Returns user-defined variables
+data %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = BASE, new_var = R01BASE) %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = ANRLO, new_var = R01ANRLO) %&gt;%
+  derive_var_analysis_ratio(numer_var = AVAL, denom_var = ANRHI, new_var = R01ANRHI)
+</code></pre>
+
+
+</div>

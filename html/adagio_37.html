@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>subsetsum</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Subset Sum Problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Subset sum routine for positive integers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">subsetsum(S, t, method = "greedy")
+
+sss_test(S, t)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>vector of positive integers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>target value, bigger than all items in <code>S</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>can be “greedy” or “dynamic”, where “dynamic” stands
+for the dynamic programming approach.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>subsetsum</code> is searching for a set of elements in <code>S</code> that
+sum up to <code>t</code> by continuously adding more elements of <code>S</code>.
+</p>
+<p>It is not required that <code>S</code> is decreasingly sorted. But for reasons
+of efficiency and smaller execution times it is urgently recommended to
+sort the item set in decreasing order. See the examples to find out how
+to handle your data.
+</p>
+<p>The first components will be preferred, i.e., if <code>S</code> is decreasing,
+the sum with larger elements will be found, if increasing, the sum with
+smaller elements. Because of timing considerations, the default is to
+sort decreasingly before processing.
+</p>
+<p>The dynamic method may be faster for large sets, but will also require
+much more memory if the target value is large. 
+</p>
+<p><code>sss_test</code> will find the biggest number below or equal to <code>t</code>
+that can be expressed as a sum of items in <code>S</code>. It will not return
+any indices. It can be quite fast, though it preprocesses the set <code>S</code>
+to be sorted decreasingly, too. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with the target value, if reached, and vector of indices of elements
+in <code>S</code> that sum up to <code>t</code>.
+</p>
+<p>If no solution is found, the dynamic method will return indices for the
+largest value below the target, the greedy method witll return NULL.
+</p>
+<p><code>sss_test</code> will simply return maximum sum value found.
+</p>
+
+
+<h3>Note</h3>
+
+<p>A compiled version – and much faster, in Fortran – can be found in
+package 'knapsack' (R-Forge, project 'optimist') as <code>subsetsum</code>.
+A recursive version, returning *all* solutions, is much too slow in R,
+but is possible in Julia and can be asked from the author.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HwB  email: &lt;hwborchers@googlemail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Horowitz, E., and S. Sahni (1978). Fundamentals of Computer Algorithms.
+Computer Science Press, Rockville, ML.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>maxsub</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">t &lt;- 5842
+S &lt;- c(267, 493, 869, 961, 1000, 1153, 1246, 1598, 1766, 1922)
+
+# S is not decreasingly sorted, so ...
+o  &lt;- order(S, decreasing = TRUE)
+So &lt;- S[o]                          # So is decreasingly sorted
+
+sol &lt;- subsetsum(So, t)             # $inds:  2 4 6 7 8  w.r.t.  So
+is  &lt;- o[sol$inds]                  # is:     9 7 5 4 3  w.r.t.  S
+sum(S[is])                          # 5842
+
+## Not run: 
+amount &lt;- 4748652
+products &lt;- 
+c(30500,30500,30500,30500,42000,42000,42000,42000,
+  42000,42000,42000,42000,42000,42000,71040,90900,
+  76950,35100,71190,53730,456000,70740,70740,533600,
+  83800,59500,27465,28000,28000,28000,28000,28000,
+  26140,49600,77000,123289,27000,27000,27000,27000,
+  27000,27000,80000,33000,33000,55000,77382,48048,
+  51186,40000,35000,21716,63051,15025,15025,15025,
+  15025,800000,1110000,59700,25908,829350,1198000,1031655)
+
+# prepare set
+prods &lt;- products[products &lt;= amount]  # no elements &gt; amount
+prods &lt;- sort(prods, decreasing=TRUE)  # decreasing order
+
+# now find one solution
+system.time(is &lt;- subsetsum(prods, amount))
+#  user  system elapsed 
+# 0.030   0.000   0.029 
+
+prods[is]
+#  [1]   70740   70740   71190   76950   77382   80000   83800
+#  [8]   90900  456000  533600  829350 1110000 1198000
+
+sum(prods[is]) == amount
+# [1] TRUE
+
+# Timings:
+#             unsorted   decr.sorted
+# "greedy"      22.930         0.030    (therefore the default settings)
+# "dynamic"      2.515         0.860    (overhead for smaller sets)
+# sss_test       8.450         0.040    (no indices returned)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

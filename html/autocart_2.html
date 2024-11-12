@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>autocartControl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create the object used for the controlling of the splits in the autocart model</h2>
+
+<h3>Description</h3>
+
+<p>Create the object used for the controlling of the splits in the autocart model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">autocartControl(
+  minsplit = 20,
+  minbucket = round(minsplit/3),
+  maxdepth = 30,
+  maxobsMtxCalc = NULL,
+  distpower = 1,
+  islonglat = TRUE,
+  givePredAsFactor = TRUE,
+  retainCoords = TRUE,
+  useGearyC = FALSE,
+  runParallel = TRUE,
+  spatialWeightsType = "default",
+  customSpatialWeights = NULL,
+  spatialBandwidthProportion = 1,
+  spatialBandwidth = NULL,
+  asForest = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>minsplit</code></td>
+<td>
+<p>The minimum observations in a node before a split is attempted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minbucket</code></td>
+<td>
+<p>The minimum number of observations in a terminal node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdepth</code></td>
+<td>
+<p>Set the maximum depth in the final tree. A root node is counted as a height of 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxobsMtxCalc</code></td>
+<td>
+<p>Optional maximum number of observations in a node where computationally intensive matrix calculations like autocorrelation and compactness are performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distpower</code></td>
+<td>
+<p>The power of inverse distance to use when calculating spatial weights matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>islonglat</code></td>
+<td>
+<p>Are the coordinates longitude and latitude coordinates? If TRUE, then use great circle distance calculations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>givePredAsFactor</code></td>
+<td>
+<p>In the returned autocart model, should the prediction vector also be returned as a factor?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retainCoords</code></td>
+<td>
+<p>After creating the autocart model, should the coordinates for each of the predictions be kept in the returned model?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useGearyC</code></td>
+<td>
+<p>Should autocart use Geary's C instead of Moran's I in the splitting function?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runParallel</code></td>
+<td>
+<p>Logical value indicating whether autocart should run using parallel processing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialWeightsType</code></td>
+<td>
+<p>What type of spatial weighting should be used when calculating spatial autocorrelation? Options are "default" or "gaussian".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>customSpatialWeights</code></td>
+<td>
+<p>Use this parameter to pass in an optional spatial weights matrix for use in autocorrelation calculations. Must have nrow and ncol equal to rows in training dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialBandwidthProportion</code></td>
+<td>
+<p>What percentage of the maximum pairwise distances should be considered the maximum distance for spatial influence? Cannot be simultaneously set with <code>spatialBandwidth</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spatialBandwidth</code></td>
+<td>
+<p>What is the maximum distance where spatial influence can be assumed? Cannot be simultaneously set with <code>spatialBandwidthProportion</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asForest</code></td>
+<td>
+<p>A logical indicating if the tree should be created as a forest component with random subsetting of predictors at each node. Set this to true if you are using this tree inside an ensemble.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object passed in to the <code>autocart</code> function that controls the splitting.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load some data for an autocartControl example
+snow &lt;- na.omit(read.csv(system.file("extdata", "ut2017_snow.csv", package = "autocart")))
+y &lt;- snow$yr50[1:40]
+X &lt;- data.frame(snow$ELEVATION, snow$MCMT, snow$PPTWT)[1:40, ]
+locations &lt;- as.matrix(cbind(snow$LONGITUDE, snow$LATITUDE))[1:40, ]
+
+# Create a control object that disallows the tree from having a depth more
+# than 10 and give spatial weights only to observations that are a third of the
+# distance of the longest distance between any two points in the dataset.
+snow_control &lt;- autocartControl(maxdepth = 10, spatialBandwidthProportion = 0.33)
+
+# Pass the created control object to an autocart model
+snow_model &lt;- autocart(y, X, locations, 0.30, 0, snow_control)
+</code></pre>
+
+
+</div>

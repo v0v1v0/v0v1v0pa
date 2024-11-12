@@ -1,0 +1,595 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calibrate_trial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calibrate trial specification</h2>
+
+<h3>Description</h3>
+
+<p>This function calibrates a trial specification using a Gaussian process-based
+Bayesian optimisation algorithm.
+The function calibrates an input trial specification object (using repeated
+calls to <code>run_trials()</code> while adjusting the trial specification) to a
+<code>target</code> value within a <code>search_range</code> in a single input dimension (<code>x</code>) in
+order to find an optimal value (<code>y</code>).<br>
+The default (and expectedly most common use case) is to calibrate a trial
+specification to adjust the <code>superiority</code> and <code>inferiority</code> thresholds to
+obtain a certain probability of superiority; if used with a trial
+specification with identical underlying outcomes (no between-arm
+differences), this probability is an estimate of the Bayesian analogue of the
+total type-1 error rate for the outcome driving the adaptations, and if
+between-arm differences are present, this corresponds to an estimate of the
+Bayesian analogue of the power.<br>
+The default is to perform the calibration while varying single, constant,
+symmetric thresholds for <code>superiority</code> / <code>inferiority</code> throughout a trial
+design, as described in <strong>Details</strong>, and the default values have been chosen
+to function well in this case.<br>
+Advanced users may use the function to calibrate trial specifications
+according to other metrics - see <strong>Details</strong> for how to specify a custom
+function used to modify (or recreate) a trial specification object during
+the calibration process.<br>
+The underlying Gaussian process model and its control hyperparameters are
+described under <strong>Details</strong>, and the model is partially based on code from
+Gramacy 2020 (with permission; see <strong>References</strong>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calibrate_trial(
+  trial_spec,
+  n_rep = 1000,
+  cores = NULL,
+  base_seed = NULL,
+  fun = NULL,
+  target = 0.05,
+  search_range = c(0.9, 1),
+  tol = target/10,
+  dir = 0,
+  init_n = 2,
+  iter_max = 25,
+  resolution = 5000,
+  kappa = 0.5,
+  pow = 1.95,
+  lengthscale = 1,
+  scale_x = TRUE,
+  noisy = is.null(base_seed),
+  narrow = !noisy &amp; !is.null(base_seed),
+  prev_x = NULL,
+  prev_y = NULL,
+  path = NULL,
+  overwrite = FALSE,
+  version = NULL,
+  compress = TRUE,
+  sparse = TRUE,
+  progress = NULL,
+  export = NULL,
+  export_envir = parent.frame(),
+  verbose = FALSE,
+  plot = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>trial_spec</code></td>
+<td>
+<p><code>trial_spec</code> object, generated and validated by the
+<code>setup_trial()</code>, <code>setup_trial_binom()</code> or <code>setup_trial_norm()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_rep</code></td>
+<td>
+<p>single integer, the number of simulations to run at each
+evaluation. Values <code style="white-space: pre;">⁠&lt; 100⁠</code> are not permitted; values <code style="white-space: pre;">⁠&lt; 1000⁠</code> are permitted
+but recommended against.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p><code>NULL</code> or single integer. If <code>NULL</code>, a default value/cluster set
+by <code>setup_cluster()</code> will be used to control whether simulations are run in
+parallel on a default cluster or sequentially in the main process; if a
+cluster/value has not been specified by <code>setup_cluster()</code>, <code>cores</code> will
+then be set to the value stored in the global <code>"mc.cores"</code> option (if
+previously set by <code style="white-space: pre;">⁠options(mc.cores = &lt;number of cores&gt;⁠</code>), and <code>1</code> if that
+option has not been specified.<br>
+If the resulting number of <code>cores = 1</code>, computations will be run
+sequentially in the primary process, and if <code>cores &gt; 1</code>, a new parallel
+cluster will be setup using the <code>parallel</code> library and removed once the
+function completes. See <code>setup_cluster()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base_seed</code></td>
+<td>
+<p>single integer or <code>NULL</code> (default); the random seed used as
+the basis for all simulation runs (see <code>run_trials()</code>) and random number
+generation within the rest of the calibration process; if used, the global
+random seed will be restored after the function has been run.<br><strong>Note:</strong> providing a <code>base_seed</code> is highly recommended, as this will
+generally lead to faster and more stable calibration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p><code>NULL</code> (the default), in which case the trial specification will
+be calibrated using the default process described above and further in
+<strong>Details</strong>; otherwise a user-supplied function used during the calibration
+process, which should have a structure as described in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>single finite numeric value (defaults to <code>0.05</code>); the target
+value for <code>y</code> to calibrate the <code>trial_spec</code> object to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search_range</code></td>
+<td>
+<p>finite numeric vector of length <code>2</code>; the lower and upper
+boundaries in which to search for the best <code>x</code>. Defaults to <code>c(0.9, 1.0)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>single finite numeric value (defaults to <code>target / 10</code>); the
+accepted tolerance (in the direction(s) specified by <code>dir</code>) accepted; when
+a <code>y</code>-value within the accepted tolerance of the target is obtained, the
+calibration stops.<br><strong>Note:</strong> <code>tol</code> should be specified to be sensible considering <code>n_rep</code>;
+e.g., if the probability of superiority is targeted with <code>n_rep == 1000</code>, a
+<code>tol</code> of <code>0.01</code> will correspond to <code>10</code> simulated trials.<br>
+A too low <code>tol</code> relative to <code>n_rep</code> may lead to very slow calibration or
+calibration that cannot succeed regardless of the number of iterations.<br><strong>Important:</strong> even when a large number of simulations are conducted,
+using a very low <code>tol</code> may lead to calibration not succeeding as it may
+also be affected by other factors, e.g., the total number of simulated
+patients, the possible maximum differences in simulated outcomes, and the
+number of posterior draws (<code>n_draws</code> in the <code>setup_trial()</code> family of
+functions), which affects the minimum differences in posterior
+probabilities when simulating trials and thus can affect calibration,
+including when using the default calibration function. Increasing the
+number of posterior draws or the number of repetitions should be attempted
+if the desired tolerance cannot be achieved with lower numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>single numeric value; specifies the direction(s) of the tolerance
+range. If <code>0</code> (the default) the tolerance range will be <code>target - tol</code> to
+<code>target + tol</code>. If <code style="white-space: pre;">⁠&lt; 0⁠</code>, the range will be <code>target - tol</code> to <code>target</code>, and
+if <code style="white-space: pre;">⁠&gt; 0⁠</code>, the range will be <code>target</code> to <code>target + tol</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_n</code></td>
+<td>
+<p>single integer <code style="white-space: pre;">⁠&gt;= 2⁠</code>. The number of initial evaluations
+evenly spread over the <code>search_range</code>, with one evaluation at each boundary
+(thus, the default value of <code>2</code> is the minimum permitted value; if
+calibrating according to a different target than the default, a higher
+value may be sensible).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter_max</code></td>
+<td>
+<p>single integer <code style="white-space: pre;">⁠&gt; 0⁠</code> (default <code>25</code>). The maximum number of
+new evaluations after the initial grid (with size specified by <code>init_n</code>)
+has been set up. If calibration is unsuccessful after the maximum number
+of iterations, the <code>prev_x</code> and <code>prev_y</code> arguments (described below) may be
+used to to start a new calibration process re-using previous evaluations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolution</code></td>
+<td>
+<p>single integer (defaults to <code>5000</code>), size of the grid at
+which the predictions used to select the next value to evaluate at are
+made.<br><strong>Note:</strong> memory use will substantially increase with higher values. See
+also the <code>narrow</code> argument below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>single numeric value <code style="white-space: pre;">⁠&gt; 0⁠</code> (default <code>0.5</code>); corresponding to the
+width of the uncertainty bounds used to find the next target to evaluate.
+See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pow</code></td>
+<td>
+<p>single numerical value in the <code style="white-space: pre;">⁠[1, 2]⁠</code> range (default <code>1.95</code>),
+controlling the smoothness of the Gaussian process. See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthscale</code></td>
+<td>
+<p>single numerical value (defaults to <code>1</code>) or numerical
+vector of length <code>2</code>; values must be finite and non-negative. If a single
+value is provided, this will be used as the <code>lengthscale</code> hyperparameter;
+if a numerical vector of length <code>2</code> is provided, the second value must be
+higher than the first and the optimal <code>lengthscale</code> in this range will be
+found using an optimisation algorithm. If any value is <code>0</code>, a small amount
+of noise will be added as lengthscales must be <code style="white-space: pre;">⁠&gt; 0⁠</code>. Controls smoothness
+in combination with <code>pow</code>. See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_x</code></td>
+<td>
+<p>single logical value; if <code>TRUE</code> (the default) the <code>x</code>-values
+will be scaled to the <code style="white-space: pre;">⁠[0, 1]⁠</code> range according to the minimum/maximum
+values provided. If <code>FALSE</code>, the model will use the original scale. If
+distances on the original scale are small, scaling may be preferred. The
+returned values will always be on the original scale. See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noisy</code></td>
+<td>
+<p>single logical value; if <code>FALSE</code>, a noiseless process is
+assumed, and interpolation between values is performed (i.e., with no
+uncertainty at the <code>x</code>-values assumed). If <code>TRUE</code>, the <code>y</code>-values are
+assumed to come from a noisy process, and regression is performed (i.e.,
+some uncertainty at the evaluated <code>x</code>-values will be assumed and included
+in the predictions). Specifying <code>FALSE</code> requires a <code>base_seed</code> supplied,
+and is generally recommended, as this will usually lead to faster and more
+stable calibration. If a low <code>n_rep</code> is used (or if trials are calibrated
+to other metrics other than the default), specifying <code>TRUE</code> may be
+necessary even when using a valid <code>base_seed</code>. Defaults to <code>TRUE</code> if a
+<code>base_seed</code> is supplied and <code>FALSE</code> if not.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>narrow</code></td>
+<td>
+<p>single logical value. If <code>FALSE</code>, predictions are evenly spread
+over the full <code>x</code>-range. If <code>TRUE</code>, the prediction grid will be spread
+evenly over an interval consisting of the two <code>x</code>-values with
+corresponding <code>y</code>-values closest to the target in opposite directions. Can
+only be <code>TRUE</code> when a <code>base_seed</code> is provided and <code>noisy</code> is <code>FALSE</code> (the
+default value is <code>TRUE</code> in that case, otherwise it is <code>FALSE</code>), and only if
+the function can safely be assumed to be only monotonically increasing or
+decreasing (which is generally reasonable if the default is used for
+<code>fun</code>), in which case this will lead to a faster search and a smoother
+prediction grid in the relevant region without increasing memory use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prev_x, prev_y</code></td>
+<td>
+<p>numeric vectors of equal lengths, corresponding to
+previous evaluations. If provided, these will be used in the calibration
+process (added before the initial grid is setup, with values in the grid
+matching values in <code>prev_x</code> leading to those evaluations being skipped).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>single character string or <code>NULL</code> (the default); if a valid file
+path is provided, the calibration results will either be saved to this path
+(if the file does not exist or if <code>overwrite</code> is <code>TRUE</code>, see below) or the
+previous results will be loaded and returned (if the file exists,
+<code>overwrite</code> is <code>FALSE</code>, and if the input <code>trial_spec</code> and central control
+settings are identical to the previous run, otherwise an error is
+produced). Results are saved/loaded using the <code>saveRDS()</code> / <code>readRDS()</code>
+functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>, in which case previous
+results are loaded if a valid file path is provided in <code>path</code> and the
+object in <code>path</code> contains the same input <code>trial_spec</code> and the previous
+calibration used the same central control settings (otherwise, the function
+errors). If <code>TRUE</code> and a valid file path is provided in <code>path</code>, the
+complete calibration function will be run with results saved using
+<code>saveRDS()</code>, regardless of whether or not a previous result was saved
+in <code>path</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+<p>passed to <code>saveRDS()</code> when saving calibration results,
+defaults to <code>NULL</code> (as in <code>saveRDS()</code>), which means that the current
+default version is used. Ignored if calibration results are not saved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>passed to <code>saveRDS()</code> when saving calibration results,
+defaults to <code>TRUE</code> (as in <code>saveRDS()</code>), see <code>saveRDS()</code> for other options.
+Ignored if calibration results are not saved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse, progress, export, export_envir</code></td>
+<td>
+<p>passed to <code>run_trials()</code>, see
+description there.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>. If <code>TRUE</code>, the function
+will print details on calibration progress.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>. If <code>TRUE</code>, the function
+will print plots of the Gaussian process model predictions and return
+them as part of the final object; requires the <code>ggplot2</code> package installed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Default calibration</strong>
+<br><br>
+If <code>fun</code> is <code>NULL</code> (as default), the default calibration strategy will be
+employed. Here, the target <code>y</code> is the probability of superiority (as
+described in <code>check_performance()</code> and <code>summary()</code>), and the function will
+calibrate constant stopping thresholds for superiority and inferiority (as
+described in <code>setup_trial()</code>, <code>setup_trial_binom()</code>, and
+<code>setup_trial_norm()</code>), which corresponds to the Bayesian analogues of the
+type 1 error rate if there are no differences between arms in the trial
+specification, which we expect to be the most common use case, or the power,
+if there are differences between arms in the trial specification.<br></p>
+<p>The stopping calibration process will, in the default case, use the input <code>x</code>
+as the stopping threshold for superiority and <code>1 - x</code> as the stopping
+threshold for inferiority, respectively, i.e., stopping thresholds will be
+constant and symmetric.<br></p>
+<p>The underlying default function calibrated is typically essentially
+noiseless if a high enough number of simulations are used with an
+appropriate random <code>base_seed</code>, and generally monotonically decreasing. The
+default values for the control hyperparameters have been set to normally
+work well in this case (including <code>init_n</code>, <code>kappa</code>, <code>pow</code>, <code>lengthscale</code>,
+<code>narrow</code>, <code>scale_x</code>, etc.). Thus, few initial grid evaluations are used in
+this case, and if a <code>base_seed</code> is provided, a noiseless process is assumed
+and narrowing of the search range with each iteration is performed, and the
+uncertainty bounds used in the acquisition function (corresponding to
+quantiles from the posterior predictive distribution) are relatively narrow.
+</p>
+<p><strong>Specifying calibration functions</strong>
+<br><br>
+A user-specified calibration function should have the following structure:
+</p>
+<div class="sourceCode"><pre># The function must take the arguments x and trial_spec
+# trial_spec is the original trial_spec object which should be modified
+# (alternatively, it may be re-specified, but the argument should still
+# be included, even if ignored)
+function(x, trial_spec) {
+  # Calibrate trial_spec, here as in the default function
+  trial_spec$superiority &lt;- x
+  trial_spec$inferiority &lt;- 1 - x
+
+  # If relevant, known y values corresponding to specific x values may be
+  # returned without running simulations (here done as in the default
+  # function). In that case, a code block line the one below can be included,
+  # with changed x/y values - of note, the other return values should not be
+  # changed
+  if (x == 1) {
+    return(list(sims = NULL, trial_spec = trial_spec, y = 0))
+  }
+
+  # Run simulations - this block should be included unchanged
+  sims &lt;- run_trials(trial_spec, n_rep = n_rep, cores = cores,
+                     base_seed = base_seed, sparse = sparse,
+                     progress = progress, export = export,
+                     export_envir = export_envir)
+
+ # Return results - only the y value here should be changed
+ # summary() or check_performance() will often be used here
+ list(sims = sims, trial_spec = trial_spec,
+      y = summary(sims)$prob_superior)
+}
+</pre></div>
+<p><strong>Note:</strong> changes to the trial specification are <strong>not validated</strong>; users who
+define their own calibration function need to ensure that changes to
+calibrated trial specifications does not lead to invalid values; otherwise,
+the procedure is prone to error when simulations are run. Especially, users
+should be aware that changing <code>true_ys</code> in a trial specification generated
+using the simplified <code>setup_trial_binom()</code> and <code>setup_trial_norm()</code> functions
+requires changes in multiple places in the object, including in the functions
+used to generate random outcomes, and in these cases (and otherwise if in
+doubt) re-generating the <code>trial_spec</code> instead of modifying should be
+preferred as this is safer and leads to proper validation.
+</p>
+<p><strong>Note:</strong> if the <code>y</code> values corresponding to certain <code>x</code> values are known,
+then the user may directly return these values without running simulations
+(e.g., in the default case an <code>x</code> of <code>1</code> will require <code style="white-space: pre;">⁠&gt;100%⁠</code> or <code style="white-space: pre;">⁠&lt;0%⁠</code>
+probabilities for stopping rules, which is impossible, and hence the <code>y</code>
+value in this case is by definition <code>1</code>).
+</p>
+<p><strong>Gaussian process optimisation function and control hyperparameters</strong>
+<br><br>
+The calibration function uses a relatively simple Gaussian optimisation
+function with settings that should work well for the default calibration
+function, but can be changed as required, which should be considered if
+calibrating according to other targets (effects of using other settings may
+be evaluated in greater detail by setting <code>verbose</code> and <code>plot</code> to <code>TRUE</code>).<br>
+The function may perform both interpolation (i.e., assuming a noiseless,
+deterministic process with no uncertainty at the values already evaluated) or
+regression (i.e., assuming a noisy, stochastic process), controlled by the
+<code>noisy</code> argument.<br></p>
+<p>The covariance matrix (or kernel) is defined as:<br></p>
+<p><code style="white-space: pre;">⁠exp(-||x - x'||^pow / lengthscale)⁠</code><br></p>
+<p>with <code style="white-space: pre;">⁠||x -x'||⁠</code> corresponding to a matrix containing the absolute Euclidean
+distances of values of <code>x</code> (and values on the prediction grid), scaled to
+the <code style="white-space: pre;">⁠[0, 1]⁠</code> range if <code>scale_x</code> is <code>TRUE</code> and on their original scale if
+<code>FALSE</code>. Scaling i generally recommended (as this leads to more comparable
+and predictable effects of <code>pow</code> and <code>lengthscale</code>, regardless of the true
+scale), and also recommended if the range of values is smaller than this
+range. The absolute distances are raised to the power <code>pow</code>, which must be a
+value in the <code style="white-space: pre;">⁠[1, 2]⁠</code> range. Together with <code>lengthscale</code>, <code>pow</code> controls the
+smoothness of the Gaussian process model, with <code>1</code> corresponding to less
+smoothing (i.e., piecewise straight lines between all evaluations if
+<code>lengthscale</code> is <code>1</code>) and values <code style="white-space: pre;">⁠&gt; 1⁠</code> corresponding to more smoothing. After
+raising the absolute distances to the chosen power <code>pow</code>, the resulting
+matrix is divided by <code>lengthscale</code>. The default is <code>1</code> (no change), and
+values <code style="white-space: pre;">⁠&lt; 1⁠</code> leads to faster decay in correlations and thus less smoothing
+(more wiggly fits), and values <code style="white-space: pre;">⁠&gt; 1⁠</code> leads to more smoothing (less wiggly
+fits). If a single specific value is supplied for <code>lengthscale</code> this is used;
+if a range of values is provided, a secondary optimisation process determines
+the value to use within that range.<br></p>
+<p>Some minimal noise ("jitter") is always added to the diagonals of the
+matrices where relevant to ensure numerical stability; if <code>noisy</code> is <code>TRUE</code>,
+a "nugget" value will be determined using a secondary optimisation process
+<br></p>
+<p>Predictions will be made over an equally spaced grid of <code>x</code> values of size
+<code>resolution</code>; if <code>narrow</code> is <code>TRUE</code>, this grid will only be spread out
+between the <code>x</code> values with corresponding <code>y</code> values closest to and below and
+closes to and above <code>target</code>, respectively, leading to a finer grid in the
+range of relevance (as described above, this should only be used for processes
+that are assumed to be noiseless and should only be used if the process can
+safely be assumed to be monotonically increasing or decreasing within the
+<code>search_range</code>). To suggest the next <code>x</code> value for evaluations, the function
+uses an acquisition function based on bi-directional uncertainty bounds
+(posterior predictive distributions) with widths controlled by the <code>kappa</code>
+hyperparameter. Higher <code>kappa</code>/wider uncertainty bounds leads to increased
+<em>exploration</em> (i.e., the algorithm is more prone to select values with high
+uncertainty, relatively far from existing evaluations), while lower
+<code>kappa</code>/narrower uncertainty bounds leads to increased <em>exploitation</em> (i.e.,
+the algorithm is more prone to select values with less uncertainty, closer to
+the best predicted mean values). The value in the <code>x</code> grid leading with one of
+the boundaries having the smallest absolute distance to the <code>target</code> is
+chosen (within the narrowed range, if <code>narrow</code> is <code>TRUE</code>). See
+Greenhill et al, 2020 under <strong>References</strong> for a general description of
+acquisition functions.<br></p>
+<p><strong>IMPORTANT:</strong>
+<strong>we recommend that control hyperparameters are explicitly specified</strong>, even
+for the default calibration function. Although the default values should be
+sensible for the default calibration function, these may change in the
+future. Further, we generally recommend users to perform small-scale
+comparisons (i.e., with fewer simulations than in the final calibration) of
+the calibration process with different hyperparameters for specific use cases
+beyond the default (possibly guided by setting the <code>verbose</code> and <code>plot</code>
+options to <code>TRUE</code>) before running a substantial number of calibrations or
+simulations, as the exact choices may have important influence on the speed
+and likelihood of success of the calibration process.<br>
+It is the responsibility of the user to specify sensible values for the
+settings and hyperparameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of special class <code>"trial_calibration"</code>, which contains the
+following elements that can be extracted using <code>$</code> or <code>[[</code>:
+</p>
+
+<ul>
+<li> <p><code>success</code>: single logical, <code>TRUE</code> if the calibration succeeded with
+the best result being within the tolerance range, <code>FALSE</code> if the
+calibration process ended after all allowed iterations without
+obtaining a result within the tolerance range.
+</p>
+</li>
+<li> <p><code>best_x</code>: single numerical value, the <code>x</code>-value (on the original,
+input scale) at which the best <code>y</code>-value was found, regardless of
+<code>success</code>.
+</p>
+</li>
+<li> <p><code>best_y</code>: single numerical value, the best <code>y</code>-value obtained,
+regardless of <code>success</code>.
+</p>
+</li>
+<li> <p><code>best_trial_spec</code>: the best calibrated version of the original
+<code>trial_spec</code> object supplied, regardless of <code>success</code> (i.e., the
+returned trial specification object is only adequately calibrated if
+<code>success</code> is <code>TRUE</code>).
+</p>
+</li>
+<li> <p><code>best_sims</code>: the trial simulation results (from <code>run_trials()</code>)
+leading to the best <code>y</code>-value, regardless of <code>success</code>. If no new
+simulations have been conducted (e.g., if the best <code>y</code>-value is from
+one of the <code>prev_y</code>-values), this will be <code>NULL</code>.
+</p>
+</li>
+<li> <p><code>evaluations</code>: a two-column <code>data.frame</code> containing the variables
+<code>x</code> and <code>y</code>, corresponding to all <code>x</code>-values and <code>y</code>-values (including
+values supplied through <code>prev_x</code>/<code>prev_y</code>).
+</p>
+</li>
+<li> <p><code>input_trial_spec</code>: the unaltered, uncalibrated, original
+<code>trial_spec</code>-object provided to the function.
+</p>
+</li>
+<li> <p><code>elapsed_time</code>: the total run time of the calibration process.
+</p>
+</li>
+<li> <p><code>control</code>: list of the most central settings provided to the
+function.
+</p>
+</li>
+<li> <p><code>fun</code>: the function used for calibration; if <code>NULL</code> was supplied
+when starting the calibration, the default function (described in
+<strong>Details</strong>) is returned after being used in the function.
+</p>
+</li>
+<li> <p><code>adaptr_version</code>: the version of the <code>adaptr</code> package used to run
+the calibration process.
+</p>
+</li>
+<li> <p><code>plots</code>: list containing <code>ggplot2</code> plot objects of each Gaussian
+process suggestion step, only included if <code>plot</code> is <code>TRUE</code>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Gramacy RB (2020). Chapter 5: Gaussian Process Regression. In: Surrogates:
+Gaussian Process Modeling, Design and Optimization for the Applied Sciences.
+Chapman Hall/CRC, Boca Raton, Florida, USA.
+<a href="https://bookdown.org/rbg/surrogates/chap5.html">Available online</a>.
+</p>
+<p>Greenhill S, Rana S, Gupta S, Vellanki P, Venkatesh S (2020). Bayesian
+Optimization for Adaptive Experimental Design: A Review. IEEE Access, 8,
+13937-13948. <a href="https://doi.org/10.1109/ACCESS.2020.2966228">doi:10.1109/ACCESS.2020.2966228</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Setup a trial specification to calibrate
+# This trial specification has similar event rates in all arms
+# and as the default calibration settings are used, this corresponds to
+# assessing the Bayesian type 1 error rate for this design and scenario
+binom_trial &lt;- setup_trial_binom(arms = c("A", "B"),
+                                 true_ys = c(0.25, 0.25),
+                                 data_looks = 1:5 * 200)
+
+# Run calibration using default settings for most parameters
+res &lt;- calibrate_trial(binom_trial, n_rep = 1000, base_seed = 23)
+
+# Print calibration summary result
+res
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

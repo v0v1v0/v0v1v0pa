@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>signTest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Exact Sign Test with Confidence Intervals
+</h2>
+
+<h3>Description</h3>
+
+<p>Uses <code>link{binom.exact}</code> or <code>mcnemarExactDP</code> to create sign test with confidence intervals on different parameters.
+Mid-p versions are available for some parameterizations (see details).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">signTest(x, stat=c("cd","cpp","ud"), nullparm=NULL, 
+   alternative=c("two.sided","less","greater"), conf.level=0.95,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>numeric vector
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+
+<p>statistic for estimates and confidence intervals,
+"cd"= conditional difference: proportion positive - proportion negative, 
+"cpp"= conditional proportion positive, and 
+"ud"= unconditional difference: proportion positive-proportion negative
+(conditional proportions are out of non-zero values, unconditional are out of all values)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nullparm</code></td>
+<td>
+
+<p>null parameter value associated with <code>stat</code>, NULL value defaults to the exact  sign test (i.e., <code>stat="cd"</code> and 
+codestat="ud" gives 0, and <code>stat="cpp"</code> gives 0.5).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+
+<p>a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less". You can specify just the initial letter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+
+<p>confidence level of the interval
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>arguments passed to <code>binom.exact</code>
+or <code>mcnemarExactDP</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The sign test is a conditional test, conditioning on the total number of non-zero observations testing that the proportion positive is different (or less, or greater) than the proportion negative.  When the responses are differences in paired binary observations this 
+is the same as a McNemar test. 
+</p>
+<p>This function gives estimates and confidence intervals compatible with the exact sign test for three different parameterizations.
+Let n.pos, n.neg,
+
+and 
+n.nonzero
+
+be the number of positive, negative, and non-zero observations respectively out of 
+n=<code>length(x)</code>.
+The conditional proportion positive are n.pos/n.nonzero, and the unconditional proportion positive are n.pos/n. Similarly, 
+the conditional proportion negative are n.neg/n.nonzero and the unconditional proportion negative are n.neg/n. 
+When <code>stat='cd'</code> the parameterization is the conditional difference in proportions (pos-neg),
+and when <code>stat='ud'</code> the parameterization is the uncondtional difference in proportions (pos-neg).
+The third parameterization is <code>stat='cpp'</code> the conditional proportion positive. 
+The argument <code>nullparm</code> gives the null value of the test when <code>alternative='two.sided'</code>. When <code>nullparm=NULL</code>, this gives 
+the traditional sign test, where <code>nullparm=0</code> for <code>stat='cd'</code> and <code>stat='ud'</code> and 
+<code>nullparm=0.5</code> for <code>stat='cpp'</code>.  
+</p>
+<p>Conditioning on m=n.nonzero, Y is binomial with parameters m and beta. So when <code>stat='cpp'</code> the parameter we are estimating is beta,
+and when  <code>stat='cd'</code> the parameter we are estimating is beta - (1-beta) = 2*beta-1. 
+We use <code>binom.exact</code> to do the p-value and confidence interval calculations. Thus, <code>midp</code> versions and different two-sided methods (given by <code>tsmethod</code>) can be calculated. 
+</p>
+<p>Unconditionally, we treat M (the number non-zero) as a random variable, and assume M is binomial with parameters n and theta.  
+When  <code>stat='ud'</code> the parameter we are estimating is delta = theta*(2*beta-1), which is the unconditional difference: (proportion positive out of the total) - (proprtion negative out of the total). We use <code>mcnemarExactDP</code> to do the the p-value and confidence interval calculations. The methods associated with that function are described in Fay and Lumbard (2020). As of now, when <code>stat='ud'</code> a <code>midp</code> version is not available, and the only two-sided method available is a 'central' one, meaning the error for the 95% confidence interval is bounded by 2.5% on each side. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class 'htest' (use <code>str</code> to see elements)
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>vector of number of positive, negative, zero, and non-zero</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>vector of estimates related to <code>stat</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>p.value associated with alternative</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+<p>confidence interval</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null.value</code></td>
+<td>
+<p>null parameter value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>alternative</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>description of method</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>name of x argument</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The sign test can be interpreted as a test that the median is zero assuming continuous data. If you want to test on the median without making continuity assumptions use <code>medianTest</code>.
+</p>
+<p>Previous versions of <code>signTest</code> had <code>stat='pos-neg'</code> and <code>stat='prop pos'</code>, which are 
+now referred to as <code>stat='cd'</code> and <code>stat='cpp'</code>, respectively. The old names give a warning, but may be removed in future versions.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael P. Fay
+</p>
+
+
+<h3>References</h3>
+
+<p>Fay MP, and Lumbard, K (2020). Confidence Intervals for Difference in Proportions for Matched Pairs Compatible with Exact McNemar's or Sign Tests. (unpublished manuscript).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x&lt;-c(rep(-1,10),rep(0,60),rep(1,30))
+signTest(x, stat='cd')
+signTest(x, stat='cpp')
+signTest(x, stat='ud')
+# sample median is zero, 
+# and not surprisingly the median test 
+# properly gives a large p-value
+medianTest(x)
+</code></pre>
+
+
+</div>

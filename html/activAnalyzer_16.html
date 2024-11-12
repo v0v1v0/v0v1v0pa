@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>create_fig_res_by_day</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a figure with metrics shown for each day</h2>
+
+<h3>Description</h3>
+
+<p>The function generates a figure with several common metrics shown for each day of the physical behavior measurement.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_fig_res_by_day(
+  data,
+  minimum_wear_time_for_analysis = 10,
+  start_day_analysis = "00:00:00",
+  end_day_analysis = "23:59:00",
+  language = c("en", "fr", "de"),
+  metrics = c("all", "volume", "step_acc", "int_distri"),
+  epoch_label = "60s"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe with results obtained using the <code>prepare_dataset</code>,  <code>mark_wear_time</code>, <code>mark_intensity</code>, and then the <code>recap_by_day</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimum_wear_time_for_analysis</code></td>
+<td>
+<p>A numeric value to indicate the minimum number of hours of wear time that was considered to validate a day.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_day_analysis</code></td>
+<td>
+<p>A character value to indicate the start of the period that was considered to validate a day based on wear time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_day_analysis</code></td>
+<td>
+<p>A character value to indicate the end of the period that was considered to validate a day based on wear time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>language</code></td>
+<td>
+<p>A character value for setting the language with which the figure should be created: <code>en</code> for english; <code>fr</code> for french.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>A character value for setting the metrics to be shown in the figure. "volume" refers to "activity volume" metrics, step_acc" refers
+to "step accumulation" metrics, and "int_distri" refers to intensity distribution metrics. By default, the function provides all computed metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch_label</code></td>
+<td>
+<p>A character value to be pasted into the names of the variables to build the figure</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A ggplot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+file &lt;- system.file("extdata", "acc.agd", package = "activAnalyzer")
+mydata &lt;- prepare_dataset(data = file)
+mydata_with_wear_marks &lt;- mark_wear_time(
+    dataset = mydata, 
+    TS = "TimeStamp", 
+    cts  = "vm", 
+    frame = 90, 
+    allowanceFrame = 2, 
+    streamFrame = 30
+    )
+mydata_with_intensity_marks &lt;- mark_intensity(
+    data = mydata_with_wear_marks, 
+    col_axis = "vm", 
+    equation = "Sasaki et al. (2011) [Adults]",
+    sed_cutpoint = 200, 
+    mpa_cutpoint = 2690, 
+    vpa_cutpoint = 6167, 
+    age = 32,
+    weight = 67,
+    sex = "male",
+    )
+summary_by_day &lt;- recap_by_day(
+    data = mydata_with_intensity_marks, 
+    age = 32, 
+    weight = 67, 
+    sex = "male",
+    valid_wear_time_start = "07:00:00",
+    valid_wear_time_end = "22:00:00"
+    )$df_all_metrics
+create_fig_res_by_day(summary_by_day, 
+    minimum_wear_time_for_analysis = 10, 
+    start_day_analysis = "00:00:00", 
+    end_day_analysis = "23:59:00", 
+    language = "en")
+
+
+</code></pre>
+
+
+</div>

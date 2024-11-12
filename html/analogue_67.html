@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuse</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fused dissimilarities</h2>
+
+<h3>Description</h3>
+
+<p>Combines dissimilarities from two or more dissimilarity objects into a
+single dissimilarity object so that both original dissimilarities
+contribute equally. Weighted combinations of the original objects can
+also be created.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuse(..., weights = NULL)
+
+## S3 method for class 'matrix'
+fuse(..., weights = NULL)
+
+## S3 method for class 'dist'
+fuse(..., weights = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>objects to fuse. Methods currently exist for objects of
+class <code>"matrix"</code> and <code>"dist"</code> objects. Method dispatch is
+performed on the first object specified in <code>...</code>. A minimum
+of two objects must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>numeric; vector of weights that sum to 1, one weight
+for each object supplied in <code>...</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fuses, or combines, dissimilarity objects in a very flexible way to
+create a single dissimilarity object that incorporates the separate
+dissimilarities. In analogue matching, we may wish to combine
+information from two or more proxies, such as diatoms and cladocera,
+or from biological and chemical or physical data in the case of
+matching modern samples.
+</p>
+<p>The function can also be used to fuse dissimilarity objects created
+from a single data set but using different dissimilarity
+coefficients. In this way one could create a new dissimilarity object
+combining dissimilarity based on abundance data and presence absence
+data into a single measure.
+</p>
+<p><code>fuse</code> uses the method of Melssen et al. (2006) to combine
+dissimilarities. The dissimilarities in each dissimilarity object are
+scaled so that the maximum dissimilarity in each object is 1. The
+scaled dissimilarity objects are then weighted according to the
+supplied weights. If no weights are supplied (the default) the
+dissimilarity objects are weighted equally; <code>weights = rep(1/N,
+    N)</code>, where <code>N</code> is the number of dissimilarity objects fused.
+</p>
+<p style="text-align: center;"><code class="reqn">D_{fused}(j, k) = \sum_{i = 1}^N w_i D_{ijk}</code>
+</p>
+
+<p>where <code class="reqn">D_{fused}(j, k)</code> is the fused dissimilarity
+between samples <code class="reqn">j</code> and <code class="reqn">k</code>, <code class="reqn">w_i</code> is the weight
+assigned to the <code class="reqn">i</code>th dissimilarity object and
+<code class="reqn">D_{ijk}</code> is the dissimilarity between <code class="reqn">j</code> and
+<code class="reqn">k</code> for the <code class="reqn">i</code>th dissimilarity object.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fuse</code> returns an object of class <code>"dist"</code> with the
+attribute <code>"method"</code> set to <code>"fuse"</code>.
+</p>
+<p>This is the case even if the supplied objects are full dissimilarity
+matrices. If you want a full dissimilarity object, use
+<code>as.matrix.dist</code> on the returned object.
+</p>
+<p>The returned object contains an extra attribute <code>"weights"</code>,
+which records the weights used in the fusing.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Melssen W., Wehrens R. and Buydens L. (2006) Supervised Kohonen
+networks for classification problems. <em>Chemometrics and
+intelligent laboratory systems</em> <strong>83</strong>, 99–113.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dist</code>, <code>vegdist</code>,
+<code>distance</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">train1 &lt;- data.frame(matrix(abs(runif(100)), ncol = 10))
+train2 &lt;- data.frame(matrix(sample(c(0,1), 100, replace = TRUE),
+                     ncol = 10))
+rownames(train1) &lt;- rownames(train2) &lt;- LETTERS[1:10]
+colnames(train1) &lt;- colnames(train2) &lt;- as.character(1:10)
+
+d1 &lt;- vegdist(train1, method = "bray")
+d2 &lt;- vegdist(train2, method = "jaccard")
+
+dd &lt;- fuse(d1, d2, weights = c(0.6, 0.4))
+dd
+str(dd)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>balanced_clustering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create balanced clusters of equal size</h2>
+
+<h3>Description</h3>
+
+<p>Create balanced clusters of equal size
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">balanced_clustering(x, K, method = "centroid", solver = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The data input. Can be one of two structures: (1) A feature
+matrix where rows correspond to elements and columns correspond
+to variables (a single numeric variable can be passed as a
+vector). (2) An N x N matrix dissimilarity matrix; can be an
+object of class <code>dist</code> (e.g., returned by
+<code>dist</code> or <code>as.dist</code>) or a <code>matrix</code>
+where the entries of the upper and lower triangular matrix
+represent pairwise dissimilarities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>How many clusters should be created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>One of "centroid" or "ilp". See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>Optional. The solver used to obtain the optimal method 
+if <code>method  = "ilp"</code>. Currently supports "glpk" and "symphony". 
+Is ignored for <code>method = "centroid"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function partitions a set of elements into <code>K</code>
+equal-sized clusters. The function offers two methods: a heuristic
+and an exact method. The heuristic (<code>method = "centroid"</code>)
+first computes the centroid of all data points. If the input is a
+feature matrix, the centroid is defined as the mean vector of all
+columns. If the input is a dissimilarity matrix, the most central
+element acts as the centroid; the most central element is defined
+as the element having the minimum maximal distance to all other
+elements. After identifying the centroid, the algorithm proceeds as
+follows: The element having the highest distance from the centroid
+is clustered with its <code>(N/K) - 1</code> nearest neighbours
+(neighbourhood is defined according to the Euclidean distance if
+the data input is a feature matrix). From the remaining elements,
+again the element farthest to the centroid is selected and
+clustered with its <code>(N/K) - 1</code> neighbours; the procedure is
+repeated until all elements are part of a cluster.
+</p>
+<p>An exact method (<code>method = "ilp"</code>) can be used to solve
+equal-sized weighted cluster editing optimally (implements the
+integer linear program described in Papenberg and Klau, 2020; 
+(8) - (10), (12) - (13)). The cluster editing objective is the 
+sum of pairwise distances
+within clusters; clustering is accomplished by minimizing this
+objective. If the argument <code>x</code> is a features matrix, the
+Euclidean distance is computed as the basic unit of the cluster
+editing objective. If another distance measure is preferred, users
+may pass a self-computed dissimiliarity matrix via the argument
+<code>x</code>. 
+</p>
+<p>The optimal <code>method = "ilp"</code> uses a "solver" to optimize
+the clustering objective. See <code>optimal_anticlustering</code>
+for an overview of the solvers that are available.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An integer vector representing the cluster affiliation of 
+each data point
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Papenberg <a href="mailto:martin.papenberg@hhu.de">martin.papenberg@hhu.de</a>
+</p>
+<p>Meik Michalke <a href="mailto:meik.michalke@hhu.de">meik.michalke@hhu.de</a>
+</p>
+
+
+<h3>Source</h3>
+
+<p>The centroid method was originally developed and contributed by
+Meik Michalke. It was later rewritten by Martin Papenberg, who
+also implemented the integer linear programming method.
+</p>
+
+
+<h3>References</h3>
+
+<p>Grötschel, M., &amp; Wakabayashi, Y. (1989). A cutting plane algorithm
+for a clustering problem. Mathematical Programming, 45, 59–96.
+</p>
+<p>Papenberg, M., &amp; Klau, G. W. (2021). Using anticlustering to partition 
+data sets into equivalent parts. Psychological Methods, 26(2), 
+161–174. https://doi.org/10.1037/met0000301.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Cluster a data set and visualize results
+N &lt;- 1000
+lds &lt;- data.frame(f1 = rnorm(N), f2 = rnorm(N))
+cl &lt;- balanced_clustering(lds, K = 10)
+plot_clusters(lds, clusters = cl)
+
+# Repeat using a distance matrix as input
+cl2 &lt;- balanced_clustering(dist(lds), K = 10)
+plot_clusters(lds, clusters = cl2)
+
+</code></pre>
+
+
+</div>

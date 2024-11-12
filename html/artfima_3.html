@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>artfimaSDF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of theoretical spectral density function (SDF)</h2>
+
+<h3>Description</h3>
+
+<p>Computes the theoretical SDF at the Fourier frequencies for a time series of
+length n. Used for Whittle MLE. Assumes model parameters are valid
+for a stationary process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">artfimaSDF(n = 100, d = 0, lambda = 0, phi = numeric(0), theta = numeric(0), 
+     obj = NULL, plot=c("loglog", "log", "none"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>length of time series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>ARTFIMA difference parameter, any real value. When d=numeric(0), 
+reduces to ARMA and lambda is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>ARTFIMA tempered decay parameter. When lambda=numeric(0), 
+reduces to ARFIMA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>AR coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>MA coefficients, Box-Jenkins definition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>object of class artfima</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>type of plot, "log-log", "log" or "none"</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Fourier frequencies, 2*pi*c(1/n, floor(n/2)/n, 1/n), are used
+in the definition of the SDF. 
+The SDF is normalized so that the area over (0, 0.5) equals
+the variance of the time series assuming unit innovation variance.
+The periodogram is normalized in the same way, so the mean of the
+periodogram is an estimate of the variance of the time series.
+See example below.
+</p>
+
+
+<h3>Value</h3>
+
+<p>vector of length floor(n/2) containing the values of the SDF at the 
+Fourier frequencies, 2*pi*c(1/n, floor(n/2)/n, 1/n).
+</p>
+
+
+<h3>Warning </h3>
+
+<p>This function serves as a utility function for Whittle estimation so, for speed, we skip
+the checking if the parameters d, phi, or lambda are valid
+parameters for a stationary process. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. I. McLeod, aimcleod@uwo.ca</p>
+
+
+<h3>References</h3>
+
+<p>TBA</p>
+
+
+<h3>See Also</h3>
+
+<p><code>artfimaTACVF</code>,
+<code>Periodogram</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">phi &lt;- 0.8
+n &lt;- 256
+set.seed(4337751)
+z &lt;- artsim(n, phi=phi)
+VarZ &lt;- mean((z-mean(z))^2)
+Ip &lt;- Periodogram(z)
+length(Ip)
+x &lt;- (1/n)*(1:length(Ip))
+plot(x, Ip, xlab="frequency", ylab="Spectral density &amp; Periodogram", 
+     main=paste("AR(1), phi =", phi), type="l", col=rgb(0,0,1,0.5))
+n &lt;- 5000
+y &lt;- artfimaSDF(n, phi=phi)
+x &lt;- (1/n)*(1:length(y))
+lines(x, y, type="l", lwd=1.25)
+h &lt;- x[2]-x[1] #step length
+SimpsonsRule &lt;- function(h, y) {
+  n &lt;- length(y)
+  h/3*sum(y * c(1, rep(c(4,2), n-1), 1))
+}
+AreaApprox &lt;- SimpsonsRule(h, y)
+text(0.2, 50, labels=paste("Area under SDF using Simpson's Rule =", 
+                           round(AreaApprox,4)))
+TVarZ &lt;- 1/(1-phi^2)
+text(0.2, 40, labels=paste("Theoretical AR Variance =", round(TVarZ,4)))
+text(0.2, 30, labels=paste("mean(Ip) =", round(mean(Ip),4)))
+text(0.2, 20, labels=paste("sample variance =", round(VarZ,4)))
+</code></pre>
+
+
+</div>

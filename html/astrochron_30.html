@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>eAsm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evolutive Average Spectral Misfit</h2>
+
+<h3>Description</h3>
+
+<p>Calculate Evolutive Average Spectral Misfit with Monte Carlo spectra simulations, as updated in Meyers et al. (2012).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">eAsm(spec,siglevel=0.9,target,fper=NULL,rayleigh,nyquist,sedmin=1,sedmax=5,
+      numsed=50,linLog=1,iter=100000,ydir=1,palette=2,output=4,genplot=F)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p>Time-frequency spectral results to evaluate. Must have the following format: column 
+1=frequency; remaining columns (2 to n)=probability; titles for columns 2 to 
+n must be the location (depth or height). Note that this format is ouput by function eha.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>siglevel</code></td>
+<td>
+<p>Threshold level for filtering peaks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>A vector of astronomical frequencies to evaluate (1/ka). These must be in order of increasing frequency (e.g., e1,e2,e3,o1,o2,p1,p2). Maximum allowed is 50 frequencies.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fper</code></td>
+<td>
+<p>A vector of uncertainties on each target frequency (1/ka).  Values should be from 0-1, representing uncertainty as a percent of each target frequency.  The order of the uncertainties must follow that of the target vector. By default, no uncertainty is assigned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rayleigh</code></td>
+<td>
+<p>Rayleigh frequency (cycles/m).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyquist</code></td>
+<td>
+<p>Nyquist frequency (cycles/m).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedmin</code></td>
+<td>
+<p>Minimum sedimentation rate for investigation (cm/ka).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedmax</code></td>
+<td>
+<p>Maximum sedimentation rate for investigation (cm/ka).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numsed</code></td>
+<td>
+<p>Number of sedimentation rates to investigate in ASM optimization grid. Maximum allowed is 500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linLog</code></td>
+<td>
+<p>Use linear or logarithmic scaling for sedimentation rate grid spacing? (0=linear, 1=log)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of Monte Carlo simulations for significance testing. Maximum allowed is 100,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ydir</code></td>
+<td>
+<p>Direction for y-axis in plots (depth or height). -1 = values increase downwards (slower plotting!), 1 = values increase upwards.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palette</code></td>
+<td>
+<p>What color palette would you like to use? (1) rainbow, (2) viridis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Return output as a new data frame? (0 = nothing, 1 = Ho-SL, 2 = ASM, 3 = # astronomical terms, 4 = everything)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Please see function asm for details.
+</p>
+
+
+<h3>References</h3>
+
+<p>S.R. Meyers and  B.B. Sageman, 2007,
+<em>Quantification of Deep-Time Orbital Forcing by Average Spectral Misfit</em>: American Journal of Science, v. 307, p. 773-792.
+</p>
+<p>S.R. Meyers, 2012,
+<em>Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for Astrochronology</em>: Paleoceanography, 27, PA3228, doi:10.1029/2012PA002307.
+</p>
+<p>S.R. Meyers, B.B. Sageman and M.A. Arthur, 2012,
+<em>Obliquity forcing of organic matter accumulation during Oceanic Anoxic Event 2</em>: Paleoceanography, 27, PA3212, doi:10.1029/2012PA002286.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>asm</code>, <code>eAsmTrack</code>, <code>eha</code>, <code>testPrecession</code>, <code>timeOpt</code>, and <code>timeOptSim</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> ## Not run: 
+# use modelA as an example
+data(modelA)
+
+# interpolate to even sampling interval
+modelAInterp=linterp(modelA)
+
+# perform EHA analysis, save harmonic F-test confidence level results to 'spec'
+spec=eha(modelAInterp,win=8,step=2,pad=1000,output=4)
+
+# perform Evolutive Average Spectral Misfit analysis, save results to 'res'
+res=eAsm(spec,target=c(1/405.47,1/126.98,1/96.91,1/37.66,1/22.42,1/18.33),rayleigh=0.1245274,
+         nyquist=6.66597,sedmin=0.5,sedmax=3,numsed=100,siglevel=0.8,iter=10000,output=4)
+
+# identify minimum Ho-SL in each record and plot
+pl(1)
+eAsmTrack(res[1],threshold=0.05)
+
+# extract Ho-SL result at 18.23 m
+HoSL18.23=extract(res[1],get=18.23,pl=1)
+
+# extract ASM result at 18.23 m
+asm18.23=extract(res[2],get=18.23,pl=0)
+ 
+## End(Not run)
+</code></pre>
+
+
+</div>

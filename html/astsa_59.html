@@ -1,0 +1,285 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kfilter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Quick Kalman Filter 
+</h2>
+
+<h3>Description</h3>
+
+<p>Returns both the predicted and filtered values for various linear  state space models;
+it also evaluates the likelihood at the given parameter values.
+This script replaces <code>Kfilter0</code>, <code>Kfilter1</code>, and <code>Kfilter2</code> 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Kfilter(y, A, mu0, Sigma0, Phi, sQ, sR, Ups = NULL, Gam = NULL, 
+         input = NULL, S = NULL, version = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>data matrix (n <code>x</code> q), vector or time series, n = number of observations.
+Use <code>NA</code> or  zero (0) for missing data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+
+<p>can be constant or an array with dimension <code>dim=c(q,p,n)</code> if time varying (see details).
+Use <code>NA</code> or  zero (0) for missing data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu0</code></td>
+<td>
+
+<p>initial state mean vector (p <code>x</code> 1)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma0</code></td>
+<td>
+
+<p>initial state covariance matrix (p <code>x</code> p)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi</code></td>
+<td>
+
+<p>state transition matrix (p <code>x</code> p)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sQ</code></td>
+<td>
+
+<p>state error pre-matrix (see details)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sR</code></td>
+<td>
+
+<p>observation error pre-matrix (see details)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ups</code></td>
+<td>
+
+<p>state input matrix (p <code>x</code> r); leave as NULL (default) if not needed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gam</code></td>
+<td>
+
+<p>observation input matrix (q <code>x</code> r); leave as NULL (default) if not needed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+
+<p>NULL (default) if not needed or a   
+matrix (n <code>x</code> r) of inputs having the same row dimension (n) as y
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+
+<p>covariance matrix between the (not premultiplied) state and observation errors; not necessary to specify if not needed and only used if version=2. See details for more information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+
+<p>either 1 (default) or 2; version 2 allows for correlated errors
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This script replaces <code>Kfilter0</code>, <code>Kfilter1</code>, and <code>Kfilter2</code> by combining all
+cases. The major difference is how to specify the covariance matrices; in particular, 
+<code>sQ = t(cQ)</code> and <code>sR = t(cR)</code> where <code>cQ</code> and <code>cR</code> were used in <code>Kfilter0-1-2</code> scripts.
+</p>
+<p>The states <code class="reqn">x_t</code> are p-dimensional, the data <code class="reqn">y_t</code> are q-dimensional, and 
+the inputs <code class="reqn">u_t</code> are r-dimensional for <code class="reqn">t=1, \dots, n</code>. The initial state is <code class="reqn">x_0 \sim N(\mu_0, \Sigma_0)</code>.
+</p>
+<p>The measurement matrices <code class="reqn">A_t</code> can be constant or time varying.  If   time varying, they should be entered as an array of dimension <code>dim = c(q,p,n)</code>.  Otherwise, just enter the constant value making sure it has the appropriate <code class="reqn">q \times p</code> dimension.
+</p>
+<p>Version 1 (default): The general model  is 
+</p>
+<p style="text-align: center;"><code class="reqn">x_t = \Phi  x_{t-1} + \Upsilon u_{t} +   sQ\,  w_t \quad w_t \sim iid\ N(0,I)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">y_t = A_t  x_{t-1} + \Gamma u_{t} +   sR\, v_t \quad v_t \sim iid\ N(0,I)</code>
+</p>
+
+<p>where <code class="reqn">w_t \perp v_t</code>. Consequently the state noise covariance matrix is
+<code class="reqn">Q = sQ\, sQ'</code> and the observation noise covariance matrix is
+<code class="reqn">R = sR\, sR'</code> and <code class="reqn">sQ, sR</code>  do not have to be square as long as everything is
+conformable.  Notice the specification of the state and observation covariances has changed from the original scripts.
+</p>
+<p><em>NOTE:</em> If it is easier to model in terms of <code class="reqn">Q</code> and <code class="reqn">R</code>, simply input the square root matrices
+<code>sQ = Q %^% .5</code> and <code>sR = R %^% .5</code>.
+</p>
+<p>Version 2 (correlated errors): The general model  is
+</p>
+<p style="text-align: center;"><code class="reqn">x_{t+1} = \Phi  x_{t} + \Upsilon u_{t+1} +   sQ\,  w_t \quad w_t \sim iid\ N(0,I)</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">y_t = A_t  x_{t-1} + \Gamma u_{t} +   sR\, v_t \quad v_t \sim iid\ N(0,I)</code>
+</p>
+
+<p>where <code class="reqn">S = {\rm Cov}(w_t, v_t)</code>, and NOT  <code class="reqn"> {\rm Cov}(sQ\, w_t, sR\, v_t)</code>.
+</p>
+<p><em>NOTE:</em>   If it is easier to model in terms of <code class="reqn">Q</code> and <code class="reqn">R</code>, simply input the square root matrices
+<code>sQ = Q %^% .5</code> and <code>sR = R %^% .5</code>.
+</p>
+<p>Note that in either version, <code class="reqn">sQ\, w_t</code>  has to be p-dimensional, but  <code class="reqn">w_t</code> does not, and
+<code class="reqn">sR\, v_t</code>  has to be q-dimensional, but  <code class="reqn">v_t</code> does not.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Time varying values are returned as arrays.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xp </code></td>
+<td>
+<p>one-step-ahead prediction of the state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pp </code></td>
+<td>
+<p>mean square prediction error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xf </code></td>
+<td>
+<p>filter value of the state</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pf </code></td>
+<td>
+<p>mean square filter error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>like </code></td>
+<td>
+<p>the negative of the log likelihood</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innov </code></td>
+<td>
+<p>innovation series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig </code></td>
+<td>
+<p>innovation covariances</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Kn </code></td>
+<td>
+<p>last value of the gain, needed for smoothing</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Note that <code>Kfilter</code> is similar to <code>Kfilter-0-1-2</code> except that only the essential values need to be entered (and come first in the statement); the optional values such as 
+<code>input</code> are set to <code>NULL</code> by default if they are not needed. This version is faster
+than the older versions. The biggest change was to how the covarainces are specified. For example, if you have code that used <code>Kfilter1</code>, just use <code>sQ = t(cQ)</code> and <code>sR = t(cR)</code> here.
+</p>
+<p>NOTE: If it is easier to model in terms of <code class="reqn">Q</code> and <code class="reqn">R</code>, simply input the square root matrices
+<code>sQ = Q%^%.5</code> and <code>sR = R%^%.5</code>.   
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.S. Stoffer
+</p>
+
+
+<h3>References</h3>
+
+<p>You can find demonstrations of  astsa capabilities at  
+<a href="https://github.com/nickpoison/astsa/blob/master/fun_with_astsa/fun_with_astsa.md">FUN WITH ASTSA</a>.
+</p>
+<p>The most recent version of the package can be found  at <a href="https://github.com/nickpoison/astsa/">https://github.com/nickpoison/astsa/</a>.
+</p>
+<p>In addition, the News and ChangeLog files are at  <a href="https://github.com/nickpoison/astsa/blob/master/NEWS.md">https://github.com/nickpoison/astsa/blob/master/NEWS.md</a>.
+</p>
+<p>The webpages for the texts and some help on using R for time series analysis can be found at
+<a href="https://nickpoison.github.io/">https://nickpoison.github.io/</a>.   
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Ksmooth</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generate some data
+ set.seed(1)
+ sQ  = 1; sR = 3; n = 100  
+ mu0 = 0; Sigma0 = 10; x0 = rnorm(1,mu0,Sigma0)
+ w = rnorm(n); v = rnorm(n)
+ x = c(x0 + sQ*w[1]);  y = c(x[1] + sR*v[1])   # initialize
+for (t in 2:n){
+  x[t] = x[t-1] + sQ*w[t]
+  y[t] = x[t] + sR*v[t]   
+  }
+# run and plot the filter  
+run = Kfilter(y, A=1, mu0, Sigma0, Phi=1, sQ, sR)
+tsplot(cbind(y,run$Xf), spaghetti=TRUE, type='o', col=c(4,6), pch=c(1,NA), margins=1)
+# CRAN tests need extra white space :( so margins=1 above is not necessary otherwise
+legend('topleft', legend=c("y(t)","Xf(t)"), lty=1, col=c(4,6), bty="n", pch=c(1,NA))
+</code></pre>
+
+
+</div>

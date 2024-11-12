@@ -1,0 +1,491 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Parameter estimation with Approximate Bayesian Computation (ABC)
+</h2>
+
+<h3>Description</h3>
+
+<p>This function performs multivariate parameter estimation based on
+summary statistics using an ABC algorithm. The algorithms implemented
+are rejection sampling, and local linear or non-linear (neural
+network) regression. A conditional heteroscedastic model is available
+for the latter two algorithms.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abc(target, param, sumstat, tol, method, hcorr = TRUE, transf = "none",
+logit.bounds, subset = NULL, kernel = "epanechnikov", numnet =
+10, sizenet = 5, lambda = c(0.0001,0.001,0.01), trace = FALSE, maxit =
+500, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+  
+<p>a vector of the observed summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+
+<p>a vector, matrix or data frame of the simulated parameter values,
+i.e. the dependent variable(s) when <code>method</code> is <code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sumstat</code></td>
+<td>
+
+<p>a vector, matrix or data frame of the simulated summary statistics,
+i.e. the independent variables when <code>method</code> is <code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+
+<p>tolerance, the required proportion of points accepted nearest the
+target values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>a character string indicating the type of ABC algorithm to be
+applied.  Possible values are <code>"rejection"</code>,
+<code>"loclinear"</code>, <code>"neuralnet"</code> and <code>"ridge"</code>. See also
+<code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hcorr</code></td>
+<td>
+
+<p>logical, the conditional heteroscedastic model is applied if
+<code>TRUE</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transf</code></td>
+<td>
+
+<p>a vector of character strings indicating the kind of transformation
+to be applied to the parameter values. The possible values are
+<code>"log"</code>, <code>"logit"</code>, and <code>"none"</code> (default), when no
+is transformation applied. See also <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logit.bounds</code></td>
+<td>
+
+<p>a matrix of bounds if <code>transf</code> is <code>"logit"</code>. 
+The matrix has as many lines as parameters (including the ones 
+that are not <code>"logit"</code> transformed) and 2 columns. First column is the 
+minimum bound and second column is the maximum bound.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>a logical expression indicating elements or rows to keep. Missing
+values in <code>param</code> and/or <code>sumstat</code> are taken as
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+
+<p>a character string specifying the kernel to be used when
+<code>method</code> is <code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>. Defaults
+to <code>"epanechnikov"</code>. See <code>density</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numnet</code></td>
+<td>
+
+<p>the number of neural networks when <code>method</code> is
+<code>"neuralnet"</code>. Defaults to 10. It indicates the number of times
+the function <code>nnet</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizenet</code></td>
+<td>
+
+<p>the number of units in the hidden layer. Defaults to 5. Can be zero
+if there are no skip-layer units. See <code>nnet</code> for more
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>a numeric vector or a single value indicating the weight decay when
+<code>method</code> is <code>"neuralnet"</code>. See <code>nnet</code> for more
+details. By default, 0.0001, 0.001, or 0.01 is randomly chosen for
+each of the networks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>logical, if <code>TRUE</code> switches on tracing the optimization of
+<code>nnet</code>. Applies only when <code>method</code> is
+<code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>numeric, the maximum number of iterations. Defaults to 500. Applies
+only when <code>method</code> is <code>"neuralnet"</code>. See also
+<code>nnet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other arguments passed to <code>nnet</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These ABC algorithms generate random samples from the posterior
+distributions of one or more parameters of interest, <code class="reqn">\theta_1,
+  \theta_2, \dots, \theta_n</code>. To apply any of these algorithms, (i) data
+sets have to be simulated based on random draws from the prior
+distributions of the <code class="reqn">\theta_i</code>'s, (ii) from these data sets, a set
+of summary statistics have to be calculated, <code class="reqn">S(y)</code>, (iii) the
+same summary statistics have to be calculated from the observed data,
+<code class="reqn">S(y_0)</code>, and (iv) a tolerance rate must be chosen
+(<code>tol</code>). See <code>cv4abc</code> for a cross-validation tool
+that may help in choosing the tolerance rate.
+</p>
+<p>When <code>method</code> is <code>"rejection"</code>, the simple rejection
+algorithm is used. Parameter values are accepted if the Euclidean
+distance between <code class="reqn">S(y)</code> and <code class="reqn">S(y_0)</code> is sufficiently
+small. The percentage of accepted simulations is determined by
+<code>tol</code>. When <code>method</code> is <code>"loclinear"</code>, a local linear
+regression method corrects for the imperfect match between <code class="reqn">S(y)</code>
+and <code class="reqn">S(y_0)</code>. The accepted parameter values are weighted by a
+smooth function (<code>kernel</code>) of the distance between <code class="reqn">S(y)</code> and
+<code class="reqn">S(y_0)</code>, and corrected according to a linear transform:
+<code class="reqn">\theta^{*} = \theta - b(S(y) - S(y_0))</code>. <code class="reqn">\theta^{*}</code>'s
+represent samples form the posterior distribution. This method calls
+the function <code>lsfit</code> from the <code>stats</code> library.  When
+using the <code>"loclinear"</code> method, a warning about the collinearity
+of the design matrix of the regression might be issued. In that
+situation, we recommend to rather use the related <code>"ridge"</code>
+method that performs local-linear ridge regression and deals with the
+collinearity issue.  The non-linear regression correction method
+(<code>"neuralnet"</code>) uses a non-linear regression to minimize the
+departure from non-linearity using the function <code>nnet</code>.
+The posterior samples of parameters based on the rejection algorithm
+are returned as well, even when one of the regression algorithms is
+used.
+</p>
+<p>Several additional arguments can be specified when <code>method</code> is
+<code>"neuralnet"</code>. The method is based on the function
+<code>nnet</code> from the library <code>nnet</code>, which fits
+single-hidden-layer neural networks. <code>numnet</code> defines the
+number of neural networks, thus the function <code>nnet</code> is
+called <code>numnet</code> number of times. Predictions from different
+neural networks can be rather different, so the median of the
+predictions from all neural networks is used to provide a global
+prediction. The choice of the number of neural networks is a trade-off
+between speed and accuracy. The default is set to 10 networks. The
+number of units in the hidden layer can be specified via
+<code>sizenet</code>. Selecting the number of hidden units is similar to
+selecting the independent variables in a linear or non-linear
+regression. Thus, it corresponds to the complexity of the
+network. There is several rule of thumb to choose the number of hidden
+units, but they are often unreliable. Generally speaking, the optimal
+choice of <code>sizenet</code> depends on the dimensionality, thus the
+number of statistics in <code>sumstat</code>. It can be zero when there are
+no skip-layer units. See also <code>nnet</code> for more details. The
+<code>method</code> <code>"neuralnet"</code> is recommended when dealing with a
+large number of summary statistics.
+</p>
+<p>If <code>method</code> is <code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>, a
+correction for heteroscedasticity is applied by default (<code>hcorr =
+  TRUE</code>).
+</p>
+<p>Parameters maybe transformed priori to estimation. The type of
+transformation is defined by <code>transf</code>. The length of
+<code>transf</code> is normally the same as the number of parameters. If
+only one value is given, that same transformation is applied to all
+parameters and the user is warned. When a parameter transformation
+used, the parameters are back-transformed to their original scale
+after the regression estimation. No transformations can be applied
+when <code>method</code> is <code>"rejection"</code>.
+</p>
+<p>Using names for the parameters and summary statistics is strongly
+recommended. Names can be supplied as <code>names</code> or
+<code>colnames</code> to <code>param</code> and <code>sumstat</code> (and
+<code>target</code>). If no names are supplied, P1, P2, ... is assigned to
+parameters and S1, S2, ... to summary statistics and the user is
+warned.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned value is an object of class <code>"abc"</code>, containing the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>adj.values</code></td>
+<td>
+<p>The regression adjusted values, when <code>method</code> is
+<code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unadj.values</code></td>
+<td>
+<p>The unadjusted values that correspond to
+<code>"rejection"</code> <code>method</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ss</code></td>
+<td>
+<p>The summary statistics for the accepted simulations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>The regression weights, when <code>method</code> is
+<code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>The residuals from the regression when <code>method</code> is
+<code>"loclinear"</code>, <code>"neuralnet"</code> or <code>"ridge"</code>. These are the "raw"
+residuals from <code>lsfit</code> or <code>nnet</code>,
+respectively, thus they are not on the original scale of the
+parameter(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The Euclidean distances for the accepted simulations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The original call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>A logical vector indicating the elements or rows that
+were excluded, including both <code>NA</code>/<code>NaN</code>'s and
+elements/rows selected by <code>subset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region</code></td>
+<td>
+<p>A logical expression indicting the elements or rows that
+were accepted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transf</code></td>
+<td>
+<p>The parameter transformations that have been used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logit.bounds</code></td>
+<td>
+<p>The bounds, if transformation was <code>"logit"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>The kernel used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Character string indicating the <code>method</code>, i.e.
+<code>"rejection"</code>, <code>"loclinear"</code>, or <code>"neuralnet"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A numeric vector of length <code>numnet</code>. The actual
+values of the decay parameters used in each of the neural networks,
+when <code>method</code> is <code>"neuralnet"</code>. These values are selected
+randomly from the supplied vector of values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numparam</code></td>
+<td>
+<p>Number of parameters used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numstat</code></td>
+<td>
+<p>Number of summary statistics used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>The sum of the AIC of the <code>numparam</code> regression.
+Returned only if <code>method</code> is <code>"loclinear"</code>. It is used for
+selecting informative summary statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>The same but with the BIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names</code></td>
+<td>
+<p>A list with two elements: <code>parameter.names</code> and
+<code>statistics.names</code>. Both contain a vector of character strings
+with the parameter and statistics names, respectively.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Katalin Csillery, Olivier Francois and Michael Blum with some
+initial code from Mark Beaumont.
+</p>
+
+
+<h3>References</h3>
+
+<p>Pritchard, J.K., and M.T. Seielstad and A. Perez-Lezaun and
+M.W. Feldman (1999) Population growth of human Y chromosomes: a study
+of Y chromosome microsatellites. <em>Molecular Biology and
+Evolution</em>, <b>16</b>, 1791–1798.
+</p>
+<p>Beaumont, M.A., Zhang, W., and Balding, D.J. (2002) Approximate
+Bayesian Computation in Population Genetics, <em>Genetics</em>,
+<b>162</b>, 2025-2035.
+</p>
+<p>Blum, M.G.B. and Francois, O. (2010) Non-linear regression models
+for Approximate Bayesian Computation. <em>Statistics and Computing</em>
+<b>20</b>, 63-73.
+</p>
+<p>Csillery, K., M.G.B. Blum, O.E. Gaggiotti and O. Francois (2010)
+Approximate Bayesian Computation (ABC) in practice. <em>Trends in
+Ecology and Evolution</em>, <b>25</b>, 410-418.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.abc</code>, <code>hist.abc</code>,
+<code>plot.abc</code>, <code>lsfit</code>, <code>nnet</code>,
+<code>cv4abc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">require(abc.data)
+data(musigma2)
+?musigma2
+
+## The rejection algorithm
+##
+rej &lt;- abc(target=stat.obs, param=par.sim, sumstat=stat.sim, tol=.1, method =
+"rejection") 
+
+## ABC with local linear regression correction without/with correction
+## for heteroscedasticity 
+##
+lin &lt;- abc(target=stat.obs, param=par.sim, sumstat=stat.sim, tol=.1, hcorr =
+FALSE, method = "loclinear", transf=c("none","log"))
+linhc &lt;- abc(target=stat.obs, param=par.sim, sumstat=stat.sim, tol=.1, method =
+"loclinear", transf=c("none","log")) 
+
+## posterior summaries
+##
+linsum &lt;- summary(linhc, intvl = .9)
+linsum
+## compare with the rejection sampling
+summary(linhc, unadj = TRUE, intvl = .9)
+
+## posterior histograms
+##
+hist(linhc, breaks=30, caption=c(expression(mu),
+expression(sigma^2))) 
+
+## or send histograms to a pdf file
+## Not run: 
+hist(linhc, file="linhc", breaks=30, caption=c(expression(mu),
+expression(sigma^2)))
+
+## End(Not run)
+## diagnostic plots: compare the 2 'abc' objects: "loclinear",
+## "loclinear" with correction for heteroscedasticity
+##
+plot(lin, param=par.sim)
+plot(linhc, param=par.sim)
+
+## example illustrates how to add "true" parameter values to a plot
+##
+postmod &lt;- c(post.mu[match(max(post.mu[,2]), post.mu[,2]),1],
+             post.sigma2[match(max(post.sigma2[,2]), post.sigma2[,2]),1])
+plot(linhc, param=par.sim, true=postmod)
+
+
+## artificial example to show how to use the logit tranformations
+##
+myp &lt;- data.frame(par1=runif(1000,-1,1),par2=rnorm(1000),par3=runif(1000,0,2))
+mys &lt;- myp+rnorm(1000,sd=.1)
+myt &lt;- c(0,0,1.5)
+lin2 &lt;- abc(target=myt, param=myp, sumstat=mys, tol=.1, method =
+"loclinear", transf=c("logit","none","logit"),logit.bounds = rbind(c(-1,
+1), c(NA, NA), c(0, 2)))
+summary(lin2)
+</code></pre>
+
+
+</div>

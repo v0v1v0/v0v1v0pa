@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_ARMA_coef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample ARMA coef</h2>
+
+<h3>Description</h3>
+
+<p>This function randomly samples the ARMA coefficients of a specified
+ARMA model. The coefficients are sampled so that the resulting ARMA model
+is both causal and invertible.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_ARMA_coef(
+  order = c(0L, 0L),
+  seasonal = list(order = c(0L, 0L), period = NA),
+  n = 1,
+  Mod_bounds = c(0.05, 0.95),
+  min_inv_root_dist = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>A specification of the non-seasonal part of the ARIMA model:
+this is different than the <code>order</code> input of <code>stats::arima()</code>, because
+the degree of differencing is not included. Thus order is a vector of
+length two of the form <code class="reqn">(p, q)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal</code></td>
+<td>
+<p>A specification of the seasonal part of the ARIMA model. Can
+be either a vector of length 2, or a list with an <code>order</code> component; if
+a list, a period can be included, but it does not affect the function
+output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>An integer indicating how many sets of ARMA coefficients should be
+sampled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mod_bounds</code></td>
+<td>
+<p>Bounds on the magnitude of the roots.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_inv_root_dist</code></td>
+<td>
+<p>This parameter is included so as to help avoid ARMA
+models that contain parameter redundancy, if desired. Specifically,
+this parameter ensures that the minimum distance between any of the
+inverted roots in the AR and MA polynomials is greater than
+<code>min_inv_root_dist</code>. Inverted roots that are near each other leads to
+canceling or nearly canceling roots, effectively reducing the size of the
+ARMA model.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For an ARMA model to be causal and invertible, the roots of the AR and MA
+polynomials must lie outside the the complex unit circle. The AR and MA
+polynomials are defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">\phi(z) = 1 - \phi_1 z - \phi_2 z^2 - \ldots - \phi_p z^p</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\theta(z) = 1 + \theta_1 z + \theta_2 z^2 + \ldots + \theta_q z^q</code>
+</p>
+
+<p>where <code class="reqn">z</code> is a complex number, <code class="reqn">\phi_1, \ldots, \phi_p</code> are the
+<code class="reqn">p</code> AR coefficients of the ARMA model, and
+<code class="reqn">\theta_1, \ldots, \theta_p</code> are the <code class="reqn">q</code> MA coefficients of the ARMA
+model.
+</p>
+<p>ARMA coefficients are sampled by sampling inverse roots to be inside the
+complex unit circle, and then calculating the resulting polynomial.
+To ensure that the resulting polynomial coefficients are real, we only sample
+half of the needed number of complex roots, and set the remaining half to be
+the complex conjugate of the sampled points. In the case where the number of
+coefficients is odd, the remaining root is sampled uniformly, satisfying the
+Mod_bounds parameter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a vector of randomly sampled ARMA coefficients.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">{
+sample_ARMA_coef(
+   order = c(2, 1),
+   seasonal = list(order = c(1, 0), period = 2),
+   n = 100
+)
+}
+</code></pre>
+
+
+</div>

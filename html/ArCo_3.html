@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate_t0</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates the intervention time on a given treated unit</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the intervention time on a given treated unit based on any model supplied by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate_t0(data, fn = NULL, p.fn = NULL, start = 0.4, end = 0.9,
+  treated.unit = 1, lag = 0, Xreg = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A list of matrixes or data frames of length q. Each matrix is T X n and it contains observations of a single variable for all units and all periods of time. Even in the case of a single variable (q=1), the matrix must be inside a list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p>The function used to estimate the first stage model. This function must receive only two arguments in the following order: X (independent variables), y (dependent variable). If the model requires additional arguments they must be supplied inside the function fn. If not supplied the default is the lm function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.fn</code></td>
+<td>
+<p>The forecasting function used to estimate the counterfactual using the first stage model (normally a predict funtion). This function also must receive only two arguments in the following order: model (model estimated in the first stage), newdata (out of sample data to estimate the second stage). If the prediction requires additional arguments they must be supplied inside the function p.fn.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Initial value of <code class="reqn">\lambda_0</code> to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+<p>Final value of <code class="reqn">\lambda_0</code> to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treated.unit</code></td>
+<td>
+<p>Single number indicating the unit where the intervention took place.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag</code></td>
+<td>
+<p>Number of lags in the first stage model. Default is 0, i.e. only contemporaneous variables are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xreg</code></td>
+<td>
+<p>Exogenous controls.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments used in the function fn.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This description may be useful to clarify the notation and understand how the arguments must be supplied to the functions.
+</p>
+
+<ul>
+<li>
+<p>units: Each unit is indexed by a number between <code class="reqn">1,\dots,n</code>. They are for exemple: countries, states, municipalities, firms, etc.
+</p>
+</li>
+<li>
+<p>Variables: For each unit and for every time period <code class="reqn">t=1,\dots,T</code> we observe <code class="reqn">q_i \ge 1</code> variables. They are for example: GDP, inflation, sales, etc.
+</p>
+</li>
+<li>
+<p>Intervention: The intervention took place only in the treated unit at time <code class="reqn">t_0=\lambda_0*T</code>, where <code class="reqn">\lambda_0</code> is in (0,1).
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list with the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>Estimated t0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.norm</code></td>
+<td>
+<p>The norm of the delta corresponding to t0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>fitArCo</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#############################
+## === Example for q=1 === ##
+#############################
+data(data.q1) 
+# = First unit was treated on t=51 by adding
+# a constant equal to one standard deviation.
+
+data=list(data.q1) # = Even if q=1 the data must be in a list
+
+## == Fitting the ArCo using linear regression == ##
+
+# = creating fn and p.fn function = #
+fn=function(X,y){
+    return(lm(y~X))
+}
+p.fn=function(model,newdata){
+    b=coef(model)
+    return(cbind(1,newdata)%*%b)
+}
+
+t0a=estimate_t0(data = data,fn = fn, p.fn = p.fn, treated.unit = 1 )
+
+
+#############################
+## === Example for q=2 === ##
+#############################
+
+# = First unit was treated on t=51 by adding constants of one standard deviation.
+# for the first and second variables
+data(data.q2) # data is already a list
+
+
+t0b=estimate_t0(data = data.q2,fn = fn, p.fn = p.fn, treated.unit = 1, start=0.4)
+</code></pre>
+
+
+</div>

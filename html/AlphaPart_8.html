@@ -1,0 +1,335 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AlphaPart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AlphaPart.R</h2>
+
+<h3>Description</h3>
+
+<p>A function to partition breeding values by a path
+variable. The partition method is described in García-Cortés et
+al., 2008: Partition of the genetic trend to validate multiple
+selection decisions.  Animal : an international journal of animal
+bioscience. DOI:  doi: <a href="https://doi.org/10.1017/S175173110800205X">10.1017/S175173110800205X</a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AlphaPart(x, pathNA, recode, unknown, sort, verbose, profile,
+  printProfile, pedType, colId, colFid, colMid, colPath, colBV,
+  colBy, center, scaleEBV)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>data.frame , with (at least) the following columns:
+individual, father, and mother identif ication, and year of birth;
+see arguments <code>colId</code>, <code>colFid</code>, <code>colMid</code>,
+<code>colPath</code>, and <code>colBV</code>; see also details about the
+validity of pedigree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pathNA</code></td>
+<td>
+<p>Logical, set dummy path (to "XXX") where path
+information is unknown (missing).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recode</code></td>
+<td>
+<p>Logical, internally recode individual, father and,
+mother identification to <code>1:n</code> codes, while missing parents
+are defined with <code>0</code>; this option must be used if identif
+ications in <code>x</code> are not already given as <code>1:n</code> codes, see
+also argument <code>sort</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unknown</code></td>
+<td>
+<p>Value(s) used for representing unknown (missing)
+parent in <code>x</code>; this options has an effect only when
+<code>recode=FALSE</code> as it is only needed in that situation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Logical, initially sort <code>x</code> using <code>orderPed()</code>
+so that children follow parents in order to make imputation as
+optimal as possible (imputation is performed within a loop from the
+first to the last unknown birth year); at the end original order is
+restored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Numeric, print additional information: <code>0</code> -
+print nothing, <code>1</code> - print some summaries about the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>profile</code></td>
+<td>
+<p>Logical, collect timings and size of objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printProfile</code></td>
+<td>
+<p>Character, print profile info on the fly
+(<code>"fly"</code>) or at the end (<code>"end"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pedType</code></td>
+<td>
+<p>Character, pedigree type: the most common form is
+<code>"IPP"</code> for Individual, Parent 1 (say father), and Parent 2
+(say mother) data; the second form is <code>"IPG"</code> for Individual,
+Parent 1 (say father), and one of Grandparents of Parent 2 (say
+maternal grandfather).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colId</code></td>
+<td>
+<p>Numeric or character, position or name of a column
+holding individual identif ication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colFid</code></td>
+<td>
+<p>Numeric or character, position or name of a column
+holding father identif ication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colMid</code></td>
+<td>
+<p>Numeric or character, position or name of a column
+holding mother identif ication or maternal grandparent identif
+ication if <code>pedType="IPG"</code> .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colPath</code></td>
+<td>
+<p>Numeric or character, position or name of a column
+holding path information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colBV</code></td>
+<td>
+<p>Numeric or character, position(s) or name(s) of
+column(s) holding breeding Values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colBy</code></td>
+<td>
+<p>Numeric or character, position or name of a column
+holding group information (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>Logical, if <code>center=TRUE</code> detect a shift in base
+population mean and attributes it as parent average effect rather
+than Mendelian sampling effect, otherwise, if center=FALSE, the base
+population values are only accounted as Mendelian sampling
+effect. Default is <code>center = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaleEBV</code></td>
+<td>
+<p>a list with two arguments defining whether is
+appropriate to center and/or scale the <code>colBV</code> columns in respect to
+the base population. The list may contain the following components:
+</p>
+
+<ul>
+<li> <p><code>center</code>: a logical value
+</p>
+</li>
+<li> <p><code>scale</code>: a logical value. If <code>center = TRUE</code> and <code>scale = TRUE</code> then the
+base population is set to has zero mean and unit variance.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Pedigree in <code>x</code> must be valid in a sense that there
+are:
+</p>
+
+<ul>
+<li>
+<p> no directed loops (the simplest example is that the individual
+identification is equal to the identification of a father or mother)
+</p>
+</li>
+<li>
+<p> no bisexuality, e.g., fathers most not appear as mothers
+</p>
+</li>
+<li>
+<p> father and/or mother can be unknown (missing) - defined with
+any "code" that is different from existing identifications
+</p>
+</li>
+</ul>
+<p>Unknown (missing) values for breeding values are propagated down the
+pedigree to provide all available values from genetic
+evaluation. Another option is to cut pedigree links - set parents to
+unknown and remove them from pedigree prior to using this function -
+see <code>pedSetBase</code> function.  Warning is issued
+in the case of unknown (missing) values.
+</p>
+<p>In animal breeding/genetics literature the model with the underlying
+pedigree type <code>"IPP"</code> is often called animal model, while the
+model for pedigree type <code>"IPG"</code> is often called sire - maternal
+grandsire model. With a combination of <code>colFid</code> and
+<code>colMid</code> mother - paternal grandsire model can be accomodated as
+well.
+</p>
+<p>Argument <code>colBy</code> can be used to directly perform a summary
+analysis by group, i.e., <code>summary(AlphaPart(...),
+by="group")</code>. See <code>summary.AlphaPart</code> for
+more. This can save some CPU time by skipping intermediate
+steps. However, only means can be obtained, while <code>summary</code>
+method gives more flexibility.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>AlphaPart</code>, which can be used in
+further analyses - there is a handy summary method
+(<code>summary.AlphaPart</code> works on objects of
+<code>AlphaPart</code> class) and a plot method for its output
+(<code>plot.summaryAlphaPart</code> works on objects of
+<code>summaryAlphaPart</code> class).  Class <code>AlphaPart</code> is a
+list. The first <code>length(colBV)</code> components (one for each trait
+and named with trait label, say trt) are data frames. Each
+data.frame contains:
+</p>
+
+<ul>
+<li> <p><code>x</code> columns from initial data <code>x</code>
+</p>
+</li>
+<li> <p><code>trt_pa</code> parent average
+</p>
+</li>
+<li> <p><code>trt_w</code>Mendelian sampling term
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠trt_path1, trt_path2, ...⁠</code> breeding value partitions
+</p>
+</li>
+</ul>
+<p>The last component of returned object is also a list named
+<code>info</code> with the following components holding meta information
+about the analysis:
+</p>
+
+<ul>
+<li> <p><code>path</code> column name holding path information
+</p>
+</li>
+<li> <p><code>nP</code> number of paths
+</p>
+</li>
+<li> <p><code>lP</code> path labels
+</p>
+</li>
+<li> <p><code>nT</code> number of traits
+</p>
+</li>
+<li> <p><code>lT</code> trait labels
+</p>
+</li>
+<li> <p><code>warn</code> potential warning messages associated with this object
+</p>
+</li>
+</ul>
+<p>If <code>colBy!=NULL</code> the resulting object is of a class
+<code>summaryAlphaPart</code>, see
+<code>summary.AlphaPart</code> for details.
+</p>
+<p>If <code>profile=TRUE</code>, profiling info is printed on screen to spot
+any computational bottlenecks.
+</p>
+
+
+<h3>References</h3>
+
+<p>Garcia-Cortes, L. A. et al. (2008) Partition of the
+genetic trend to validate multiple selection decisions. Animal,
+2(6):821-824. doi: <a href="https://doi.org/10.1017/S175173110800205X">10.1017/S175173110800205X</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.AlphaPart</code> for summary
+method that works on output of <code>AlphaPart</code>,
+<code>pedSetBase</code> for setting base population,
+<code>pedFixBirthYear</code> for imputing unknown
+(missing) birth years, <code>orderPed</code> in
+<span class="pkg">pedigree</span> package for sorting pedigree
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Small pedigree with additive genetic (=breeding) values
+ped &lt;- data.frame(  id=c(  1,   2,   3,   4,   5,   6),
+                   fid=c(  0,   0,   2,   0,   4,   0),
+                   mid=c(  0,   0,   1,   0,   3,   3),
+                   loc=c("A", "B", "A", "B", "A", "A"),
+                   gen=c(  1,   1,   2,   2,   3,   3),
+                  trt1=c(100, 120, 115, 130, 125, 125),
+                  trt2=c(100, 110, 105, 100,  85, 110))
+
+## Partition additive genetic values
+tmp &lt;- AlphaPart(x=ped, colBV=c("trt1", "trt2"))
+print(tmp)
+
+## Summarize by generation (genetic mean)
+summary(tmp, by="gen")
+
+## Summarize by generation (genetic variance)
+summary(tmp, by="gen", FUN = var)
+
+
+
+## There are also two demos
+  demo(topic="AlphaPart_deterministic", package="AlphaPart",
+       ask=interactive())
+  demo(topic="AlphaPart_stochastic",     package="AlphaPart",
+       ask=interactive())
+
+</code></pre>
+
+
+</div>

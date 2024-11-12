@@ -1,0 +1,51 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>QIC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quasi Information Criterion</h2>
+
+<h3>Description</h3>
+
+<p>Implementation based on MES::QIC.geeglm
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">QIC(object)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>is a <code>aftgee</code> fit</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data from an AFT model with possible depended response
+datgen &lt;- function(n = 100, tau = 0.3, dim = 2) {
+    x1 &lt;- rbinom(dim * n, 1, 0.5)
+    x2 &lt;- rnorm(dim * n)
+    e &lt;- c(t(exp(MASS::mvrnorm(n = n, mu = rep(0, dim), Sigma = tau + (1 - tau) * diag(dim)))))
+    tt &lt;- exp(2 + x1 + x2 + e)
+    cen &lt;- runif(n, 0, 100)
+    data.frame(Time = pmin(tt, cen), status = 1 * (tt &lt; cen),
+               x1 = x1, x2 = x2, id = rep(1:n, each = dim))
+}
+set.seed(1); dat &lt;- datgen(n = 50, dim = 2)
+fm &lt;- Surv(Time, status) ~ x1 + x2
+fit1 &lt;- aftgee(fm, data = dat, id = id, corstr = "ind")
+fit2 &lt;- aftgee(fm, data = dat, id = id, corstr = "ex")
+
+QIC(fit1)
+QIC(fit2)
+</code></pre>
+
+
+</div>

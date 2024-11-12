@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>inspect_apsimx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inspect an .apsimx (JSON) file</h2>
+
+<h3>Description</h3>
+
+<p>inspect a JSON apsimx file. It does not replace the GUI, but it can save time by quickly checking parameters and values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">inspect_apsimx(
+  file = "",
+  src.dir = ".",
+  node = c("Clock", "Weather", "Soil", "SurfaceOrganicMatter", "MicroClimate", "Crop",
+    "Manager", "Report", "Operations", "Other"),
+  soil.child = c("Metadata", "Water", "InitialWater", "Chemical", "Physical", "Analysis",
+    "SoilWater", "InitialN", "CERESSoilTemperature", "SoilTemperature", "Sample",
+    "Solute", "NO3", "NH4", "Urea", "Nutrient", "Organic", "Swim3"),
+  parm = NULL,
+  digits = 3,
+  print.path = FALSE,
+  root
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file ending in .apsimx to be inspected (JSON)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src.dir</code></td>
+<td>
+<p>directory containing the .apsimx file to be inspected; defaults to the current working directory</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>specific node to be inspected either ‘Clock’, ‘Weather’,
+‘Soil’, ‘SurfaceOrganicMatter’, ‘MicroClimate’, ‘Crop’,
+‘Manager’, ‘Operations’ or ‘Other’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soil.child</code></td>
+<td>
+<p>specific soil component to be inspected. The options vary depending on what is available (see details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>parameter to refine the inspection of the ‘manager’ list(‘parm’,‘position’), use ‘NA’ for all the positions. ‘parm’ can be a regular expression for partial matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>number of decimals to print (default 3). Not used now because everything is a character.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.path</code></td>
+<td>
+<p>whether to print the path to the specific parameter. Useful to give the later editing. (Also returned as ‘invisible’)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>root</code></td>
+<td>
+<p>root node label. In simulation structures such as factorials there will be multiple possible nodes. This can be specified by supplying an appropriate character.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In general, this function is used to inspect one parameter at a time. There are some exceptions. <br></p>
+<p>When node equals ‘Other’ there are several options. If ‘parm’ is not specified the structure
+of the simulation file will be returned. In this case, the parameter to print is typically just ‘Simulations’.
+This option is useful when the intention is to show the simulation structure to pick a root presumably. ‘parm’
+can be set as 0, 1, 2 or 3 for different levels.
+‘parm’ can also be a list with integers, such as ‘list(1, 2, 3)’. If zero is included, available elements
+If a parameter is specified the function will try to ‘guess’ the root elements from the parameter path supplied.
+</p>
+<p>This is simply a script that prints the relevant parameters which are likely to need editing. It does not print all information from an .apsimx file.
+To investigate the available ‘soil.childs’ specify ‘Soil’ for ‘node’ and do not specify the ‘soil.child’.
+</p>
+
+
+<h3>Value</h3>
+
+<p>prints a table with inspected parameters and values (and ‘parm path’ when ‘print.path’ = TRUE).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Clock")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Weather")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "Metadata")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "Physical")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "SoilWater")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "Organic")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "Chemical")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "InitialWater")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Soil", soil.child = "InitialN")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "SurfaceOrganicMatter")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "MicroClimate")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Crop")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Manager")
+inspect_apsimx("Wheat.apsimx", src.dir = extd.dir, node = "Report")
+
+## Examples of using node = "Other"
+extd.dir &lt;- system.file("extdata", package = "apsimx")
+
+## When parm is not provided
+inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir, node = "Other")
+## When parm = 2
+inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir,
+               node = "Other", parm = 2)
+## When parm = 3
+inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir,
+               node = "Other", parm = 3)
+## When parm is a path
+inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir,
+               node = "Other", parm = ".Simulations.Simulation")
+## When parm is a list with numbers (integers)
+pp &lt;- inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir,
+                     node = "Other", parm = list(1, 1, 5),
+                     print.path = TRUE)
+## Same as above, but with zero prints possible options
+inspect_apsimx("maize-manager-folder.apsimx", src.dir = extd.dir,
+                node = "Other", parm = list(1, 1, 5, 0))
+
+## It is possible to look into folders using this method
+inspect_apsimx("maize-manager-folder.apsimx", node = "Other", src.dir = extd.dir,
+               parm = list("Manager", "Fertiliser", "Amount"))
+
+
+
+
+
+</code></pre>
+
+
+</div>

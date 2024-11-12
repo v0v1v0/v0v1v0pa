@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sequenceClassification</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Leverage sequences to classify images</h2>
+
+<h3>Description</h3>
+
+<p>This function applies image classifications at a sequence level by leveraging
+information from multiple images. A sequence is defined as all images at the same
+camera/station where the time between consecutive images is &lt;=maxdiff. This can improve
+classification accuracy, but assumes that only one species is present in each sequence.
+If you regularly expect multiple species to occur in an image or sequence don't use this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sequenceClassification(
+  animals,
+  empty = NULL,
+  predictions,
+  classes,
+  emptyclass = "",
+  stationcolumn,
+  sortcolumns = NULL,
+  maxdiff = 60
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>animals</code></td>
+<td>
+<p>sub-selection of all images that contain MD animals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empty</code></td>
+<td>
+<p>optional, data frame non-animal images (empty, human and vehicle) that will be merged back with animal imagages</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictions</code></td>
+<td>
+<p>data frame of prediction probabilities from the classifySpecies function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classes</code></td>
+<td>
+<p>a vector or species corresponding to the columns of 'predictions'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emptyclass</code></td>
+<td>
+<p>a string indicating the class that should be considered 'Empty'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stationcolumn</code></td>
+<td>
+<p>a column in the animals and empty data frame that indicates the camera or camera station</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortcolumns</code></td>
+<td>
+<p>optional sort order. The default is 'stationcolumnumn' and DateTime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdiff</code></td>
+<td>
+<p>maximum difference between images in seconds to be included in a sequence, defaults to 60</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function retains "Empty" classification even if other images within the
+sequence are predicted to contain animals.
+Classification confidence is weighted by MD confidence.
+</p>
+
+
+<h3>Value</h3>
+
+<p>data frame with predictions and confidence values for animals and empty images
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+predictions &lt;-classifyCropsSpecies(images,modelfile,resize=456)
+animals &lt;- allframes[allframes$max_detection_category==1,]
+empty &lt;- setEmpty(allframes)
+animals &lt;- sequenceClassification(animals, empty, predictions, classes,
+                                  emptyclass = "Empty",
+                                  stationcolumnumn="StationID", maxdiff=60)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

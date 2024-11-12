@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>posterior-probabilities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Posterior probabilities based on parameter estimates</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>predict_pre_order</code> uses a pre-order algorithm to compute the
+posterior probabilities, whereas the <code>predict_brute_force</code> computes posterior
+probabilities generating all possible cases.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'aphylo_estimates'
+predict(
+  object,
+  which.tree = NULL,
+  ids = NULL,
+  newdata = NULL,
+  params = stats::coef(object),
+  loo = TRUE,
+  nsamples = 1L,
+  centiles = c(0.025, 0.5, 0.975),
+  cl = NULL,
+  ...
+)
+
+predict_pre_order(x, ...)
+
+## S3 method for class 'aphylo_estimates'
+predict_pre_order(
+  x,
+  params = stats::coef(x),
+  which.tree = 1:Ntrees(x),
+  ids = lapply(Ntip(x)[which.tree], seq_len),
+  loo = TRUE,
+  nsamples = 1L,
+  centiles = c(0.025, 0.5, 0.975),
+  ncores = 1L,
+  cl = NULL,
+  ...
+)
+
+## S3 method for class 'aphylo'
+predict_pre_order(x, psi, mu_d, mu_s, eta, Pi, ...)
+
+predict_brute_force(atree, psi, mu_d, mu_s, Pi, force = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>which.tree</code></td>
+<td>
+<p>Integer scalar. Which tree to include in the prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>Integer vector. Ids (positions) of the nodes that need to be
+predicted (see details.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>(optional) An aphylo object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>A numeric vector with the corresponding parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loo</code></td>
+<td>
+<p>Logical scalar. When <code>loo = TRUE</code>, predictions are preformed
+similar to what a leave-one-out cross-validation scheme would be done
+(see predict.aphylo_estimates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsamples</code></td>
+<td>
+<p>Integer scalar. When greater than one, the prediction is done
+using a random sample from the MCMC chain. This only works if the model was
+fitted using MCMC, of course.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centiles</code></td>
+<td>
+<p>Used together with <code>nsamples</code>, this indicates the centiles
+to be computed from the distribution of outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores, cl</code></td>
+<td>
+<p>Passed to <code>parallel::makeCluster()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+<p>Numeric vector of length 2. Misclasification probabilities. (see <code>LogLike</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_d, mu_s</code></td>
+<td>
+<p>Numeric vector of length 2. Gain/loss probabilities (see <code>LogLike</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>Numeric vector of length 2. Annotation bias probabilities (see <code>LogLike</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pi</code></td>
+<td>
+<p>Numeric scalar. Root node probability of having the function (see <code>LogLike</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atree, x, object</code></td>
+<td>
+<p>Either a tree of class aphylo or an object of class aphylo_estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force</code></td>
+<td>
+<p>Logical scalar. When <code>TRUE</code> it will try to compute the brute-force
+probabilities for trees with more than 7 nodes.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>predict_brute_force</code> is only intended for testing. For predictions
+after estimating the model, see predict.aphylo_estimates.
+</p>
+<p>In the case of the parameter <code>loo</code> (leave-one-out), while making tip-level
+predictions, at each leaf the algorithm will drop annotations regarding that
+leaf, making its prediction using all the available information except the
+one include in such leaf.
+</p>
+<p>The <code>predict_brute_force</code> function makes the (obviously) brute force
+calculation of the probabilities. It will perform
+It returns a list with the following:
+</p>
+
+<ul>
+<li> <p><code>Pr</code> The conditional probabilities of observing a tree given a particular state
+of the leave nodes. The size is given by (2^nnodes x 2^nleaves), each entry is
+read as "The probability of observing scenario i (row) given that the leaves have
+state j (colum)." The scenarios are specified in the <code>row</code> matrix returned by the
+function.
+</p>
+</li>
+<li> <p><code>row</code> Indicates the state of each node (columns) per scenario (row).
+</p>
+</li>
+<li> <p><code>col</code> Indicates the state of each leaf node (columns) per potential leaf
+scenario.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>In the case of the <code>predict</code> method, a <code>P</code> column numeric matrix
+with values between <code class="reqn">[0,1]</code> (probabilities).
+</p>
+
+
+<h3>Prediction on specific nodes</h3>
+
+<p>The <code>ids</code> parameter indicates for which nodes, both internal and tips, the
+predictions should be made. By default, the function will only make predictions
+on the leaf nodes.
+</p>
+<p>The ids follow <code>ape</code>'s convention, this is, <code>1:Ntips(x)</code>
+are the leaf nodes, <code>Ntips(x) + 1L</code> is the root node, and everything else
+are the interior nodes.
+</p>
+<p>Although the prediction algorithm is fast, indicating only
+a subset of the nodes could make a difference when <code>loo = TRUE</code> and/or
+<code>nsamples &gt; 1</code> (calculating a Credible/Confidence Interval.)
+</p>
+<p>In the case of <code>multiAphylo</code>, <code>ids</code> should be passed as a list of length
+<code>Ntrees(x)</code>, with each element indicating the nodes. Otherwise, ids
+are passed as an integer vector.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Single tree ---------------------------------------------------------------
+set.seed(123)
+atree &lt;- raphylo(10)
+
+# Fitting the model with MLE
+ans &lt;- aphylo_mle(atree ~ psi + mu_d + mu_s + Pi)
+
+# Prediction on leaves
+predict(ans)
+
+# Prediction on all nodes (including root and interior)
+predict(ans, ids = 1:Nnode(ans, internal.only = FALSE))
+
+# Multiple trees (multiAphylo) ----------------------------------------------
+atree &lt;- c(raphylo(10), raphylo(5))
+
+# Fitting the model with MLE
+ans &lt;- aphylo_mle(atree ~ psi + mu_d + mu_s + Pi)
+
+# Prediction on leaves
+predict(ans)
+
+# Predicting only interior nodes
+predict(ans, ids = list(11:19, 6:9))
+
+</code></pre>
+
+
+</div>

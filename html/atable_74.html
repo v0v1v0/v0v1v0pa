@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>two_sample_htest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Two sample hypothesis tests and effect size</h2>
+
+<h3>Description</h3>
+
+<p>Calculates two sample hypothesis tests and effect size depending on the class of its input.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">two_sample_htest(value, group, ...)
+
+## S3 method for class 'character'
+two_sample_htest(value, group, ...)
+
+## S3 method for class 'factor'
+two_sample_htest(value, group, two_sample_htest.factor = NULL, ...)
+
+## S3 method for class 'logical'
+two_sample_htest(value, group, ...)
+
+## S3 method for class 'numeric'
+two_sample_htest(value, group, two_sample_htest.numeric = NULL, ...)
+
+## S3 method for class 'ordered'
+two_sample_htest(value, group, two_sample_htest.ordered = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>An atomic vector. These values will be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>A factor with two levels and same length as <code>value</code>.
+Defines the two groups of <code>value</code>, that are compared by a two sample hypothesis tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed to methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>two_sample_htest.factor</code></td>
+<td>
+<p>Analog to argument two_sample_htest.numeric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>two_sample_htest.numeric</code></td>
+<td>
+<p>Either <code>NULL</code> or a function. Default is <code>NULL</code>.
+If a function, then it will replace <code>atable:::two_sample_htest.numeric</code>.
+The function must mimic <code>two_sample_htest.numeric</code>: arguments are
+<code>value</code>, <code>group</code> and the ellipsis ... .
+Result is a named list with <code>length</code> &gt; 0 with unique names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>two_sample_htest.ordered</code></td>
+<td>
+<p>Analog to argument two_sample_htest.numeric</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Results are passed to function <code>format_tests</code> for the final table.
+So the results of <code>two_sample_htest</code> must have a class for which the generic
+<code>format_tests</code> has a method.
+</p>
+<p>If you are not pleased with the current hypothesis tests you may alter these functions.
+But you must keep the original output-format, see section Value.
+</p>
+<p>Note that the various statistical test functions in R have heterogeneous arguments:
+for example <code>chisq.test</code>  and <code>ks.test</code> do not have
+formula/data as arguments, whereas <code>wilcox.test</code> and
+<code>kruskal.test</code> do. So the function <code>two_sample_htest</code> is essentially
+a wrapper to standardize the arguments of various hypothesis test functions.
+</p>
+<p>As <code>two_sample_htest</code> is only intended to be applied to unpaired two sample data,
+the two arguments <code>value</code> and <code>group</code> are sufficient to describe the data.
+</p>
+<p>Note that e.g. for class numeric the p-value is calculated by <code>ks.test</code> and the effects
+size 95% CI by <code>cohen.d</code>. As these are two different functions the results may be
+contradicting: the p-value of <code>ks.test</code> can be smaller than 0.05
+and the CI of <code>cohen.d</code> contains 0 at the same time.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list with length &gt; 0, where all elements of the list are atomic and have the same length.
+</p>
+<p>Most hypothesis-test-functions in R like <code>t.test</code> or <code>chisq.test</code>
+return an object of class <code>'htest'</code>. <code>'htest'</code>-objects are a suitable output for function
+<code>two_sample_htest</code>. Function <code>check_tests</code> checks if the output is suitable for
+further processing.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>two_sample_htest(character)</code>: Casts <code>value</code> to factor and then calls method <code>two_sample_htest</code> again.
+</p>
+</li>
+<li> <p><code>two_sample_htest(factor)</code>: Calls <code>chisq.test</code> on <code>value</code>.
+Effect size is the odds ratio calculated by <code>fisher.test</code> (if <code>value</code> has two levels),
+or Cramer's V by <code>CramerV</code>.
+</p>
+</li>
+<li> <p><code>two_sample_htest(logical)</code>: Casts <code>value</code> to factor and then calls <code>two_sample_htest</code> again.
+</p>
+</li>
+<li> <p><code>two_sample_htest(numeric)</code>: Calls <code>ks.test</code> on <code>value</code>.
+Effect size is Cohen's d calculated by <code>cohen.d</code>.
+</p>
+</li>
+<li> <p><code>two_sample_htest(ordered)</code>: Calls <code>wilcox.test</code> on <code>value</code>.
+Effect size is Cliff's delta calculated by <code>cliff.delta</code>.
+</p>
+</li>
+</ul>
+</div>

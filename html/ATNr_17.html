@@ -1,0 +1,80 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_odeweb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot food web dynamics</h2>
+
+<h3>Description</h3>
+
+<p>Plot solution of the ODE for the food web. Currently only
+species and not nutrients are plotted.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_odeweb(x, nb_s)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix with solutions. First row should be the time vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb_s</code></td>
+<td>
+<p>numeric, number of species as in the model (e.g.,
+<code>create_model_Unscaled_nuts</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return value, called for side effects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(ATNr)
+library(deSolve)
+set.seed(123)
+# number of species, nutrients, and body masses
+n_species &lt;- 20
+n_basal &lt;- 5
+n_nutrients &lt;- 3
+masses &lt;- sort(10^runif(n_species, 2, 6)) #body mass of species
+# create food web matrix
+L &lt;- create_Lmatrix(masses, n_basal)
+L[, 1:n_basal] &lt;- 0
+fw &lt;- L
+fw[fw &gt; 0] &lt;- 1
+model &lt;- create_model_Unscaled_nuts(
+  n_species,
+  n_basal,
+  n_nutrients,
+  masses,
+  fw
+)
+# initialize model as default in Schneider et al. (2016)
+model &lt;- initialise_default_Unscaled_nuts(model, L)
+# defining integration time
+times &lt;- seq(0, 500, 5)
+biomasses &lt;- runif(n_species + n_nutrients, 2, 3)
+sol &lt;- lsoda_wrapper(times, biomasses, model, verbose = FALSE)
+plot_odeweb(sol, model$nb_s)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

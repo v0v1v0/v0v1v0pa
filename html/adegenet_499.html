@@ -1,0 +1,242 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DAPC cross-validation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation for Discriminant Analysis of Principal Components (DAPC)</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>xvalDapc</code> performs stratified cross-validation of DAPC 
+using varying numbers of PCs (and keeping the number of discriminant
+functions fixed); <code>xvalDapc</code> is a generic with methods for
+<code>data.frame</code> and <code>matrix</code>.<br></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">xvalDapc(x, ...)
+
+## Default S3 method:
+xvalDapc(x, grp, n.pca.max = 300, n.da = NULL,
+              training.set = 0.9, result = c("groupMean", "overall"),
+              center = TRUE, scale = FALSE,
+              n.pca=NULL, n.rep = 30, xval.plot = TRUE, ...)
+
+## S3 method for class 'data.frame'
+xvalDapc(x, grp, n.pca.max = 300, n.da = NULL,
+              training.set = 0.9, result = c("groupMean", "overall"),
+              center = TRUE, scale = FALSE,
+              n.pca=NULL, n.rep = 30, xval.plot = TRUE, ...)
+
+## S3 method for class 'matrix'
+xvalDapc(x, grp, n.pca.max = 300, n.da = NULL,
+              training.set = 0.9, result = c("groupMean", "overall"),
+              center = TRUE, scale = FALSE,
+              n.pca=NULL, n.rep = 30, xval.plot = TRUE, ...)
+
+## S3 method for class 'genlight'
+xvalDapc(x, ...)
+
+## S3 method for class 'genind'
+xvalDapc(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>a data.frame</code> or a <code>matrix</code> used as input of DAPC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grp</code></td>
+<td>
+<p>a <code>factor</code> indicating the group membership of
+individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.pca.max</code></td>
+<td>
+<p>maximum number of PCA components to retain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.da</code></td>
+<td>
+<p>an <code>integer</code> indicating the number of axes retained in the
+Discriminant Analysis step. If <code>NULL</code>, n.da defaults to 1 less than
+the number of groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>training.set</code></td>
+<td>
+<p>the proportion of data (individuals) to be used
+for the training set; defaults to 0.9 if all groups have &gt;= 10 members; otherwise,
+training.set scales automatically to the largest proportion that still 
+ensures all groups will be present in both training and validation sets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result</code></td>
+<td>
+<p>a character string; "groupMean" for group-wise assignment
+sucess, or  "overall" for an overall mean assignment success; see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>a <code>logical</code> indicating whether variables should be centred to
+mean 0 (TRUE, default) or not (FALSE). Always TRUE for genind objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>a <code>logical</code> indicating whether variables should be scaled
+(TRUE) or not (FALSE, default). Scaling consists in dividing variables by their
+(estimated) standard deviation to account for trivial differences in
+variances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.pca</code></td>
+<td>
+<p>an <code>integer</code> vector indicating the number of
+different number of PCA axes to be retained for the cross
+validation; if <code>NULL</code>, this will be dertermined automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.rep</code></td>
+<td>
+<p>the number of replicates to be carried out at each level of
+PC retention; defaults to 30.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xval.plot</code></td>
+<td>
+<p>a logical indicating whether a plot of the cross-validation
+results should be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to <code>boot</code>.
+<strong>see Details.</strong></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p> The Discriminant Analysis of Principal Components (DAPC) relies on
+dimension reduction of the data using PCA followed by a linear discriminant
+analysis. How many PCA axes to retain is often a non-trivial question. Cross
+validation provides an objective way to decide how many axes to retain:
+different numbers are tried and the quality of the corresponding DAPC is
+assessed by cross- validation: DAPC is performed on a training set, typically
+made of 90% of the observations (comprising 90% of the observations in each
+subpopulation) , and then used to predict the groups of the 10% of remaining
+observations. The current method uses the average prediction success per group
+(result="groupMean"), or the overall prediction success (result="overall").
+The number of PCs associated with the lowest Mean Squared Error is then
+retained in the DAPC.
+</p>
+
+
+<h4>Parallel Computing</h4>
+
+<p>The permutation of the data for cross-validation is performed in part by the
+function<code>boot</code>. If you have a modern computer, it is
+likely that you have multiple cores on your system. R by default utilizes
+only one of these cores unless you tell it otherwise. For details, please
+see the documentation of <code>boot</code>. Basically, if you want to
+use multiple cores, you need two arguments:
+</p>
+
+<ol>
+<li> <p><code>parallel</code> - what R parallel system to use (see below)
+</p>
+</li>
+<li> <p><code>ncpus</code> - number of cores you want to use
+</p>
+</li>
+</ol>
+<p>If you are on a unix system (Linux or OSX), you will want to specify
+<code>parallel = "multicore"</code>. If you are on Windows, you will want to
+specify <code>parallel = "snow"</code>.
+</p>
+ 
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> containing seven items, and a <code>plot</code> of the results. The
+first is a <code>data.frame</code> with two columns, the first giving the number of
+PCs of PCA retained in the corresponding DAPC, and the second giving the
+proportion of successful group assignment for each replicate. The second item
+gives the mean and confidence interval for random chance. The third gives the
+mean successful assignment at each level of PC retention. The fourth indicates
+which number of PCs is associated with the highest mean success. The fifth
+gives the Root Mean Squared Error at each level of PC retention. The sixth
+indicates which number of PCs is associated with the lowest MSE. The seventh
+item contains the DAPC carried out with the optimal number of PCs, determined
+with reference to MSE.
+</p>
+<p>If <code>xval.plot=TRUE</code> a scatterplot of the results of cross-validation 
+will be displayed. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Caitlin Collins <a href="mailto:caitlin.collins12@imperial.ac.uk">caitlin.collins12@imperial.ac.uk</a>,
+Thibaut Jombart <a href="mailto:t.jombart@imperial.ac.uk">t.jombart@imperial.ac.uk</a>,
+Zhian N. Kamvar <a href="mailto:kamvarz@science.oregonstate.edu">kamvarz@science.oregonstate.edu</a> </p>
+
+
+<h3>References</h3>
+
+<p>Jombart T, Devillard S and Balloux F  (2010) Discriminant analysis of
+principal components: a new method for the analysis of genetically
+structured populations. BMC Genetics11:94. doi:10.1186/1471-2156-11-94
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dapc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## CROSS-VALIDATION ##
+data(sim2pop)
+xval &lt;- xvalDapc(sim2pop@tab, pop(sim2pop), n.pca.max=100, n.rep=3)
+xval
+
+## 100 replicates ##
+
+# Serial version (SLOW!)
+system.time(xval &lt;- xvalDapc(sim2pop@tab, pop(sim2pop), n.pca.max=100, n.rep=100))
+
+# Parallel version (faster!)
+system.time(xval &lt;- xvalDapc(sim2pop@tab, pop(sim2pop), n.pca.max=100, n.rep=100, 
+                             parallel = "multicore", ncpus = 2))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

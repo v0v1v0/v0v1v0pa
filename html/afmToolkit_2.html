@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>afmBaselineCorrection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Performs a baseline correction to an AFM F-z curve</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the baseline correction to an AFM F-z curve within an
+<code>afmdata</code> structure.
+</p>
+<p>It substracts a best fit line to the cuve: for the approach and contact 
+segments, it fits a line to the approach curve
+points where for which |z|&gt;ZPointApp and for the retract segment,
+it fits a line to the retract curve where |z|&gt; ZpointRet.
+</p>
+<p>If no ZPointApp is given and the contact point has been already estimated 
+(via <code>afmContactPoint()</code> function), then it is found as
+</p>
+<p style="text-align: center;"><code class="reqn">
+ZPointApp = 0.7 ContactPoint + 0.3 max(Z)
+</code>
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">afmBaselineCorrection(afmdata, ZPointApp = NULL, ZPointRet = NULL,
+fitpause = c("approach","retract","none"), vsTime = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>afmdata</code></td>
+<td>
+<p>An <code>afmdata</code> structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZPointApp</code></td>
+<td>
+<p>Point in the approach segment of the curve
+that defines the approach baseline</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZPointRet</code></td>
+<td>
+<p>Point in the retract segment of the curves that 
+defines the retract baseline</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitpause</code></td>
+<td>
+<p>Behaviour for the baseline correction at the pause segment: if "approach" (default), 
+the pause segment is correted using the best line fit done on the approach segment, 
+if "retract" the best line fit of the retract segment is used, if "none", no baseline correction 
+is done on the pause segment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vsTime</code></td>
+<td>
+<p>Logical. If TRUE then the baseline correction is performed following the Force vs time approach 
+described by S. Moreno-Flores (<cite>Moreno Flores (2016)</cite>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>afmdata</code> An <code>afmdata</code> structure identical to the one in 
+the input, but with an additional <code>ForceCorrected</code> column in the
+<code>data</code> dataframe of the <code>afmdata</code> structure.
+</p>
+
+
+<h3>References</h3>
+
+<p>Moreno Flores (2016). 
+Baseline correction of AFM force curves in the force-time representation.
+Microscopy Research and Technique, 79, (11), pp. 1045-1049.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">AFMcurve &lt;- afmReadJPK("force-save-JPK-2h.txt.gz", path = path.package("afmToolkit"))
+ZPointApp &lt;- 6.43e-6
+ZPointRet &lt;- 6.45e-6
+AFMcurve &lt;- afmBaselineCorrection(AFMcurve,ZPointApp = ZPointApp,ZPointRet = ZPointRet)
+plot(AFMcurve)
+
+# Without providing ZPointApp
+AFMcurve &lt;- afmReadJPK("force-save-JPK-3h.txt.gz", path = path.package("afmToolkit"))
+AFMcurve &lt;- afmContactPoint(AFMcurve,width = 10,mul1 = 1,mul2 = 20, 
+                             loessSmooth = FALSE)
+AFMcurve &lt;- afmBaselineCorrection(AFMcurve)
+plot(AFMcurve)
+
+</code></pre>
+
+
+</div>

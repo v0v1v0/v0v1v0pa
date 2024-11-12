@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>copy_url_to_storage</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Upload and download generics</h2>
+
+<h3>Description</h3>
+
+<p>Upload and download generics
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">copy_url_to_storage(container, src, dest, ...)
+
+multicopy_url_to_storage(container, src, dest, ...)
+
+## S3 method for class 'blob_container'
+copy_url_to_storage(container, src, dest, ...)
+
+## S3 method for class 'blob_container'
+multicopy_url_to_storage(container, src, dest, ...)
+
+storage_upload(container, ...)
+
+## S3 method for class 'blob_container'
+storage_upload(container, ...)
+
+## S3 method for class 'file_share'
+storage_upload(container, ...)
+
+## S3 method for class 'adls_filesystem'
+storage_upload(container, ...)
+
+storage_multiupload(container, ...)
+
+## S3 method for class 'blob_container'
+storage_multiupload(container, ...)
+
+## S3 method for class 'file_share'
+storage_multiupload(container, ...)
+
+## S3 method for class 'adls_filesystem'
+storage_multiupload(container, ...)
+
+storage_download(container, ...)
+
+## S3 method for class 'blob_container'
+storage_download(container, ...)
+
+## S3 method for class 'file_share'
+storage_download(container, ...)
+
+## S3 method for class 'adls_filesystem'
+storage_download(container, ...)
+
+storage_multidownload(container, ...)
+
+## S3 method for class 'blob_container'
+storage_multidownload(container, ...)
+
+## S3 method for class 'file_share'
+storage_multidownload(container, ...)
+
+## S3 method for class 'adls_filesystem'
+storage_multidownload(container, ...)
+
+download_from_url(src, dest, key = NULL, token = NULL, sas = NULL, ...,
+  overwrite = FALSE)
+
+upload_to_url(src, dest, key = NULL, token = NULL, sas = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>container</code></td>
+<td>
+<p>A storage container object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src, dest</code></td>
+<td>
+<p>For <code>upload_to_url</code> and <code>download_from_url</code>, the source and destination files to transfer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to pass to lower-level functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key, token, sas</code></td>
+<td>
+<p>Authentication arguments: an access key, Azure Active Directory (AAD) token or a shared access signature (SAS). If multiple arguments are supplied, a key takes priority over a token, which takes priority over a SAS. For <code>upload_to_url</code> and <code>download_to_url</code>, you can also provide a SAS as part of the URL itself.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>For downloading, whether to overwrite any destination files that exist.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>copy_url_to_storage</code> transfers the contents of the file at the specified HTTP[S] URL directly to storage, without requiring a temporary local copy to be made. <code>multicopy_url_to_storage</code> does the same, for multiple URLs at once. Currently methods for these are only implemented for blob storage.
+</p>
+<p>These functions allow you to transfer files to and from a storage account.
+</p>
+<p><code>storage_upload</code>, <code>storage_download</code>, <code>storage_multiupload</code> and <code>storage_multidownload</code> take as first argument a storage container, either for blob storage, file storage, or ADLSgen2. They dispatch to the corresponding file transfer functions for the given storage type.
+</p>
+<p><code>upload_to_url</code> and <code>download_to_url</code> allow you to transfer a file to or from Azure storage, given the URL of the source or destination. The storage details (endpoint, container name, and so on) are obtained from the URL.
+</p>
+<p>By default, the upload and download functions will display a progress bar while they are downloading. To turn this off, use <code>options(azure_storage_progress_bar=FALSE)</code>. To turn the progress bar back on, use <code>options(azure_storage_progress_bar=TRUE)</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>storage_container, blob_container, file_share, adls_filesystem
+</p>
+<p>download_blob, download_azure_file, download_adls_file, call_azcopy
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# download from blob storage
+bl &lt;- storage_endpoint("https://mystorage.blob.core.windows.net/", key="access_key")
+cont &lt;- storage_container(bl, "mycontainer")
+storage_download(cont, "bigfile.zip", "~/bigfile.zip")
+
+# same download but directly from the URL
+download_from_url("https://mystorage.blob.core.windows.net/mycontainer/bigfile.zip",
+                  "~/bigfile.zip",
+                  key="access_key")
+
+# upload to ADLSgen2
+ad &lt;- storage_endpoint("https://myadls.dfs.core.windows.net/", token=mytoken)
+cont &lt;- storage_container(ad, "myfilesystem")
+create_storage_dir(cont, "newdir")
+storage_upload(cont, "files.zip", "newdir/files.zip")
+
+# same upload but directly to the URL
+upload_to_url("files.zip",
+              "https://myadls.dfs.core.windows.net/myfilesystem/newdir/files.zip",
+              token=mytoken)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

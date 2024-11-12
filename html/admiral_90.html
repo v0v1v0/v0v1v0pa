@@ -1,0 +1,322 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_vars_extreme_event</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add the Worst or Best Observation for Each By Group as New Variables</h2>
+
+<h3>Description</h3>
+
+<p>Add the first available record from <code>events</code> for each by group as new
+variables, all variables of the selected observation are kept. It can be used
+for selecting the extreme observation from a series of user-defined events.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_vars_extreme_event(
+  dataset,
+  by_vars,
+  events,
+  tmp_event_nr_var = NULL,
+  order,
+  mode,
+  source_datasets = NULL,
+  check_type = "warning",
+  new_vars
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>order</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p><em>Default</em>: <code>NULL</code>
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>events</code></td>
+<td>
+<p>Conditions and new values defining events
+</p>
+<p>A list of <code>event()</code> or <code>event_joined()</code> objects is expected. Only
+observations listed in the <code>events</code> are considered for deriving extreme
+event. If multiple records meet the filter <code>condition</code>, take the first
+record sorted by <code>order</code>. The data is grouped by <code>by_vars</code>, i.e., summary
+functions like <code>all()</code> or <code>any()</code> can be used in <code>condition</code>.
+</p>
+<p>For <code>event_joined()</code> events the observations are selected by calling
+<code>filter_joined()</code>. The <code>condition</code> field is passed to the <code>filter_join</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmp_event_nr_var</code></td>
+<td>
+<p>Temporary event number variable
+</p>
+<p>The specified variable is added to all source datasets and is set to the
+number of the event before selecting the records of the event.
+</p>
+<p>It can be used in <code>order</code> to determine which record should be used if
+records from more than one event are selected.
+</p>
+<p>The variable is not included in the output dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If a particular event from <code>events</code> has more than one observation, within
+the event and by group, the records are ordered by the specified order.
+</p>
+<p>For handling of <code>NA</code>s in sorting variables see <a href="../articles/generic.html#sort_order">Sort Order</a>.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If a particular event from <code>events</code> has more than one observation,
+<code>"first"</code>/<code>"last"</code> is used to select the first/last record of this type of
+event sorting by <code>order</code>.
+</p>
+<p><em>Permitted Values:</em> <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source datasets
+</p>
+<p>A named list of datasets is expected. The <code>dataset_name</code> field of <code>event()</code>
+and <code>event_joined()</code> refers to the dataset provided in the list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check_type</code></td>
+<td>
+<p>Check uniqueness?
+</p>
+<p>If <code>"warning"</code> or <code>"error"</code> is specified, the specified message is issued
+if the observations of the input dataset are not unique with respect to the
+by variables and the order.
+</p>
+<p><em>Default:</em> <code>"warning"</code>
+</p>
+<p><em>Permitted Values:</em> <code>"none"</code>, <code>"warning"</code>, <code>"error"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_vars</code></td>
+<td>
+<p>Variables to add
+</p>
+<p>The specified variables from the events are added to the output
+dataset. Variables can be renamed by naming the element, i.e., <code style="white-space: pre;">⁠new_vars = exprs(&lt;new name&gt; = &lt;old name&gt;)⁠</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> For each event select the observations to consider:
+</p>
+
+<ol>
+<li>
+<p> If the event is of class <code>event</code>, the observations of the source dataset
+are restricted by <code>condition</code> and then the first or last (<code>mode</code>)
+observation per by group (<code>by_vars</code>) is selected.
+</p>
+<p>If the event is of class <code>event_joined</code>, <code>filter_joined()</code> is called to
+select the observations.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>set_values_to</code> field of the event
+are added to the selected observations.
+</p>
+</li>
+<li>
+<p> The variable specified for <code>tmp_event_nr_var</code> is added and set to
+the number of the event.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> All selected observations are bound together.
+</p>
+</li>
+<li>
+<p> For each group (with respect to the variables specified for the
+<code>by_vars</code> parameter) the first or last observation (with respect to the
+order specified for the <code>order</code> parameter and the mode specified for the
+<code>mode</code> parameter) is selected.
+</p>
+</li>
+<li>
+<p> The variables specified by the <code>new_vars</code> parameter are added to
+the selected observations.
+</p>
+</li>
+<li>
+<p> The variables are added to input dataset.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the best or worst observation of each by group
+added as new variables.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>event()</code>, <code>event_joined()</code>, <code>derive_extreme_event()</code>
+</p>
+<p>ADSL Functions that returns variable appended to dataset: 
+<code>derive_var_age_years()</code>,
+<code>derive_vars_aage()</code>,
+<code>derive_vars_period()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+library(dplyr)
+library(lubridate)
+
+adsl &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~TRTEDT, ~DTHDT,
+  "PILOT01", "01-1130", ymd("2014-08-16"), ymd("2014-09-13"),
+  "PILOT01", "01-1133", ymd("2013-04-28"), ymd(""),
+  "PILOT01", "01-1211", ymd("2013-01-12"), ymd(""),
+  "PILOT01", "09-1081", ymd("2014-04-27"), ymd(""),
+  "PILOT01", "09-1088", ymd("2014-10-09"), ymd("2014-11-01"),
+)
+
+lb &lt;- tribble(
+  ~STUDYID,  ~DOMAIN,  ~USUBJID, ~LBSEQ,             ~LBDTC,
+  "PILOT01",    "LB", "01-1130",    219, "2014-06-07T13:20",
+  "PILOT01",    "LB", "01-1130",    322, "2014-08-16T13:10",
+  "PILOT01",    "LB", "01-1133",    268, "2013-04-18T15:30",
+  "PILOT01",    "LB", "01-1133",    304, "2013-05-01T10:13",
+  "PILOT01",    "LB", "01-1211",      8, "2012-10-30T14:26",
+  "PILOT01",    "LB", "01-1211",    162, "2013-01-08T12:13",
+  "PILOT01",    "LB", "09-1081",     47, "2014-02-01T10:55",
+  "PILOT01",    "LB", "09-1081",    219, "2014-05-10T11:15",
+  "PILOT01",    "LB", "09-1088",    283, "2014-09-27T12:13",
+  "PILOT01",    "LB", "09-1088",    322, "2014-10-09T13:25"
+) %&gt;%
+  mutate(
+    ADT = convert_dtc_to_dt(LBDTC)
+  )
+
+derive_vars_extreme_event(
+  adsl,
+  by_vars = exprs(STUDYID, USUBJID),
+  events = list(
+    event(
+      dataset_name = "adsl",
+      condition = !is.na(DTHDT),
+      set_values_to = exprs(LSTALVDT = DTHDT, DTHFL = "Y")
+    ),
+    event(
+      dataset_name = "lb",
+      condition = !is.na(ADT),
+      order = exprs(ADT),
+      mode = "last",
+      set_values_to = exprs(LSTALVDT = ADT, DTHFL = "N")
+    ),
+    event(
+      dataset_name = "adsl",
+      condition = !is.na(TRTEDT),
+      order = exprs(TRTEDT),
+      mode = "last",
+      set_values_to = exprs(LSTALVDT = TRTEDT, DTHFL = "N")
+    )
+  ),
+  source_datasets = list(adsl = adsl, lb = lb),
+  tmp_event_nr_var = event_nr,
+  order = exprs(LSTALVDT, event_nr),
+  mode = "last",
+  new_vars = exprs(LSTALVDT, DTHFL)
+)
+
+# Derive DTHCAUS from AE and DS domain data
+adsl &lt;- tribble(
+  ~STUDYID,  ~USUBJID,
+  "STUDY01", "PAT01",
+  "STUDY01", "PAT02",
+  "STUDY01", "PAT03"
+)
+ae &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~AESEQ, ~AEDECOD, ~AEOUT, ~AEDTHDTC,
+  "STUDY01", "PAT01", 12, "SUDDEN DEATH", "FATAL", "2021-04-04",
+  "STUDY01", "PAT01", 13, "CARDIAC ARREST", "FATAL", "2021-04-03",
+)
+
+ds &lt;- tribble(
+  ~STUDYID, ~USUBJID, ~DSSEQ, ~DSDECOD, ~DSTERM, ~DSSTDTC,
+  "STUDY01", "PAT02", 1, "INFORMED CONSENT OBTAINED", "INFORMED CONSENT OBTAINED", "2021-04-03",
+  "STUDY01", "PAT02", 2, "RANDOMIZATION", "RANDOMIZATION", "2021-04-11",
+  "STUDY01", "PAT02", 3, "DEATH", "DEATH DUE TO PROGRESSION OF DISEASE", "2022-02-01",
+  "STUDY01", "PAT03", 1, "DEATH", "POST STUDY REPORTING OF DEATH", "2022-03-03"
+)
+
+derive_vars_extreme_event(
+  adsl,
+  by_vars = exprs(STUDYID, USUBJID),
+  events = list(
+    event(
+      dataset_name = "ae",
+      condition = AEOUT == "FATAL",
+      set_values_to = exprs(DTHCAUS = AEDECOD, DTHDT = convert_dtc_to_dt(AEDTHDTC)),
+      order = exprs(DTHDT)
+    ),
+    event(
+      dataset_name = "ds",
+      condition = DSDECOD == "DEATH" &amp; grepl("DEATH DUE TO", DSTERM),
+      set_values_to = exprs(DTHCAUS = DSTERM, DTHDT = convert_dtc_to_dt(DSSTDTC)),
+      order = exprs(DTHDT)
+    )
+  ),
+  source_datasets = list(ae = ae, ds = ds),
+  tmp_event_nr_var = event_nr,
+  order = exprs(DTHDT, event_nr),
+  mode = "first",
+  new_vars = exprs(DTHCAUS, DTHDT)
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_var_base</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Derive Baseline Variables</h2>
+
+<h3>Description</h3>
+
+<p>Derive baseline variables, e.g. <code>BASE</code> or <code>BNRIND</code>, in a BDS dataset.
+</p>
+<p><strong>Note:</strong> This is a wrapper function for the more generic <code>derive_vars_merged()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_var_base(
+  dataset,
+  by_vars,
+  source_var = AVAL,
+  new_var = BASE,
+  filter = ABLFL == "Y"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset
+</p>
+<p>The variables specified by the <code>by_vars</code> and <code>source_var</code> arguments are expected to be in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>Grouping variables uniquely identifying a set
+of records for which to calculate <code>new_var</code>.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_var</code></td>
+<td>
+<p>The column from which to extract the baseline value, e.g. <code>AVAL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_var</code></td>
+<td>
+<p>The name of the newly created baseline column, e.g. <code>BASE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>The condition used to filter <code>dataset</code> for baseline records.
+</p>
+<p>By default <code>ABLFL == "Y"</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each <code>by_vars</code> group, the baseline record is identified by the
+condition specified in <code>filter</code> which defaults to <code>ABLFL == "Y"</code>. Subsequently,
+every value of the <code>new_var</code> variable for the <code>by_vars</code> group is set to the
+value of the <code>source_var</code> variable of the baseline record. In case there are
+multiple baseline records within <code>by_vars</code> an error is issued.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A new <code>data.frame</code> containing all records and variables of the input
+dataset plus the <code>new_var</code> variable
+</p>
+
+
+<h3>See Also</h3>
+
+<p>BDS-Findings Functions that returns variable appended to dataset: 
+<code>derive_basetype_records()</code>,
+<code>derive_var_analysis_ratio()</code>,
+<code>derive_var_anrind()</code>,
+<code>derive_var_atoxgr()</code>,
+<code>derive_var_atoxgr_dir()</code>,
+<code>derive_var_chg()</code>,
+<code>derive_var_ontrtfl()</code>,
+<code>derive_var_pchg()</code>,
+<code>derive_var_shift()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(tibble)
+
+dataset &lt;- tribble(
+  ~STUDYID, ~USUBJID,   ~PARAMCD, ~AVAL,   ~AVALC,      ~AVISIT, ~ABLFL,  ~ANRIND,
+  "TEST01",  "PAT01",  "PARAM01", 10.12,       NA,   "Baseline",    "Y", "NORMAL",
+  "TEST01",  "PAT01",  "PARAM01", 9.700,       NA,      "Day 7",    "N",    "LOW",
+  "TEST01",  "PAT01",  "PARAM01", 15.01,       NA,     "Day 14",    "N",   "HIGH",
+  "TEST01",  "PAT01",  "PARAM02", 8.350,       NA,   "Baseline",    "Y",    "LOW",
+  "TEST01",  "PAT01",  "PARAM02",    NA,       NA,      "Day 7",    "N",       NA,
+  "TEST01",  "PAT01",  "PARAM02", 8.350,       NA,     "Day 14",    "N",    "LOW",
+  "TEST01",  "PAT01",  "PARAM03",    NA,    "LOW",   "Baseline",    "Y",       NA,
+  "TEST01",  "PAT01",  "PARAM03",    NA,    "LOW",      "Day 7",    "N",       NA,
+  "TEST01",  "PAT01",  "PARAM03",    NA, "MEDIUM",     "Day 14",    "N",       NA,
+  "TEST01",  "PAT01",  "PARAM04",    NA,   "HIGH",   "Baseline",    "Y",       NA,
+  "TEST01",  "PAT01",  "PARAM04",    NA,   "HIGH",      "Day 7",    "N",       NA,
+  "TEST01",  "PAT01",  "PARAM04",    NA, "MEDIUM",     "Day 14",    "N",       NA
+)
+
+## Derive `BASE` variable from `AVAL`
+derive_var_base(
+  dataset,
+  by_vars = exprs(USUBJID, PARAMCD),
+  source_var = AVAL,
+  new_var = BASE
+)
+
+## Derive `BASEC` variable from `AVALC`
+derive_var_base(
+  dataset,
+  by_vars = exprs(USUBJID, PARAMCD),
+  source_var = AVALC,
+  new_var = BASEC
+)
+
+## Derive `BNRIND` variable from `ANRIND`
+derive_var_base(
+  dataset,
+  by_vars = exprs(USUBJID, PARAMCD),
+  source_var = ANRIND,
+  new_var = BNRIND
+)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atable_compact</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>More compact formatting than atable()</h2>
+
+<h3>Description</h3>
+
+<p>This is a wrapper for atable(), calculating the same statistics, but with different format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atable_compact(x, ...)
+
+## S3 method for class 'data.frame'
+atable_compact(
+  x,
+  target_cols,
+  group_col = NULL,
+  indent_character = atable_options("indent_character_compact"),
+  blocks = NULL,
+  format_factor = atable_options("format_statistics_compact.statistics_factor"),
+  format_numeric = atable_options("format_statistics_compact.statistics_numeric"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>object passed to atable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed to <code>atable</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_cols</code></td>
+<td>
+<p>character. Some of colnames(x).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_col</code></td>
+<td>
+<p>character or NULL. If character then, one of colnames(x).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indent_character</code></td>
+<td>
+<p>character length 1. Default is defined in table_options("indent_character_compact").
+For Latex-Format use e.g. <code>indent_character="\quad"</code>.
+For Word-Format use e.g. <code>indent_character=paste0(rep(intToUtf8(160), 5), collapse = "")</code> and e.g.
+Package officer and its functions officer::read_docx(), officer::body_add_table and print-methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>blocks</code></td>
+<td>
+<p>NULL or a list, passed to atable, see help there.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format_factor</code></td>
+<td>
+<p>a function that defines the format of factor variables.
+Default is defined in <code>atable_options</code>. See <code>check_format_statistics</code> for the return-value of this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format_numeric</code></td>
+<td>
+<p>a function that defines the format of numeric variables.
+Analog to format_factor.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The compact formatting is:
+</p>
+<p>Numeric target_cols get one line in the table; the line contains the mean and SD of the variable.
+</p>
+<p>Factor target_cols also get one line in the table, when they have only two levels and only the first level
+is displayed in the table and the name of the variable is omitted. This is intended for item like "Sex at birth: Female/Male".
+Knowing the percentage of Female is sufficient in this case (when NAs are not counted).
+Be careful with items like "Pregnant: Yes/No".
+Here only the level "Yes" will be printed and the name of the item (Pregnant) is omitted, making the table uninformative.
+Factors with three or more levels get one line per level, the levels are intended and a header line
+containing the name of the variable is added.
+</p>
+<p>Arguments in ... are passed to <code>atable</code>. See the help there.
+<code>atable_compact</code> is not designed for splitted atables, so argument <code>split_cols</code> must be omitted or NULL.
+Also argument <code>format_to</code> is ignored.
+Other features of atable (blocking, add_margins, alias) are available, see examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.frame
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul><li> <p><code>atable_compact(data.frame)</code>: a compact version of atable.
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># For Console:
+atable_compact(
+  atable::test_data,
+  target_cols = c("Numeric", "Numeric2", "Split2", "Factor", "Ordered"),
+  group_col = "Group2",
+  blocks = list("Primary Endpoint" = "Numeric",
+                "Secondary Endpoints" = c("Numeric2", "Split2", "Factor")),
+  add_margins = TRUE)
+
+# The target_cols are "Numeric", "Numeric2", "Split2", "Factor", "Ordered".
+# The group_col is "Group2".
+# The data.frame is grouped by group_col and the summary statistcs of the target_cols are
+# calculated: mean, sd for numeric, counts and percentages for factors.
+# Some target_cols are blocked: the first block 'Primary Endpoint' contains the variable Numeric.
+# The second block 'Secondary  Endpoint' contains the variables "Numeric2", "Split2", "Factor".
+# The blocks are intended.
+# For variable Split2 only the first level is reported, as the variable has only two levels and
+# the name 'Split2' does not appear in the table.
+# The variable Factor has more than two levels, so all of them are
+# reported and appropriately intended.
+# The variable Ordered is not part of a block and thus not intended.
+
+# For Latex:
+# Same as for Console, but with different indent_character:
+
+tab = atable_compact(atable::test_data,
+                     target_cols = c("Numeric", "Numeric2", "Logical", "Factor", "Ordered"),
+                     group_col = "Group2",
+                     indent_character = "\\quad")
+
+tab = atable::translate_to_LaTeX(tab)
+
+# Then call e.g. Hmisc::latex(tab, ...)
+
+
+# Example for Word format:
+## Not run: 
+tab = atable_compact(
+  atable::test_data,
+  target_cols = c("Numeric", "Numeric2", "Split2", "Factor", "Ordered", "Character"),
+  group_col = "Group2",
+  blocks = list("Primary Endpoint" = "Numeric",
+                "Secondary Endpoints" = c("Numeric2", "Split2", "Factor")),
+  add_margins = TRUE,
+  indent_character = paste0(rep(intToUtf8(160), 5), collapse = ""))
+
+# The argument indent_character has the value intToUtf8(160) (non breakable space).
+# This is the important part:
+# Spaces at the beginning of a cell of a data.frame are somehow lost on the way to the docx.
+# Other indent_characters may also do the job.
+
+# doc = officer::read_docx()
+# doc = officer::body_add_table(doc,tab)
+
+# print(doc, target = "atable_Word.docx")
+
+# Other packages may exist for Word-export.
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

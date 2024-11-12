@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apollo_estimate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates model</h2>
+
+<h3>Description</h3>
+
+<p>Estimates a model using the likelihood function defined by <code>apollo_probabilities</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apollo_estimate(
+  apollo_beta,
+  apollo_fixed,
+  apollo_probabilities,
+  apollo_inputs,
+  estimate_settings = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>apollo_beta</code></td>
+<td>
+<p>Named numeric vector. Names and values for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_fixed</code></td>
+<td>
+<p>Character vector. Names (as defined in <code>apollo_beta</code>) of parameters whose value should not change during estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_probabilities</code></td>
+<td>
+<p>Function. Returns probabilities of the model to be estimated. Must receive three arguments:
+</p>
+
+<ul>
+<li> <p><strong><code>apollo_beta</code></strong>: Named numeric vector. Names and values of model parameters.
+</p>
+</li>
+<li> <p><strong><code>apollo_inputs</code></strong>: List containing options of the model. See apollo_validateInputs.
+</p>
+</li>
+<li> <p><strong><code>functionality</code></strong>: Character. Can be either <strong><code>"components"</code></strong>, <strong><code>"conditionals"</code></strong>, <strong><code>"estimate"</code></strong> (default), <strong><code>"gradient"</code></strong>, <strong><code>"output"</code></strong>, <strong><code>"prediction"</code></strong>, <strong><code>"preprocess"</code></strong>, <strong><code>"raw"</code></strong>, <strong><code>"report"</code></strong>, <strong><code>"shares_LL"</code></strong>, <strong><code>"validate"</code></strong> or <strong><code>"zero_LL"</code></strong>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apollo_inputs</code></td>
+<td>
+<p>List grouping most common inputs. Created by function apollo_validateInputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate_settings</code></td>
+<td>
+<p>List. Contains settings for this function. User input is required for all settings except those with a default or marked as optional. 
+</p>
+
+<ul>
+<li> <p><strong><code>bgw_settings</code></strong>: List. Additional arguments to the BGW optimisation method. See bgw_mle for more details.
+</p>
+</li>
+<li> <p><strong><code>bootstrapSE</code></strong>: Numeric. Number of bootstrap samples to calculate standard errors. Default is 0, meaning no bootstrap s.e. will be calculated. Number must zero or a positive integer. Only used if <code>apollo_control$estMethod!="HB"</code>.
+</p>
+</li>
+<li> <p><strong><code>bootstrapSeed</code></strong>: Numeric scalar (integer). Random number generator seed to generate the bootstrap samples. Only used if <code>bootstrapSE&gt;0</code>. Default is 24.
+</p>
+</li>
+<li> <p><strong><code>constraints</code></strong>: Character vector. Linear constraints on parameters to estimate. For example <code>c('b1&gt;0', 'b1 + 2*b2&gt;1')</code>. Only <code>&gt;</code>, <code>&lt;</code> and <code>=</code> can be used. Inequalities cannot be mixed with equality constraints, e.g. <code>c(b1-b2=0, b2&gt;0)</code> will fail. All parameter names must be on the left side. Fixed parameters cannot go into constraints. Alternatively, constraints can be defined as in maxLik. Constraints can only be used with maximum likelihood estimation and the BFGS routine in particular.
+</p>
+</li>
+<li> <p><strong><code>estimationRoutine</code></strong>: Character. Estimation method. Can take values "bfgs", "bgw", "bhhh", or "nr". Used only if <code>apollo_control$HB</code> is FALSE. Default is "bgw".
+</p>
+</li>
+<li> <p><strong><code>hessianRoutine</code></strong>: Character. Name of routine used to calculate the Hessian of the log-likelihood function after estimation. Valid values are <code>"analytic"</code> (default), <code>"numDeriv"</code> (to use the numeric routine in package numDeric), <code>"maxLik"</code> (to use the numeric routine in packahe maxLik), and <code>"none"</code> to avoid calculating the Hessian and the covariance matrix. Only used if <code>apollo_control$HB=FALSE</code>.
+</p>
+</li>
+<li> <p><strong><code>maxIterations</code></strong>: Numeric. Maximum number of iterations of the estimation routine before stopping. Used only if <code>apollo_control$HB</code> is FALSE. Default is 200.
+</p>
+</li>
+<li> <p><strong><code>maxLik_settings</code></strong>: List. Additional settings for maxLik. See argument <code>control</code> in maxBFGS, maxBHHH and maxNM for more details. Only used for maximum likelihood estimation.
+</p>
+</li>
+<li> <p><strong><code>numDeriv_method</code></strong>: Character. Method used for numerical differentiation when calculating the covariance matrix. Can be <code>"Richardson"</code> or <code>"simple"</code>, Only used if analytic gradients are available. See argument <code>method</code> in grad for more details.
+</p>
+</li>
+<li> <p><strong><code>numDeriv_settings</code></strong>: List. Additional arguments to the method used by numDeriv to calculate the Hessian. See argument <code>method.args</code> in grad for more details.
+</p>
+</li>
+<li> <p><strong><code>printLevel</code></strong>: Higher values render more verbous outputs. Can take values 0, 1, 2 or 3. Ignored if apollo_control$HB is TRUE. Default is 3.
+</p>
+</li>
+<li> <p><strong><code>scaleAfterConvergence</code></strong>: Logical. Used to increase numerical precision of convergence. If TRUE, parameters are scaled to 1 after convergence, and the estimation is repeated from this new starting values. Results are reported scaled back, so it is a transparent process for the user. Default is FALSE.
+</p>
+</li>
+<li> <p><strong><code>scaleHessian</code></strong>: Logical. If TRUE, parameters are scaled to 1 for Hessian estimation. Default is TRUE.
+</p>
+</li>
+<li> <p><strong><code>scaling</code></strong>: Named vector. Names of elements should match those in <code>apollo_beta</code>. Optional scaling for parameters. If provided, for each parameter <code>i</code>, <code>(apollo_beta[i]/scaling[i])</code> is optimised, but <code>scaling[i]*(apollo_beta[i]/scaling[i])</code> is used during estimation. For example, if parameter b3=10, while b1 and b2 are close to 1, then setting <code>scaling = c(b3=10)</code> can help estimation, specially the calculation of the Hessian. Reports will still be based on the non-scaled parameters.
+</p>
+</li>
+<li> <p><strong><code>silent</code></strong>: Logical. If TRUE, no information is printed to the console during estimation. Default is FALSE.
+</p>
+</li>
+<li> <p><strong><code>validateGrad</code></strong>: Logical. If TRUE, the analytical gradient (if used) is compared to the numerical one. Default is FALSE.
+</p>
+</li>
+<li> <p><strong><code>writeIter</code></strong>: Logical. Writes value of the parameters in each iteration to a csv file. Works only if <code>estimation_routine=="bfgs"|"bgw"</code>. Default is TRUE.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the main function of the Apollo package. The estimation process begins by running a number of checks on the 
+<code>apollo_probabilities</code> function provided by the user.
+If all checks are passed, estimation begins. There is no limit to estimation time other than reaching the maximum number of
+iterations. If Bayesian estimation is used, estimation will finish once the predefined number of iterations are completed.
+By default, this functions writes the estimated parameter values in each iteration to a file in the working/output directory. Writing 
+can be turned off by setting <code>estimate_settings$writeIter</code> to <code>FALSE</code>.
+By default, <strong>final results are not written into a file nor printed to the console</strong>, so users must make sure 
+to call function apollo_modelOutput and/or apollo_saveOutput afterwards.
+Users are strongly encouraged to visit <a href="http://www.apollochoicemodelling.com/">http://www.apollochoicemodelling.com/</a> to download examples on how to use the Apollo package.
+The webpage also provides a detailed manual for the package, as well as a user-group to get further help.
+</p>
+
+
+<h3>Value</h3>
+
+<p>model object
+</p>
+
+
+</div>

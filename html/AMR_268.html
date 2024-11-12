@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mo_source</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>User-Defined Reference Data Set for Microorganisms</h2>
+
+<h3>Description</h3>
+
+<p>These functions can be used to predefine your own reference to be used in <code>as.mo()</code> and consequently all <code>mo_*</code> functions (such as <code>mo_genus()</code> and <code>mo_gramstain()</code>).
+</p>
+<p>This is <strong>the fastest way</strong> to have your organisation (or analysis) specific codes picked up and translated by this package, since you don't have to bother about it again after setting it up once.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">set_mo_source(
+  path,
+  destination = getOption("AMR_mo_source", "~/mo_source.rds")
+)
+
+get_mo_source(destination = getOption("AMR_mo_source", "~/mo_source.rds"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>location of your reference file, this can be any text file (comma-, tab- or pipe-separated) or an Excel file (see <em>Details</em>). Can also be <code>""</code>, <code>NULL</code> or <code>FALSE</code> to delete the reference file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>destination</code></td>
+<td>
+<p>destination of the compressed data file - the default is the user's home directory.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The reference file can be a text file separated with commas (CSV) or tabs or pipes, an Excel file (either 'xls' or 'xlsx' format) or an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object file (extension '.rds'). To use an Excel file, you will need to have the <code>readxl</code> package installed.
+</p>
+<p><code>set_mo_source()</code> will check the file for validity: it must be a data.frame, must have a column named <code>"mo"</code> which contains values from <code>microorganisms$mo</code> or <code>microorganisms$fullname</code> and must have a reference column with your own defined values. If all tests pass, <code>set_mo_source()</code> will read the file into <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> and will ask to export it to <code>"~/mo_source.rds"</code>. The CRAN policy disallows packages to write to the file system, although '<em>exceptions may be allowed in interactive sessions if the package obtains confirmation from the user</em>'. For this reason, this function only works in interactive sessions so that the user can <strong>specifically confirm and allow</strong> that this file will be created. The destination of this file can be set with the <code>destination</code> argument and defaults to the user's home directory. It can also be set with the package option <code>AMR_mo_source</code>, e.g. <code>options(AMR_mo_source = "my/location/file.rds")</code>.
+</p>
+<p>The created compressed data file <code>"mo_source.rds"</code> will be used at default for MO determination (function <code>as.mo()</code> and consequently all <code style="white-space: pre;">⁠mo_*⁠</code> functions like <code>mo_genus()</code> and <code>mo_gramstain()</code>). The location and timestamp of the original file will be saved as an attribute to the compressed data file.
+</p>
+<p>The function <code>get_mo_source()</code> will return the data set by reading <code>"mo_source.rds"</code> with <code>readRDS()</code>. If the original file has changed (by checking the location and timestamp of the original file), it will call <code>set_mo_source()</code> to update the data file automatically if used in an interactive session.
+</p>
+<p>Reading an Excel file (<code>.xlsx</code>) with only one row has a size of 8-9 kB. The compressed file created with <code>set_mo_source()</code> will then have a size of 0.1 kB and can be read by <code>get_mo_source()</code> in only a couple of microseconds (millionths of a second).
+</p>
+
+
+<h3>How to Setup</h3>
+
+<p>Imagine this data on a sheet of an Excel file. The first column contains the organisation specific codes, the second column contains valid taxonomic names:
+</p>
+<div class="sourceCode"><pre>  |         A          |            B          |
+--|--------------------|-----------------------|
+1 | Organisation XYZ   | mo                    |
+2 | lab_mo_ecoli       | Escherichia coli      |
+3 | lab_mo_kpneumoniae | Klebsiella pneumoniae |
+4 |                    |                       |
+</pre></div>
+<p>We save it as <code>"home/me/ourcodes.xlsx"</code>. Now we have to set it as a source:
+</p>
+<div class="sourceCode"><pre>set_mo_source("home/me/ourcodes.xlsx")
+#&gt; NOTE: Created mo_source file '/Users/me/mo_source.rds' (0.3 kB) from
+#&gt;       '/Users/me/Documents/ourcodes.xlsx' (9 kB), columns
+#&gt;       "Organisation XYZ" and "mo"
+</pre></div>
+<p>It has now created a file <code>"~/mo_source.rds"</code> with the contents of our Excel file. Only the first column with foreign values and the 'mo' column will be kept when creating the RDS file.
+</p>
+<p>And now we can use it in our functions:
+</p>
+<div class="sourceCode"><pre>as.mo("lab_mo_ecoli")
+#&gt; Class 'mo'
+#&gt; [1] B_ESCHR_COLI
+
+mo_genus("lab_mo_kpneumoniae")
+#&gt; [1] "Klebsiella"
+
+# other input values still work too
+as.mo(c("Escherichia coli", "E. coli", "lab_mo_ecoli"))
+#&gt; NOTE: Translation to one microorganism was guessed with uncertainty.
+#&gt;       Use mo_uncertainties() to review it.
+#&gt; Class 'mo'
+#&gt; [1] B_ESCHR_COLI B_ESCHR_COLI B_ESCHR_COLI
+</pre></div>
+<p>If we edit the Excel file by, let's say, adding row 4 like this:
+</p>
+<div class="sourceCode"><pre>  |         A          |            B          |
+--|--------------------|-----------------------|
+1 | Organisation XYZ   | mo                    |
+2 | lab_mo_ecoli       | Escherichia coli      |
+3 | lab_mo_kpneumoniae | Klebsiella pneumoniae |
+4 | lab_Staph_aureus   | Staphylococcus aureus |
+5 |                    |                       |
+</pre></div>
+<p>...any new usage of an MO function in this package will update your data file:
+</p>
+<div class="sourceCode"><pre>as.mo("lab_mo_ecoli")
+#&gt; NOTE: Updated mo_source file '/Users/me/mo_source.rds' (0.3 kB) from
+#&gt;       '/Users/me/Documents/ourcodes.xlsx' (9 kB), columns
+#&gt;        "Organisation XYZ" and "mo"
+#&gt; Class 'mo'
+#&gt; [1] B_ESCHR_COLI
+
+mo_genus("lab_Staph_aureus")
+#&gt; [1] "Staphylococcus"
+</pre></div>
+<p>To delete the reference data file, just use <code>""</code>, <code>NULL</code> or <code>FALSE</code> as input for <code>set_mo_source()</code>:
+</p>
+<div class="sourceCode"><pre>set_mo_source(NULL)
+#&gt; Removed mo_source file '/Users/me/mo_source.rds'
+</pre></div>
+<p>If the original file (in the previous case an Excel file) is moved or deleted, the <code>mo_source.rds</code> file will be removed upon the next use of <code>as.mo()</code> or any <code>mo_*</code> function.
+</p>
+
+
+</div>

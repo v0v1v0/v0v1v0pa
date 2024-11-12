@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pollen_calendar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pollen Calendar by Different Methods from a Historical Pollen Database</h2>
+
+<h3>Description</h3>
+
+<p>Function to calculate the pollen calendar from a historical database of several pollen types and using the most commonly used methods in the generation of the pollen calendars in the aerobiology field.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pollen_calendar(data, method = "heatplot", n.types = 15,
+  start.month = 1, y.start = NULL, y.end = NULL, perc1 = 80,
+  perc2 = 99, th.pollen = 1, average.method = "avg_before",
+  period = "daily", method.classes = "exponential", n.classes = 5,
+  classes = c(25, 50, 100, 300), color = "green",
+  interpolation = TRUE, int.method = "lineal", na.remove = TRUE,
+  result = "plot", export.plot = FALSE, export.format = "pdf",
+  legendname = "Pollen grains / m3", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> object including the general database where calculation of the pollen calendar must be applied. This <code>data.frame</code> must include a first column in <code>Date</code> format and the rest of columns in <code>numeric</code> format belonging to each pollen type by column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A <code>character</code> string specifying the method applied to calculate and generate the pollen calendar. The implemented methods that can be used are: <code>"heatplot"</code>, <code>"violinplot"</code> or <code>"phenological"</code>. A more detailed information about the different methods for defining the pollen season may be consulted in <strong>Details</strong>. The <code>method</code> argument will be <code>heatplot</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.types</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the number of the most abundant pollen types that must be represented in the pollen calendar. A more detailed information about the selection of the considered pollen types may be consulted in <strong>Details</strong>. The <code>n.types</code> argument will be <code>15</code> types by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.month</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value ranging <code>1_12</code> specifying the number of the month (January_December) when the beginning of the pollen calendar must be considered. This argument is only applicable for the <code>"heatplot"</code> method with <code>"daily"</code> period, for the <code>"phenological"</code> method with <code>"avg_before"</code> <code>average.method</code>, and for the <code>"violinplot"</code> method, and the rest of methods only may be generated from the January (<code>start.month = 1</code>). The <code>start.month</code> argument will be <code>1</code> (month of January) by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.start, y.end</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the period selected to calculate the pollen calendar (start year _ end year). If <code>y.start</code> and <code>y.end</code> are not specified (<code>NULL</code>), the entire database will be used to generate the pollen calendar. The <code>y.start</code> and <code>y.end</code> arguments will be <code>NULL</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perc1, perc2</code></td>
+<td>
+<p>A <code>numeric</code> value ranging <code>0_100</code>. These arguments are valid only for the <code>"phenological"</code> method. These values represent the percentage of the total annual pollen included in the pollen season, removing <code>(100_percentage)/2%</code> of the total pollen before and after of the pollen season. Two percentages must be specified because of the definition of the "main pollination period" (<code>perc1</code>) and "early/late pollination" (<code>perc2</code>) based on the <code>"phenological"</code> method proposed by <em>Werchan et al. (2018)</em>. The <code>perc1</code> argument will be <code>80</code> and <code>perc2</code> argument will be <code>99</code> by default. A more detailed information about the <code>phenological</code> method to generate the pollen calendar may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th.pollen</code></td>
+<td>
+<p>A <code>numeric</code> value specifying the minimum threshold of the average pollen concentration which will be used to generate the pollen calendar. Days below this threshold will not be considered. For the <code>"phenological"</code> method this value limits the "possible occurrence" period as proposed by <em>Werchan et al. (2018)</em>. The <code>th.pollen</code> argument will be <code>1</code> by default. A more detailed information about the methods to generate the pollen calendar may be consulted in <em>Details</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>average.method</code></td>
+<td>
+<p>A <code>character</code> string specifying the moment of the application of the average. This argument is valid only for the <code>"phenological"</code> method. The implemented methods that can be used are: <code>"avg_before"</code> or <code>"avg_after"</code>. <code>"avg_before"</code> produces the average to the daily concentrations and then pollen season are calculated for all pollen types, this method is recommended as it is a more concordant method with respect to the rest of implemented methods. Otherwise, <code>"avg_after"</code> determines the pollen season for all years and all pollen types, and then a circular average is calculated for the start_dates and end_dates. The <code>average.method</code> argument will be <code>"avg_before"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>A <code>character</code> string specifying the interval time considered to generate the pollen calendar. This argument is valid only for the <code>"heatplot"</code> method. The implemented periods that can be used are: <code>"daily"</code> or <code>"weekly"</code>. <code>"daily"</code> selection produces a pollen calendar using daily averages during the year and <code>"weekly"</code> selection produces a pollen calendar using weekly averages during the year. The <code>period</code> argument will be <code>"daily"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.classes</code></td>
+<td>
+<p>A  <code>character</code> string specifying the method to define the classes used for classifying the average pollen concentrations to generate the pollen calendar. This argument is valid only for the  <code>"heatplot"</code> method. The implemented methods for defining classes are:  <code>"exponential"</code> and  <code>"custom"</code>. The  <code>method.classes</code> argument will be  <code>"exponential"</code> by default. A more detailed information about the methods to classify the average pollen concentrations to generate the pollen calendar may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.classes</code></td>
+<td>
+<p>A <code>numeric</code> (<code>integer</code>) value specifying the number of classes that will be used for classifying the average pollen concentrations to generate the pollen calendar. This argument is valid only for the <code>"heatplot"</code> method and the classification by <code>method.classes = "custom"</code>. The <code>n.classes</code> argument will be <code>5</code> by default. A more detailed information about the methods to classify the average pollen concentrations to generate the pollen calendar may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classes</code></td>
+<td>
+<p>A <code>numeric</code> vector specifying the threshold established to define the different classes that will be used for classifying the average pollen concentrations to generate the pollen calendar. This argument is valid only for the <code>"heatplot"</code> method and the classification by <code>method.classes = "custom"</code>. The <code>classes</code> argument will be <code>c(25, 50, 100, 300)</code> by default. The number of specified classes must be equal to <code>n.classes _ 1</code> because of the maximum threshold will be automatically specified by the maximum value. A more detailed information about the methods to classify the average pollen concentrations to generate the pollen calendar may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>A <code>character</code> string specifying the color to generate the graph showing the pollen calendar. This argument is valid only for the <code>"heatplot"</code> method. The implemented color palettes to generate the pollen calendar are: <code>"green"</code>, <code>"red"</code>, <code>"blue"</code>, <code>"purple"</code> or <code>"black"</code>. The <code>color</code> argument will be <code>"green"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+<p>A <code>logical</code> value. If <code>FALSE</code> the interpolation of the pollen data is not applicable. If <code>TRUE</code> an interpolation of the pollen series will be applied to complete the gaps before the calculation of the pollen calendar. The <code>interpolation</code> argument will be <code>TRUE</code> by default. A more detailed information about the interpolation method may be consulted in <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>int.method</code></td>
+<td>
+<p>A <code>character</code> string specifying the method selected to apply the interpolation method in order to complete the pollen series. The implemented methods that may be used are: <code>"lineal"</code>, <code>"movingmean"</code>, <code>"spline"</code> or <code>"tseries"</code>. The <code>int.method</code> argument will be <code>"lineal"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.remove</code></td>
+<td>
+<p>A <code>logical</code> value specifying if <code>na</code> values must be remove for the pollen calendar or not. <code>n.remove = TRUE</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result</code></td>
+<td>
+<p>A <code>character</code> string specifying the output for the function. The implemented outputs that may be obtained are: <code>"plot"</code> and <code>"table"</code>. The argument <code>result</code> will be <code>"plot"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export.plot</code></td>
+<td>
+<p>A <code>logical</code> value specifying if a plot with the pollen calendar saved in the working directory will be required or not. If <code>FALSE</code> graphical results will only be displayed in the active graphics window. If <code>TRUE</code> graphical results will be displayed in the active graphics window and also a <em>pdf</em> file will be saved within the <em>plot_AeRobiology</em> directory automatically created in the working directory. The <code>export.plot</code> will be <code>FALSE</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export.format</code></td>
+<td>
+<p>A <code>character</code> string specifying the format selected to save the pollen calendar plot. The implemented formats that may be used are: <code>"pdf"</code> and <code>"png"</code>. The <code>export.format</code> will be <code>"pdf"</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legendname</code></td>
+<td>
+<p>A <code>character</code> string specifying the title of the legend. By default is <code>"Pollen / m3"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other additional arguments may be used to customize the exportation of the plots using <code>"pdf"</code> or <code>"png"</code> files and therefore arguments from <em>pdf</em> and <em>png</em> functions (<span class="pkg">grDevices</span> package) may be implemented. For example, for <em>pdf</em> files the user may custom the arguments: <code>width</code>, <code>height</code>, <code>family</code>, <code>title</code>, <code>fonts</code>, <code>paper</code>, <code>bg</code>, <code>fg</code>, <code>pointsize...</code>; and for <em>png</em> files the user may custom the arguments: <code>width</code>, <code>height</code>, <code>units</code>, <code>pointsize</code>, <code>bg</code>, <code>res...</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows to calculate and generate the pollen calendar using three different methods which are described below. The pollen calendar will be calculated and generated only for the period specified by the user using the <code>y.start</code> and <code>y.end</code> arguments, and for the specified number of the most abundant pollen types using the <code>n.types</code> argument by the user. The most abundant pollen types will be selected according to the highest average annual amounts of pollen registered by the pollen types during the considered period.
+</p>
+
+<ul>
+<li> <p><code>"heatplot"</code> method. This pollen calendar is constructed based on the daily or weekly average of pollen concentrations, depending of the preferences of the user that may select <code>"daily"</code> or <code>"weekly"</code> as <code>period</code> argument. Then, these averages may be classified in different categories following different methods selected by the user according to the <code>method.classes</code> argument. If <code>method.classes = "exponential"</code> the user will apply the classification based on exponential classes proposed by <em>Stix and Ferreti (1974)</em>, which has been commonly used in aerobiology for the generation of pollen calendars. The classification based on exponential method considers 11 classes (<code>1_2, 3_5, 6_11, 12_24, 25_49, 50_99, 100_199, 200_399, 400_799, 800_1600, &gt;1600</code>). An example of this pollen calendar may be consulted in <em>Rojo et al. (2016)</em>. This method to design pollen calendars is an adaptation from the pollen calendar proposed by <em>Spieksma (1991)</em> who considered 10_day periods instead of daily or weekly periods. Otherwise, if <code>method.classes  = "custom"</code> the user may customize the classification according to the number of classes selected (<code>n.classes</code> argument) and the thresholds of the pollen concentrations used to define the classes (<code>classes</code> argument). Average values below the level of the <code>th.pollen</code> argument will be removed from the pollen calendar.
+</p>
+</li>
+<li> <p><code>"phenological"</code> method. This pollen calendar is based on phenological definition of the pollen season and adapted from the methodology proposed by <em>Werchan et al. (2018)</em>. After to obtain daily average pollen concentrations for the most abundant pollen types different pollination periods were calculated using the daily averages. The main pollination period was calculated based on the percentage defined by <code>perc1</code> argument (selected by the user, 80% by default) of the annual total pollen. For example, if <code>perc1 = 80</code> the beginning of the high season was marked when 10% of the annual value was reached and the end was selected when 90% was reached. In the case of the early/late pollination a total of the percentage defined by <code>perc2</code> argument (selected by the user, 99% by default) of the annual total pollen will be registered during this period. For this kind of pollen calendar the <code>th.pollen</code> argument will define the "possible occurrence" period as adapted by <em>Werchan et al. (2018)</em>, considering the entire period between the first and the last day when this pollen level is reached. In an alternative way the average may be carried out after to define the pollen seasons using <code>method_average = "avg_after"</code> (instead of <code>"avg_before"</code> by default). <code>"avg_after"</code> determines the pollen season for all years and all pollen types, and then an average for circular data is calculated from the start_dates and end_dates.
+</p>
+</li>
+<li> <p><code>"violinplot"</code> method. This pollen calendar is based on the pollen intensity and adapted from the pollen calendar published by <em>ORourke (1990)</em>. In first time the daily averages of the pollen concentrations are calculated and then these averages are represented using the <em>violin plot</em> graph. The shape of the <em>violin plot</em> display the pollen intensity of the pollen types in a relative way i.e. the values will be calculated as relative measurements regarding to the most abundant pollen type in annual amounts. Therefore, this pollen calendar shows a relative comparison between the pollen intensity of the pollen types but without scales and units. Average values below the level of the <code>th.pollen</code> argument will be removed from the pollen calendar.
+</p>
+</li>
+</ul>
+<p>Pollen time series frequently have different gaps with no data and this fact could be a problem for the calculation of specific methods for defining the pollen season even providing incorrect results. In this sense by default a linear interpolation will be carried out to complete these gaps before to generate the pollen calendar. For more information to see the <code>interpollen</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns different results:<br><code>plot</code> in the active graphics window displaying the pollen calendar generated by the user when <code>result = "plot"</code>. This plot may be included in an object by assignment operators.<br><code>data.frame</code> including the daily or weekly average pollen concentrations (according to the selection of the user) used to generate the pollen calendar. This <code>data.frame</code> will be returned when <code>result = "table"</code>.<br>
+If <code>export.plot = TRUE</code> this plot displaying the pollen calendar will also be exported as file within the <em>Plot_AeRobiology</em>" directory created in the working directory.<br>
+If <code>export.plot = TRUE</code> and <code>export.format = pdf</code> a <em>pdf</em> file of the pollen calendar will be saved within the <em>plot_AeRobiology</em> directory created in the working directory. Additional characteristics may be incorporated to the exportation as <em>pdf</em> file (see <span class="pkg">grDevices</span> package)<br>
+If <code>export.plot = TRUE</code> and <code>export.format = png</code> a <em>png</em> file of the pollen calendar will be saved within the <em>plot_AeRobiology</em> directory created in the working directory. Additional characteristics may be incorporated to the exportation as <em>png</em> file (see <span class="pkg">grDevices</span> package).
+</p>
+
+
+<h3>References</h3>
+
+<p>ORourke, M.K., 1990. Comparative pollen calendars from Tucson, Arizona: Durhamvs. Burkard samplers. <em>Aerobiologia</em>, 6(2), p.136_140.
+</p>
+<p>Rojo, J., Rapp, A., Lara, B., Sabariego, S., Fernandez_Gonzalez, F. and Perez_Badia, R., 2016. Characterisation of the airborne pollen spectrum in Guadalajara (central Spain) and estimation of the potential allergy risk. <em>Environmental Monitoring and Assessment</em>, 188(3), p.130.
+</p>
+<p>Spieksma, F.T.M., 1991. <em>Regional European pollen calendars. Allergenic pollen and pollinosis in Europe</em>, pp.49_65.
+</p>
+<p>Stix, E. and Ferretti, M.L., 1974. <em>Pollen calendars of three locations in Western Germany. Atlas European des Pollens Allergisants</em>, pp.85_94.
+</p>
+<p>Werchan, M., Werchan, B. and Bergmann, K.C., 2018. German pollen calendar 4.0_update based on 2011_2016 pollen data. <em>Allergo Journal International</em>, 27, pp.69_71.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>interpollen</code>, <code>calculate_ps</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("munich_pollen")
+pollen_calendar(munich_pollen, method = "heatplot", interplation = FALSE)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>print.adlp_component</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Accident and Development period Adjusted Linear Pools Component Models</h2>
+
+<h3>Description</h3>
+
+<p>Class to store component models and related functions required for ADLP
+estimation, prediction and goodness of fit.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'adlp_component'
+print(x, ...)
+
+adlp_component(
+  model_train,
+  model_full,
+  calc_dens,
+  calc_mu,
+  calc_cdf,
+  sim_fun,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>adlp_component</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other named parameters required for the model or any of its
+related functions to run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_train</code></td>
+<td>
+<p>Model trained on training data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_full</code></td>
+<td>
+<p>Model trained on all in-sample data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_dens</code></td>
+<td>
+<p>function to calculate the pdf of each point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_mu</code></td>
+<td>
+<p>function to calculate the estimated mean of each point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_cdf</code></td>
+<td>
+<p>function to calculate the cdf of each point</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim_fun</code></td>
+<td>
+<p>function to simulate new from</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Component models <code>model_train</code> and <code>model_full</code> are designed to be objects of
+class <code>glm</code>, <code>lm</code>, or similar. The models would desirably have a S3 method for
+'formula. For models that do not fit under this umbrella,
+see custom_model. For a potential list of candidate models,
+one might refer to Avanzi, Li, Wong and Xian (2022).
+</p>
+<p>Functions as assumed to have the following parameter naming convention:
+</p>
+
+<ul>
+<li>
+<p><code>y</code> as the response variable
+</p>
+</li>
+<li>
+<p><code>model</code> as the modeling object <code>model_train</code> or <code>model_full</code>
+</p>
+</li>
+<li>
+<p><code>newdata</code> to designate new data
+</p>
+</li>
+</ul>
+<p>Other inputs not in this list will need to be intialised with the <code>adlp_component</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class <code>adlp_component</code>
+</p>
+
+
+<h3>References</h3>
+
+<p>Avanzi, B., Li, Y., Wong, B., &amp; Xian, A. (2022). Ensemble distributional forecasting for insurance loss reserving. arXiv preprint arXiv:2206.08541.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("test_claims_dataset")
+
+train_val &lt;- train_val_split_method1(
+    df = test_claims_dataset,
+    tri.size = 40,
+    val_ratio = 0.3,
+    test = TRUE
+)
+train_data &lt;- train_val$train
+valid_data &lt;- train_val$valid
+insample_data &lt;- rbind(train_data, valid_data)
+
+base_model1 &lt;- glm(formula = claims~factor(dev),
+                   family=gaussian(link = "identity"), data=train_data)
+
+base_model1_full &lt;- update(base_model1, data = insample_data)
+
+dens_normal &lt;- function(y, model, newdata){
+    pred_model &lt;- predict(model, newdata=newdata, type="response", se.fit=TRUE)
+    mu &lt;- pred_model$fit
+    sigma &lt;- pred_model$residual.scale
+    return(dnorm(x=y, mean=mu, sd=sigma))
+}
+
+cdf_normal&lt;-function(y, model, newdata){
+    pred_model &lt;- predict(model, newdata=newdata, type="response", se.fit=TRUE)
+    mu &lt;- pred_model$fit
+    sigma &lt;- pred_model$residual.scale
+    return(pnorm(q=y, mean=mu, sd=sigma))
+}
+
+mu_normal&lt;-function(model, newdata){
+    mu &lt;- predict(model, newdata=newdata, type="response")
+    mu &lt;- pmax(mu, 0)
+    return(mu)
+}
+
+sim_normal&lt;-function(model, newdata){
+    pred_model &lt;- predict(model, newdata=newdata, type="response", se.fit=TRUE)
+    mu &lt;- pred_model$fit
+    sigma &lt;- pred_model$residual.scale
+
+    sim &lt;- rnorm(length(mu), mean=mu, sd=sigma)
+    sim &lt;- pmax(sim, 0)
+    return(sim)
+}
+
+base_component1 = adlp_component(
+    model_train = base_model1,
+    model_full = base_model1_full,
+    calc_dens = dens_normal,
+    calc_cdf = cdf_normal,
+    calc_mu = mu_normal,
+    sim_fun = sim_normal
+)
+
+</code></pre>
+
+
+</div>

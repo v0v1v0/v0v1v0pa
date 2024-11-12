@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abcrlda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Asymptotically Bias-Corrected Regularized Linear Discriminant Analysis
+for Cost-Sensitive Binary Classification</h2>
+
+<h3>Description</h3>
+
+<p>Constructs Asymptotically Bias-Corrected Regularized Linear Discriminant Analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abcrlda(x, y, gamma = 1, cost = c(0.5, 0.5), bias_correction = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input matrix or data.frame of dimension <code>nobs x nvars</code>; each row is an feature vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector or factor of class labels. Factor should have either two levels or be
+a vector with two distinct values.
+If <code>y</code> is presented as a vector, it will be coerced into a factor.
+Length of <code>y</code> has to correspond to number of samples in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Regularization parameter <code class="reqn">\gamma</code> in the ABC-RLDA discriminant function given by:
+</p>
+<p style="text-align: center;"><code class="reqn">W_{ABC}^{RLDA} = \gamma (x-\frac{\bar{x}_0 +
+\bar{x}_1}{2})^T H (\bar{x}_0 - \bar{x}_1)
+- log(\frac{C_{01}}{C_{10}}) + \hat{\omega}_{opt}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">H = (I_p + \gamma \hat{\Sigma})^{-1}</code>
+</p>
+
+<p>Formulas and derivations for parameters used in above equation can be found in the article under reference section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost</code></td>
+<td>
+<p>Parameter that controls the overall misclassification costs.
+This is a vector of length 1 or 2 where the first value is <code class="reqn">C_{10}</code> (represents the cost of assigning label 1 when the true label is 0)
+and the second value, if provided, is <code class="reqn">C_{01}</code> (represents the cost of assigning label 0 when the true label is 1).
+The default setting is c(0.5, 0.5), so both classes have equal misclassification costs
+</p>
+<p>If a single value is provided, it should be normalized to lie between 0 and 1 (but not including 0 or 1).
+This value will be assigned to <code class="reqn">C_{10}</code> while
+<code class="reqn">C_{01}</code> will be equal to <code class="reqn">(1 - C_{10})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias_correction</code></td>
+<td>
+<p>Takes in a boolean value.
+If <code>bias_correction</code> is TRUE, then asymptotic bias correction will be performed.
+Otherwise, (if <code>bias_correction</code> is FALSE) asymptotic bias correction will not be performed and
+the ABCRLDA is the classical RLDA.
+The default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class "abcrlda" is returned which can be used for class prediction (see predict()).
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>Coefficient vector of a discriminant hyperplane: W(<strong>x</strong>) = <strong>a</strong>' <strong>x</strong> + m.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Intercept of discriminant hyperplane: W(<strong>x</strong>) = <strong>a</strong>'<strong>x</strong> + m.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost</code></td>
+<td>
+<p>Vector of cost values that are used to construct ABC-RLDA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncost</code></td>
+<td>
+<p>Normalized cost such that <code class="reqn">C_{10}</code> + <code class="reqn">C_{01}</code> = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>Regularization parameter value used in ABC_RLDA discriminant function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lev</code></td>
+<td>
+<p>Levels corresponding to the labels in y.</p>
+</td>
+</tr>
+</table>
+<h3>Reference</h3>
+
+<p>A. Zollanvari, M. Abdirash, A. Dadlani and B. Abibullaev,
+"Asymptotically Bias-Corrected Regularized Linear Discriminant Analysis for Cost-Sensitive
+Binary Classification," in IEEE Signal Processing Letters, vol. 26, no. 9, pp. 1300-1304,
+Sept. 2019. doi: 10.1109/LSP.2019.2918485
+URL: <a href="https://ieeexplore.ieee.org/document/8720003">https://ieeexplore.ieee.org/document/8720003</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other functions in the package: 
+<code>cross_validation()</code>,
+<code>da_risk_estimator()</code>,
+<code>grid_search()</code>,
+<code>predict.abcrlda()</code>,
+<code>risk_calculate()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(iris)
+train_data &lt;- iris[which(iris[, ncol(iris)] == "virginica" |
+                           iris[, ncol(iris)] == "versicolor"), 1:4]
+train_label &lt;- factor(iris[which(iris[, ncol(iris)] == "virginica" |
+                                   iris[, ncol(iris)] == "versicolor"), 5])
+model &lt;- abcrlda(train_data, train_label, gamma = 0.5, cost = 0.75)
+a &lt;- predict(model, train_data)
+# same params but more explicit
+model &lt;- abcrlda(train_data, train_label, gamma = 0.5, cost = c(0.75, 0.25))
+b &lt;- predict(model, train_data)
+# same class costs ratio
+model &lt;- abcrlda(train_data, train_label, gamma = 0.5, cost = c(3, 1))
+c &lt;- predict(model, train_data)
+# all this model will give the same predictions
+all(a == b &amp; a == c &amp; b == c)
+#' [1] TRUE
+</code></pre>
+
+
+</div>

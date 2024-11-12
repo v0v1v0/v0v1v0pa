@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adapt_glmnet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive P-value Thresholding with L1/L2 Penalized Generalized Linear Models</h2>
+
+<h3>Description</h3>
+
+<p><code>adapt_glmnet</code> is a wrapper of <code>adapt</code> that fits pi(x) and mu(x) by <code>glmnet</code> from <code>glmnet</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adapt_glmnet(x, pvals, piargs = list(), muargs = list(),
+  dist = beta_family(), s0 = rep(0.45, length(pvals)), alphas = seq(0.01,
+  1, 0.01), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>covariates (i.e. side-information). Should be compatible to <code>models</code>. See Details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvals</code></td>
+<td>
+<p>a vector of values in [0, 1]. P-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piargs</code></td>
+<td>
+<p>a list. Other arguments passed to glmnet for fitting pi(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>muargs</code></td>
+<td>
+<p>a list. Other arguments passed to glmnet for fitting mu(x)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>an object of class "<code>gen_exp_family</code>". <code>beta_family()</code> as default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s0</code></td>
+<td>
+<p>a vector of values in [0, 0.5). Initial threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>a vector of values in (0, 1). Target FDR levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to <code>adapt</code> (except <code>models</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>adapt_glmnet</code> by default implements LASSO on <code>x</code> with lambda selected by cross-validation. Specify in <code>piargs</code> and <code>muargs</code> if ridge or elastic-net penalty is needed.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>adapt</code>, <code>adapt_glm</code>, <code>adapt_gam</code>, <code>glmnet</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Generate a 100-dim covariate x
+set.seed(0)
+m &lt;- 100
+n &lt;- 1000
+x &lt;- matrix(runif(n * m), n, m)
+
+# Generate the parameters from a conditional two-group
+# logistic-Gamma GLM  where pi(x) and mu(x) are both
+# linear in x. pi(x) has an intercept so that the average
+# of pi(x) is 0.3
+inv_logit &lt;- function(x) {exp(x) / (1 + exp(x))}
+pi1 &lt;- 0.3
+beta.pi &lt;- c(3, 3, rep(0, m-2))
+beta0.pi &lt;- uniroot(function(b){
+    mean(inv_logit(x %*% beta.pi + b)) - pi1
+}, c(-100, 100))$root
+pi &lt;- inv_logit(x %*% beta.pi + beta0.pi)
+beta.mu &lt;- c(2, 2, rep(0, m-2))
+beta0.mu &lt;- 0
+mu &lt;- pmax(1, x %*% beta.mu + beta0.mu)
+
+# Generate p-values
+H0 &lt;- as.logical(ifelse(runif(n) &lt; pi, 1, 0))
+y &lt;- ifelse(H0, rexp(n, 1/mu), rexp(n, 1))
+pvals &lt;- exp(-y)
+
+# Run adapt_glmnet
+res &lt;- adapt_glmnet(x, pvals, s0 = rep(0.15, n), nfits = 5)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ProbaMax</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability of exceedance of maximum of Gaussian vector</h2>
+
+<h3>Description</h3>
+
+<p>Computes <code class="reqn">P(max X &gt; threshold)</code>
+with choice of algorithm between ANMC_Gauss and MC_Gauss.
+By default, the computationally expensive sampling parts are computed with the Rcpp functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ProbaMax(
+  cBdg,
+  threshold,
+  mu,
+  Sigma,
+  E = NULL,
+  q = NULL,
+  pn = NULL,
+  lightReturn = T,
+  method = 4,
+  verb = 0,
+  Algo = "ANMC",
+  trmvrnorm = trmvrnorm_rej_cpp,
+  pmvnorm_usr = pmvnorm
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cBdg</code></td>
+<td>
+<p>computational budget.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>mean vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E</code></td>
+<td>
+<p>discretization design for the field. If <code>NULL</code>, a simplex-lattice design n,n is used, with <code>n=length(mu)</code>. In this case the choice of method=4,5 are not advised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>number of active dimensions, it can be either </p>
+
+<ul>
+<li>
+<p> an integer: in this case the optimal <code>q</code> active dimension are chosen;
+</p>
+</li>
+<li>
+<p> a numeric vector of length 2: this is the range where to search for the best number of active dimensions;
+</p>
+</li>
+<li> <p><code>NULL</code>: q is selected as the best number of active dimensions in the feasible range.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pn</code></td>
+<td>
+<p>coverage probability function evaluated with <code>mu</code>, <code>Sigma</code>. If <code>NULL</code> it is computed automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lightReturn</code></td>
+<td>
+<p>boolean, if <code>TRUE</code> light return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method chosen to select the active dimensions.  See <code>selectActiveDims</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+<p>level of verbosity (0-5), selects verbosity also for <code>ANMC_Gauss</code> (verb-1) and <code>MC_Gauss</code> (verb-1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Algo</code></td>
+<td>
+<p>choice of algorithm to compute the remainder Rq ("ANMC" or "MC").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trmvrnorm</code></td>
+<td>
+<p>function to generate truncated multivariate normal samples, it must have the following signature <code>trmvrnorm(n,mu,sigma,upper,lower,verb)</code>, where </p>
+
+<ul>
+<li> <p><code>n</code>: number of simulations;
+</p>
+</li>
+<li> <p><code>mu</code>: mean vector of the Normal variable of dimension <code class="reqn">d</code>;
+</p>
+</li>
+<li> <p><code>sigma</code>: covariance matrix of dimension <code class="reqn">d x d</code>;
+</p>
+</li>
+<li> <p><code>upper</code>: vector of upper limits of length <code>d</code>;
+</p>
+</li>
+<li> <p><code>lower</code>: vector of lower limits of length <code>d</code>;
+</p>
+</li>
+<li> <p><code>verb</code>: the level of verbosity 3 basic, 4 extended.
+</p>
+</li>
+</ul>
+<p>It must return a matrix <code class="reqn">d x n</code> of realizations. If not specified, the rejection sampler <code>trmvrnorm_rej_cpp</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmvnorm_usr</code></td>
+<td>
+<p>function to compute core probability on active dimensions. Inputs: </p>
+
+<ul>
+<li> <p><code>lower:</code> the vector of lower limits of length <code>d</code>.
+</p>
+</li>
+<li> <p><code>upper:</code> the vector of upper limits of length <code>d</code>.
+</p>
+</li>
+<li> <p><code>mean:</code> the mean vector of length <code>d</code>.
+</p>
+</li>
+<li> <p><code>sigma:</code> the covariance matrix of dimension <code>d</code>.
+</p>
+</li>
+</ul>
+<p>returns a the probability value with attribute "error", the absolute error. Default is the function <code>pmvnorm</code> from the package <code>mvtnorm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+
+<ul>
+<li>
+<p><code>probability</code>: The probability estimate
+</p>
+</li>
+<li>
+<p><code>variance</code>: the variance of the probability estimate
+</p>
+</li>
+<li>
+<p><code>q</code>:the number of selected active dimensions
+</p>
+</li>
+</ul>
+<p>If <code>lightReturn=F</code> then the list also contains:
+</p>
+
+<ul>
+<li>
+<p><code>aux_probabilities</code>:  a list with the probability estimates: <code>probability</code> the actual probability, <code>pq</code> the biased estimator <code class="reqn">p_q</code>, <code>Rq</code> the conditional probability <code class="reqn">R_q</code>
+</p>
+</li>
+<li>
+<p><code>Eq</code>: the points of the design <code class="reqn">E</code> selected for <code class="reqn">p_q</code>
+</p>
+</li>
+<li>
+<p><code>indQ</code>: the indices of the active dimensions chosen for <code class="reqn">p_q</code>
+</p>
+</li>
+<li>
+<p><code>resRq</code>: The list returned by the MC method used for <code class="reqn">R_q</code>
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Azzimonti, D. and Ginsbourger, D. (2018). Estimating orthant probabilities of high dimensional Gaussian vectors with an application to set estimation. Journal of Computational and Graphical Statistics, 27(2), 255-267. Preprint at <a href="https://hal.science/hal-01289126">hal-01289126</a>
+</p>
+<p>Azzimonti, D. (2016). Contributions to Bayesian set estimation relying on random field priors. PhD thesis, University of Bern.
+</p>
+<p>Chevalier, C. (2013). Fast uncertainty reduction strategies relying on Gaussian process models. PhD thesis, University of Bern.
+</p>
+<p>Dickmann, F. and Schweizer, N. (2014). Faster comparison of stopping times by nested conditional Monte Carlo. arXiv preprint arXiv:1402.0243.
+</p>
+<p>Genz, A. (1992). Numerical computation of multivariate normal probabilities. Journal of Computational and Graphical Statistics, 1(2):141–149.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Compute probability P(X \in (-\infty,0]) with X~N(0,Sigma)
+d&lt;-200     # example dimension
+mu&lt;-rep(0,d)    # mean of the normal vector
+# correlation structure (Miwa et al. 2003, Craig 2008, Botev 2016)
+Sigma&lt;-0.5*diag(d)+ 0.5*rep(1,d)%*%t(rep(1,d))
+
+pANMC&lt;-ProbaMax(cBdg=20, q=min(50,d/2), E=seq(0,1,,d), threshold=0, mu=mu, Sigma=Sigma,
+ pn = NULL, lightReturn = TRUE, method = 3, verb = 2, Algo = "ANMC")
+proba&lt;-1-pANMC$probability
+
+# Percentage error
+abs(1-pANMC$probability-1/(d+1))/(1/(d+1))
+
+
+# Implement ProbaMax with user defined function for active dimension probability estimate
+if(!requireNamespace("TruncatedNormal", quietly = TRUE)) {
+stop("Package TruncatedNormal needed for this example to work. Please install it.",
+     call. = FALSE)
+}
+
+# define pmvnorm_usr with the function mvNcdf from the package TruncatedNormal
+pmvnorm_usr&lt;-function(lower,upper,mean,sigma){
+    pMET&lt;-TruncatedNormal::mvNcdf(l = lower-mean,u = upper-mean,Sig = sigma,n = 5e4)
+    res&lt;-pMET$prob
+    attr(res,"error")&lt;-pMET$relErr
+    return(res)
+}
+
+pANMC&lt;-ProbaMax(cBdg=20, q=min(50,d/2), E=seq(0,1,,d), threshold=0, mu=mu, Sigma=Sigma,
+ pn = NULL, lightReturn = TRUE, method = 3, verb = 2, Algo = "ANMC",pmvnorm_usr=pmvnorm_usr)
+proba&lt;-1-pANMC$probability
+
+# Percentage error
+abs(1-pANMC$probability-1/(d+1))/(1/(d+1))
+
+
+# Implement ProbaMax with user defined function for truncated normal sampling
+
+if(!requireNamespace("tmg", quietly = TRUE)) {
+stop("Package tmg needed for this example to work. Please install it.",
+     call. = FALSE)
+}
+trmvrnorm_usr&lt;-function(n,mu,sigma,upper,lower,verb){
+  M&lt;-chol2inv(chol(sigma))
+ r=as.vector(M%*%mu)
+
+ if(all(lower==-Inf) &amp;&amp; all(upper==Inf)){
+   f&lt;- NULL
+   g&lt;- NULL
+ }else{
+   if(all(lower==-Inf)){
+     f&lt;--diag(length(mu))
+     g&lt;-upper
+     initial&lt;-(upper-1)/2
+   }else if(all(upper==Inf)){
+     f&lt;-diag(length(mu))
+     g&lt;- -lower
+     initial&lt;-2*(lower+1)
+   }else{
+     f&lt;-rbind(-diag(length(mu)),diag(length(mu)))
+     g&lt;-c(upper,-lower)
+     initial&lt;-(upper-lower)/2
+   }
+ }
+ reals_tmg&lt;-tmg::rtmg(n=n,M=M,r=r,initial = initial,f=f,g=g)
+
+ return(t(reals_tmg))
+}
+
+pANMC&lt;-ProbaMax(cBdg=20, q=min(50,d/2), E=seq(0,1,,d), threshold=0, mu=mu, Sigma=Sigma,
+ pn = NULL, lightReturn = TRUE, method = 3, verb = 2, Algo = "ANMC",trmvrnorm=trmvrnorm_usr)
+proba&lt;-1-pANMC$probability
+
+# Percentage error
+abs(1-pANMC$probability-1/(d+1))/(1/(d+1))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

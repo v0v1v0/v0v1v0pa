@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gp_opt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gaussian process-based optimisation</h2>
+
+<h3>Description</h3>
+
+<p>Used internally. Simple Gaussian process-based Bayesian optimisation
+function, used to find the next value to evaluate (as <code>x</code>) in the
+<code>calibrate_trial()</code> function. Uses only a single input dimension, which may
+be rescaled to the <code style="white-space: pre;">⁠[0, 1]⁠</code> range by the function, and a covariance structure
+based on absolute distances between values, raised to a power (<code>pow</code>) and
+subsequently divided by <code>lengthscale</code> before the inverse exponentiation of
+the resulting matrix is used. The <code>pow</code> and <code>lengthscale</code> hyperparameters
+consequently control the smoothness by controlling the rate of decay between
+correlations with distance.<br>
+The optimisation algorithm uses bi-directional uncertainty bounds in an
+acquisition function that suggests the next target to evaluate, with wider
+uncertainty bounds (higher <code>kappa</code>) leading to increased 'exploration' (i.e.,
+the function is more prone to suggest new target values where the uncertainty
+is high and often further from the best evaluation so far) and narrower
+uncertainty bounds leading to increased 'exploitation' (i.e., the function is
+more prone to suggest new target values relatively close to the mean
+predictions from the model).<br>
+The <code>dir</code> argument controls whether the suggested value (based on both
+uncertainty bounds) should be the value closest to <code>target</code> in either
+direction (<code>dir = 0</code>), at or above <code>target</code> (<code>dir &gt; 0</code>), or at or below
+target (<code>dir &lt; 0</code>), if any, are preferred.<br>
+When the function being evaluated is noise-free and monotonically increasing
+or decreasing, the optimisation function can narrow the range of predictions
+based on the input evaluations (<code>narrow = TRUE</code>), leading to a finer grid of
+potential new targets to suggest compared to when predictions are spaced over
+the full range.<br>
+If the new value at which to evaluate the function suggested has already been
+evaluated, random noise will be added to ensure evaluation at a new value
+(if <code>narrow</code> is <code>FALSE</code>, noise will be based on a random draw from a normal
+distribution with the current suggested value as mean and the standard
+deviation of the <code>x</code> values as SD, truncated to the range of <code>x</code>-values; if
+<code>narrow</code> is <code>TRUE</code>, a new value drawn from a uniform distribution within the
+current narrowed range will be suggested. For both strategies, the process
+will be repeated until the suggested value is 'new').
+<br> The Gaussian process model used is partially based on code from Gramacy
+2020 (with permission), see <strong>References</strong>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gp_opt(
+  x,
+  y,
+  target,
+  dir = 0,
+  resolution = 5000,
+  kappa = 1.96,
+  pow = 1.95,
+  lengthscale = 1,
+  scale_x = TRUE,
+  noisy = FALSE,
+  narrow = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector, the previous values where the function being
+calibrated was evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>numeric vector, the corresponding results of the previous
+evaluations at the <code>x</code> values (must be of the same length as <code>x</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>single numeric value, the desired target value for the
+calibration process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>single numeric value (default <code>0</code>), used when selecting the next
+value to evaluate at. See <code>which_nearest()</code> for further description.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolution</code></td>
+<td>
+<p>single integer (default <code>5000</code>), size of the grid at which
+the predictions used to select the next value to evaluate at are made.<br><strong>Note:</strong> memory use and time will substantially increase with higher
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>single numeric value <code style="white-space: pre;">⁠&gt; 0⁠</code> (default <code>1.96</code>), used for the width
+of uncertainty bounds (based on the Gaussian process posterior predictive
+distribution), which are used to select the next value to evaluate at.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pow</code></td>
+<td>
+<p>single numerical value, passed to <code>cov_mat()</code> and controls the
+smoothness of the Gaussian process. Should be between <code>1</code> (no smoothness,
+piecewise straight lines between each subsequent <code>x</code>/<code>y</code>-coordinate if
+<code>lengthscale</code> described below is <code>1</code>) and <code>2</code>; defaults to <code>1.95</code>, which
+leads to slightly faster decay of correlations when <code>x</code> values are
+internally scaled to the <code style="white-space: pre;">⁠[0, 1]⁠</code>-range compared to <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthscale</code></td>
+<td>
+<p>single numerical value (default <code>1</code>) or numerical vector
+of length <code>2</code>; all values must be finite and non-negative. If a single
+value is provided, this will be used as the <code>lengthscale</code> hyperparameter
+and passed directly to <code>cov_mat()</code>. If a numerical vector of length <code>2</code> is
+provided, the second value must be higher than the first and the optimal
+<code>lengthscale</code> in this range will be found using an optimisation algorithm.
+If any value is <code>0</code>, a minimum amount of noise will be added as
+lengthscales must be <code style="white-space: pre;">⁠&gt; 0⁠</code>. Controls smoothness/decay in combination
+with <code>pow</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_x</code></td>
+<td>
+<p>single logical value; if <code>TRUE</code> (the default) the <code>x</code>-values
+will be scaled to the <code style="white-space: pre;">⁠[0, 1]⁠</code> range according to the minimum/maximum
+values provided. If <code>FALSE</code>, the model will use the original scale. If
+distances on the original scale are small, scaling may be preferred. The
+returned values will always be on the original scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noisy</code></td>
+<td>
+<p>single logical value. If <code>FALSE</code> (the default), a noiseless
+process is assumed, and interpolation between values is performed (i.e.,
+with no uncertainty at the evaluated <code>x</code>-values); if <code>TRUE</code>, the <code>y</code>-values
+are assumed to come from a noisy process, and regression is performed
+(i.e., some uncertainty at the evaluated <code>x</code>-values will be included in the
+predictions, with the amount estimated using an optimisation algorithm).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>narrow</code></td>
+<td>
+<p>single logical value. If <code>FALSE</code> (the default), predictions are
+evenly spread over the full <code>x</code>-range. If <code>TRUE</code>, the prediction grid will
+be spread evenly over an interval consisting of the two <code>x</code>-values with
+corresponding <code>y</code>-values closest to the target in opposite directions. This
+setting should only be used if <code>noisy</code> is <code>FALSE</code> and only if the function
+can safely be assumed to be only monotonically increasing or decreasing, in
+which case this will lead to a faster search and a smoother prediction grid
+in the relevant region without increasing memory use.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List containing two elements, <code>next_x</code>, a single numerical value, the
+suggested next <code>x</code> value at which to evaluate the function, and
+<code>predictions</code>, a <code>data.frame</code> with <code>resolution</code> rows and the four columns:
+<code>x</code>, the <code>x</code> grid values where predictions are made; <code>y_hat</code>, the predicted
+means, and <code>lub</code> and <code>uub</code>, the lower and upper uncertainty bounds of the
+predictions according to <code>kappa</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gramacy RB (2020). Chapter 5: Gaussian Process Regression. In: Surrogates:
+Gaussian Process Modeling, Design and Optimization for the Applied Sciences.
+Chapman Hall/CRC, Boca Raton, Florida, USA.
+<a href="https://bookdown.org/rbg/surrogates/chap5.html">Available online</a>.
+</p>
+<p>Greenhill S, Rana S, Gupta S, Vellanki P, Venkatesh S (2020). Bayesian
+Optimization for Adaptive Experimental Design: A Review. IEEE Access, 8,
+13937-13948. <a href="https://doi.org/10.1109/ACCESS.2020.2966228">doi:10.1109/ACCESS.2020.2966228</a>
+</p>
+
+
+</div>

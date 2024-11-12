@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>derive_param_extreme_record</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds a Parameter Based on First or Last Record from Multiple Sources</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#superseded"><img src="../help/figures/lifecycle-superseded.svg" alt="[Superseded]"></a> The <code>derive_param_extreme_record()</code>
+function has been superseded in favor of <code>derive_extreme_event()</code>.
+</p>
+<p>Generates parameter based on the first or last observation from multiple
+source datasets, based on user-defined filter, order and by group criteria.
+All variables of the selected observation are kept.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">derive_param_extreme_record(
+  dataset = NULL,
+  sources,
+  source_datasets,
+  by_vars = NULL,
+  order,
+  mode,
+  set_values_to
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>Input dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sources</code></td>
+<td>
+<p>Sources
+</p>
+<p>A list of <code>records_source()</code> objects is expected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_datasets</code></td>
+<td>
+<p>Source datasets
+</p>
+<p>A named list of datasets is expected. The <code>dataset_name</code> field of
+<code>records_source()</code> refers to the dataset provided in the list. The variables
+specified by the <code>order</code> and the <code>by_vars</code> arguments are expected after applying <code>new_vars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_vars</code></td>
+<td>
+<p>Grouping variables
+</p>
+<p>If the argument is specified, for each by group the observations are
+selected separately.
+</p>
+<p><em>Permitted Values</em>: list of variables created by <code>exprs()</code>
+e.g. <code>exprs(USUBJID, VISIT)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Sort order
+</p>
+<p>If the argument is set to a non-null value, for each by group the first or
+last observation from the source datasets is selected with respect to
+the specified order. Variables created via <code>new_vars</code> e.g., imputed date variables,
+can be specified as well (see examples below).
+</p>
+<p>Please note that <code>NA</code> is considered as the last value. I.e., if a order
+variable is <code>NA</code> and <code>mode = "last"</code>, this observation is chosen while for
+<code>mode = "first"</code> the observation is chosen only if there are no
+observations where the variable is not <code>NA</code>.
+</p>
+<p><em>Permitted Values:</em> list of expressions created by <code>exprs()</code>, e.g.,
+<code>exprs(ADT, desc(AVAL))</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>Selection mode (first or last)
+</p>
+<p>If <code>"first"</code> is specified, for each by group the first observation with
+respect to <code>order</code> is included in the output dataset. If <code>"last"</code> is
+specified, the last observation is included in the output dataset.
+</p>
+<p>Permitted Values:  <code>"first"</code>, <code>"last"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_values_to</code></td>
+<td>
+<p>Variables to be set
+</p>
+<p>The specified variables are set to the specified values for the new
+observations.
+</p>
+<p>A list of variable name-value pairs is expected.
+</p>
+
+<ul>
+<li>
+<p> LHS refers to a variable.
+</p>
+</li>
+<li>
+<p> RHS refers to the values to set to the variable. This can be a string, a
+symbol, a numeric value or <code>NA</code>, e.g., <code>exprs(PARAMCD = "PD", PARAM =   "First Progressive Disease")</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following steps are performed to create the output dataset:
+</p>
+
+<ol>
+<li>
+<p> For each source dataset the observations as specified by
+the <code>filter</code> element are selected.
+</p>
+</li>
+<li>
+<p> Variables specified by <code>new_vars</code> are created for each source dataset.
+</p>
+</li>
+<li>
+<p> The first or last observation (with respect to the
+<code>order</code> variable) for each by group (specified by <code>by_vars</code>) from multiple sources
+is selected and added to the input dataset. </p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>The input dataset with the first or last observation of each by group
+added as new observations.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other superseded: 
+<code>date_source()</code>,
+<code>derive_var_dthcaus()</code>,
+<code>derive_var_extreme_dt()</code>,
+<code>derive_var_extreme_dtm()</code>,
+<code>dthcaus_source()</code>,
+<code>get_summary_records()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">aevent_samp &lt;- tibble::tribble(
+  ~USUBJID, ~PARAMCD,                       ~PARAM,     ~RSSTDTC,
+  "1",          "PD",  "First Progressive Disease", "2022-04-01",
+  "2",          "PD",  "First Progressive Disease", "2021-04-01",
+  "3",          "PD",  "First Progressive Disease", "2023-04-01"
+)
+
+cm &lt;- tibble::tribble(
+  ~STUDYID, ~USUBJID, ~CMDECOD,     ~CMSTDTC,
+  "1001",        "1",    "ACT", "2021-12-25"
+)
+
+pr &lt;- tibble::tribble(
+  ~STUDYID, ~USUBJID, ~PRDECOD,     ~PRSTDTC,
+  "1001",        "1",    "ACS", "2021-12-27",
+  "1001",        "2",    "ACS", "2020-12-25",
+  "1001",        "3",    "ACS", "2022-12-25",
+)
+derive_param_extreme_record(
+  dataset = aevent_samp,
+  sources = list(
+    records_source(
+      dataset_name = "cm",
+      filter = CMDECOD == "ACT",
+      new_vars = exprs(
+        ADT = convert_dtc_to_dt(CMSTDTC),
+        AVALC = CMDECOD
+      )
+    ),
+    records_source(
+      dataset_name = "pr",
+      filter = PRDECOD == "ACS",
+      new_vars = exprs(
+        ADT = convert_dtc_to_dt(PRSTDTC),
+        AVALC = PRDECOD
+      )
+    )
+  ),
+  source_datasets = list(cm = cm, pr = pr),
+  by_vars = exprs(USUBJID),
+  order = exprs(ADT),
+  mode = "first",
+  set_values_to = exprs(
+    PARAMCD = "FIRSTACT",
+    PARAM = "First Anti-Cancer Therapy"
+  )
+)
+</code></pre>
+
+
+</div>

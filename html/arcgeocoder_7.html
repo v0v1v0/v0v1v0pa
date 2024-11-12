@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arc_geo_categories</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Geocode places on a given area by category</h2>
+
+<h3>Description</h3>
+
+<p>This function is useful for extracting places with a given category (or list
+of categories) near or within a given location or area. This is a wrapper
+of <code>arc_geo()</code>, but it is vectorized over <code>category</code>.
+</p>
+<p>See arc_categories for a detailed explanation and available values.
+</p>
+<p><strong>Note that</strong> for obtaining results it is needed:
+</p>
+
+<ul>
+<li>
+<p> Either to provide a pair of coordinates (<code style="white-space: pre;">⁠x,y⁠</code> parameters) that would be
+used as a reference for geocoding.
+</p>
+</li>
+<li>
+<p> Or a viewbox (aka bounding box) on the <code>bbox</code> parameter defining an
+desired extent of the results.
+</p>
+</li>
+</ul>
+<p>It is possible to combine the two approaches (i.e. providing <code style="white-space: pre;">⁠x,y,bbox⁠</code>
+values) in order to boost the geocoding process. See <strong>Examples</strong>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arc_geo_categories(
+  category,
+  x = NULL,
+  y = NULL,
+  bbox = NULL,
+  name = NULL,
+  lat = "lat",
+  long = "lon",
+  limit = 1,
+  full_results = FALSE,
+  verbose = FALSE,
+  custom_query = list(),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>category</code></td>
+<td>
+<p>A place or address type that can be used to filter results.
+Several values can be used as well as a vector (i.e.
+<code>c("Cinema", "Museum")</code>), performing one call for each value. See
+<strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>longitude values in numeric format. Must be in the range
+<code class="reqn">\left[-180, 180 \right]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>latitude values in numeric format. Must be in the range
+<code class="reqn">\left[-90, 90 \right]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bbox</code></td>
+<td>
+<p>A numeric vector of latitude and longitude
+<code>c(minX, minY, maxX, maxY)</code> that restrict the search area.
+See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>Optionally, a string indicating the name or address of the
+desired results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>latitude column name in the output data (default  <code>"lat"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>longitude column name in the output data (default  <code>"lon"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>maximum number of results to return per input address. Note
+that each query returns a maximum of 50 results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_results</code></td>
+<td>
+<p>returns all available data from the API service. This
+is a shorthand of <code style="white-space: pre;">⁠outFields=*⁠</code>. See <strong>References</strong>. If <code>FALSE</code> (default)
+only the default values of the API would be returned. See also
+<code>return_addresses</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code> then detailed logs are output to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom_query</code></td>
+<td>
+<p>API-specific parameters to be used, passed as a named
+list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>arc_geo</code>
+</p>
+
+<dl>
+<dt><code>sourcecountry</code></dt>
+<dd>
+<p>Limits the candidates returned to the specified country
+or countries. Acceptable values include the three-character country code.
+You can specify multiple country codes to limit results to more than one
+country.</p>
+</dd>
+<dt><code>outsr</code></dt>
+<dd>
+<p>The spatial reference of the <code style="white-space: pre;">⁠x,y⁠</code> coordinates returned by a
+geocode request. By default is <code>NULL</code> (i.e. the parameter won't be used in
+the query). See <strong>Details</strong> and arc_spatial_references.</p>
+</dd>
+<dt><code>langcode</code></dt>
+<dd>
+<p>Sets the language in which reverse-geocoded addresses are
+returned.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Bounding boxes can be located using different online tools, as
+<a href="https://boundingbox.klokantech.com/">Bounding Box Tool</a>.
+</p>
+<p>For a full list of valid categories see arc_categories.
+</p>
+<p>This function is vectorized over <code>category</code>, that means that it would perform
+one independent call to <code>arc_geo()</code> for each <code>category</code> value.
+</p>
+<p><code>arc_geo_categories()</code> also understands a single string of categories
+separated by commas (<code>"Cinema,Museum"</code>), that would be internally treated as
+<code>c("Cinema", "Museum")</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble</code> object with the results. See the details of the output in  <a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm">ArcGIS REST API Service output</a>.
+</p>
+
+
+<h3><code>outsr</code></h3>
+
+<p>The spatial reference can be specified as either a well-known ID (WKID). If
+not specified, the spatial reference of the output locations is the same as
+that of the service ( WGS84, i.e. WKID = 4326)).
+</p>
+<p>See arc_spatial_references for values and examples.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="https://developers.arcgis.com/rest/geocode/api-reference/geocoding-category-filtering.htm">ArcGIS REST Category filtering</a>.
+</p>
+<p>arc_categories
+</p>
+<p>Other functions for geocoding: 
+<code>arc_geo()</code>,
+<code>arc_geo_multi()</code>,
+<code>arc_reverse_geo()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# Full workflow: Gas Stations near Carabanchel, Madrid
+
+# Get Carabanchel
+carab &lt;- arc_geo("Carabanchel, Madrid, Spain")
+
+# CRS
+carab_crs &lt;- unique(carab$latestWkid)
+
+
+library(ggplot2)
+
+base_map &lt;- ggplot(carab) +
+  geom_point(aes(lon, lat), size = 5, color = "red") +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill = NA,
+    color = "blue"
+  ) +
+  coord_sf(crs = carab_crs)
+
+
+# Ex1: Search near Carabanchel (not restricted)
+ex1 &lt;- arc_geo_categories("Gas Station",
+  # Location
+  x = carab$lon, y = carab$lat,
+  limit = 50, full_results = TRUE
+)
+
+
+# Reduce number of labels to most common ones
+library(dplyr)
+
+labs &lt;- ex1 %&gt;%
+  count(ShortLabel) %&gt;%
+  slice_max(n = 7, order_by = n) %&gt;%
+  pull(ShortLabel)
+
+base_map +
+  geom_point(data = ex1, aes(lon, lat, color = ShortLabel)) +
+  scale_color_discrete(breaks = labs) +
+  labs(
+    title = "Example 1",
+    subtitle = "Search near (points may be far away)"
+  )
+
+# Example 2: Include part of the name, different results
+ex2 &lt;- arc_geo_categories("Gas Station",
+  # Name
+  name = "Repsol",
+  # Location
+  x = carab$lon, y = carab$lat,
+  limit = 50, full_results = TRUE
+)
+
+base_map +
+  geom_point(data = ex2, aes(lon, lat, color = ShortLabel)) +
+  labs(
+    title = "Example 2",
+    subtitle = "Search near with name"
+  )
+
+# Example 3: Near within a extent
+ex3 &lt;- arc_geo_categories("Gas Station",
+  name = "Repsol",
+  bbox = c(carab$xmin, carab$ymin, carab$xmax, carab$ymax),
+  limit = 50, full_results = TRUE
+)
+
+base_map +
+  geom_point(data = ex3, aes(lon, lat, color = ShortLabel)) +
+  labs(
+    title = "Example 3",
+    subtitle = "Search near with name and bbox"
+  )
+
+
+</code></pre>
+
+
+</div>

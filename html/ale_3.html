@@ -1,0 +1,257 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ale_ixn</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create and return ALE interaction data, statistics, and plots</h2>
+
+<h3>Description</h3>
+
+<p>This is the central function that manages the creation of ALE data and plots
+for two-way ALE interactions. For simple one-way ALE, see <code>ale()</code>.
+See documentation there for functionality shared between both functions.
+</p>
+<p>For details, see the introductory vignette for this package or the details and examples below.
+</p>
+<p>For the plots, <code>n_y_quant</code> is the number of quantiles into which to
+divide the predicted variable (y). The middle quantiles are grouped specially:
+</p>
+
+<ul>
+<li>
+<p> The middle quantile is the first confidence interval of <code>median_band_pct</code>
+(<code>median_band_pct[1]</code>) around the median.
+This middle quantile is special because it generally represents no meaningful
+interaction.
+</p>
+</li>
+<li>
+<p> The quantiles above and below the middle are extended from the borders of
+the middle quantile to the regular borders of the other quantiles.
+</p>
+</li>
+</ul>
+<p>There will always be an odd number of quantiles: the special middle quantile
+plus an equal number of quantiles on each side of it. If n_y_quant is even,
+then a middle quantile will be added to it. If n_y_quant is odd, then the
+number specified will be used, including the middle quantile.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ale_ixn(
+  data,
+  model,
+  x1_cols = NULL,
+  x2_cols = NULL,
+  y_col = NULL,
+  ...,
+  parallel = parallel::detectCores(logical = FALSE) - 1,
+  model_packages = as.character(NA),
+  output = c("plots", "data"),
+  pred_fun = function(object, newdata, type = pred_type) {
+     stats::predict(object =
+    object, newdata = newdata, type = type)
+ },
+  pred_type = "response",
+  x_intervals = 100,
+  relative_y = "median",
+  y_type = NULL,
+  median_band_pct = c(0.05, 0.5),
+  rug_sample_size = 500,
+  min_rug_per_interval = 1,
+  ale_xs = NULL,
+  n_x1_int = 20,
+  n_x2_int = 20,
+  n_y_quant = 10,
+  compact_plots = FALSE,
+  silent = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x1_cols, x2_cols</code></td>
+<td>
+<p>character. Vectors of column names from <code>data</code> for which
+two-way interaction ALE data is to be calculated. ALE data will be calculated
+for each x1 column interacting with each x2 column. x1_cols can be of any standard
+datatype (logical, factor, or numeric) but x2_cols can only be numeric. If
+<code>ixn</code> is TRUE, then both values must be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_col</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not used. Inserted to require explicit naming of subsequent arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_packages</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_fun, pred_type</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_intervals</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative_y</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_type</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>median_band_pct</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rug_sample_size, min_rug_per_interval</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ale_xs</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_x1_int, n_x2_int</code></td>
+<td>
+<p>positive scalar integer. Number of intervals
+for the x1 or x2 axes respectively for interaction plot. These values are
+ignored if x1 or x2 are not numeric (i.e, if they are logical or factors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_y_quant</code></td>
+<td>
+<p>positive scalar integer. Number of intervals over which the range
+of y values is divided for the colour bands of the interaction plot. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compact_plots</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>See documentation for <code>ale()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>list of ALE interaction data tibbles and plots.
+The list has two levels of depth:
+</p>
+
+<ul>
+<li>
+<p> The first level is named by the x1 variables.
+</p>
+</li>
+<li>
+<p> Within each x1 variable list, the second level is named by the x2 variables.
+</p>
+</li>
+<li>
+<p> Within each x1-x2 list element, the data or plot is returned as requested in
+the <code>output</code> argument.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(0)
+diamonds_sample &lt;- ggplot2::diamonds[sample(nrow(ggplot2::diamonds), 1000), ]
+
+# Create a GAM model with flexible curves to predict diamond price
+# Smooth all numeric variables and include all other variables
+gam_diamonds &lt;- mgcv::gam(
+  price ~ s(carat) + s(depth) + s(table) + s(x) + s(y) + s(z) +
+    cut + color + clarity,
+  data = diamonds_sample
+)
+summary(gam_diamonds)
+
+
+# ALE two-way interactions
+ale_ixn_gam_diamonds &lt;- ale_ixn(
+  diamonds_sample, gam_diamonds,
+  parallel = 2  # CRAN limit (delete this line on your own computer)
+)
+
+# Print interaction plots
+ale_ixn_gam_diamonds$plots |&gt;
+  # extract list of x1 ALE outputs
+  purrr::walk(\(.x1) {
+    # plot all x2 plots in each .x1 element
+    patchwork::wrap_plots(.x1) |&gt;
+      print()
+  })
+
+
+
+</code></pre>
+
+
+</div>

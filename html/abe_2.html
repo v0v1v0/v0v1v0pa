@@ -1,0 +1,207 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>abe.boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrapped Augmented Backward Elimination</h2>
+
+<h3>Description</h3>
+
+<p>Performs Augmented backward elimination on re-sampled datasets using different bootstrap and re-sampling techniques.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">abe.boot(fit, data = NULL, include = NULL, active = NULL, tau = 0.05,
+  exp.beta = TRUE, exact = FALSE, criterion = "alpha", alpha = 0.2,
+  type.test = "Chisq", type.factor = NULL, num.boot = 100,
+  type.boot = c("bootstrap", "mn.bootstrap", "subsampling"),
+  prop.sampling = 0.632)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>An object of a class <code>"lm"</code>, <code>"glm"</code> or <code>"coxph"</code> representing the fit.
+Note, the functions should be fitted with argument <code>x=TRUE</code> and <code>y=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame used when fitting the object <code>fit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>a vector containing the names of variables that will be included in the final model. These variables are used as passive variables during modeling. These variables might be exposure variables of interest or known confounders.
+They will never be dropped from the working model in the selection process,
+but they will be used passively in evaluating change-in-estimate criteria of other variables.
+Note, variables which are not specified as include or active in the model fit are assumed to be active and passive variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>a vector containing the names of active variables. These less important explanatory variables will only be used as active,
+but not as passive variables when evaluating the change-in-estimate criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Value that specifies the threshold of the relative change-in-estimate criterion. Default is set to 0.05.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exp.beta</code></td>
+<td>
+<p>Logical specifying if exponent is used in formula to standardize the criterion. Default is set to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>Logical, specifies if the method will use exact change-in-estimate or approximated. Default is set to FALSE, which means that the method will use approximation proposed by Dunkler et al.
+Note, setting to TRUE can severely slow down the algorithm, but setting to FALSE can in some cases lead to a poor approximation of the change-in-estimate criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>String that specifies the strategy to select variables for the blacklist.
+Currently supported options are significance level <code>'alpha'</code>, Akaike information criterion <code>'AIC'</code> and Bayesian information criterion <code>'BIC'</code>.
+If you are using significance level, in that case you have to specify the value of 'alpha' (see parameter <code>alpha</code>). Default is set to <code>"alpha"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Value that specifies the level of significance as explained above. Default is set to 0.2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.test</code></td>
+<td>
+<p>String that specifies which test should be performed in case the <code>criterion = "alpha"</code>.
+Possible values are <code>"F"</code> and <code>"Chisq"</code> (default) for class <code>"lm"</code>, <code>"Rao"</code>, <code>"LRT"</code>, <code>"Chisq"</code> (default), <code>"F"</code> for class <code>"glm"</code> and <code>"Chisq"</code> for class <code>"coxph"</code>. See also <code>drop1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.factor</code></td>
+<td>
+<p>String that specifies how to treat factors, see details, possible values are <code>"factor"</code> and <code>"individual"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.boot</code></td>
+<td>
+<p>number of bootstrap re-samples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.boot</code></td>
+<td>
+<p>String that specifies the type of bootstrap. Possible values are <code>"bootstrap"</code>, <code>"mn.bootstrap"</code>, <code>"subsampling"</code>,  see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop.sampling</code></td>
+<td>
+<p>Sampling proportion. Only applicable for <code>type.boot="mn.bootstrap"</code> and <code>type.boot="subsampling"</code>, defaults to 0.632. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>type.boot</code> can be <code>bootstrap</code> (n observations drawn from the original data with replacement), <code>mn.bootstrap</code> (m out of n observations drawn from the original data with replacement), <code>subsampling</code> (m out of n observations drawn from the original data without replacement), where m is [prop.sampling*n].
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>abe</code> for which <code>summary</code> and <code>plot</code> functions are available.
+A list with the following elements:
+</p>
+<p><code>models</code> the final models obtained after performing ABE on re-sampled datasets, each object in the list is of the same class as <code>fit</code>
+</p>
+<p><code>alpha</code> the vector of significance levels used
+</p>
+<p><code>tau</code> the vector of threshold values for the change-in-estimate
+</p>
+<p><code>num.boot</code> number of re-sampled datasets
+</p>
+<p><code>criterion</code> criterion used when constructing the black-list
+</p>
+<p><code>all.vars</code> a list of variables used when estimating <code>fit</code>
+</p>
+<p><code>fit.or</code> the initial model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rok Blagus, <a href="mailto:rok.blagus@mf.uni-lj.si">rok.blagus@mf.uni-lj.si</a>
+</p>
+<p>Sladana Babic
+</p>
+
+
+<h3>References</h3>
+
+<p>Daniela Dunkler, Max Plischke, Karen Lefondre, and Georg Heinze. Augmented backward elimination: a pragmatic and purposeful way to develop statistical models. PloS one, 9(11):e113677, 2014.
+</p>
+<p>Riccardo De Bin, Silke Janitza, Willi Sauerbrei and Anne-Laure Boulesteix. Subsampling versus Bootstrapping in Resampling-Based Model Selection for Multivariable Regression. Biometrics 72, 272-280, 2016.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>abe</code>, <code>summary.abe</code>, <code>plot.abe</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># simulate some data and fit a model
+
+set.seed(1)
+n=100
+x1&lt;-runif(n)
+x2&lt;-runif(n)
+x3&lt;-runif(n)
+y&lt;--5+5*x1+5*x2+ rnorm(n,sd=5)
+dd&lt;-data.frame(y=y,x1=x1,x2=x2,x3=x3)
+fit&lt;-lm(y~x1+x2+x3,x=TRUE,y=TRUE,data=dd)
+
+# use ABE on 50 bootstrap re-samples considering different
+# change-in-estimate thresholds and significance levels
+
+fit.boot&lt;-abe.boot(fit,data=dd,include="x1",active="x2",
+tau=c(0.05,0.1),exp.beta=FALSE,exact=TRUE,
+criterion="alpha",alpha=c(0.2,0.05),type.test="Chisq",
+num.boot=50,type.boot="bootstrap")
+
+summary(fit.boot)
+
+# use ABE on 50 subsamples randomly selecting 50% of subjects
+# considering different change-in-estimate thresholds and
+# significance levels
+
+fit.boot&lt;-abe.boot(fit,data=dd,include="x1",active="x2",
+tau=c(0.05,0.1),exp.beta=FALSE,exact=TRUE,
+criterion="alpha",alpha=c(0.2,0.05),type.test="Chisq",
+num.boot=50,type.boot="subsampling",prop.sampling=0.5)
+
+summary(fit.boot)
+</code></pre>
+
+
+</div>

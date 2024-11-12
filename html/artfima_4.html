@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>artfimaTACVF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Autocovariance function of ARTFIMA</h2>
+
+<h3>Description</h3>
+
+<p>Theoretical autocovariance function of ARTFIMA model</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">artfimaTACVF(d = numeric(0), lambda = numeric(0), phi = numeric(0), 
+      theta = numeric(0), maxlag, sigma2 = 1, obj = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>ARTFIMA difference parameter, any real value. When d=0, reduces to 
+ARMA and lambda is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>ARTFIMA tempered decay parameter. When lambda=0, 
+reduces to ARFIMA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>AR coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>MA coefficients, Box-Jenkins definition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxlag</code></td>
+<td>
+<p>maxlag+1 lags computed corresponding to 0,1,...,maxlag</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>innovation variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>output from artfima function</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>vector of length maxlag+1 of the specified autocovariances</p>
+
+
+<h3>Author(s)</h3>
+
+<p>A. I. McLeod, aimcleod@uwo.ca</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ARMAacf</code>,
+<code>artfimaSDF</code>,
+<code>artsim</code>,
+<code>artfima</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#ARTFIMA - area under SDF equals theoretical Var(z[t])
+#and sample variance = mean of periodogram
+#
+lambda &lt;- 0.045
+d &lt;- 5/6
+TVarZ &lt;- artfimaTACVF(d=d, lambda=lambda, maxlag=3)[1]
+TVarZ
+n &lt;- 256
+set.seed(4337751)
+z &lt;- artsim(n, lambda=lambda, d=d)
+VarZ &lt;- mean((z-mean(z))^2)
+Ip &lt;- Periodogram(z)
+mean(Ip)
+length(Ip)
+x &lt;- (1/n)*(1:length(Ip))
+plot(x, Ip, xlab="frequency", ylab="Spectral density &amp; Periodogram", 
+     main=paste("lambda, d =", lambda, d), type="l", col=rgb(0,0,1,0.5))
+n &lt;- 5000
+y &lt;- artfimaSDF(n, lambda=lambda, d=d)
+x &lt;- (1/n)*(1:length(y))
+lines(x, y, type="l", lwd=1.25)
+h &lt;- x[2]-x[1] #step length
+SimpsonsRule &lt;- function(h, y) {
+  n &lt;- length(y)
+  h/3*sum(y * c(1, rep(c(4,2), n-1), 1))
+}
+AreaApprox &lt;- SimpsonsRule(h, y)
+text(0.2, 230, labels=paste("Area under SDF using Simpson's Rule =", 
+                           round(AreaApprox,4)))
+text(0.2, 200, labels=paste("Theoretical ARTFIMA Variance =", round(TVarZ,4)))
+text(0.2, 170, labels=paste("mean(Ip) =", round(mean(Ip),4)))
+text(0.2, 140, labels=paste("sample variance =", round(VarZ,4)))
+</code></pre>
+
+
+</div>

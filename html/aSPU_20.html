@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MTaSPUs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The SPU and aSPU tests for multiple traits - single SNP association with GWAS summary statistics.</h2>
+
+<h3>Description</h3>
+
+<p>SNP based adaptive association test for multiple phenotypes with GWAS summary statistics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MTaSPUs(Z, v, B, pow, transform = FALSE, Ps = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>matrix of summary Z-scores, SNPs in rows and traits in columns. Or a vector of summary Z-scores for a single snp</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>estimated correlation matrix based on the summary Z-scores (output of estcov)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of Monte Carlo samples simulated to compute p-values, the maximum number of MC simulations is 1e8</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pow</code></td>
+<td>
+<p>power used in SPU test. A vector of the powers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>if TRUE, the inference is made on transformed Z</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ps</code></td>
+<td>
+<p>TRUE if input is p-value, FALSE if input is Z-scores. The default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>compute p-values for SPU(gamma) i.e. pow=1:8, and infinity
+aSPU, based on the minimum p-values over SPU(power)
+each row for single SNP
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Junghi Kim, Yun Bai and Wei Pan
+</p>
+
+
+<h3>References</h3>
+
+<p>Junghi Kim, Yun Bai and Wei Pan (2015) An Adaptive Association Test for Multiple Phenotypes with GWAS Summary Statistics, Genetic Epidemiology, 8:651-663
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>minP</code> <code>estcov</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# -- n.snp: number of SNPs
+# -- n.trait: number of traits
+# -- n.subject: number of subjects
+
+n.snp &lt;- 100
+n.traits &lt;- 10
+n.subjects &lt;- 1000
+traits &lt;- matrix(rnorm(n.subjects*n.traits), n.subjects, n.traits)
+v &lt;- cov(traits)
+allZ &lt;- rmvnorm(n.snp, Sigma=v)
+colnames(allZ) &lt;- paste("trait", 1:n.traits, sep="")
+rownames(allZ) &lt;- paste("snp", 1:n.snp, sep="")
+
+
+r &lt;- estcov(allZ)
+MTaSPUs(Z = allZ, v = r, B = 100, pow = c(1:4, Inf), transform = FALSE)
+MTaSPUs(Z = allZ[1,], v = r, B = 100, pow = c(1:4, Inf), transform = FALSE)
+minP(Zi= allZ[1,], r = r)
+
+</code></pre>
+
+
+</div>

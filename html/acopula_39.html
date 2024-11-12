@@ -1,0 +1,549 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>xCopula</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Archimax and generic copula distribution functions
+</h2>
+
+<h3>Description</h3>
+
+<p>Copula cumulative distribution function ('p'), probability density function ('d'), conditional probability cdf (c), quantile (q), random vector sampling ('r'), parameters estimation ('e'), goodness-of-fit test ('g'), checking copula properties ('is').
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pCopula(data, generator=genGumbel(), depfun=dep1(), copula=NULL, 
+  gpars=generator$parameters, dpars=depfun$parameters, 
+  pars=if(is.null(copula)) list(gpars,dpars) else copula$parameters,
+  subdivisions=50, quantile=NULL,probability=data[,quantile])
+  
+pCopulaEmpirical(data, base = data)
+
+dCopula(data,generator=genGumbel(),depfun=dep1(),copula=NULL,
+  gpars=generator$parameters, dpars=depfun$parameters,
+  pars=if(is.null(copula)) list(gpars,dpars) else copula$parameters,
+  difference=1e-4,area=c(0), shrinkdiff=FALSE)
+
+cCopula(data, conditional.on=c(1), generator=genGumbel(), depfun=dep1(), copula=NULL, 
+  gpars=generator$parameters, dpars=depfun$parameters, 
+  pars=if(is.null(copula)) list(gpars,dpars) else copula$parameters, 
+  difference=1e-4,area=c(0), quantile=NULL, probability=data[,quantile])
+
+qCopula(data, quantile=1, probability=0.95, conditional.on=NULL,
+  generator=genGumbel(), depfun=dep1(), copula=NULL, 
+  gpars=generator$parameters, dpars=depfun$parameters, 
+  pars=if(is.null(copula)) list(gpars,dpars) else copula$parameters, 
+  difference=1e-4, area=c(0))
+
+rCopula(n, dim=2, generator=genGumbel(), depfun=dep1(), copula=NULL, 
+  gpars=generator$parameters, dpars=depfun$parameters,
+  pars=if(is.null(copula)) list(gpars,dpars) else copula$parameters)
+                    
+rCopulaArchimax2D(n, generator=genLog(), depfun=dep1(), 
+  gpars=generator$parameters, dpars=depfun$parameters, pars=list(gpars,dpars))
+
+eCopula(data, generator=genGumbel(), depfun=dep1(), copula=NULL,
+  glimits=list(generator$lower,generator$upper), dlimits=list(depfun$lower,depfun$upper),
+  limits=list(copula$lower,copula$upper),
+  ggridparameters=if(!is.null(unlist(glimits))) do.call(
+    function(...) mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), glimits) else NULL, 
+  dgridparameters=if(!is.null(unlist(dlimits))) do.call(
+    function(...) mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), dlimits) else NULL, 
+  gridparameters=if(!is.null(unlist(limits))) do.call(function(...) 
+    mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), limits) else NULL,
+  technique=c("ML","LS","icorr"), procedure=c("optim","nlminb","nls","grid"), 
+  method="default", corrtype = c("kendall","spearman"), control=NULL, pgrid=10)
+
+gCopula(data, generator, depfun=dep1(), copula=NULL,
+  glimits=list(generator$lower,generator$upper), 
+  dlimits=list(depfun$lower,depfun$upper),
+  limits=list(copula$lower,copula$upper),
+  etechnique=c("ML","LS","icorr"), eprocedure=c("optim","nlminb","nls"), 
+  emethod="default", ecorrtype=c("kendall","spearman"), econtrol=NULL,  
+  N=100, m=nrow(data), ncores=1)
+
+gCopulaEmpirical(data,N=100,ncores=1)
+
+isCopula(generator=genLog(),depfun=dep1(), copula=NULL,
+  glimits=list(generator$lower,generator$upper), 
+  dlimits=list(depfun$lower,depfun$upper),
+  limits=list(copula$lower,copula$upper),  
+  ggridparameters=if(!is.null(unlist(glimits))) do.call(
+    function(...) mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), glimits) else NULL,
+  dgridparameters=if(!is.null(unlist(dlimits))) do.call(
+    function(...) mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), dlimits) else NULL, 
+  gridparameters=if(!is.null(unlist(limits))) do.call(
+    function(...) mapply(c,...,length.out=pgrid,SIMPLIFY=FALSE), limits) else NULL,
+  dagrid=10, pgrid=10, dim=3, tolerance=1e-15)
+
+
+## S3 method for class 'eCopulaArchimax'
+print(x,...)
+## S3 method for class 'eCopulaGeneric'
+print(x,...)
+## S3 method for class 'gCopula'
+print(x,...)
+## S3 method for class 'isCopula'
+print(x,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>vector, matrix or data frame with as many columns as variables. List of two such objects in case of <code>gCopulaEmpirical</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generator</code></td>
+<td>
+
+<p>list containing archimedean generator, it's inverse, parameter bounds and possibly derivatives. See <code>generator</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>depfun</code></td>
+<td>
+
+<p>list containing Pickand's dependence function, parameter bounds and possibly derivatives. See <code>depfun</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copula</code></td>
+<td>
+
+<p>list containing generic copula CDF and/or PDF, parameter values and bounds. See <code>copula</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+
+<p>either numeric vector of generic copula parameters, or list of two vectors: generator parameters and dependence function parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpars</code></td>
+<td>
+
+<p>numeric vector of <code>generator</code> parameters, <code>NULL</code> in trivial case.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dpars</code></td>
+<td>
+
+<p>numeric vector of <code>depfun</code> parameters, <code>NULL</code> in trivial case.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile</code></td>
+<td>
+
+<p>numeric. Index of the quantile variable among other variables; if <code>NULL</code> (default) then no quantile is computed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probability</code></td>
+<td>
+
+<p>numeric. Probability corresponding to the wanted quantile. Replicated to length of the data. By default <code>quantile</code>-th column of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subdivisions</code></td>
+<td>
+
+<p>integer. Parameter passed to <code>nintegrate</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>difference</code></td>
+<td>
+
+<p>parameter passed to <code>nderive</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+
+<p>data.frame or matrix. Data set from which an empirical copula is constructed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+
+<p>parameter passed to <code>nderive</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrinkdiff</code></td>
+<td>
+
+<p>logical. Whether to shrink <code>difference</code> if [0,1] interval is exceeded. By default, <code>area</code> is changed instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conditional.on</code></td>
+<td>
+
+<p>numeric. Index of variables to be conditioned on.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+
+<p>number of random observations to be generated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim</code></td>
+<td>
+
+<p>number of dimensions of copula = number of variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>glimits, dlimits, limits</code></td>
+<td>
+
+<p>list of two vectors: lower and upper bound of <code>generator</code>, <code>depfun</code> and generic copula parameters, respectively.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>technique, etechnique</code></td>
+<td>
+
+<p>copula parameters estimation method: Maximum pseudo-likelihood <code>"ML"</code>, Least square distance to empirical copula <code>"LS"</code> and Inversion of correlation coefficient relation to copula parameter <code>"icorr"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>procedure, eprocedure</code></td>
+<td>
+
+<p>R optimization routine to estimate parameters (<code>"optim"</code>, <code>"nlminb"</code>, <code>"nls"</code>) or "brute force" search over parameter grid (<code>"grid"</code>). The last one is useful when the other methods give unsatisfactory results. <code>"nls"</code> cannot be used with ML technique. Ignored with "icorr" technique.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method, emethod</code></td>
+<td>
+
+<p>optimisation algorithm used by <code>optim</code> procedure.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corrtype,ecorrtype</code></td>
+<td>
+
+<p>character. Correlation coeficient used by <code>icorr</code> technique, either "kendall" and "spearman".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control,econtrol</code></td>
+<td>
+
+<p>list of control settings passed to optimization routines.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ggridparameters, dgridparameters, gridparameters</code></td>
+<td>
+
+<p>list of parameters values to create a grid from; any list item can be vector of elements named to match <code>seq()</code> arguments; by default the sequence is constructed from <code>glimits</code>,<code>dlimits</code>,<code>limits</code>, respectively, and <code>pgrid</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pgrid</code></td>
+<td>
+
+<p>number of grid points in each dimension of parameters space. Used when <code>gparameters, dparameters</code> are not supplied.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>number of bootstrap cycles.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+
+<p>number of Monte Carlo cyles needed in approximation of parametric function if there is no analytical expression available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncores</code></td>
+<td>
+
+<p>number of cores to be used for p-value simulation. Parallelization requires package <code>parallel</code> or <code>multicore</code> and may not work on Windows OS.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dagrid</code></td>
+<td>
+
+<p>integer. Number of data grid nodes used to check copula properties in.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+
+<p>numeric. How much to tolerate departure of numeric results from theoretical values/limits.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>an object used to select a method.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>further arguments passed to or from other methods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Numeric vector, in case of <code>p</code>,<code>d</code>,<code>c</code> and <code>qCopula</code>.
+</p>
+<p>Matrix from <code>rCopula</code>.
+</p>
+<p><code>eCopula</code> returns list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>list of numeric vectors. Generator, depfu or generic copula parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approach</code></td>
+<td>
+<p>character vector of length 3 describing estimation and optimization method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fvalue</code></td>
+<td>
+<p>numeric. Value of the optimized function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>procedure.output</code></td>
+<td>
+<p>list. Full outcome of an optimization function.</p>
+</td>
+</tr>
+</table>
+<p><code>gCopula</code> and <code>gCopulaEmpirical</code> return list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>numeric. GOF test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q95</code></td>
+<td>
+<p>numeric. 95% quantile or critical value from bootstrap simulations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>numeric. p-value from bootstrap simulations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate</code></td>
+<td>
+<p>numeric vector. Copula parameters estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.name</code></td>
+<td>
+<p>character. Name of the supplied data object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character. Identification of GoF test used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitting_method</code></td>
+<td>
+<p>character vector of length 3. Sumarizes estimation and optimiztion method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>copula_id</code></td>
+<td>
+<p>character. Generator and depfu id, or copula id.</p>
+</td>
+</tr>
+</table>
+<p><code>isCopula</code> returns list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>is.copula</code></td>
+<td>
+<p>logical. FALSE if any of copula properties is violated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>issues</code></td>
+<td>
+<p>data frame. Consists of 1) index of variable, 2) violated property, 3) deviation from allowed range, 4) copula parameters for which the issue emerged.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Tomas Bacigal
+</p>
+
+
+<h3>References</h3>
+
+<p>Genest, C., Rémillard, B. and Beaudoin, D. (2009): Goodness-of-fit tests for copulas: A review and a power study. <em>Insurance: Mathematics and Economics</em> 44, 199–213.
+</p>
+<p>Rémillard, B., Scaillet, O. (2009): Testing for equality between two copulas. <em>Journal of Multivariate Analysis</em> 100(3), 377–386.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>generator</code>, <code>depfun</code>, <code>pCopula</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## assign generator definition list with specific parameter
+ge &lt;- genGumbel(parameters=4)
+
+## probability P(U&lt;0.3,V&lt;0.5)
+pCopula(c(0.3,0.5),ge)  #0.2906142
+## quantile q for which P(U&lt;q,V&lt;0.5)=0.2906142
+pCopula(c(0.2906142,0.5),ge,quantile=1)  #0.3000175
+pCopula(c(NA,0.5),ge,quantile=1,probability=0.2906142)
+qCopula(c(0.5),quantile=1,probability=0.2906142,generator=ge)
+
+## conditional probability P(U&lt;0.3|V=0.5)
+cCopula(c(0.3,0.5),ge,conditional.on=2)  #0.1025705
+## quantile q for which conditional probability P(U&lt;q|V=0.5)=0.1025705
+cCopula(c(0.1025705,0.5),conditional.on=2,generator=ge,quantile=1)  #0.2999861
+cCopula(c(NA,0.5),conditional.on=2,generator=ge,quantile=1,probability=0.1025705)
+qCopula(c(0.5),quantile=1,probability=0.1025705,conditional.on=2,generator=ge)
+
+## copula density
+dCopula(c(0.3,0.5),ge) #1.083797
+local({
+x &lt;- y &lt;- seq(0,1,length.out=20)
+persp(x,y,matrix(dCopula(expand.grid(x,y),ge),nrow=length(x)),r=2,zlab="density")
+})
+
+## simulate random vector
+rge &lt;- rCopula(100,dim=2,ge) 
+plot(rge)
+# Observe that using rCopula(100,dim=2,cop=copGumbel(parameters=4)) 
+# would take much more time to sample, since numerical derivative needs to be employed. 
+
+## --- fit copula to data set
+# maximum likelihood (using density)
+eCopula(rge,ge,technique="ML")
+# some methods has no support for parameters bounds (do not mind a warning message)
+eCopula(rge,ge,technique="ML",method="BFGS")  
+# least-square fit to empirical copula
+eCopula(rge,ge,technique="LS",procedure="nlminb")  
+# maximizing discretized likelihood function
+eCopula(rge,ge,technique="ML",procedure="grid",glimits=list(2.,6.),pgrid=20)  
+# specify nodes of the grid
+eCopula(rge,ge,tech="ML",proc="grid",ggridparameters=list(c(2.,6.,length.out=20))) 
+# without naming, it won't create sequence
+eCopula(rge,ge,technique="ML",procedure="grid",ggridparameters=list(c(2.,6.,20)))
+# inversion of Kendall's tau
+eCopula(rge,ge,technique="icorr",corrtype="kendall")
+
+## --- GoF test, set substantially higher N to increase precision of p-value
+gCopula(rge,ge,etechnique="ML",N=5)
+# parallel computing takes lesser time, but the progress is not displayed
+# not available on Windows OS
+if(.Platform$OS.type!="windows") {
+  gCopula(rge,ge,etechnique="ML",N=5,ncores=2)
+}
+
+## testing if two data sets has equal copulas
+rge1 &lt;- rCopula(80,dim=2,genClayton(),gpars=3)
+gCopula(list(rge,rge1),N=5)
+
+## check whether some hypotheticaly-copula function does not violate  
+## copula properties (over data and parameters grid)
+isCopula(genGumbel(),dagrid=10,pgrid=10,tolerance=1e-15)
+
+## all the above functions are ready for archimax or generic copulas 
+## as well as for higher dimensions
+pCopula(c(0.3,0.5,1.0),genClayton(),depGumbel(),gpars=0.01,dpars=4.)  #0.2907613
+pCopula(c(0.3,0.5,1.0),copula=copGumbel(),pars=4.)  #0.2906142
+
+</code></pre>
+
+
+</div>

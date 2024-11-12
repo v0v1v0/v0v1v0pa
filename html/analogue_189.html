@@ -1,0 +1,429 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Modern Analogue Technique transfer function models</h2>
+
+<h3>Description</h3>
+
+<p>Modern Analogue Technique (MAT) transfer function models for
+palaeoecology. The fitted values are the, possibly weighted, averages
+of the environment for the <em>k</em>-closest modern analogues. MAT is a
+<em>k</em>-NN method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mat(x, ...)
+
+## Default S3 method:
+mat(x, y,
+    method = c("euclidean", "SQeuclidean", "chord", "SQchord",
+               "bray", "chi.square", "SQchi.square",
+               "information", "chi.distance", "manhattan",
+               "kendall", "gower", "alt.gower", "mixed"),
+    kmax, ...)
+
+## S3 method for class 'formula'
+mat(formula, data, subset, na.action,
+    method = c("euclidean", "SQeuclidean", "chord", "SQchord",
+               "bray", "chi.square", "SQchi.square",
+               "information", "chi.distance", "manhattan",
+               "kendall", "gower", "alt.gower", "mixed"),
+    model = FALSE, ...)
+
+## S3 method for class 'mat'
+fitted(object, k, weighted = FALSE, ...)
+
+## S3 method for class 'mat'
+residuals(object, k, weighted = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a data frame containing the training set data, usually
+species data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a vector containing the response variable, usually
+environmental data to be predicted from <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fit. The
+details of model specification are given below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object
+coercible by <code>as.data.frame</code> to a data frame) containing
+the variables in the model.  If not found in <code>data</code>, the
+variables are taken from <code>environment(formula)</code>, typically the
+environment from which <code>wa</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when
+the data contain <code>NA</code>s.  The default is set by the
+<code>na.action</code> setting of <code>options</code>, and is
+<code>na.fail</code> if that is unset.  The "factory-fresh" default
+is <code>na.omit</code>.  Another possible value is <code>NULL</code>, no
+action. Value <code>na.exclude</code> can be useful.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character string indicating the dissimilarity
+(distance) coefficient to be used to define modern analogues. See
+Details, below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>logical; If <code>TRUE</code> the model frame of the fit is
+returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kmax</code></td>
+<td>
+<p>numeric; limit the maximum number of analogues considered
+during fitting. By default, <code>kmax</code> is equal to <code class="reqn">n - 1</code>,
+where <code class="reqn">n</code> is the number of sites. For large data sets this is
+just wasteful as we wouldn't expect to be averaging over the entire
+training set. <code>kmax</code> can be used to restrict the upper limit on
+the number of analogues considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class <code>mat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; the <em>k</em>-closest analogue models' for which
+fitted values and residuals are returned. Overides the default stored in
+the object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; should weighted averages be used instead of
+simple averages?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments can be passed to <code>distance</code> to
+provide additional optios required for some dissimilarities.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Modern Analogue Technique (MAT) is perhaps the simplest of the
+transfer function models used in palaeoecology. An estimate of the
+environment, <code class="reqn">x</code>, for the response for a fossil sample, <code class="reqn">y</code>,
+is the, possibly weighted, mean of that variable across the
+<em>k</em>-closest modern analogues selected from a modern  training set
+of samples. If used, weights are the reciprocal of the dissimilarity
+between the fossil sample and each modern analogue.
+</p>
+<p>A typical model has the form <code>response ~ terms</code> where
+<code>response</code> is the (numeric) response data frame and <code>terms</code>
+is a series of terms which specifies a linear predictor for
+<code>response</code>. A typical form for <code>terms</code> is <code>.</code>,
+which is shorthand for "all variables" in <code>data</code>. If <code>.</code> is
+used, <code>data</code> must also be provided. If specific species
+(variables) are required then <code>terms</code> should take the form
+<code>spp1 + spp2 + spp3</code>.
+</p>
+<p>Pairwise sample dissimilarity is defined by dissimilarity or
+distance coefficients. A variety of coefficients are supported — see
+<code>distance</code> for details of the supported coefficients.
+</p>
+<p><em>k</em> is chosen by the user. The simplest choice for <em>k</em> is to
+evaluate the RMSE of the difference between the predicted and observed
+values of the environmental variable of interest for the training set
+samples for a sequence of models with increasing <em>k</em>. The number
+of analogues chosen is the value of <em>k</em> that has lowest
+RMSE. However, it should be noted that this value is biased as the
+data used to build the model are also used to test the predictive
+power.
+</p>
+<p>An alternative approach is to employ an optimisation data set on which
+to evaluate the size of <code class="reqn">k</code> that provides the lowest RMSEP. This
+may be impractical with smaller sample sizes.
+</p>
+<p>A third option is to bootstrap re-sample the training set many times. At
+each bootstrap sample, predictions for samples in the bootstrap test
+set can be made for <code class="reqn">k = 1, ..., n</code>, where <code class="reqn">n</code> is the
+number of samples in the training set. <code class="reqn">k</code> can be chosen from the
+model with the lowest RMSEP. See function <code>bootstrap.mat</code> for
+further details on choosing <code class="reqn">k</code>.
+</p>
+<p>The output from <code>summary.mat</code> can be used to choose
+<code class="reqn">k</code> in the first case above. For predictions on an optimsation or
+test set see <code>predict.mat</code>. For bootstrap resampling of
+<code>mat</code> models, see <code>bootstrap.mat.</code>
+</p>
+<p>The fitted values are for the training set and are taken as the,
+possibly weighted, mean of the environmental variable in question
+across the <em>k</em>-closest analogues. The fitted value for each
+sample does <b>not</b> include a contribution from itself — it is
+the closest analogue, having zero dissimilarity. This spurious
+distance is ignored and analogues are ordered in terms of the non-zero
+distances to other samples in the training set, with the
+<em>k</em>-closest contributing to the fitted value.
+</p>
+<p>Typical usages for <code>residuals.mat</code> are:
+</p>
+<pre>
+    resid(object, k, weighted = FALSE, \dots)
+  </pre>
+
+
+<h3>Value</h3>
+
+<p><code>mat</code> returns an object of class <code>mat</code> with the following
+components: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>standard</code></td>
+<td>
+<p>list; the model statistics based on simple
+averages of <em>k</em>-closest analogues. See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>list; the model statistics based on weighted  of
+<em>k</em>-closest analogues. See below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dij</code></td>
+<td>
+<p>matrix of pairwise sample dissimilarities for the training
+set <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig.x</code></td>
+<td>
+<p>the original training set data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig.y</code></td>
+<td>
+<p>the original environmental data or response, <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the dissimilarity coefficient used.</p>
+</td>
+</tr>
+</table>
+<p>If <code>model = TRUE</code> then additional components <code>"terms"</code> and
+<code>"model"</code> are returned containing the <code>terms</code> object
+and model frame used.
+</p>
+<p><code>fitted.mat</code> returns a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimated</code></td>
+<td>
+<p>numeric; a vector of fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric; this is the <em>k</em>-closest analogue model with
+lowest apparent RMSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+<p>logical; are the fitted values the weighted averages
+of the environment for the <em>k</em>-closest analogues. If
+<code>FALSE</code>, the fitted values are the average of the environment
+for the <em>k</em>-closest analogues.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The object returned by <code>mat</code> contains lists <code>"standard"</code> and
+<code>"weighted"</code> both with the following elements:
+</p>
+
+<dl>
+<dt><code>est</code></dt>
+<dd>
+<p>a matrix of estimated values for the training set
+samples for models using <code class="reqn">k</code> analogues, where <code class="reqn">k = 1,
+	..., n</code>. <code class="reqn">n</code> is the number of smaples in the training
+set. Rows contain the values for each model of size <code class="reqn">k</code>, with
+colums containing the estimates for each training set sample.</p>
+</dd>
+<dt><code>resid</code></dt>
+<dd>
+<p>matrix; as for <code>"est"</code>, but containing the
+model residuals.</p>
+</dd>
+<dt><code>rmsep</code></dt>
+<dd>
+<p>vector; containing the leave-one-out root mean square
+error or prediction.</p>
+</dd>
+<dt><code>avg.bias</code></dt>
+<dd>
+<p>vector; contains the average bias (mean of
+residuals) for models using <em>k</em> analogues, where <code class="reqn">k = 1,
+	..., n</code>. <code class="reqn">n</code> is the number of smaples in the training set.</p>
+</dd>
+<dt><code>max.bias</code></dt>
+<dd>
+<p>vector; as for <code>"avg.bias"</code>, but
+containing the maximum bias statistics.</p>
+</dd>
+<dt><code>r.squared</code></dt>
+<dd>
+<p>vector; as for <code>"avg.bias"</code>, but
+containing the <code class="reqn">R^2</code> statistics.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Gavin L. Simpson</p>
+
+
+<h3>References</h3>
+
+<p>Gavin, D.G., Oswald, W.W., Wahl, E.R. and Williams, J.W. (2003) A
+statistical approach to evaluating distance metrics and analog
+assignments for pollen records. <em>Quaternary Research</em>
+<strong>60</strong>, 356–367.
+</p>
+<p>Overpeck, J.T., Webb III, T. and Prentice I.C. (1985) Quantitative
+interpretation of fossil pollen spectra: dissimilarity coefficients and
+the method of modern analogues. <em>Quaternary Research</em> <strong>23</strong>,
+87–108.
+</p>
+<p>Prell, W.L. (1985) The stability of low-latitude sea-surface
+temperatures: an evaluation of the CLIMAP reconstruction with emphasis
+on the positive SST anomalies, Report TR 025. U.S. Department of
+Energy, Washington, D.C.
+</p>
+<p>Sawada, M., Viau, A.E., Vettoretti, G., Peltier, W.R. and Gajewski,
+K. (2004) Comparison of North-American pollen-based temperature and
+global lake-status with CCCma AGCM2 output at 6 ka. <em>Quaternary
+Science Reviews</em> <strong>23</strong>, 87–108.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.mat</code>, <code>bootstrap.mat</code> for boostrap
+resampling of MAT models, <code>predict.mat</code> for making
+predictions from MAT models, <code>fitted.mat</code> and
+<code>resid.mat</code> for extraction of fitted values and residuals
+from MAT models respectively. <code>plot.mat</code> provides a
+<code>plot.lm</code>-like plotting tool for MAT models.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Imbrie and Kipp Sea Surface Temperature
+data(ImbrieKipp)
+data(SumSST)
+data(V12.122)
+
+## merge training set and core samples
+dat &lt;- join(ImbrieKipp, V12.122, verbose = TRUE)
+
+## extract the merged data sets and convert to proportions
+ImbrieKipp &lt;- dat[[1]] / 100
+ImbrieKippCore &lt;- dat[[2]] / 100
+
+## fit the MAT model using the squared chord distance measure
+ik.mat &lt;- mat(ImbrieKipp, SumSST, method = "chord")
+ik.mat
+
+## model summary
+summary(ik.mat)
+
+## fitted values
+fitted(ik.mat)
+
+## model residuals
+resid(ik.mat)
+
+## draw summary plots of the model
+par(mfrow = c(2,2))
+plot(ik.mat)
+par(mfrow = c(1,1))
+
+## reconstruct for the V12.122 core data
+coreV12.mat &lt;- predict(ik.mat, V12.122, k = 3)
+coreV12.mat
+summary(coreV12.mat)
+
+## draw the reconstruction
+reconPlot(coreV12.mat, use.labels = TRUE, display.error = "bars",
+          xlab = "Depth", ylab = "SumSST")
+
+## fit the MAT model using the squared chord distance measure
+## and restrict the number of analogues we fit models for to 1:20
+ik.mat2 &lt;- mat(ImbrieKipp, SumSST, method = "chord", kmax = 20)
+ik.mat2
+
+</code></pre>
+
+
+</div>

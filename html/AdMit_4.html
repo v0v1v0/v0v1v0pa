@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Mit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mixture of Student-t Distributions</h2>
+
+<h3>Description</h3>
+
+<p>Density function or random generation for an adaptive mixture of
+Student-t distributions
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">
+dMit(theta, mit = list(), log = TRUE)
+rMit(N = 1, mit = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>matrix (of size <code class="reqn">N \times d</code>, where
+<code class="reqn">N,d \geq 1</code>) of real values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mit</code></td>
+<td>
+<p>list containing information on the mixture approximation (see *Details*).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>logical; if <code>log = TRUE</code>, returns (natural) logarithm
+values of the density. Default: <code>log = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>number of draws (positive integer number).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<p><code>dMit</code> returns the density values while <code>rMit</code> generates
+draws from a mixture of Student-t distributions.
+</p>
+<p>The argument <code>mit</code> is a list containing information on the
+adaptive mixture of Student-t distributions. The following components must
+be provided:
+</p>
+
+<dl>
+<dt><code>p</code></dt>
+<dd>
+<p>vector (of length <code class="reqn">H</code>) of mixture probabilities.</p>
+</dd>
+<dt><code>mu</code></dt>
+<dd>
+<p>matrix (of size <code class="reqn">H \times d</code>) containing
+the vectors of modes (in row) of the mixture components.</p>
+</dd>
+<dt><code>Sigma</code></dt>
+<dd>
+<p>matrix (of size <code class="reqn">H \times d^2</code>)
+containing the scale matrices (in row) of the mixture components.</p>
+</dd>
+<dt><code>df</code></dt>
+<dd>
+<p>degrees of freedom parameter of the Student-t
+components (integer number not smaller than one).</p>
+</dd>
+</dl>
+<p>where <code class="reqn">H (\geq 1)</code> is the number of components and
+<code class="reqn">d (\geq 1)</code> is
+the dimension of the mixture approximation. Typically,
+<code>mit</code> is estimated by the function <code>AdMit</code>. If the
+<code>mit = list()</code>, a Student-t distribution located
+at <code>rep(0,d)</code> with scale matrix <code>diag(d)</code> and one
+degree of freedom parameter is used.
+</p>
+
+
+<h3>Value</h3>
+
+
+<p>Vector (of length <code class="reqn">N</code> of density values, or matrix (of size
+<code>N</code>x<code class="reqn">d</code>) of random draws, where <code class="reqn">d (\geq 1)</code> is the
+dimension of the mixture approximation.
+</p>
+
+
+<h3>Note</h3>
+
+
+<p>Further details and examples of the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> package <code>AdMit</code>
+can be found in Ardia, Hoogerheide, van Dijk (2009a,b). See also
+the package vignette by typing <code>vignette("AdMit")</code>.
+</p>
+<p>Please cite the package in publications. Use <code>citation("AdMit")</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Ardia</p>
+
+
+<h3>References</h3>
+
+
+<p>Ardia, D., Hoogerheide, L.F., van Dijk, H.K. (2009a).
+AdMit: Adaptive Mixture of Student-t Distributions.
+<em>R Journal</em> <b>1</b>(1), pp.25-30.
+doi: <a href="https://doi.org/10.32614/RJ-2009-003">10.32614/RJ-2009-003</a>
+</p>
+<p>Ardia, D., Hoogerheide, L.F., van Dijk, H.K. (2009b).
+Adaptive Mixture of Student-t Distributions as a Flexible Candidate
+Distribution for Efficient Simulation: The R Package AdMit.
+<em>Journal of Statistical Software</em> <b>29</b>(3), pp.1-32.
+doi: <a href="https://doi.org/10.18637/jss.v029.i03">10.18637/jss.v029.i03</a>
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p><code>AdMit</code> for fitting an adaptive mixture of
+Student-t distributions to a given function <code>KERNEL</code>,
+<code>AdMitIS</code> for importance sampling using an adaptive
+mixture of Student-t distributions as the importance density,
+<code>AdMitMH</code> for the independence chain Metropolis-Hastings
+using an adaptive mixture of Student-t distributions as the
+candidate density.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  ## NB : Low number of draws for speedup. Consider using more draws!
+  ## One dimensional two components mixture of Student-t distributions
+  mit &lt;- list(p = c(0.5, 0.5),
+              mu = matrix(c(-2.0, 0.5), 2, 1, byrow = TRUE),
+              Sigma = matrix(0.1, 2),
+              df = 10)
+  ## Generate draws from the mixture
+  hist(rMit(1e4, mit = mit), nclass = 100, freq = FALSE)
+  x &lt;- seq(from = -5.0, to = 5.0, by = 0.01)
+  ## Add the density to the histogram
+  lines(x, dMit(x, mit = mit, log = FALSE), col = "red", lwd = 2)
+
+  ## Two dimensional (one component mixture) Student-t distribution
+  mit &lt;- list(p = 1,
+              mu = matrix(0.0, 1.0, 2.0),
+              Sigma = matrix(c(1.0, 0.0, 0.0, 1.0), 1, 4),
+              df = 10)
+  ## Function used to plot the mixture in two dimensions
+  dMitPlot &lt;- function(x1, x2, mit = mit)
+  {
+    dMit(cbind(x1, x2), mit = mit, log = FALSE)
+  }
+  x1 &lt;- x2 &lt;- seq(from = -10.0, to = 10.0, by = 0.1)
+  thexlim &lt;- theylim &lt;- range(x1)
+  z &lt;- outer(x1, x2, FUN = dMitPlot, mit = mit)
+  ## Contour plot of the mixture
+  contour(x1, x2, z, nlevel = 20, las = 1, 
+          col = rainbow(20),
+          xlim = thexlim, ylim = theylim)
+  par(new = TRUE)
+  ## Generate draws from the mixture
+  plot(rMit(1e4, mit = mit), pch = 20, cex = 0.3, 
+            xlim = thexlim, ylim = theylim, col = "red", las = 1)
+
+</code></pre>
+
+
+</div>

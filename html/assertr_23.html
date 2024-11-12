@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>insist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Raises error if dynamically created predicate is FALSE in any columns
+selected</h2>
+
+<h3>Description</h3>
+
+<p>Meant for use in a data analysis pipeline, this function applies a predicate
+generating function to each of the columns indicated. It will then use these
+predicates to check every element of those columns. If any of these
+predicate applications yield FALSE, this function will raise an error,
+effectively terminating the pipeline early. If there are no FALSES, this
+function will just return the data that it was supplied for further use in
+later parts of the pipeline.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">insist(
+  data,
+  predicate_generator,
+  ...,
+  success_fun = success_continue,
+  error_fun = error_stop,
+  skip_chain_opts = FALSE,
+  obligatory = FALSE,
+  defect_fun = defect_append,
+  description = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predicate_generator</code></td>
+<td>
+<p>A function that is applied
+to each of the column vectors selected. This will produce,
+for every column, a true predicate function to be applied to
+every element in the column vectors selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Comma separated list of unquoted expressions.
+Uses dplyr's <code>select</code> to select
+columns from data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>success_fun</code></td>
+<td>
+<p>Function to call if assertion passes. Defaults to
+returning <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error_fun</code></td>
+<td>
+<p>Function to call if assertion fails. Defaults to printing
+a summary of all errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip_chain_opts</code></td>
+<td>
+<p>If TRUE, <code>success_fun</code> and <code>error_fun</code>
+are used even if assertion is called within a chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obligatory</code></td>
+<td>
+<p>If TRUE and assertion failed the data is marked as defective.
+For defective data, all the following rules are handled by
+<code>defect_fun</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>defect_fun</code></td>
+<td>
+<p>Function to call when data is defective. Defaults to skipping
+assertion and storing info about it in special attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>Custom description of the rule. Is stored in result
+reports and data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For examples of possible choices for the <code>success_fun</code> and
+<code>error_fun</code> parameters, run <code>help("success_and_error_functions")</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, the <code>data</code> is returned if dynamically created
+predicate assertion is TRUE and and error is thrown if not. If a
+non-default <code>success_fun</code> or <code>error_fun</code> is used, the
+return values of these function will be returned.
+</p>
+
+
+<h3>Note</h3>
+
+<p>See <code>vignette("assertr")</code> for how to use this in context
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>assert</code> <code>verify</code> <code>insist_rows</code>
+<code>assert_rows</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+insist(iris, within_n_sds(3), Sepal.Length)   # returns iris
+
+library(magrittr)
+
+iris %&gt;%
+  insist(within_n_sds(4), Sepal.Length:Petal.Width)
+  # anything here will run
+
+## Not run: 
+iris %&gt;%
+  insist(within_n_sds(3), Sepal.Length:Petal.Width)
+  # datum at index 16 of 'Sepal.Width' vector is (4.4)
+  # is outside 3 standard deviations from the mean of Sepal.Width.
+  # The check fails, raises a fatal error, and the pipeline
+  # is terminated so nothing after this statement will run
+## End(Not run)
+
+</code></pre>
+
+
+</div>

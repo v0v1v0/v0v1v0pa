@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>resid_semiconti</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Residuals for regression models with semicontinuous outcomes</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the DPIT residuals for regression models with semi-continuous outcomes.
+The semi-continuous regression model such as
+a Tweedie regression model from <code>tweedie</code> package or a Tobit regression model
+from <code>VGAM</code>, <code>AER</code> packages is used in this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">resid_semiconti(model, plot=TRUE, scale = "normal")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model object (e.g., <code>tweedie</code>, <code>vglm</code>, and <code>tobit</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A logical value indicating whether or not to return QQ-plot</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>You can choose the scale of the residuals between <code>normal</code> and <code>uniform</code> scales. The default scale is <code>normal</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The DPIT residual for the <code class="reqn">i</code>th semicontinuous observation is defined as follows:
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{r}_i = \frac{\hat{F}(Y_i|X_i)}{n}\sum_{j=1}^{n}I\bigg(\hat{p}_0(X_j) \leq \hat{F}(Y_i|X_i)\bigg),</code>
+</p>
+
+<p>which has a null distribution of uniformity.
+<code class="reqn">\hat{F}</code> refers to the fitted cumulative distribution function,
+and <code class="reqn">\hat{p}_0</code> refers to the fitted probability of being zero.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Residuals. If plot=TRUE, also produces a QQ plot.
+</p>
+
+
+<h3>References</h3>
+
+<p>Lu Yang (2024). Diagnostics for Regression Models with Semicontinuous Outcomes, Biometrics, https://arxiv.org/abs/2401.06347
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>resid_2pm()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Tweedie model
+library(tweedie)
+library(statmod)
+n &lt;- 500
+x11 &lt;- rnorm(n)
+x12 &lt;- rnorm(n)
+beta0 &lt;- 5
+beta1 &lt;- 1
+beta2 &lt;- 1
+lambda1 &lt;- exp(beta0 + beta1 * x11 + beta2 * x12)
+y1 &lt;- rtweedie(n, mu = lambda1, xi = 1.6, phi = 10)
+# Choose parameter p
+# True model
+model1 &lt;-
+  glm(y1 ~ x11 + x12,
+    family = tweedie(var.power = 1.6, link.power = 0)
+  )
+resid.tweedie &lt;- resid_semiconti(model1)
+
+## Tobit regression model
+library(VGAM)
+beta13 &lt;- 1
+beta14 &lt;- -3
+beta15 &lt;- 3
+
+set.seed(1234)
+x11 &lt;- runif(n)
+x12 &lt;- runif(n)
+lambda1 &lt;- beta13 + beta14 * x11 + beta15 * x12
+sd0 &lt;- 0.3
+yun &lt;- rnorm(n, mean = lambda1, sd = sd0)
+y &lt;- ifelse(yun &gt;= 0, yun, 0)
+
+# Using VGAM package
+# True model
+fit1 &lt;- vglm(formula = y ~ x11 + x12, tobit(Upper = Inf, Lower = 0, lmu = "identitylink"))
+# Missing covariate
+fit1miss &lt;- vglm(formula = y ~ x11, tobit(Upper = Inf, Lower = 0, lmu = "identitylink"))
+
+resid.tobit1 &lt;- resid_semiconti(fit1, plot = TRUE)
+resid.tobit2 &lt;- resid_semiconti(fit1miss, plot = TRUE)
+
+# Using AER package
+library(AER)
+# True model
+fit2 &lt;- tobit(y ~ x11 + x12, left = 0, right = Inf, dist = "gaussian")
+# Missing covariate
+fit2miss &lt;- tobit(y ~ x11, left = 0, right = Inf, dist = "gaussian")
+resid.aer1 &lt;- resid_semiconti(fit2, plot = TRUE)
+resid.aer2 &lt;- resid_semiconti(fit2miss, plot = TRUE)
+</code></pre>
+
+
+</div>

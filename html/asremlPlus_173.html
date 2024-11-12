@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validAlldiffs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Checks that an object is a valid alldiffs object.</h2>
+
+<h3>Description</h3>
+
+<p>Checks that an <code>object</code> is an <code>alldiffs.object</code> of S3-class 
+<code>alldiffs</code> containing the components <code>asreml.obj</code>, 
+<code>wald.tab</code> and <code>test.summary</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validAlldiffs(object)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an <code>alldiffs.object</code>.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p><code>TRUE</code> or a <code>character</code> describing why the <code>object</code> 
+is not a valid <code>alldiffs.object</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>alldiffs.object</code>, <code>is.alldiffs</code>, <code>as.alldiffs</code>, <br><code>validPredictionsFrame</code>, <code>validAsrtests</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Oats.dat)
+  
+  ## Use lmerTest and emmmeans to get predictions and associated statistics
+  if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+      requireNamespace("emmeans", quietly = TRUE))
+  {
+    m1.lmer &lt;- lmerTest::lmer(Yield ~ Nitrogen*Variety + (1|Blocks/Wplots),
+                              data=Oats.dat)
+    Var.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Nitrogen:Variety)
+    Var.preds &lt;- summary(Var.emm)
+    den.df &lt;- min(Var.preds$df)
+    ## Modify Var.preds to be compatible with a predictions.frame
+    Var.preds &lt;- as.predictions.frame(Var.preds, predictions = "emmean", 
+                                      se = "SE", interval.type = "CI", 
+                                      interval.names = c("lower.CL", "upper.CL"))
+    Var.vcov &lt;- vcov(Var.emm)
+    Var.sed &lt;- NULL
+
+    ## Form an all.diffs object
+     Var.diffs &lt;- as.alldiffs(predictions = Var.preds, classify = "Nitrogen:Variety", 
+                              sed = Var.sed, vcov = Var.vcov, tdf = den.df)
+
+    ## check the validity of Var.diffs
+    validAlldiffs(Var.diffs)
+  }
+</code></pre>
+
+
+</div>

@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>arms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adaptive Rejection Metropolis Sampling</h2>
+
+<h3>Description</h3>
+
+<p>This function performs Adaptive Rejection Metropolis Sampling to sample from
+a target distribution specified by its (potentially unnormalised) log
+density. The function constructs a rejection distribution based on piecewise
+linear functions that envelop the log density of the target.
+<br><br>
+If the target is log-concave, the <code>metropolis</code> parameter can be set to
+<code>FALSE</code>, and an accept-reject sampling scheme is used which yields
+independent samples.
+<br><br>
+Otherwise, if <code>metropolis</code> is <code>TRUE</code>, a Metropolis-Hastings step is
+used to construct a Markov chain with a stationary distribution matching the
+target. It is possible in this case for the rejection distribution to be a
+poor proposal, so users should be careful to check the output matches the
+desired distribution.
+<br><br>
+All arguments other than <code>n_samples</code>, <code>include_n_evaluations</code> and
+<code>arguments</code> can be either vectors or lists as appropriate. If they are
+vectors, they will be recycled in the same manner as, e.g., rnorm. The
+entries of <code>arguments</code> may be vectors/lists and will also be recycled
+(see examples).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">arms(n_samples, log_pdf, lower, upper, previous = (upper + lower)/2,
+  initial = lower + (1:n_initial) * (upper - lower)/(n_initial + 1),
+  n_initial = 10, convex = 0, max_points = max(2 * n_initial + 1,
+  100), metropolis = TRUE, include_n_evaluations = FALSE,
+  arguments = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n_samples</code></td>
+<td>
+<p>Number of samples to return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_pdf</code></td>
+<td>
+<p>Potentially unnormalised log density of target distribution.
+Can also be a list of functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower bound of the support of the target distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper bound of the support of the target distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>previous</code></td>
+<td>
+<p>The previous value of the Markov chain to be used if
+<code>metropolis = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>Initial points with which to build the rejection distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_initial</code></td>
+<td>
+<p>Number of points used to form <code>initial</code>; ignored if
+<code>initial</code> provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convex</code></td>
+<td>
+<p>Convexity adjustment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_points</code></td>
+<td>
+<p>Maximum number of points to allow in the rejection
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metropolis</code></td>
+<td>
+<p>Whether to use a Metropolis-Hastings step after rejection
+sampling. Not necessary if the target distribution is log concave.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_n_evaluations</code></td>
+<td>
+<p>Whether to return an object specifying the
+number of function evaluations used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arguments</code></td>
+<td>
+<p>List of additional arguments to be passed to log_pdf</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Vector or matrix of samples if <code>include_n_evaluations</code> is
+<code>FALSE</code>, otherwise a list.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gilks, W. R., Best, N. G. and Tan, K. K. C. (1995) Adaptive
+rejection Metropolis sampling. Applied Statistics, 44, 455-472.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="http://www1.maths.leeds.ac.uk/~wally.gilks/adaptive.rejection/web_page/Welcome.html">http://www1.maths.leeds.ac.uk/~wally.gilks/adaptive.rejection/web_page/Welcome.html</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The normal distribution, which is log concave, so metropolis can be FALSE
+result &lt;- arms(
+  1000, dnorm, -1000, 1000, metropolis = FALSE,
+  arguments = list(log = TRUE), include_n_evaluations = TRUE
+)
+print(result$n_evaluations)
+hist(result$samples, freq = FALSE, br = 20)
+curve(dnorm(x), min(result$samples), max(result$samples), col = 'red', add = TRUE)
+
+# Mixture of normals: 0.4 N(-1, 1) + 0.6 N(4, 1). Not log concave.
+dnormmixture &lt;- function(x) {
+  parts &lt;- log(c(0.4, 0.6)) + dnorm(x, mean = c(-1, 4), log = TRUE)
+  log(sum(exp(parts - max(parts)))) + max(parts)
+}
+samples &lt;- arms(1000, dnormmixture, -1000, 1000)
+hist(samples, freq = FALSE)
+
+# List of log pdfs, demonstrating recycling of log_pdf argument
+samples &lt;- arms(
+  10,
+  list(
+    function(x) -x ^ 2 / 2,
+    function(x) -(x - 10) ^ 2 / 2
+  ),
+  -1000,
+  1000
+)
+print(samples)
+
+# Another way to achieve the above, this time with recycling in arguments
+samples &lt;- arms(
+  10, dnorm, -1000, 1000,
+  arguments = list(
+    mean = c(0, 10), sd = 1, log = TRUE
+  )
+)
+print(samples)
+</code></pre>
+
+
+</div>

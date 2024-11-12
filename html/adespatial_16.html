@@ -1,0 +1,326 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dist.ldc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dissimilarity matrices for community composition data</h2>
+
+<h3>Description</h3>
+
+<p>Compute dissimilarity indices for ecological data matrices. The dissimilarity
+indices computed by this function are those described in Legendre and De
+Cáceres (2013). In the name of the function, 'ldc' stands for the author's
+names. Twelve of these 21 indices are not readily available in other R
+package functions; four of them can, however, be computed in two computation
+steps in <code>vegan</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dist.ldc(Y, method = "hellinger", binary = FALSE, samp = TRUE, silent = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Community composition data. The object class can be either
+<code>data.frame</code> or <code>matrix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>One of the 21 dissimilarity coefficients available in the
+function: <code>"hellinger"</code>, <code>"chord"</code>, <code>"log.chord"</code>,
+<code>"chisquare"</code>, <code>"profiles"</code>, <code>"percentdiff"</code>,
+<code>"ruzicka"</code>, <code>"divergence"</code>, <code>"canberra"</code>,
+<code>"whittaker"</code>, <code>"wishart"</code>, <code>"kulczynski"</code>,
+<code>"jaccard"</code>, <code>"sorensen"</code>, <code>"ochiai"</code>, <code>"ab.jaccard"</code>,
+<code>"ab.sorensen"</code>, <code>"ab.ochiai"</code>, <code>"ab.simpson"</code>,
+<code>"euclidean"</code>, <code>"manhattan"</code>, <code>"modmeanchardiff"</code>. See
+Details. Names can be abbreviated to a non-ambiguous set of first letters.
+Default: <code>method="hellinger"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary</code></td>
+<td>
+<p>If <code>binary=TRUE</code>, the data are transformed to
+presence-absence form before computation of the dissimilarities. Default
+value: <code>binary=FALSE</code>, except for the Jaccard, Sørensen and Ochiai
+indices where <code>binary=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp</code></td>
+<td>
+<p>If <code>samp=TRUE</code>, the abundance-based distances (ab.jaccard,
+ab.sorensen, ab.ochiai, ab.simpson) are computed for sample data. If
+<code>samp=FALSE</code>, binary indices are computed for true population data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>If <code>silent=FALSE</code>, informative messages sent to users will
+be printed to the R console. Use <code>silent=TRUE</code> is called on a
+numerical simulation loop, for example.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The dissimilarities computed by this function are the following.
+Indices i and k designate two rows (sites) of matrix Y, j designates a
+column (species). D[ik] is the dissimilarity between rows i and k. p is the
+number of columns (species) in Y; pp is the number of species present in
+one or the other site, or in both. y[i+] is the sum of values in row i;
+same for y[k+]. y[+j] is the sum of values in column j. y[++] is the total
+sum of values in Y. The indices are computed by functions written in C for
+greater computation speed with large data matrices. </p>
+ <ul>
+<li>
+<p> Group 1
+- D computed by transformation of Y followed by Euclidean distance
+</p>
+ <ul>
+<li>
+<p> Hellinger D, D[ik] =
+sqrt(sum((sqrt(y[ij]/y[i+])-sqrt(y[kj]/y[k+]))^2)) </p>
+</li>
+<li>
+<p> chord D, D[ik] =
+sqrt(sum((y[ij]/sqrt(sum(y[ij]^2))-y[kj]/sqrt(sum(y[kj]^2)))^2)) </p>
+</li>
+<li>
+<p>log-chord D, D[ik] = chord D[ik] computed on log(y[ij]+1)-transformed data
+(Legendre and Borcard 2018) </p>
+</li>
+<li>
+<p> chi-square D, D[ik] = sqrt(y[++]
+sum((1/j[+j])(y[ij]/y[i+]-y[kj]/y[k+])^2)) </p>
+</li>
+<li>
+<p> species profiles D, D[ik]
+= sqrt(sum((y[ij]/y[i+]-y[kj]/y[k+])^2)) </p>
+</li>
+</ul>
+</li>
+<li>
+<p> Group 2 - Other D functions appropriate for beta diversity studies
+where A = sum(min(y[ij],y[kj])), B = y[i+]-A, C = y[k+]-A </p>
+<ul>
+<li>
+<p>percentage difference D (aka Bray-Curtis), D[ik] =
+(sum(abs(y[ij]-y[k,j])))/(y[i+]+y[k+]) or else, D[ik] = (B+C)/(2A+B+C)
+</p>
+</li>
+<li>
+<p> Ružička D, D[ik] = 1-(sum(min(y[ij],y[kj])/sum(max(y[ij],y[kj])) or
+else, D[ik] = (B+C)/(A+B+C) </p>
+</li>
+<li>
+<p> coeff. of divergence D, D[ik] =
+sqrt((1/pp)sum(((y[ij]-y(kj])/(y[ij]+y(kj]))^2)) </p>
+</li>
+<li>
+<p> Canberra metric D,
+D[ik] = (1/pp)sum(abs(y[ij]-y(kj])/(y[ij]+y(kj])) </p>
+</li>
+<li>
+<p> Whittaker D, D[ik]
+= 0.5*sum(abs(y[ij]/y[i+]-y(kj]/y[k+])) </p>
+</li>
+<li>
+<p> Wishart D, D[ik] =
+1-sum(y[ij]y[kj])/(sum(y[ij]^2)+sum(y[kj]^2)-sum(y[ij]y[kj])) </p>
+</li>
+<li>
+<p>Kulczynski D, D[ik] =
+1-0.5((sum(min(y[ij],y[kj])/y[i+]+sum(min(y[ij],y[kj])/y[k+])) </p>
+</li>
+</ul>
+</li>
+<li>
+<p> Group 3 - Classical indices for binary data; they are appropriate for
+beta diversity studies. Value a is the number of species found in both i
+and k, b is the number of species in site i not found in k, and c is the
+number of species found in site k but not in i. The D matrices are
+square-root transformed, as in dist.binary of ade4; the user-oriented
+reason for this transformation is explained below. </p>
+<ul>
+<li>
+<p> Jaccard
+D, D[ik] = sqrt((b+c)/(a+b+c)) </p>
+</li>
+<li>
+<p> Sørensen D, D[ik] =
+sqrt((b+c)/(2a+b+c)) </p>
+</li>
+<li>
+<p> Ochiai D, D[ik] = sqrt(1 - a/sqrt((a+b)(a+c))) </p>
+</li>
+</ul>
+</li>
+<li>
+<p> Group 4 - Abundance-based indices of Chao et al. (2006) for
+quantitative abundance data. These functions correct the index for species
+that have not been observed due to sampling errors. For the meaning of the
+U and V notations, see Chao et al. (2006, section 3). When
+<code>samp=TRUE</code>, the abundance-based distances (ab.jaccard, ab.sorensen,
+ab.ochiai, ab.simpson) are computed for sample data. If <code>samp=FALSE</code>,
+indices are computed for true population data. - Do not use indices of
+group 4 with <code>samp=TRUE</code> on presence-absence data; the indices are not
+meant to accommodate this type of data. If <code>samp=FALSE</code> is used with
+presence-absence data, the indices are the regular Jaccard, Sørensen,
+Ochiai and Simpson indices. On output, however, the D matrices are not
+square-rooted, contrary to the Jaccard, Sørensen and Ochiai indices in
+section 3 which are square-rooted. </p>
+<ul>
+<li>
+<p> abundance-based Jaccard
+D, D[ik] = 1-(UV/(U+V-UV)) </p>
+</li>
+<li>
+<p> abundance-based Sørensen D, D[ik] =
+1-(2UV/(U+V)) </p>
+</li>
+<li>
+<p> abundance-based Ochiai D, D[ik] = 1-sqrt(UV) </p>
+</li>
+<li>
+<p>abundance-based Simpson D, D[ik] = 1-(UV/(UV+min((U-UV),(V-UV)))) </p>
+</li>
+</ul>
+</li>
+<li>
+<p> Group 5 - General-purpose dissimilarities that do not have an upper
+bound (maximum D value). They are inappropriate for beta diversity studies.
+</p>
+<ul>
+<li>
+<p> Euclidean D, D[ik] = sqrt(sum(y[ij]-y[kj])^2) </p>
+</li>
+<li>
+<p>Manhattan D, D[ik] = sum(abs(y[ij] - y[ik])) </p>
+</li>
+<li>
+<p> modified mean character
+difference, D[ik] = (1/pp) sum(abs(y[ij] - y[ik])) </p>
+</li>
+</ul>
+</li>
+</ul>
+<p> The properties of
+all dissimilarities available in this function (except Ružička D) were
+described and compared in Legendre &amp; De Cáceres (2013), who showed that
+most of these dissimilarities are appropriate for beta diversity studies.
+Inappropriate are the Euclidean, Manhattan, modified mean character
+difference, species profile and chi-square distances. Most of these
+dissimilarities have a maximum value of either 1 or sqrt(2). Three
+dissimilarities (Euclidean, Manhattan, Modified mean character difference)
+do not have an upper bound and are thus inappropriate for beta diversity
+studies. The chi-square distance has an upper bound of
+sqrt(2*(sum(Y))).<br><br> The Euclidean, Hellinger, chord, chi-square and
+species profiles dissimilarities have the property of being Euclidean,
+meaning that they never produce negative eigenvalues in principal
+coordinate analysis. The Canberra, Whittaker, percentage difference,
+Wishart and Manhattan coefficients are Euclidean when they are square-root
+transformed (Legendre &amp; De Cáceres 2013, Table 2). The distance forms (1-S)
+of the Jaccard, Sørensen and Ochiai similarity (S) coefficients are
+Euclidean after taking the square root of (1-S) (Legendre &amp; Legendre 2012,
+Table 7.2). The D matrices resulting from these three coefficients are
+outputted in the form sqrt(1-S), as in function <code>dist.binary</code> of ade4,
+because that form is Euclidean and will thus produce no negative
+eigenvalues in principal coordinate analysis. <br><br> The Hellinger, chord,
+chi-square and species profile dissimilarities are computed using the
+two-step procedure developed by Legendre &amp; Gallagher (2001). The data are
+first transformed using either the row marginals, or the row and column
+marginals in the case of the chi-square distance. The dissimilarities are
+then computed from the transformed data using the Euclidean distance
+formula. As a consequence, these four dissimilarities are necessarily
+Euclidean. D matrices for other binary coefficients can be computed in two
+ways: either by using function <code>dist.binary</code> of ade4, or by choosing
+option <code>binary=TRUE</code>, which transforms the abundance data to binary
+form, and using one of the quantitative indices of the present function.
+Table 1 of Legendre &amp; De Cáceres (2013) shows the incidence-based
+(presence-absence-based) indices computed by the various indices using
+binary data. <br><br> The Euclidean distance computed on untransformed
+presence-absence or abundance data produces non-informative and incorrect
+ordinations, as shown in Legendre &amp; Legendre (2012, p. 300) and in Legendre
+&amp; De Cáceres (2013). However, the Euclidean distance computed on
+log-transformed abundance data produces meaningful ordinations in principal
+coordinate analysis (PCoA). Nonetheless, it is easier to compute a PCA of
+log-transformed abundance data instead of a PCoA; the resulting ordination
+with scaling 1 will be meaningful. Messages are printed to the R console
+indicating the Euclidean status of the computed dissimilarity matrices.
+Note that for the chi-square distance, the columns that sum to zero are
+eliminated before calculation of the distances, thus preventing divisions
+by zero in the calculation of the chi-square transformation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dissimilarity matrix, with class <code>dist</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Pierre Legendre <a href="mailto:pierre.legendre@umontreal.ca">pierre.legendre@umontreal.ca</a> and Naima Madi
+</p>
+
+
+<h3>References</h3>
+
+<p>Chao, A., R. L. Chazdon, R. K. Colwell and T. J. Shen. 2006.
+Abundance-based similarity indices and their estimation when there are
+unseen species in samples. Biometrics 62: 361-371.
+</p>
+<p>Legendre, P. and D. Borcard. 2018. Box-Cox-chord transformations for
+community composition data prior to beta diversity analysis. Ecography 41:
+1820-1824.
+</p>
+<p>Legendre, P. and M. De Cáceres. 2013. Beta diversity as the variance of
+community data: dissimilarity coefficients and partitioning. Ecology
+Letters 16: 951-963.
+</p>
+<p>Legendre, P. and E. D. Gallagher, E.D. 2001. Ecologically meaningful
+transformations for ordination of species data. Oecologia 129: 271-280.
+</p>
+<p>Legendre, P. and Legendre, L. 2012. Numerical Ecology. 3rd English edition.
+Elsevier Science BV, Amsterdam.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if(require("vegan", quietly = TRUE)) {
+data(mite)
+mat1  = as.matrix(mite[1:10, 1:15])   # No column has a sum of 0
+mat2 = as.matrix(mite[61:70, 1:15])   # 7 of the 15 columns have a sum of 0
+
+#Example 1: compute Hellinger distance for mat1
+D.out = dist.ldc(mat1,"hellinger")
+
+#Example 2: compute chi-square distance for mat2
+D.out = dist.ldc(mat2,"chisquare")
+
+#Example 3: compute percentage difference dissimilarity for mat2
+D.out = dist.ldc(mat2,"percentdiff")
+
+}
+
+
+</code></pre>
+
+
+</div>

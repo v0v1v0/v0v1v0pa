@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.volume</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Block storage operations</h2>
+
+<h3>Description</h3>
+
+
+<dl>
+<dt>volume</dt>
+<dd>
+<p>get a single volume</p>
+</dd>
+<dt>volumes</dt>
+<dd>
+<p>list volumes</p>
+</dd>
+<dt>volume_create</dt>
+<dd>
+<p>create a volume</p>
+</dd>
+<dt>volume_snapshot_create</dt>
+<dd>
+<p>create a snapshot of a volume</p>
+</dd>
+<dt>volume_snapshots</dt>
+<dd>
+<p>list snapshots for a volume</p>
+</dd>
+<dt>volume_delete</dt>
+<dd>
+<p>delete a volume</p>
+</dd>
+</dl>
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.volume(x)
+
+volumes(...)
+
+volume(volume, ...)
+
+volume_create(
+  name,
+  size,
+  description = NULL,
+  region = "nyc1",
+  snapshot_id = NULL,
+  filesystem_type = NULL,
+  filesystem_label = NULL,
+  tags = NULL,
+  ...
+)
+
+volume_snapshot_create(volume, name, ...)
+
+volume_snapshots(volume, ...)
+
+volume_delete(volume, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object to coerce to an volume</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional options passed down to <code>GET</code>,
+<code>POST</code>, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>volume</code></td>
+<td>
+<p>A volume, or something that can be coerced to a volume by
+<code>as.volume</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>(character) Name of the new volume. required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>(integer) The size of the Block Storage volume in GiB</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>description</code></td>
+<td>
+<p>(character) An optional free-form text field to describe
+a Block Storage volume.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region</code></td>
+<td>
+<p>(character) The region where the Block Storage volume will
+be created. When setting a region, the value should be the slug identifier
+for the region. When you query a Block Storage volume, the entire region
+object will be returned. Should not be specified with a snapshot_id.
+Default: nyc1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snapshot_id</code></td>
+<td>
+<p>(integer) The unique identifier for the volume snapshot
+from which to create the volume. Should not be specified with a region_id.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filesystem_type</code></td>
+<td>
+<p>(character) The name of the filesystem type to be
+used on the volume. When provided, the volume will automatically be
+formatted to the specified filesystem type. Currently, the available
+options are "ext4" and "xfs". Pre-formatted volumes are automatically
+mounted when attached to Ubuntu, Debian, Fedora, Fedora Atomic, and
+CentOS Droplets created on or after April 26, 2018. Attaching
+pre-formatted volumes to other Droplets is not recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filesystem_label</code></td>
+<td>
+<p>(character) The label to be applied to the
+filesystem. Labels for ext4 type filesystems may contain 16 characters
+while lables for xfs type filesystems are limited to 12 characters.
+May only be used in conjunction with filesystem_type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tags</code></td>
+<td>
+<p>(character) tag names to apply to the Volume after it is created.
+Tag names can either be existing or new tags.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>note that if you delete a volume, and it has a snapshot, the
+snapshot still exists, so beware
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# list volumes
+volumes()
+
+# create a volume
+vol1 &lt;- volume_create('testing', 5)
+vol2 &lt;- volume_create('foobar', 6, tags = c('stuff', 'things'))
+
+# create snapshot of a volume
+xx &lt;- volume_snapshot_create(vol2, "howdy")
+
+# list snaphots for a volume
+volume_snapshots(xx)
+
+# list volumes again
+res &lt;- volumes()
+
+# get a single volume
+## a whole volume class object
+volume(res$testing)
+## by id
+volume(res[[1]]$id)
+## by name
+volume(res[[1]]$name)
+
+# delete a volume
+## a whole volume class object
+volume_delete(res$testing)
+## by id
+volume_delete(res[[1]]$id)
+## by name
+volume_delete(res[[1]]$name)
+
+# delete many volumes
+lapply(volumes(), volume_delete)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

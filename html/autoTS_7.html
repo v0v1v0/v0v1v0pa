@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>my.predictions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Make predictions with selected algorithms</h2>
+
+<h3>Description</h3>
+
+<p>Fit selected algorithms, make the predictions and combine
+the results along with observed data in one final dataframe.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">my.predictions(
+  bestmod = NULL,
+  prepedTS = NULL,
+  algos = list("my.prophet", "my.ets", "my.sarima", "my.tbats", "my.bats", "my.stlm",
+    "my.shortterm"),
+  n_pred = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bestmod</code></td>
+<td>
+<p>A list produced by the <code>getBestModel()</code> function (optional if <code>prepredTS</code> is provided)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prepedTS</code></td>
+<td>
+<p>A list created by the <code>prepare.ts()</code> function (optional if <code>bestmod</code> provided)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algos</code></td>
+<td>
+<p>A list containing the algorithms to be implemented. If <code>bestmod</code> is supplied, this value is ignored, and taken from the best model object
+Using this option will overwrite the provided list of algorithms to implement them all</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_pred</code></td>
+<td>
+<p>Int number of periods to forecast forward (eg n_pred = 12 will lead to one year of prediction for monthly time series)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A dataframe containing : date, actual observed values, one column per used algorithm, and
+a column indicating the type of measure (mean prediction, upper or lower bound of CI)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lubridate)
+library(dplyr)
+dates &lt;- seq(lubridate::as_date("2000-01-01"),lubridate::as_date("2010-12-31"),"quarter")
+values &lt;- 10+ 1:length(dates)/10 + rnorm(length(dates),mean = 0,sd = 10)
+### Stand alone usage
+prepare.ts(dates,values,"quarter") %&gt;%
+  my.predictions(prepedTS = .,algos = list("my.prophet","my.ets"))
+### Standard input with bestmodel
+
+getBestModel(dates,values,freq = "quarter",n_test = 6) %&gt;%
+  my.predictions()
+
+
+</code></pre>
+
+
+</div>

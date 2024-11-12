@@ -1,0 +1,262 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>timeOptMCMC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>TimeOptMCMC: Evaluation of eccentricity-related amplitude modulation and bundling 
+in paleoclimate data ("TimeOpt"), with uncertainties via Markov-Chain Monte Carlo</h2>
+
+<h3>Description</h3>
+
+<p>TimeOptMCMC: Evaluation of eccentricity-related amplitude modulation and bundling in 
+paleoclimate data ("TimeOpt"; Meyers, 2015), with uncertainties on all fitting parameters 
+via Markov-Chain Monte Carlo (MCMC). This function follows the approach of 
+Meyers and Malinverno (2018).  MCMC is implemented using the Metropolis-Hastings algorithm.  
+Optimization is conducted upon the sedimentation rate (constant within the study interval), 
+the fundamental frequencies g1-g5, the precession constant k, and four hyperparameters 
+associated with the residuals from the spectral and envelope fit. The priors for the 
+k and g's are Gaussian, while other parameters (sedrate, hyperparameters) are 
+uniform (uninformative).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">timeOptMCMC(dat,iopt=1,sedmin=0.5,sedmax=5,sedstart=NULL,gAve=NULL,
+        gSd=NULL,gstart=NULL,kAve=NULL,kSd=NULL,kstart=NULL,
+        rhomin=0,rhomax=0.9999,rhostart=NULL,sigmamin=NULL,sigmamax=NULL,sigmastart=NULL,
+        ran=T,fit=1,ftol=0.01,roll=10^3,nsamples=1000,epsilon=NULL,test=F,burnin=-1,
+        detrend=T,output=1,savefile=F,genplot=1,verbose=T)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Stratigraphic series for astrochronologic assessment. First column should be depth or height (in meters), second column should be data value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iopt</code></td>
+<td>
+<p>(1) fit power and envelope, (2) fit power only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedmin</code></td>
+<td>
+<p>Minimum sedimentation rate for investigation (cm/ka).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedmax</code></td>
+<td>
+<p>Maximum sedimentation rate for investigation (cm/ka).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sedstart</code></td>
+<td>
+<p>Initial sedimentation rate for MCMC search (cm/ka). Default is 0.5*(sedmin+sedmax). Alternatively, if set to negative number, a random value is selected from the prior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gAve</code></td>
+<td>
+<p>Vector which contains the average values for the g1 through g5 fundamental frequencies (arcsec/year). Must be in the following order: g1,g2,g3,g4,g5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gSd</code></td>
+<td>
+<p>Vector which contains the standard deviation for the g1 through g5 fundamental frequencies (arcsec/year). Must be in the following order: g1,g2,g3,g4,g5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gstart</code></td>
+<td>
+<p>Vector which contains the initial values for the g1 through g5 fundamental frequencies (arcsec/year). Must be in the following order: g1,g2,g3,g4,g5. Default is 0.5*(gmin+gmax). Alternatively, if set to negative number, a random value is selected from the prior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kAve</code></td>
+<td>
+<p>Average value for the precession constant (arcsec/year).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kSd</code></td>
+<td>
+<p>Standard deviation for the precession constant (arcsec/year).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kstart</code></td>
+<td>
+<p>Initial value for the precession constant (arcsec/year). Default is 0.5*(kmin+kmax). Alternatively, if set to negative number, a random value is selected from the prior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhomin</code></td>
+<td>
+<p>Minimum value for residual lag-1 autocorrelation (for both spectral and envelope fit). Default is 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhomax</code></td>
+<td>
+<p>Maximum value for residual lag-1 autocorrelation (for both spectral and envelope fit). Default is 0.9999</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhostart</code></td>
+<td>
+<p>Initial value for residual lag-1 autocorrelation (for both spectral and envelope fit). Default 0.5. Alternatively, if set to negative number, a random value is selected from the prior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmamin</code></td>
+<td>
+<p>Minimum value for residual sigma (for both spectral and envelope fit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmamax</code></td>
+<td>
+<p>Maximum value for residual sigma (for both spectral and envelope fit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmastart</code></td>
+<td>
+<p>Initial value for residual sigma (for both spectral and envelope fit). Default 0.5*(data standard deviation). Alternatively, if set to negative number, a random value is selected from the prior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ran</code></td>
+<td>
+<p>Would you like to randomly select the parameter for updating (T), or simultaneously update all the parameters (F)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Test for (1) precession amplitude modulation or (2) short eccentricity amplitude modulation? Option 2 is not yet functional!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ftol</code></td>
+<td>
+<p>Tolerance in cycles/ka used to define the precession bandpass. It is added to the highest precession frequency, and subtracted from the lowest precession frequency, to define the half power points for the Taner bandpass filter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll</code></td>
+<td>
+<p>Taner filter roll-off rate, in dB/octave.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsamples</code></td>
+<td>
+<p>Number of candidate MCMC simluations to perform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>Vector of dimension 11, which controls how large the jump is between each candidate value, e.g. sedimentation rate. For example, a value of 0.2 will yield maximum jump +/- 10 percent of sedimentation rate range. The vector must be arranged in the the following order: sedrate,k,g1,g2,g3,g4,g5,spec_rho,spec_sigma,env_rho,env_sigma. If NULL, all epsilon values will be assigned 0.2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>Activate epsilon testing mode? This option will assign all MCMC samples a log-likelihood of unity. This provides a diagnostic check to ensure that the applied epsilon values are sampling the entire range of parameter values. (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>Threshold for detection of MCMC stability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>detrend</code></td>
+<td>
+<p>Remove linear trend from data series? (T or F)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Which results would you like to return to the console? (0) no output; (1) return all MCMC candidates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>savefile</code></td>
+<td>
+<p>Save MCMC samples to file MCMCsamples.csv? (T or F). If true, results are output after every 1000 iterations (last iterations will not be reported if you do not end on an even thousand!)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genplot</code></td>
+<td>
+<p>Generate summary plots? (0= none; 1=display all summary plots; 2=also include progress plot during iterations; 3=be quiet, but save all plots as pngs to the working directory)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Verbose output? (T or F)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>TimeOpt is an astronomical testing algorithm for untuned (spatial) stratigraphic data. 
+The algorithm identifies the sedimentation rate(s) that simultaneously optimizes: 
+(1) eccentricity amplitude modulations within the precession band, and (2) the 
+concentration of spectral power at specified target astronomical periods.
+</p>
+<p>This version of TimeOpt uses MCMC via Metropolis-Hastings to estimate the parameters 
+and their uncertainties. The priors for the k and g's are Gaussian, while the other 
+parameters (sedrate, hyperparameters) are uniform (uninformative). 
+</p>
+<p>When ran=T, the following approach is used to select the parameter to modify:
+</p>
+<p>0.25 probability of changing sedimentation rate
+</p>
+<p>0.25 probability of changing k
+</p>
+<p>0.30 probability of changing g1,g2,g3,g4,g5 (simultaneously)
+</p>
+<p>0.10 probability of changing sigma_spec,rho_spec (simultaneously)
+</p>
+<p>0.10 probability of changing sigma_env,rho_env (simultaneously)
+</p>
+<p>This is motivated by sensitivity tests, and the fact that we are most interested 
+in g, k and s;  moving each group of parameters (sedrate, k or g's) has specific
+consequences we can isolate. 
+</p>
+<p>For additional guidance on the application of TimeOptMCMC, please see the guide "Bayesian Inversion with TimeOptMCMC" (Meyers, 2024), and Meyers and Malinverno (2018).
+</p>
+
+
+<h3>References</h3>
+
+<p>S.R. Meyers, 2024,
+<em>Bayesian Inversion with TimeOptMCMC</em>: EarthArXiv, https://doi.org/10.31223/X5DQ3H
+</p>
+<p>S.R. Meyers, 2015,
+<em>The evaluation of eccentricity-related amplitude modulation and bundling in paleoclimate data: An inverse approach for astrochronologic testing and time scale optimization</em>: Paleoceanography, 30, doi:10.1002/2015PA002850.
+</p>
+<p>S.R. Meyers and A. Malinverno, 2018,
+<em>Proterozoic Milankovitch cycles and the history of the solar system</em>: Proceedings of the National Academy of Sciences, www.pnas.org/cgi/doi/10.1073/pnas.1717689115.
+</p>
+
+
+</div>

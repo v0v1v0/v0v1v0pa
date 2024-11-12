@@ -1,0 +1,377 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ada</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fitting Stochastic Boosting Models
+</h2>
+
+<h3>Description</h3>
+
+<p>‘ada’ is used to fit a variety stochastic boosting models for a binary response 
+as described in <em>Additive Logistic Regression:  A Statistical
+View of Boosting</em> by Friedman, et al. (2000).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ada(x,...)
+## Default S3 method:
+ada(x, y,test.x,test.y=NULL, loss=c("exponential","logistic"),
+                      type=c("discrete","real","gentle"),iter=50, nu=0.1, bag.frac=0.5,
+                      model.coef=TRUE,bag.shift=FALSE,max.iter=20,delta=10^(-10),
+                      verbose=FALSE,...,na.action=na.rpart)
+
+## S3 method for class 'formula'
+ada(formula, data, ..., subset, na.action=na.rpart)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix of descriptors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of responses.  ‘y’ may have only two unique values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.x</code></td>
+<td>
+<p>testing matrix of discriptors (optional)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.y</code></td>
+<td>
+<p>vector of testing responses (optional)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p> loss="exponential", "ada","e" or any variation corresponds to 
+the default boosting under exponential loss.  loss="logistic","l2","l"
+provides boosting under logistic loss.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of boosting algorithm to perform.
+“discrete” performs discrete Boosting (default).
+“real” performs Real Boost.
+“gentle” performs Gentle Boost.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of boosting iterations to perform.  Default = 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>shrinkage parameter for boosting, default taken as 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bag.frac</code></td>
+<td>
+<p>sampling fraction for samples taken out-of-bag.  This allows one
+to use random permutation which improves performance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.coef</code></td>
+<td>
+<p>flag to use stageweights in boosting.  If FALSE then the procedure
+corresponds to epsilon-boosting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bag.shift</code></td>
+<td>
+<p>flag to determine whether the stageweights should go to 
+one as nu goes to zero.  This only makes since if bag.frac
+is small.  The rationale behind this parameter is discussed in
+(Culp et al., 2006).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>number of iterations to perform in the newton step to determine 
+the coeficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>tolarence for convergence of the newton step to determine 
+the coeficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>print the number of iterations necessary for convergence of a coeficient.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations to be
+used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function that indicates how to process ‘NA’ values.  Default=na.rpart.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>rpart.control</code>.  For stumps, use <code>rpart.control(maxdepth=1,cp=-1,minsplit=0,xval=0)</code>.
+<code>maxdepth</code> controls the depth of trees, and <code>cp</code>
+controls the complexity of trees.  The priors should also
+be fixed through the parms argument as discussed in the
+second reference.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function directly follows the algorithms listed in <em>“Additive Logistic
+Regression:  A Statistical View of Boosting”</em>.
+</p>
+<p>When using usage ‘ada(x,y)’:
+x data can take the form data.frame or as.matrix.
+y data can take form data.frame, as.factor, as.matrix, as.array, or as.table.
+Missing values must be removed from the data prior to execution.
+</p>
+<p>When using usage ‘ada(y~.)’:
+data must be in a data frame.  Response can have factor or numeric values.
+Missing values can be present in the descriptor data, whenever
+na.action is set to any option other than na.pass.
+</p>
+<p>After the model is fit, ‘ada’ prints 
+a summary of the function call, 
+the method used for boosting, 
+the number of iterations,
+the final confusion matrix (observed classification vs predicted classification; 
+labels for classes are same as in response),  
+the error for the training set, and testing, training , and kappa estimates of the 
+appropriate number of iterations.
+</p>
+<p>A summary of this information can also be obtained with the command ‘print(x)’.
+</p>
+<p>Corresponding functions (Use help with summary.ada, predict.ada, ...
+varplot for additional information on these commands):
+</p>
+<p>summary :  function to print a summary of the original function call, method
+used for boosting, number of iterations, final confusion matrix,
+accuracy, and kappa statistic (a measure of agreement between
+the observed classification and predicted classification).
+‘summary’ can be used for training, testing, or
+validation data.  
+</p>
+<p>predict :  function to predict the response for any data set (train,
+test, or validation).
+</p>
+<p>plot    :  function to plot performance of the algorithm across boosting iterations.
+Default plot is iteration number (x-axis) versus prediction error (y-axis) for
+the data set used to build the model.  Function can also simultaneously
+produce an error plot for an external test set and a kappa plot for training and
+test sets. 
+</p>
+<p>pairs   :  function to produce pairwise plots of descriptors.  Descriptors are arranged by 
+decreasing frequency of selection by boosting (upper left = most frequently chosen).
+The color of the marker in the plot represents class membership; the Size of the marker
+represents predicted class probability.  The larger the marker, the higher the
+probability of classification.
+</p>
+<p>varplot :  plot of variables ordered by the variable importance measure (based on improvement).
+</p>
+<p>addtest : add a testing data set to the <code>ada</code> object, therefore the testing errors only have to 
+be computed once.  
+</p>
+<p>update : add more trees to the <code>ada</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>The following items are the different components created by the algorithms:
+trees:  ensamble of rpart trees used to fit the model
+alpha:  the weights of the trees used in the final aggregate model (AdaBoost only; 
+see references for more information)
+F    :  F[[1]] corresponds to the training sum, F[[2]]], ... corresponds to
+testing sums.
+errs  :  matrix of errs, training, kappa, testing 1, kappa 1, ...
+lw    :  last weights calculated, used by update routine
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>The predicted classification for each observation in the orginal level of the response.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+
+<p>The function call.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>shrinakge parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>The type of adaboost performed:  ‘discrete’, ‘real’, ‘logit’, and ‘gentle’.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confusion</code></td>
+<td>
+
+<p>The confusion matrix (True value vs. Predicted value) for the training data.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+
+<p>The number of boosting iterations that were performed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>actual</code></td>
+<td>
+
+<p>The original response vector.
+</p>
+</td>
+</tr>
+</table>
+<h3>Warnings</h3>
+
+<p>For LogitBoost and Gentle Boost, under certain circumstances, the
+methods will fail to classify the data into more than one category.
+If this occurs, try modifying the rpart.control options such as
+‘minsplit’, ‘cp’, and ‘maxdepth’.
+</p>
+<p>‘ada’ does not currently handle multiclass problems.  However, there
+is an example in (Culp et al., 2006) that shows how to use this code
+in that setting.  Plots and other functions are not set up for this analysis.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mark Culp, University of Michigan
+Kjell Johnson, Pfizer, Inc.
+George Michailidis, University of Michigan
+</p>
+<p>Special thanks goes to:
+Zhiguang Qian, Georgia Tech University
+Greg Warnes, Pfizer, Inc.
+</p>
+
+
+<h3>References</h3>
+
+<p>Friedman, J. (1999). <em>Greedy Function Approximation: A Gradient Boosting Machine.</em> 
+Technical Report, Department of Statistics, Standford University.
+</p>
+<p>Friedman, J., Hastie, T., and Tibshirani, R.  (2000).  <em>Additive Logistic Regression:
+A statistical view of boosting</em>.  Annals of Statistics, 28(2), 337-374.
+</p>
+<p>Friedman, J. (2002). <em>Stochastic Gradient Boosting</em>. 
+Coputational Statistics \&amp; Data Analysis 38.
+</p>
+<p>Culp, M., Johnson, K., Michailidis, G. (2006). <em>ada: an R Package
+for Stochastic Boosting</em> Journal of Statistical Software, 16.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.ada</code>,<code>summary.ada</code>,<code>predict.ada</code>
+<code>plot.ada</code>,<code>pairs.ada</code>,<code>update.ada</code>
+<code>addtest</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## fit discrete ada boost to a simple example
+data(iris)
+##drop setosa
+iris[iris$Species!="setosa",]-&gt;iris
+##set up testing and training data (60% for training)
+n&lt;-dim(iris)[1]
+trind&lt;-sample(1:n,floor(.6*n),FALSE)
+teind&lt;-setdiff(1:n,trind)
+iris[,5]&lt;- as.factor((levels(iris[,5])[2:3])[as.numeric(iris[,5])-1])
+##fit 8-split trees
+gdis&lt;-ada(Species~.,data=iris[trind,],iter=20,nu=1,type="discrete")
+##add testing data set
+gdis=addtest(gdis,iris[teind,-5],iris[teind,5])
+##plot gdis
+plot(gdis,TRUE,TRUE)
+##variable selection plot
+varplot(gdis)
+##pairwise plot
+pairs(gdis,iris[trind,-5],maxvar=2)
+
+##for many more examples refer to reference (Culp et al., 2006)
+</code></pre>
+
+
+</div>

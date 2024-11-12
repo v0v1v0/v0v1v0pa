@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hzTransitionProbabilities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Horizon Transition Probabilities</h2>
+
+<h3>Description</h3>
+
+<p>Functions for creating and working with horizon (sequence) transition
+probability matrices.
+</p>
+<p>See the following tutorials for some ideas:
+</p>
+
+<ul>
+<li> <p><a href="http://ncss-tech.github.io/AQP/aqp/hz-transition-probabilities.html">horizon designation TP</a>
+</p>
+</li>
+<li> <p><a href="http://ncss-tech.github.io/AQP/aqp/series-color-TP-graph.html">soil color TP</a>
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">hzTransitionProbabilities(
+  x,
+  name = GHL(x, required = TRUE),
+  loopTerminalStates = FALSE
+)
+
+mostLikelyHzSequence(mc, t0, maxIterations = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>SoilProfileCollection</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A horizon level attribute in <code>x</code> that names horizons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loopTerminalStates</code></td>
+<td>
+<p>should terminal states loop back to themselves?
+</p>
+<p>This is useful when the transition probability matrix will be used to
+initialize a <code>markovchain</code> object. See examples below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc</code></td>
+<td>
+<p>Passed to <code>markovchain</code> <code>conditionalDistribution()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>Passed to <code>markovchain</code> <code>conditionalDistribution()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIterations</code></td>
+<td>
+<p>Maximum number of iterations. Default: <code>10</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A square matrix of transition probabilities. See examples.
+</p>
+<p>The function <code>genhzTableToAdjMat()</code> returns a square adjacency matrix.
+See examples.
+</p>
+<p>The function <code>mostLikelyHzSequence()</code> returns the most likely sequence of
+horizons, given a <code>markovchain</code> object initialized from horizon
+transition probabilities and an initial state, <code>t0</code>. See examples.
+</p>
+
+
+<h3>Note</h3>
+
+<p>These functions are still experimental and subject to change.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>generalize.hz()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(sp4)
+depths(sp4) &lt;- id ~ top + bottom
+
+# horizon transition probabilities: row -&gt; col transitions
+(tp &lt;- hzTransitionProbabilities(sp4, 'name'))
+
+
+## Not run: 
+## plot TP matrix with functions from sharpshootR package
+library(sharpshootR)
+par(mar=c(0,0,0,0), mfcol=c(1,2))
+plotSPC(sp4, name = 'name', name.style = 'center-center')
+plotSoilRelationGraph(tp, graph.mode = 'directed', edge.arrow.size=0.5)
+
+## demonstrate genhzTableToAdjMat usage
+data(loafercreek, package='soilDB')
+
+# convert contingency table -&gt; adj matrix / TP matrix
+tab &lt;- table(loafercreek$hzname, loafercreek$genhz)
+m &lt;- genhzTableToAdjMat(tab)
+
+# plot
+par(mar=c(0,0,0,0), mfcol=c(1,1))
+plotSoilRelationGraph(m, graph.mode = 'directed', edge.arrow.size=0.5)
+
+
+## demonstrate markovchain integration
+library(markovchain)
+tp.loops &lt;- hzTransitionProbabilities(sp4, 'name', loopTerminalStates = TRUE)
+
+# init new markovchain from TP matrix
+mc &lt;- new("markovchain", states=dimnames(tp.loops)[[1]], transitionMatrix = tp.loops)
+
+# simple plot
+plot(mc, edge.arrow.size=0.5)
+
+# check absorbing states
+absorbingStates(mc)
+
+# steady-state:
+steadyStates(mc)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

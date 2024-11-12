@@ -1,0 +1,234 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>age_pyramid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot a population pyramid (age-sex) from a dataframe.</h2>
+
+<h3>Description</h3>
+
+<p>Plot a population pyramid (age-sex) from a dataframe.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">age_pyramid(
+  data,
+  age_group = "age_group",
+  split_by = "sex",
+  stack_by = NULL,
+  count = NULL,
+  proportional = FALSE,
+  na.rm = TRUE,
+  show_midpoint = TRUE,
+  vertical_lines = FALSE,
+  horizontal_lines = TRUE,
+  pyramid = TRUE,
+  pal = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Your dataframe (e.g. linelist)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_group</code></td>
+<td>
+<p>the name of a column in the data frame that defines the age
+group categories. Defaults to "age_group"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_by</code></td>
+<td>
+<p>the name of a column in the data frame that defines the
+the bivariate column. Defaults to "sex". See NOTE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stack_by</code></td>
+<td>
+<p>the name of the column in the data frame to use for shading
+the bars. Defaults to <code>NULL</code> which will shade the bars by the <code>split_by</code>
+variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>count</code></td>
+<td>
+<p><strong>for pre-computed data</strong> the name of the column in the data
+frame for the values of the bars. If this represents proportions, the
+values should be within [0, 1].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportional</code></td>
+<td>
+<p>If <code>TRUE</code>, bars will represent proportions of cases out
+of the entire population. Otherwise (<code>FALSE</code>, default), bars represent
+case counts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>If <code>TRUE</code>, this removes NA counts from the age groups. Defaults
+to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_midpoint</code></td>
+<td>
+<p>When <code>TRUE</code> (default), a dashed vertical line will be
+added to each of the age bars showing the halfway point for the
+un-stratified age group. When <code>FALSE</code>, no halfway point is marked.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vertical_lines</code></td>
+<td>
+<p>If you would like to add dashed vertical lines to help
+visual interpretation of numbers. Default is to not show (<code>FALSE</code>),
+to turn on write <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizontal_lines</code></td>
+<td>
+<p>If <code>TRUE</code> (default), horizontal dashed lines will
+appear behind the bars of the pyramid</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pyramid</code></td>
+<td>
+<p>if <code>TRUE</code>, then binary <code>split_by</code> variables will result in
+a population pyramid (non-binary variables cannot form a pyramid). If
+<code>FALSE</code>, a pyramid will not form.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pal</code></td>
+<td>
+<p>a color palette function or vector of colors to be passed to
+<code>ggplot2::scale_fill_manual()</code> defaults to the first "qual" palette from
+<code>ggplot2::scale_fill_brewer()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the <code>split_by</code> variable is bivariate (e.g. an indicator for a
+specific symptom), then the result will show up as a pyramid, otherwise, it
+will be presented as a facetted barplot with with empty bars in the
+background indicating the range of the un-facetted data set. Values of
+<code>split_by</code> will show up as labels at top of each facet.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(ggplot2)
+old &lt;- theme_set(theme_classic(base_size = 18))
+
+# with pre-computed data ----------------------------------------------------
+# 2018/2008 US census data by age and gender
+data(us_2018)
+data(us_2008)
+age_pyramid(us_2018, age_group = age, split_by = gender, count = count)
+age_pyramid(us_2008, age_group = age, split_by = gender, count = count)
+
+# 2018 US census data by age, gender, and insurance status
+data(us_ins_2018)
+age_pyramid(us_ins_2018, 
+  age_group = age,
+  split_by = gender,
+  stack_by = insured,
+  count = count
+)
+us_ins_2018$prop &lt;- us_ins_2018$percent/100
+age_pyramid(us_ins_2018,
+  age_group = age,
+  split_by = gender,
+  stack_by = insured,
+  count = prop,
+  proportion = TRUE
+)
+
+# from linelist data --------------------------------------------------------
+set.seed(2018 - 01 - 15)
+ages &lt;- cut(sample(80, 150, replace = TRUE),
+  breaks = c(0, 5, 10, 30, 90), right = FALSE
+)
+sex &lt;- sample(c("Female", "Male"), 150, replace = TRUE)
+gender &lt;- sex
+gender[sample(5)] &lt;- "NB"
+ill &lt;- sample(c("case", "non-case"), 150, replace = TRUE)
+dat &lt;- data.frame(
+  AGE = ages,
+  sex = factor(sex, c("Male", "Female")),
+  gender = factor(gender, c("Male", "NB", "Female")),
+  ill = ill,
+  stringsAsFactors = FALSE
+)
+
+# Create the age pyramid, stratifying by sex
+print(ap &lt;- age_pyramid(dat, age_group = AGE))
+
+# Create the age pyramid, stratifying by gender, which can include non-binary
+print(apg &lt;- age_pyramid(dat, age_group = AGE, split_by = gender))
+
+# Remove NA categories with na.rm = TRUE
+dat2 &lt;- dat
+dat2[1, 1] &lt;- NA
+dat2[2, 2] &lt;- NA
+dat2[3, 3] &lt;- NA
+print(ap &lt;- age_pyramid(dat2, age_group = AGE))
+print(ap &lt;- age_pyramid(dat2, age_group = AGE, na.rm = TRUE))
+
+# Stratify by case definition and customize with ggplot2
+ap &lt;- age_pyramid(dat, age_group = AGE, split_by = ill) +
+  theme_bw(base_size = 16) +
+  labs(title = "Age groups by case definition")
+print(ap)
+
+# Stratify by multiple factors
+ap &lt;- age_pyramid(dat,
+  age_group = AGE,
+  split_by = sex,
+  stack_by = ill,
+  vertical_lines = TRUE
+) +
+  labs(title = "Age groups by case definition and sex")
+print(ap)
+
+# Display proportions
+ap &lt;- age_pyramid(dat,
+  age_group = AGE,
+  split_by = sex,
+  stack_by = ill,
+  proportional = TRUE,
+  vertical_lines = TRUE
+) +
+  labs(title = "Age groups by case definition and sex")
+print(ap)
+
+# empty group levels will still be displayed
+dat3 &lt;- dat2
+dat3[dat$AGE == "[0,5)", "sex"] &lt;- NA
+age_pyramid(dat3, age_group = AGE)
+theme_set(old)
+</code></pre>
+
+
+</div>

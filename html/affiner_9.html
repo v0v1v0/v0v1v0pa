@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>affine_settings</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute <code>grid</code> affine transformation feature viewports and transformation functions</h2>
+
+<h3>Description</h3>
+
+<p><code>affine_settings()</code> computes <code>grid</code> group affine transformation feature viewport and transformation
+function settings given the (x,y) coordinates of the corners of the
+affine transformed "viewport" one wishes to draw in.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">affine_settings(
+  xy = data.frame(x = c(0, 0, 1, 1), y = c(1, 0, 0, 1)),
+  unit = getOption("affiner_grid_unit", "inches")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>An R object with named elements <code>x</code> and <code>y</code> representing the (x,y) coordinates
+of the affine transformed "viewport" one wishes to draw in.
+The (x,y) coordinates of the "viewport" should be in
+"upper left", "lower left", "lower right", and "upper right" order
+(this ordering should be from the perspective of <strong>before</strong>
+the "affine transformation" of the "viewport").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>Which <code>grid::unit()</code> to assume the <code>xy</code> "x" and "y" coordinates are expressed in.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list with the following group affine transformation feature viewport
+and functions settings:</p>
+
+<dl>
+<dt>transform</dt>
+<dd>
+<p>An affine transformation function to pass to <code>affineGrob()</code> or <code>useGrob()</code>.
+If <code>getRversion()</code> is less than <code>"4.2.0"</code> will instead be <code>NULL</code>.</p>
+</dd>
+<dt>vp</dt>
+<dd>
+<p>A <code>grid::viewport()</code> object to pass to <code>affineGrob()</code> or <code>useGrob()</code>.</p>
+</dd>
+<dt>sx</dt>
+<dd>
+<p>x-axis sx factor</p>
+</dd>
+<dt>flipX</dt>
+<dd>
+<p>whether the affine transformed "viewport" is "flipped" horizontally</p>
+</dd>
+<dt>x</dt>
+<dd>
+<p>x-coordinate for viewport</p>
+</dd>
+<dt>y</dt>
+<dd>
+<p>y-coordinate for viewport</p>
+</dd>
+<dt>width</dt>
+<dd>
+<p>Width of viewport</p>
+</dd>
+<dt>height</dt>
+<dd>
+<p>Height of viewport</p>
+</dd>
+<dt>default.units</dt>
+<dd>
+<p>Default <code>grid::unit()</code> for viewport</p>
+</dd>
+<dt>angle</dt>
+<dd>
+<p>angle for viewport</p>
+</dd>
+</dl>
+<h3>Usage in other packages</h3>
+
+<p>To avoid taking a dependency on <code>affiner</code> you may copy the source of <code>affine_settings()</code>
+into your own package under the permissive Unlicense.  Either use
+<code>usethis::use_standalone("trevorld/affiner", "standalone-affine-settings.r")</code> or
+copy the file <code>standalone-affine-settings.r</code> into your <code>R</code> directory and add <code>grid</code>
+to the <code>Imports</code> of your <code>DESCRIPTION</code> file.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Intended for use with <code>affineGrob()</code> and <code>grid::useGrob()</code>.
+See <a href="https://www.stat.auckland.ac.nz/~paul/Reports/GraphicsEngine/groups/groups.html">https://www.stat.auckland.ac.nz/~paul/Reports/GraphicsEngine/groups/groups.html</a>
+for more information about the group affine transformation feature.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (require("grid")) {
+  grob &lt;- grobTree(rectGrob(gp = gpar(fill = "blue", col = NA)),
+                   circleGrob(gp=gpar(fill="yellow", col = NA)),
+                   textGrob("RSTATS", gp=gpar(fontsize=32)))
+  grid.newpage()
+  pushViewport(viewport(width=unit(4, "in"), height=unit(2, "in")))
+  grid.draw(grob)
+  popViewport()
+}
+if (require("grid") &amp;&amp;
+    getRversion() &gt;= "4.2.0" &amp;&amp;
+    isTRUE(dev.capabilities()$transformations)) {
+  # Only works if active graphics device supports affine transformations
+  # such as `png(type="cairo")` on R 4.2+
+  vp_define &lt;- viewport(width=unit(2, "in"), height=unit(2, "in"))
+  settings &lt;- affine_settings(xy = list(x = c(1/3, 0/3, 2/3, 3/3),
+                                        y = c(2/3, 1/3, 1/3, 2/3)),
+                              unit = "snpc")
+  affine &lt;- affineGrob(grob,
+                       vp_define=vp_define,
+                       transform = settings$transform,
+                       vp_use = settings$vp)
+  grid.newpage()
+  grid.draw(affine)
+}
+if (require("grid") &amp;&amp;
+    getRversion() &gt;= "4.2.0" &amp;&amp;
+    isTRUE(dev.capabilities()$transformations)) {
+  # Only works if active graphics device supports affine transformations
+  # such as `png(type="cairo")` on R 4.2+
+  settings &lt;- affine_settings(xy = list(x = c(3/3, 2/3, 0/3, 1/3),
+                                        y = c(2/3, 1/3, 1/3, 2/3)),
+                              unit = "snpc")
+  affine &lt;- affineGrob(grob,
+                       vp_define=vp_define,
+                       transform = settings$transform,
+                       vp_use = settings$vp)
+  grid.newpage()
+  grid.draw(affine)
+}
+</code></pre>
+
+
+</div>

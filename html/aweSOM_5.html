@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aweSOMreorder</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reorder variables for SOM plot</h2>
+
+<h3>Description</h3>
+
+<p>Reorders a set of variables for prettier display on SOM plots. Variables that
+have similar variations along the cell plots while be ordered close together.
+Reordering is computed from the first component of a kernel PCA performed on
+the matrix of displayed values (with the variables as rows, and the cells as
+columns).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aweSOMreorder(
+  som,
+  data = NULL,
+  variables = NULL,
+  scales = c("contrast", "range", "same"),
+  values = c("mean", "median", "prototypes")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>som</code></td>
+<td>
+<p><code>kohonen</code> object, a SOM created by the <code>kohonen::som</code>
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>data.frame</code> containing the variables to plot. This is
+typically not the training data, but rather the unscaled original data, as
+it is easier to read the results in the original units, and this allows to
+plot extra variables not used in training. If not provided, the training
+data is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>character vector containing the names of the variables to
+plot. If not provided, all columns of data will be selected. All variables
+must be numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scales</code></td>
+<td>
+<p>character, controls the scaling of the variables on the plot.
+The default "constrast" maximizes the displayed contrast by scaling the
+displayed heights of each variable from minimum to maximum of the displayed
+value. Alternatively, "range" uses the minimum and maximum of the
+observations for each variable, and "same" displays all variables on the
+same scale, using the global minimum and maximum of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>character, the type of value to be displayed. The default
+"mean" uses the observation means (from data) for each cell. Alternatively,
+"median" uses the observation medians for each cell, and "prototypes" uses
+the SOM's prototypes values.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a character vector containing the reordered variables names.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Build training data
+dat &lt;- iris[, c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]
+### Scale training data
+dat &lt;- scale(dat)
+## Train SOM
+### Initialization (PCA grid)
+init &lt;- somInit(dat, 4, 4)
+ok.som &lt;- kohonen::som(dat, grid = kohonen::somgrid(4, 4, 'hexagonal'),
+                       rlen = 100, alpha = c(0.05, 0.01),
+                       radius = c(2.65,-2.65), init = init,
+                       dist.fcts = 'sumofsquares')
+## Reorder variables
+ordered.vars &lt;- aweSOMreorder(ok.som)
+## Not run: 
+## Plot with reordered variables
+aweSOMplot(som = ok.som, type = 'Circular', data = iris,
+           variables= ordered.vars)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

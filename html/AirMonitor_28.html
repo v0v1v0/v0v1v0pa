@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>monitor_combine</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combine multiple <code>mts_monitor</code> objects</h2>
+
+<h3>Description</h3>
+
+<p>Create a combined <em>mts_monitor</em> from any number of <em>mts_monitor</em>
+objects or from a list of <em>mts_monitor</em> objects. The resulting <em>mts_monitor</em>
+object with contain all <code>deviceDeploymentIDs</code> found in any incoming
+<em>mts_monitor</em> and will have a regular time axis covering the the entire range
+of incoming data.
+</p>
+<p>If incoming time ranges are tempporally non-contiguous, the resulting
+<em>mts_monitor</em> will have gaps filled with <code>NA</code> values.
+</p>
+<p>An error is generated if the incoming <em>mts_monitor</em> objects have
+non-identical metadata for the same <code>deviceDeploymentID</code> unless
+<code>replaceMeta = TRUE</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">monitor_combine(
+  ...,
+  replaceMeta = FALSE,
+  overlapStrategy = c("replace all", "replace na")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any number of valid <em>mts_monitor</em> objects or a list of objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replaceMeta</code></td>
+<td>
+<p>Logical specifying whether to allow replacement of metadata
+associated when duplicate <code>deviceDeploymentIDs</code> are encountered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overlapStrategy</code></td>
+<td>
+<p>Strategy to use when data found in time series
+overlaps.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A combined <code>mts_monitor</code> object. (A list with
+<code>meta</code> and <code>data</code> dataframes.)
+</p>
+
+
+<h3>Note</h3>
+
+<p>Data are combined with a "later is better" sensibility where any
+data overlaps exist. Incoming <em>mts_monitor</em> objects are ordered based on the
+time stamp of their last record. Any data records found in a "later" <em>mts_monitor</em>
+will overwrite data associated with an "earlier" <em>mts_monitor</em>.
+</p>
+<p>With <code>overlapStrategy = "replace all"</code>, any data records found
+in "later" <em>mts_monitor</em> objects are preferentially retained before the "shared"
+data are finally reordered by ascending <code>datetime</code>.
+</p>
+<p>With <code>overlapStrategy = "replace missing"</code>, only missing values in "earlier"
+<em>mts_monitor</em> objects are replaced with data records from "later" time series.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(AirMonitor)
+
+# Two monitors near Pendelton, Oregon
+#
+# Use the interactive map to get the deviceDeploymentIDs
+#   NW_Megafires %&gt;% monitor_leaflet()
+
+Pendleton_West &lt;-
+  NW_Megafires %&gt;%
+  monitor_select("f187226671d1109a_410590121_03") %&gt;%
+  monitor_filterDatetime(2015082300, 2015082305)
+
+Pendleton_East &lt;-
+  NW_Megafires %&gt;%
+  monitor_select("6c906c6d1cf46b53_410597002_02") %&gt;%
+  monitor_filterDatetime(2015082300, 2015082305)
+
+monitor_combine(Pendleton_West, Pendleton_East) %&gt;%
+  monitor_getData()
+
+</code></pre>
+
+
+</div>

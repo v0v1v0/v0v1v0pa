@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>snapclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Maximum-likelihood genetic clustering using EM algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function implements the fast maximum-likelihood genetic clustering
+approach described in Beugin et al (2018). The underlying model is very close
+to the model implemented by STRUCTURE, but allows for much faster estimation
+of genetic clusters thanks to the use of the Expectation-Maximization (EM)
+algorithm. Optionally, the model can explicitely account for hybridization
+and detect different types of hybrids (see <code>hybrids</code> and
+<code>hybrid.coef</code> arguments). The method is fully documented in a dedicated
+tutorial which can be accessed using <code>adegenetTutorial("snapclust")</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">snapclust(
+  x,
+  k,
+  pop.ini = "ward",
+  max.iter = 100,
+  n.start = 10,
+  n.start.kmeans = 50,
+  hybrids = FALSE,
+  dim.ini = 100,
+  hybrid.coef = NULL,
+  parent.lab = c("A", "B"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a genind object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of clusters to look for</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop.ini</code></td>
+<td>
+<p>parameter indicating how the initial group membership should
+be found. If <code>NULL</code>, groups are chosen at random, and the algorithm
+will be run <code>n.start times</code>. If "kmeans", then the function
+<code>find.clusters</code> is used to define initial groups using the K-means
+algorithm. If "ward", then the function <code>find.clusters</code> is used to
+define initial groups using the Ward algorithm. Alternatively, a factor
+defining the initial cluster configuration can be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>the maximum number of iteration of the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.start</code></td>
+<td>
+<p>the number of times the EM algorithm is run, each time with
+different random starting conditions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.start.kmeans</code></td>
+<td>
+<p>the number of times the K-means algorithm is run to
+define the starting point of the ML-EM algorithm, each time with
+different random starting conditions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hybrids</code></td>
+<td>
+<p>a logical indicating if hybrids should be modelled
+explicitely; this is currently implemented for 2 groups only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim.ini</code></td>
+<td>
+<p>the number of PCA axes to retain in the dimension reduction
+step for <code>find.clusters</code>, if this method is used to define
+initial group memberships (see argument <code>pop.ini</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hybrid.coef</code></td>
+<td>
+<p>a vector of hybridization coefficients, defining the
+proportion of hybrid gene pool coming from the first parental population;
+this is symmetrized around 0.5, so that e.g. c(0.25, 0.5) will be
+converted to c(0.25, 0.5, 0.75)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent.lab</code></td>
+<td>
+<p>a vector of 2 character strings used to label the two
+parental populations; only used if hybrids are detected (see argument
+<code>hybrids</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed on to <code>find.clusters</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The method is described in Beugin et al (2018) A fast likelihood
+solution to the genetic clustering problem. Methods in Ecology and
+Evolution <a href="https://doi.org/10.1111/2041-210X.12968">doi:10.1111/2041-210X.12968</a>. A dedicated
+tutorial is available by typing <code>adegenetTutorial("snapclust")</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>snapclust</code> returns a list with the following
+components:
+</p>
+
+<ul>
+<li> <p><code>$group</code> a factor indicating the maximum-likelihood assignment of
+individuals to groups; if identified, hybrids are labelled after
+hybridization coefficients, e.g. 0.5_A - 0.5_B for F1, 0.75_A - 0.25_B for
+backcross F1 / A, etc.
+</p>
+</li>
+<li> <p><code>$ll</code>: the log-likelihood of the model
+</p>
+</li>
+<li> <p><code>$proba</code>: a matrix of group membership probabilities, with
+individuals in rows and groups in columns; each value correspond to the
+probability that a given individual genotype was generated under a given
+group, under Hardy-Weinberg hypotheses.
+</p>
+</li>
+<li> <p><code>$converged</code> a logical indicating if the algorithm converged; if
+FALSE, it is doubtful that the result is an actual Maximum Likelihood
+estimate.
+</p>
+</li>
+<li> <p><code>$n.iter</code> an integer indicating the number of iterations the EM
+algorithm was run for.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Thibaut Jombart <a href="mailto:thibautjombart@gmail.com">thibautjombart@gmail.com</a> and Marie-Pauline
+Beugin
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The function <code>snapclust.choose.k</code> to investigate the optimal
+value number of clusters 'k'.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(microbov)
+
+## try function using k-means initialization
+grp.ini &lt;- find.clusters(microbov, n.clust=15, n.pca=150)
+
+## run EM algo
+res &lt;- snapclust(microbov, 15, pop.ini = grp.ini$grp)
+names(res)
+res$converged
+res$n.iter
+
+## plot result
+compoplot(res)
+
+## flag potential hybrids
+to.flag &lt;- apply(res$proba,1,max)&lt;.9
+compoplot(res, subset=to.flag, show.lab=TRUE,
+                 posi="bottomleft", bg="white")
+
+
+## Simulate hybrids F1
+zebu &lt;- microbov[pop="Zebu"]
+salers &lt;- microbov[pop="Salers"]
+hyb &lt;- hybridize(zebu, salers, n=30)
+x &lt;- repool(zebu, salers, hyb)
+
+## method without hybrids
+res.no.hyb &lt;- snapclust(x, k=2, hybrids=FALSE)
+compoplot(res.no.hyb, col.pal=spectral, n.col=2)
+
+## method with hybrids
+res.hyb &lt;- snapclust(x, k=2, hybrids=TRUE)
+compoplot(res.hyb, col.pal =
+          hybridpal(col.pal = spectral), n.col = 2)
+
+
+## Simulate hybrids backcross (F1 / parental)
+f1.zebu &lt;- hybridize(hyb, zebu, 20, pop = "f1.zebu")
+f1.salers &lt;- hybridize(hyb, salers, 25, pop = "f1.salers")
+y &lt;- repool(x, f1.zebu, f1.salers)
+
+## method without hybrids
+res2.no.hyb &lt;- snapclust(y, k = 2, hybrids = FALSE)
+compoplot(res2.no.hyb, col.pal = hybridpal(), n.col = 2)
+
+## method with hybrids F1 only
+res2.hyb &lt;- snapclust(y, k = 2, hybrids = TRUE)
+compoplot(res2.hyb, col.pal = hybridpal(), n.col = 2)
+
+## method with back-cross
+res2.back &lt;- snapclust(y, k = 2, hybrids = TRUE, hybrid.coef = c(.25,.5))
+compoplot(res2.back, col.pal = hybridpal(), n.col = 2)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

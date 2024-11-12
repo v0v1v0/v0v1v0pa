@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>buildS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Build a piecewise linear price sensitivity function
+</h2>
+
+<h3>Description</h3>
+
+<p>Builds a price sensitivity function which is piecewise linear
+in price, in an automated manner, with built-in checks for
+possible infelicities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   buildS(alpha, beta, kn, tmax)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>A list of functions of <code>t</code> giving the constant terms of
+the linear functions comprising the price sensitivity function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>A list of functions of <code>t</code> giving the slopes of the linear
+functions comprising the price sensitivity function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kn</code></td>
+<td>
+
+<p>The knots (with respect to price) of the piecewise linear
+price sensitivity function.  The zero knot (which is always
+the first knot) is <em>not</em> included in <code>kn</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmax</code></td>
+<td>
+
+<p>The maximum time value to which the price sensitivity function
+is to be applied.  Needed for internal consistency checks.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The price sensitivity function is assumed to be of the form
+</p>
+<p style="text-align: center;"><code class="reqn">S(x,t) = \alpha_k(t) + \beta_k(t)x</code>
+</p>
+<p> for <code class="reqn">x_{k-1} \leq x \leq x_k</code> where <code class="reqn">x_1, x_2, \ldots, x_K</code> are the
+(non-zero) knots of the function.  It is assumed that <code class="reqn">x_0
+  = 0</code>.  The variable <code>x</code> represents price and the variable
+<code>t</code> represents residual time.
+</p>
+<p>The function is defined over the rectangle
+<code class="reqn">[0,x_K] \times [0,t_{\rm max}]</code>.
+</p>
+<p>Checks are done to make sure that
+</p>
+
+<dl>
+<dt>
+<code class="reqn">\bullet</code> <code class="reqn">S(x,t)</code> is continuous</dt>
+<dd></dd>
+<dt>
+<code class="reqn">\bullet</code> <code class="reqn">S(0,t) = 1</code> for all <code class="reqn">t</code>
+</dt>
+<dd></dd>
+<dt>
+<code class="reqn">\bullet</code> <code class="reqn">S(x,t)</code> is non-increasing in <code class="reqn">x</code> for all t</dt>
+<dd></dd>
+<dt>
+<code class="reqn">\bullet</code> <code class="reqn">S(x,t) \geq 0</code> for all <code class="reqn">x</code> and <code class="reqn">t</code>
+</dt>
+<dd></dd>
+</dl>
+<h3>Value</h3>
+
+<p>A function of two variables <code>x</code> and <code>t</code>, which is
+a price sensitivity function.  The argument <code>x</code> represents
+price and the argument <code>t</code> represents (residual) time.
+The value of the function is interpreted as the probability
+that a customer “arriving” at time <code>t</code> will purchase
+an item offered at price <code>x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rolf Turner
+<a href="mailto:r.turner@auckland.ac.nz">r.turner@auckland.ac.nz</a>
+<a href="http://www.stat.auckland.ac.nz/~rolf">http://www.stat.auckland.ac.nz/~rolf</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>P. K. Banerjee, and T. R. Turner (2012).
+A flexible model for the pricing of perishable assets.
+<em>Omega</em> <b>40</b>:5, 533–540.
+DOI https://doi.org/10.1016/j.omega.2011.10.001
+</p>
+<p>Rolf Turner, Pradeep Banerjee and Rayomand Shahlori (2014).  Optimal
+Asset Pricing.  <em>Journal of Statistical Software</em> <b>58</b>:11, 1–25.
+DOI https://doi.org/10.18637/jss.v058.i11
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>xsolve()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">   lambda &lt;- function(t) {
+      tn &lt;- 1:4
+      A &lt;- matrix(c(0,12,12,12,
+              0,-16,16,64,
+              20,30,30,0),nrow=4)
+      B &lt;- matrix(c(12,0,0,0,
+               0,16,0,-16,
+               0,-10,-10,0),nrow=4)
+      s &lt;- cut(t,breaks=c(0,tn),include.lowest=TRUE,labels=tn)
+      s &lt;- as.numeric(levels(s)[s])
+      M &lt;- matrix(A[s,] + B[s,]*t,ncol=ncol(A))
+      M[!is.finite(M)] &lt;- 0
+      M
+   }
+
+   alpha &lt;- vector("list",4)
+   beta  &lt;- vector("list",4)
+   alpha[[1]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	A &lt;- c(1,1,1)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%A/dnm
+   })
+   beta[[1]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	B &lt;- c(0,0,0)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%B/dnm
+   })
+   alpha[[2]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	A &lt;- c(1.495,1,1)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%A/dnm
+   })
+   beta[[2]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	B &lt;- c(-0.2475,0,0)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%B/dnm
+   })
+   alpha[[3]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	A &lt;- c(0.01,2.485,1)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%A/dnm
+   })
+   beta[[3]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	B &lt;- c(0,-0.2475,0)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%B/dnm
+   })
+   alpha[[4]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	A &lt;- c(0.01,0.01,3.475)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%A/dnm
+   })
+   beta[[4]] &lt;- with(list(lambda=lambda),
+	function(t) {
+	B &lt;- c(0,0,-0.2475)
+        lll &lt;- lambda(t)
+        dnm &lt;- apply(lll,1,sum)
+        dnm[dnm==0] &lt;- 1
+        lll%*%B/dnm
+   })
+   kn &lt;- c(2,6,10,14)
+   S  &lt;- buildS(alpha,beta,kn,4)
+   x  &lt;- seq(0,14,length=41)
+   t  &lt;- seq(0,4,length=41)
+   z  &lt;- S(x,t)
+## Not run: 
+   persp(x,t,z,theta=150,phi=40,d=4,xlab="price",ylab="time",
+         zlab="probability",ticktype="detailed")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

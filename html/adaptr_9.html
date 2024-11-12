@@ -1,0 +1,366 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>check_performance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Check performance metrics for trial simulations</h2>
+
+<h3>Description</h3>
+
+<p>Calculates performance metrics for a trial specification based on
+simulation results from the <code>run_trials()</code> function, with bootstrapped
+uncertainty measures if requested. Uses <code>extract_results()</code>, which may be
+used directly to extract key trial results without summarising. This function
+is also used by <code>summary()</code> to calculate the performance metrics presented by
+that function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">check_performance(
+  object,
+  select_strategy = "control if available",
+  select_last_arm = FALSE,
+  select_preferences = NULL,
+  te_comp = NULL,
+  raw_ests = FALSE,
+  final_ests = NULL,
+  restrict = NULL,
+  uncertainty = FALSE,
+  n_boot = 5000,
+  ci_width = 0.95,
+  boot_seed = NULL,
+  cores = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p><code>trial_results</code> object, output from the <code>run_trials()</code>
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_strategy</code></td>
+<td>
+<p>single character string. If a trial was not stopped
+due to superiority (or had only 1 arm remaining, if <code>select_last_arm</code> is
+set to <code>TRUE</code> in trial designs with a common <code>control</code> arm; see below),
+this parameter specifies which arm will be considered selected when
+calculating trial design performance metrics, as described below;
+this corresponds to the consequence of an inconclusive trial, i.e., which
+arm would then be used in practice.<br>
+The following options are available and must be written exactly as below
+(case sensitive, cannot be abbreviated):
+</p>
+
+<ul>
+<li> <p><code>"control if available"</code> (default): selects the <strong>first</strong>
+<code>control</code> arm for trials with a common <code>control</code> arm <em><strong>if</strong></em> this
+arm is active at end-of-trial, otherwise no arm will be selected. For
+trial designs without a common <code>control</code>, no arm will be selected.
+</p>
+</li>
+<li> <p><code>"none"</code>: selects no arm in trials not ending with superiority.
+</p>
+</li>
+<li> <p><code>"control"</code>: similar to <code>"control if available"</code>, but will throw
+an error if used for trial designs without a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"final control"</code>: selects the <strong>final</strong> <code>control</code> arm regardless
+of whether the trial was stopped for practical equivalence, futility,
+or at the maximum sample size; this strategy can only be specified
+for trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"control or best"</code>: selects the <strong>first</strong> <code>control</code> arm if still
+active at end-of-trial, otherwise selects the best remaining arm
+(defined as the remaining arm with the highest probability of being
+the best in the last adaptive analysis conducted). Only works for
+trial designs with a common <code>control</code> arm.
+</p>
+</li>
+<li> <p><code>"best"</code>: selects the best remaining arm (as described under
+<code>"control or best"</code>).
+</p>
+</li>
+<li> <p><code>"list or best"</code>: selects the first remaining arm from a specified
+list (specified using <code>select_preferences</code>, technically a character
+vector). If none of these arms are are active at end-of-trial, the best
+remaining arm will be selected (as described above).
+</p>
+</li>
+<li> <p><code>"list"</code>: as specified above, but if no arms on the provided list
+remain active at end-of-trial, no arm is selected.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_last_arm</code></td>
+<td>
+<p>single logical, defaults to <code>FALSE</code>. If <code>TRUE</code>, the
+only remaining active arm (the last <code>control</code>) will be selected in trials
+with a common <code>control</code> arm ending with <code>equivalence</code> or <code>futility</code>, before
+considering the options specified in <code>select_strategy</code>. Must be <code>FALSE</code> for
+trial designs without a common <code>control</code> arm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select_preferences</code></td>
+<td>
+<p>character vector specifying a number of arms used
+for selection if one of the <code>"list or best"</code> or <code>"list"</code> options are
+specified for <code>select_strategy</code>. Can only contain valid <code>arms</code>
+available in the trial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>te_comp</code></td>
+<td>
+<p>character string, treatment-effect comparator. Can be either
+<code>NULL</code> (the default) in which case the <strong>first</strong> <code>control</code> arm is used for
+trial designs with a common control arm, or a string naming a single trial
+<code>arm</code>. Will be used when calculating <code>err_te</code> and <code>sq_err_te</code> (the error
+and the squared error of the treatment effect comparing the selected arm to
+the comparator arm, as described below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raw_ests</code></td>
+<td>
+<p>single logical. If <code>FALSE</code> (default), the
+posterior estimates (<code>post_ests</code> or <code>post_ests_all</code>, see <code>setup_trial()</code>
+and <code>run_trial()</code>) will be used to calculate <code>err</code> and <code>sq_err</code> (the error
+and the squared error of the estimated compared to the specified effect in
+the selected arm) and <code>err_te</code> and <code>sq_err_te</code> (the error and the squared
+error of the treatment effect comparing the selected arm to the comparator
+arm, as described for <code>te_comp</code> and below). If <code>TRUE</code>, the raw estimates
+(<code>raw_ests</code> or <code>raw_ests_all</code>, see <code>setup_trial()</code> and <code>run_trial()</code>) will
+be used instead of the posterior estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final_ests</code></td>
+<td>
+<p>single logical. If <code>TRUE</code> (recommended) the final estimates
+calculated using outcome data from all patients randomised when trials are
+stopped are used (<code>post_ests_all</code> or <code>raw_ests_all</code>, see <code>setup_trial()</code>
+and <code>run_trial()</code>); if <code>FALSE</code>, the estimates calculated for each arm when
+an arm is stopped (or at the last adaptive analysis if not before) using
+data from patients having reach followed up at this time point and not all
+patients randomised are used (<code>post_ests</code> or <code>raw_ests</code>, see
+<code>setup_trial()</code> and <code>run_trial()</code>). If <code>NULL</code> (the default), this argument
+will be set to <code>FALSE</code> if outcome data are available immediate after
+randomisation for all patients (for backwards compatibility, as final
+posterior estimates may vary slightly in this situation, even if using the
+same data); otherwise it will be said to <code>TRUE</code>. See <code>setup_trial()</code> for
+more details on how these estimates are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>restrict</code></td>
+<td>
+<p>single character string or <code>NULL</code>. If <code>NULL</code> (default),
+results are summarised for all simulations; if <code>"superior"</code>, results are
+summarised for simulations ending with superiority only; if <code>"selected"</code>,
+results are summarised for simulations ending with a selected arm only
+(according to the specified arm selection strategy for simulations not
+ending with superiority). Some summary measures (e.g., <code>prob_conclusive</code>)
+have substantially different interpretations if restricted, but are
+calculated nonetheless.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uncertainty</code></td>
+<td>
+<p>single logical; if <code>FALSE</code> (default) uncertainty measures
+are not calculated, if <code>TRUE</code>, non-parametric bootstrapping is used to
+calculate uncertainty measures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+<p>single integer (default <code>5000</code>); the number of bootstrap
+samples to use if <code>uncertainty = TRUE</code>. Values <code style="white-space: pre;">⁠&lt; 100⁠</code> are not allowed and
+values <code style="white-space: pre;">⁠&lt; 1000⁠</code> will lead to a warning, as results are likely to be
+unstable in those cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci_width</code></td>
+<td>
+<p>single numeric <code style="white-space: pre;">⁠&gt;= 0⁠</code> and <code style="white-space: pre;">⁠&lt; 1⁠</code>, the width of the
+percentile-based bootstrapped confidence intervals. Defaults to <code>0.95</code>,
+corresponding to 95% confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_seed</code></td>
+<td>
+<p>single integer, <code>NULL</code> (default), or <code>"base"</code>. If a value is
+provided, this value will be used to initiate random seeds when
+bootstrapping with the global random seed restored after the function has
+run. If <code>"base"</code> is specified, the <code>base_seed</code> specified in <code>run_trials()</code>
+is used. Regardless of whether simulations are run sequentially or in
+parallel, bootstrapped results will be identical if a <code>boot_seed</code> is
+specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p><code>NULL</code> or single integer. If <code>NULL</code>, a default value set by
+<code>setup_cluster()</code> will be used to control whether extractions of simulation
+results are done in parallel on a default cluster or sequentially in the
+main process; if a value has not been specified by <code>setup_cluster()</code>,
+<code>cores</code> will then be set to the value stored in the global <code>"mc.cores"</code>
+option (if previously set by <code style="white-space: pre;">⁠options(mc.cores = &lt;number of cores&gt;⁠</code>), and
+<code>1</code> if that option has not been specified.<br>
+If <code>cores = 1</code>, computations
+will be run sequentially in the primary process, and if <code>cores &gt; 1</code>, a new
+parallel cluster will be setup using the <code>parallel</code> library and removed
+once the function completes. See <code>setup_cluster()</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The ideal design percentage (IDP) returned is based on
+<em>Viele et al, 2020</em> <a href="https://doi.org/10.1177/1740774519877836">doi:10.1177/1740774519877836</a>  (and also described in
+<em>Granholm et al, 2022</em> <a href="https://doi.org/10.1016/j.jclinepi.2022.11.002">doi:10.1016/j.jclinepi.2022.11.002</a>, which also
+describes the other performance measures) and has been adapted to work for
+trials with both desirable/undesirable outcomes and non-binary outcomes.
+Briefly, the expected outcome is calculated as the sum of the true outcomes
+in each arm multiplied by the corresponding selection probabilities (ignoring
+simulations with no selected arm). The IDP is then calculated as:
+</p>
+
+<ul>
+<li>
+<p> For desirable outcomes (<code>highest_is_best</code> is <code>TRUE</code>):<br><code style="white-space: pre;">⁠100 * (expected outcome - lowest true outcome) / (highest true outcome - lowest true outcome)⁠</code>
+</p>
+</li>
+<li>
+<p> For undesirable outcomes (<code>highest_is_best</code> is <code>FALSE</code>):<br><code style="white-space: pre;">⁠100 - IDP calculated for desirable outcomes⁠</code>
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A tidy <code>data.frame</code> with added class <code>trial_performance</code> (to control
+the number of digits printed, see <code>print()</code>), with the columns
+<code>"metric"</code> (described below), <code>"est"</code> (estimate of each metric), and the
+following four columns if <code>uncertainty = TRUE</code>: <code>"err_sd"</code>(bootstrapped
+SDs), <code>"err_mad"</code> (bootstrapped MAD-SDs, as described in <code>setup_trial()</code>
+and <code>stats::mad()</code>), <code>"lo_ci"</code>, and <code>"hi_ci"</code>, the latter two corresponding
+to the lower/upper limits of the percentile-based bootstrapped confidence
+intervals. Bootstrap estimates are <strong>not</strong> calculated for the minimum
+(<code style="white-space: pre;">⁠_p0⁠</code>) and maximum values (<code style="white-space: pre;">⁠_p100⁠</code>) of <code>size</code>, <code>sum_ys</code>, and <code>ratio_ys</code>,
+as non-parametric bootstrapping for minimum/maximum values is not
+sensible - bootstrap estimates for these values will be <code>NA</code>.<br>
+The following performance metrics are calculated:
+</p>
+
+<ul>
+<li> <p><code>n_summarised</code>: the number of simulations summarised.
+</p>
+</li>
+<li> <p><code>size_mean</code>, <code>size_sd</code>, <code>size_median</code>, <code>size_p25</code>, <code>size_p75</code>,
+<code>size_p0</code>, <code>size_p100</code>: the mean, standard deviation, median as well as
+25-, 75-, 0- (min), and 100- (max) percentiles of the sample sizes
+(number of patients randomised in each simulated trial) of the summarised
+trial simulations.
+</p>
+</li>
+<li> <p><code>sum_ys_mean</code>, <code>sum_ys_sd</code>, <code>sum_ys_median</code>, <code>sum_ys_p25</code>,
+<code>sum_ys_p75</code>, <code>sum_ys_p0</code>, <code>sum_ys_p100</code>: the mean, standard deviation,
+median as well as 25-, 75-, 0- (min), and 100- (max) percentiles of the
+total <code>sum_ys</code> across all arms in the summarised trial simulations (e.g.,
+the total number of events in trials with a binary outcome, or the sums
+of continuous values for all patients across all arms in trials with a
+continuous outcome). Always uses all outcomes from all randomised
+patients regardless of whether or not all patients had outcome data
+available at the time of trial stopping (corresponding to <code>sum_ys_all</code> in
+results from <code>run_trial()</code>).
+</p>
+</li>
+<li> <p><code>ratio_ys_mean</code>, <code>ratio_ys_sd</code>, <code>ratio_ys_median</code>, <code>ratio_ys_p25</code>,
+<code>ratio_ys_p75</code>, <code>ratio_ys_p0</code>, <code>ratio_ys_p100</code>: the mean, standard
+deviation, median as well as 25-, 75-, 0- (min), and 100- (max)
+percentiles of the final <code>ratio_ys</code> (<code>sum_ys</code> as described above divided
+by the total number of patients randomised) across all arms in the
+summarised trial simulations.
+</p>
+</li>
+<li> <p><code>prob_conclusive</code>: the proportion (<code>0</code> to <code>1</code>) of conclusive trial
+simulations, i.e., simulations not stopped at the maximum sample size
+without a superiority, equivalence or futility decision.
+</p>
+</li>
+<li> <p><code>prob_superior</code>, <code>prob_equivalence</code>, <code>prob_futility</code>, <code>prob_max</code>: the
+proportion (<code>0</code> to <code>1</code>) of trial simulations stopped for superiority,
+equivalence, futility or inconclusive at the maximum allowed sample size,
+respectively.<br><strong>Note:</strong> Some metrics may not make sense if summarised simulation
+results are <code>restricted</code>.
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠prob_select_*⁠</code>: the selection probabilities for each arm and for no
+selection, according to the specified selection strategy. Contains one
+element per <code>arm</code>, named <code style="white-space: pre;">⁠prob_select_arm_&lt;arm name&gt;⁠</code> and
+<code>prob_select_none</code> for the probability of selecting no arm.
+</p>
+</li>
+<li> <p><code>rmse</code>, <code>rmse_te</code>: the root mean squared errors of the estimates for
+the selected arm and for the treatment effect, as described in
+<code>extract_results()</code>.
+</p>
+</li>
+<li> <p><code>mae</code>, <code>mae_te</code>: the median absolute errors of the estimates for
+the selected arm and for the treatment effect, as described in
+<code>extract_results()</code>.
+</p>
+</li>
+<li> <p><code>idp</code>: the ideal design percentage (IDP; 0-100%), see <strong>Details</strong>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>extract_results()</code>, <code>summary()</code>, <code>plot_convergence()</code>,
+<code>plot_metrics_ecdf()</code>, <code>check_remaining_arms()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Setup a trial specification
+binom_trial &lt;- setup_trial_binom(arms = c("A", "B", "C", "D"),
+                                 control = "A",
+                                 true_ys = c(0.20, 0.18, 0.22, 0.24),
+                                 data_looks = 1:20 * 100)
+
+# Run 10 simulations with a specified random base seed
+res &lt;- run_trials(binom_trial, n_rep = 10, base_seed = 12345)
+
+# Check performance measures, without assuming that any arm is selected in
+# the inconclusive simulations, with bootstrapped uncertainty measures
+# (unstable in this example due to the very low number of simulations
+# summarised):
+check_performance(res, select_strategy = "none", uncertainty = TRUE,
+n_boot = 1000, boot_seed = "base")
+
+</code></pre>
+
+
+</div>

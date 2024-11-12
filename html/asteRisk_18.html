@@ -1,0 +1,538 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readGPSNavigationRINEX</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a RINEX navigation file for GPS satellites
+</h2>
+
+<h3>Description</h3>
+
+<p>RINEX (Receiver Independent Exchange Format) is one of the most widely used
+formats for providing data of satellite navigation systems. The RINEX standard
+defines several structured text file types file types, among which navigation 
+files are used to distribute positional information of the satellites. The exact 
+information provided in a RINEX navigation file varies for each satellite navigation 
+system. This function reads RINEX navigation files for satellites of the GPS 
+constellation, operated by the USA.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readGPSNavigationRINEX(filename)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Path to the GPS RINEX navigation file.
+</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A list with two elements. The first element, named <code>header</code>, is a list with
+the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>rinexVersion </code></td>
+<td>
+<p>Version of the RINEX format used in the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rinexFileType </code></td>
+<td>
+<p>Type of RINEX file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generatorProgram </code></td>
+<td>
+<p>Program used to generate the RINEX file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generatorEntity </code></td>
+<td>
+<p>Individual or organization that generated the file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fileCreationDateString </code></td>
+<td>
+<p>Date-time string indicating when the file was
+created</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionAlphaA0 </code></td>
+<td>
+<p>Coefficient for ionospheric correction A0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionAlphaA1 </code></td>
+<td>
+<p>Coefficient for ionospheric correction A1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionAlphaA2 </code></td>
+<td>
+<p>Coefficient for ionospheric correction A2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionAlphaA3 </code></td>
+<td>
+<p>Coefficient for ionospheric correction A3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionBetaB0 </code></td>
+<td>
+<p>Coefficient for ionospheric correction B0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionBetaB1 </code></td>
+<td>
+<p>Coefficient for ionospheric correction B1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionBetaB2 </code></td>
+<td>
+<p>Coefficient for ionospheric correction B2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ionBetaB3 </code></td>
+<td>
+<p>Coefficient for ionospheric correction B3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaUTCA0 </code></td>
+<td>
+<p>A0 parameter, corresponding to bias between GPST and UTC
+time at the reference time (Tot) given by fields <code>referenceTimeUTC</code> and
+<code>referenceWeekUTC</code>. Should be used to compute accurate time in UTC</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaUTCA1 </code></td>
+<td>
+<p>A1 parameter, corresponding to the clock drift between
+GPST and UTC at the reference time (Tot) given by fields <code>referenceTimeUTC</code> 
+and <code>referenceWeekUTC</code>. Should be used to compute accurate time in UTC</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>referenceTimeUTC </code></td>
+<td>
+<p>Time in seconds of current UTC week of Tot, which is
+the reference time to correct GPST time to UTC</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>referenceWeekUTC </code></td>
+<td>
+<p>UTC reference week number (continuous scale, not
+modulo 1024) of Tot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leapSeconds </code></td>
+<td>
+<p>Leap seconds introduced since the 6th of January, 1980. 
+Useful to convert to UTC time (UTC time = GPS time - leap seconds)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comments </code></td>
+<td>
+<p>Miscellaneous comments found in the header of the RINEX file</p>
+</td>
+</tr>
+</table>
+<p>The second element is named <code>messages</code>, and it contains one element for
+each navigation message found in the RINEX file. Each of these elements is a 
+list with the following elements that provide information about the position
+of the GPS satellite:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>satellitePRNCode </code></td>
+<td>
+<p>PRN code of the satellite. Unique PRN codes are
+assigned to all satellites in global navigation satellite systems, and 
+therefore provide an identifier for each of them</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocYearShort </code></td>
+<td>
+<p>Toc year in 2-digit format. If lower than 80, the meaning 
+should be taken as 20XX, while if larger than 80, it refers to 19XX. Toc is
+the GPS time of the specific satellite that should be used as the time 
+reference to apply clock bias, clock drift and possibly even clock drift rate,
+as well as a relativistic correction, as described in the GPS system 
+specification (https://www.gps.gov/technical/icwg/IS-GPS-200H.pdf) to obtain 
+the corrected GPST system time. The GPST system time can be converted to UTC 
+time by subtracting leap seconds since the 6th of January 1980 and performing
+another polynomial correction to account for bias and drift between GPST and
+UTC times.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocMonth </code></td>
+<td>
+<p>Toc month</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocDay </code></td>
+<td>
+<p>Toc day</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocHour </code></td>
+<td>
+<p>Toc hour</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocMinute </code></td>
+<td>
+<p>Toc minute</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tocSecond </code></td>
+<td>
+<p>Toc second</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UTCepochDateTime </code></td>
+<td>
+<p>Date-time string indicating the time corresponding
+to the reported position in the present message. The time is in UTC, obtained
+by subtracting the leap seconds (if available in the header) from the time
+of the satellite system (which is in GPS time). If leap seconds are not
+provided in the header, the time will be in GPS. For an even more 
+accurate conversion to actual UTC time, the clock bias, clock drift and 
+possibly even clock drift rate (described in the next three elements) must be 
+considered</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clockBias </code></td>
+<td>
+<p>Clock bias (i.e., constant offset) at Toc that should be 
+applied to the satellite time in order to calculate accurate GPST. In seconds.
+Often referred to as af0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clockDrift </code></td>
+<td>
+<p>Clock drift of the satellite clock at Toc that should be 
+applied to the satellite time in order to calculate accurate GPST. In seconds.
+Often referred to as af1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clockDriftRate </code></td>
+<td>
+<p>Rate of change for the clock drift of the satellite 
+clock at Toc. It is frequently 0, but if not, it should be applied in 
+combination with clock bias and clock drift in order to correct to GPST as
+accurately as possible. In seconds per square second. Often referred to as af2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IODE </code></td>
+<td>
+<p>Issue-of-data ephemeris. It acts as a time-stamp or unique 
+identifier for the provided navigation data. In particular, the IODE of a 
+given navigation message should never be the same as the IODE for any other
+navigation message broadcasted by the same satellite in the past 6 days,
+although violations of this rule have been observed. Most frequently, IODE
+are not reused in a period of 7 days, so that they match exactly the IODC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radiusCorrectionSine </code></td>
+<td>
+<p>Amplitude of the sine harmonic component for the 
+correction of orbital radius. In meters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deltaN </code></td>
+<td>
+<p>Mean motion difference from computed value. In radians per
+second. In order to obtain the real (perturbed) mean motion, first the 
+Keplerian mean motion should be calculated from the semi-major axis. Then, 
+deltaN should be added to it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correctedMeanMotion </code></td>
+<td>
+<p>Corrected mean motion calculated by adding deltaN
+to the value computed from the semi-major axis. In radians per second</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanAnomaly </code></td>
+<td>
+<p>Mean anomaly of the satellite at epoch. In radians. This 
+indicates where the satellite is along its orbital path. It is provided as the 
+angle between the direction of the perigee and the hypothetical point where 
+the object would be if it was moving in a circular orbit with the same period 
+as its true orbit after the same amount of time since it last crossed the 
+perigee had ellapsed. Therefore, 0 denotes that the object is at the perigee. 
+This is a Keplerian orbital element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latitudeCorrectionCosine </code></td>
+<td>
+<p>Amplitude of the cosine harmonic component
+for the correction of latitude argument. In radians</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eccentricity </code></td>
+<td>
+<p>Eccentricity of the orbit of the satellite at epoch. This
+is a Keplerian orbital element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latitudeCorrectionSine </code></td>
+<td>
+<p>Amplitude of the sine harmonic component for 
+the correction of latitude argument. In radians</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>semiMajorAxis </code></td>
+<td>
+<p>Semi-major axis of the orbit of the satellite at epoch.
+In meters. This is a Keplerian orbital element</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>toeSecondsOfGPSWeek </code></td>
+<td>
+<p>Time of the GPS week (in seconds) for the ephemeris.
+Together with the <code>toeGPSWeek</code>, it can be used to calculate the ephemeris
+time in GPS time of the specific satellite, to which sequential corrections
+first to GPST and then to UTC should be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inclinationCorrectionCosine </code></td>
+<td>
+<p>Amplitude of the cosine harmonic component
+for the correction of inclination. In radians</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ascension </code></td>
+<td>
+<p>Longitude of the ascending node of the satellite at epoch, 
+also known as right ascension of the ascending node, in radians. This is the 
+angle between the direction of the ascending node (the point where the 
+satellite crosses the equatorial plane moving north) and the direction of the 
+First Point of Aries (which indicates the location of the vernal equinox).
+This is a Keplerian orbital element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inclinationCorrectionSine </code></td>
+<td>
+<p>Amplitude of the sine harmonic component
+for the correction of inclination. In radians</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inclination </code></td>
+<td>
+<p>Mean orbital inclination of the satellite in radians. This
+is the angle between the orbital plane of the satellite and the equatorial 
+plane. This is a Keplerian orbital element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radiusCorrectionCosine </code></td>
+<td>
+<p>Amplitude of the cosine harmonic component for 
+the correction of orbital radius. In meters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perigeeArgument </code></td>
+<td>
+<p>Mean argument of the perigee of the object in radians. 
+This is the angle between the direction of the ascending node and the 
+direction of the perigee (the point of the orbit at which the object is 
+closest to the Earth). This is a Keplerian orbital element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OMEGADot </code></td>
+<td>
+<p>Angular velocity of the satellite with respect to the vernal
+equinox. In radians/second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>codesL2Channel </code></td>
+<td>
+<p>Flag indicating if coarse/acquisition (C/A) code is
+being transmitted on the L2 channel (value of 1) or not (value of 0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>toeGPSWeek </code></td>
+<td>
+<p>GPS week number at epoch</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataFlagL2P </code></td>
+<td>
+<p>Flag indicating if precise (P) code is being transmitted 
+on the L2 channel (value of 1) or not (value of 0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>satelliteAccuracy </code></td>
+<td>
+<p>Accuracy of the position of the satellite, in 
+meters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>satelliteHealthCode </code></td>
+<td>
+<p>Code indicating the health of the satellite. 0 if
+healthy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totalGroupDelay </code></td>
+<td>
+<p>Bias difference between codes broadcasted on L1 and
+the ionospheric-free combination of the codes broadcasted at L1 and L2, in
+seconds. This parameter, also known as timing group delay (TGD), should be 
+considered when calculating satellite clock error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IODC </code></td>
+<td>
+<p>Issue-of-data clock. It acts as a time-stamp or unique identifier 
+for the provided navigation data. In particular, the IODC of a given 
+navigation message should never be the same as the IODC for any other
+navigation message broadcasted by the same satellite in the past 7 days,
+although violations of this rule have been observed. Most frequently, IODE
+are not reused in a period of 7 days instead of the mandatory 6 days, so that 
+they match exactly the IODC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transmissionTime </code></td>
+<td>
+<p>Transmission time for the navigation message, in
+seconds of GPS week.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitInterval </code></td>
+<td>
+<p>Flag indicating for how long the broadcasted ephemeris are
+valid since the last time the data was updated. It should be noted that in
+order to obtain positional values/orbital elements at times other than epoch,
+the corrections for perturbed orbital elements should be applied and 
+propagated. If 0, the ephemeris data are valid for up to 4 hours. If 1, they
+are valid for more than 4 hours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ephemerisUTCTime </code></td>
+<td>
+<p>A nanotime object indicating the time
+corresponding to the reported position (ephemeris) in the present message. 
+The time is in UTC, obtained by first applying the individual clock bias, clock 
+drift and clock drift rate of the particular satellite (fields <code>clockBias</code>,
+<code>clockDrift</code> and <code>clockDriftRate</code> of each message) and a relativistic
+correction to obtain corrected GPST time (system-wide GPS time), and then
+subtraction of leap seconds since the 6th of January 1980 and a second polynomial
+correction (with fields <code>deltaUTCA0</code> and <code>deltaUTCA1</code> from the 
+header) to obtain UTC time. Corrections are performed as described in the GPS
+system specifications (https://www.gps.gov/technical/icwg/IS-GPS-200H.pdf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>position_ITRF</code></td>
+<td>
+<p>Position of the satellite in the ITRF frame, calculated
+from the provided orbital ephemeris following the procedure described in the
+GPS system specifications. In meters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>velocity_ITRF</code></td>
+<td>
+<p>Velocity of the satellite in the ITRF frame, calculated
+from the provided orbital ephemeris following the procedure described in the
+GPS system specifications. In meters/second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acceleration_ITRF</code></td>
+<td>
+<p>Acceleration of the satellite in the ITRF frame, calculated
+from the provided orbital ephemeris following the procedure described in the
+GPS system specifications. In meters/squared second.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>https://gage.upc.edu/gFD/
+https://www.navcen.uscg.gov/pubs/gps/rinex/rinex.txt
+ftp://www.ngs.noaa.gov/cors/RINEX211.txt
+http://acc.igs.org/misc/rinex304.pdf
+https://www.icao.int/Meetings/AMC/MA/2004/GNSS/icd.pdf
+https://www.gps.gov/technical/icwg/IS-GPS-200H.pdf
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The file testGPSRINEX.txt provided with the package includes 3 navigation
+# messages from 3 GPS satellites
+
+testGPSnav &lt;- readGPSNavigationRINEX(paste0(path.package("asteRisk"), 
+"/testGPSRINEX.txt"))
+testGPSnav$header
+testGPSnav$messages
+</code></pre>
+
+
+</div>

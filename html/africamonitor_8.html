@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>am_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retrieve Data from the Database</h2>
+
+<h3>Description</h3>
+
+<p>This is the main function of the package to retrieve data from the database. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">am_data(
+  ctry = africamonitor::am_countries$ISO3,
+  series = NULL,
+  from = NULL,
+  to = NULL,
+  labels = TRUE,
+  wide = TRUE,
+  expand.date = FALSE,
+  drop.1iso3c = TRUE,
+  ordered = TRUE,
+  return.query = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ctry</code></td>
+<td>
+<p>character. (Optional) the ISO3 code of countries (see <code>am_countries</code>). Default is to load data for all African countries. Putting <code>NULL</code> gets data for all countries (codes available in <code>am_countries_wld</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>character. (Optional) codes of series matching the 'Series' column of the series table (retrieved using <code>am_series()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+<p>set the start time of the data retrieved by either supplying a start date, a date-string of the form <code>"YYYY-MM-DD"</code> or <code>"YYYY-MM"</code>,
+year-quarters of the form <code>"YYYYQN"</code> or <code>"YYYY-QN"</code>, a numeric year <code>YYYY</code> (numeric or character), or a fiscal year of the form <code>"YYYY/YY"</code>. These expressions are converted to a regular date by <code>am_as_date</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+<p>same as <code>from</code>: to set the time period until which data is retrieved. For expressions that are not full "YYYY-MM-DD" dates, the last day of the period is chosen.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>logical. <code>TRUE</code> will also return labels (series descriptions) along with the series codes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wide</code></td>
+<td>
+<p>logical. <code>TRUE</code> calls <code>am_pivot_wider</code> on the result. <code>FALSE</code> returns the data in a long format without missing values (suitable for <code>ggplot2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand.date</code></td>
+<td>
+<p>logical. <code>TRUE</code> will call <code>am_expand_date</code> on the result.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop.1iso3c</code></td>
+<td>
+<p>logical. If only one country is selected through <code>ctry</code>, <code>TRUE</code> will drop the 'ISO3' column in the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordered</code></td>
+<td>
+<p>logical. <code>TRUE</code> orders the result by 'Date' and, if <code>labels = TRUE</code>, by series, maintaining a fixed column-order of series.
+<code>FALSE</code> returns the result in a random order, to the benefit of faster query execution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.query</code></td>
+<td>
+<p>logical. <code>TRUE</code> will not query the database but instead return the constructed SQL query as a character string (for debugging purposes).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>am_pivot_wider</code> (if <code>wide = TRUE</code>) or <code>am_expand_date</code> (if <code>expand.date = TRUE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>labels = FALSE</code>, the series table is not joined to the data table, and <code>ordered = TRUE</code> will order series retrieved in alphabetic order.
+If <code>labels = TRUE</code> data is ordered by series and date, preserving the order of columns in the dataset. If multiple countries are received they are ordered alphabetically according to the 'ISO3' column.
+</p>
+<p>Series at different frequencies can be queried, but, if <code>wide = TRUE</code>, this will result in missing values for all but the first observations per period in the lower frequency series.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.table</code> with the result of the query.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>am_pivot_wider</code>, <code>am_expand_date</code>, <code>africamonitor</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Return all indicators for Kenya from 2000
+am_data("KEN", from = 2000)
+
+# Return all indicators for Kenya from 2000 in long format
+am_data("KEN", from = 2000, wide = FALSE)
+
+# Return with date expanded
+am_data("KEN", from = 2000, expand.date = TRUE)
+
+# Same thing in multiple steps (with additional customization options):
+am_data("KEN", from = 2000, wide = FALSE) |&gt; am_pivot_wider() |&gt; am_expand_date()
+
+# Getting only GDP growth
+am_data("KEN", "NGDP_RPCH", from = 2000)
+
+# Getting GDP growth for all countries
+am_data(series = "NGDP_RPCH", from = 2000)
+
+# Reshaping to wider format
+am_data(series = "NGDP_RPCH", from = 2000) |&gt;
+  am_pivot_wider(id_cols = "Date",
+                 names_from = "ISO3",
+                 values_from = "NGDP_RPCH")
+
+# Getting growth and inflation for the EAC countries (all available years)
+am_data(ctry = c("UGA", "KEN", "TZA", "RWA", "BDI", "SSD"),
+        series = c("NGDP_RPCH", "PCPIPCH"))
+
+
+</code></pre>
+
+
+</div>

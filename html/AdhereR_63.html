@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prune_event_durations</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prune event durations.</h2>
+
+<h3>Description</h3>
+
+<p>Flags or removes leftover supply durations after dosage changes, the end of a special period,
+or treatment interruption.
+The function accepts the raw list output of <code>compute_event_durations</code> and additional arguments
+to specify event durations that need to be removed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prune_event_durations(
+  data,
+  include = c("special periods", "treatment interruptions", "dosage changes"),
+  medication.class.colnames = data$medication.class.colnames,
+  days.within.out.date.1,
+  days.within.out.date.2,
+  keep.all = TRUE,
+  suppress.warnings = FALSE,
+  return.data.table = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <em><code>list</code></em>, the output of <code>compute_event_durations</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include</code></td>
+<td>
+<p>A <em><code>Vector</code></em> of <em>strings</em> indicating whether to include
+dosage changes, special periods, and/or treatment interruptions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>medication.class.colnames</code></td>
+<td>
+<p>A <em><code>Vector</code></em> of <em>strings</em>, the
+name(s) of the column(s) in the <code>event_durations</code> element of <code>data</code> to
+identify medication classes. Defaults to the columns used in <code>compute_event_durations</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days.within.out.date.1</code></td>
+<td>
+<p>event durations from before the dosage change, special period, or
+treatment interruptions are removed if there is a new dispensing event within the
+number of days specified as <em>integer</em> after the dosage change or end of the special
+period/treatment interruption.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days.within.out.date.2</code></td>
+<td>
+<p>event durations from before dosage change, special period,
+or treatment interruption are removed if there is <em>NO</em> new dispensing event within the
+number of days specified as <em>integer</em> after the dosage change or end of the special
+period/treatment interruption.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.all</code></td>
+<td>
+<p><em>Logical</em>, should events be kept and marked for removal?
+If <code>TRUE</code>, a new column <code>.prune.event</code> will be added to <code>event_durations</code>,
+if <code>FALSE</code> the events will be removed from the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suppress.warnings</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> don't show any
+warnings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.data.table</code></td>
+<td>
+<p><em>Logical</em>, if <code>TRUE</code> return a
+<code>data.table</code> object, otherwise a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other possible parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Dosage changes, special periods, and treatment interruptions may lead to overestimation of
+implementation, e.g. if patients get a refill after discharge from hospital and don't continue to use
+their previous supply. Likewise, it may also lead to overestimation of persistence, e.g. when
+patients discontinue treatments after the end of a special period or treatment interruption.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> or <code>data.table</code>, the pruned event_durations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# select medication class of interest and compute event durations
+
+disp_data &lt;- durcomp.dispensing[ID == 3 &amp; grepl("J01EE01", ATC.CODE)]
+presc_data &lt;- durcomp.prescribing[ID == 3 &amp; grepl("J01EE01", ATC.CODE)]
+
+# compute event durations
+event_durations_list &lt;- compute_event_durations(disp.data = disp_data,
+                                                presc.data = presc_data,
+                                                special.periods.data = durcomp.hospitalisation,
+                                                ID.colname = "ID",
+                                                presc.date.colname = "DATE.PRESC",
+                                                disp.date.colname = "DATE.DISP",
+                                                date.format = "%Y-%m-%d",
+                                                medication.class.colnames = c("ATC.CODE",
+                                                                              "UNIT",
+                                                                              "FORM"),
+                                                total.dose.colname = "TOTAL.DOSE",
+                                                presc.daily.dose.colname = "DAILY.DOSE",
+                                                presc.duration.colname = "PRESC.DURATION",
+                                                visit.colname = "VISIT",
+                                                force.init.presc = TRUE,
+                                                force.presc.renew = TRUE,
+                                                split.on.dosage.change = TRUE,
+                                                trt.interruption = "carryover",
+                                                special.periods.method = "carryover",
+                                                suppress.warnings = FALSE,
+                                                return.data.table = TRUE,
+                                                progress.bar = FALSE)
+
+# prune event durations
+event_durations &lt;- prune_event_durations(event_durations_list,
+                                         include = c("special periods"),
+                                         medication.class.colnames = "ATC.CODE",
+                                         days.within.out.date.1 = 7,
+                                         days.within.out.date.2 = 30,
+                                         keep.all = FALSE)
+       
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mixMunsell</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mix Munsell Colors via Spectral Library</h2>
+
+<h3>Description</h3>
+
+<p>Simulate mixing of colors in Munsell notation, similar to the way in which mixtures of pigments operate.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mixMunsell(
+  x,
+  w = rep(1, times = length(x))/length(x),
+  mixingMethod = c("exact", "reference", "estimate", "adaptive"),
+  n = 1,
+  keepMixedSpec = FALSE,
+  distThreshold = 0.025,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of colors in Munsell notation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>vector of proportions, can sum to any number</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixingMethod</code></td>
+<td>
+<p>approach used to simulate a mixture:
+</p>
+
+<ul>
+<li> <p><code>exact</code>: simulate a subtractive mixture of pigments, color conversion via CIE1931 color-matching functions (see details)
+</p>
+</li>
+<li> <p><code>reference</code>: simulate a subtractive mixture of pigments, selecting <code>n</code> closest reference spectra from <code>munsell.spectra.wide</code> (requires <code>gower</code> package)
+</p>
+</li>
+<li> <p><code>estimate</code>: closest Munsell chip to a weighted mean of CIELAB coordinates (fastest)
+</p>
+</li>
+<li> <p><code>adaptive</code>: use <code>exact</code> method when possible, falling-back to <code>estimate</code> (weighted mean of CIELAB coordinates) otherwise
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of closest matching color chips (<code>mixingMethod = reference</code> only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepMixedSpec</code></td>
+<td>
+<p>keep weighted geometric mean spectra, final result is a <code>list</code> (<code>mixingMethod = reference</code> only)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distThreshold</code></td>
+<td>
+<p>spectral distance used to compute <code>scaledDistance</code>, default value is based on an analysis of spectral distances associated with adjacent Munsell color chips. This argument is only used with  <code>mixingMethod = 'reference'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>spec2Munsell</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the <a href="https://ncss-tech.github.io/AQP/aqp/mix-colors.html">expanded tutorial</a> for examples.
+</p>
+<p>An accurate simulation of pigment mixtures ("subtractive" color mixtures) is incredibly complex due to factors that aren't easily measured or controlled: pigment solubility, pigment particle size distribution, water content, substrate composition, and physical obstruction to name a few. That said, it is possible to simulate reasonable, subtractive color mixtures given a reference spectra library (350-800nm) and some assumptions about pigment qualities and lighting. For the purposes of estimating a mixture of soil colors (these are pigments after all) we can relax these assumptions and assume a standard light source. The only missing piece is the spectral library for all Munsell chips in our color books.
+</p>
+<p>Thankfully, <a href="https://arxiv.org/ftp/arxiv/papers/1710/1710.06364.pdf">Scott Burns has outlined the entire process</a>, and Paul Centore has provided a Munsell color chip <a href="https://www.munsellcolourscienceforpainters.com">reflectance spectra library</a>. The estimation of a subtractive mixture of soil colors can proceed as follows:
+</p>
+
+<ol>
+<li>
+<p> look up the associated spectra for each color in <code>x</code>
+</p>
+</li>
+<li>
+<p> compute the weighted (<code>w</code> argument) geometric mean of the spectra
+</p>
+</li>
+<li>
+<p> convert the spectral mixture to the closest Munsell color via:
+</p>
+</li>
+</ol>
+<ul>
+<li>
+<p> search for the closest <code>n</code> matching spectra in the reference library (<code>mixtureMethod = 'reference'</code>)
+</p>
+</li>
+<li>
+<p> direct conversion of spectra to closest Munsell color via <code>spec2Munsell()</code> (<code>mixtureMethod = 'exact'</code>)
+</p>
+</li>
+</ul>
+<ol><li>
+<p> suggest resulting Munsell chip(s) as the best candidate for a simulated mixture
+</p>
+</li></ol>
+<p>Key assumptions include:
+</p>
+
+<ul>
+<li>
+<p> similar particle size distribution
+</p>
+</li>
+<li>
+<p> similar mineralogy (i.e. pigmentation qualities)
+</p>
+</li>
+<li>
+<p> similar water content.
+</p>
+</li>
+</ul>
+<p>For the purposes of estimating (for example) a "mixed soil color within the top 18cm of soil" these assumptions are usually valid. Again, these are estimates that are ultimately "snapped" to the nearest chip and not do not need to approach the accuracy of paint-matching systems.
+</p>
+<p>A message is printed when <code>scaledDistance</code> is larger than 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with the closest matching Munsell color(s):
+</p>
+
+<ul>
+<li> <p><code>munsell</code>: Munsell notation of the n-closest spectra
+</p>
+</li>
+<li> <p><code>distance</code>: spectral (Gower) distance to the n-closest spectra
+</p>
+</li>
+<li> <p><code>scaledDistance</code>: spectral distance scaled by <code>distThreshold</code>
+</p>
+</li>
+<li> <p><code>mixingMethod</code>: method used for each mixture
+</p>
+</li>
+</ul>
+<p>When <code>keepMixedSpec = TRUE</code> then a <code>list</code>:
+</p>
+
+<ul>
+<li> <p><code>mixed</code>: a <code>data.frame</code> containing the same elements as above
+</p>
+</li>
+<li> <p><code>spec</code>: spectra for the 1st closest match
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>D.E. Beaudette
+</p>
+
+
+<h3>References</h3>
+
+<p>Marcus, R.T. (1998). The Measurement of Color. In K. Nassau (Ed.), Color for Science, Art, and Technology (pp. 32-96). North-Holland.
+</p>
+
+<ul>
+<li> <p><a href="https://arxiv.org/ftp/arxiv/papers/1710/1710.06364.pdf">inspiration / calculations based on the work of Scott Burns</a>
+</p>
+</li>
+<li> <p><a href="https://stackoverflow.com/questions/10254022/implementing-kubelka-munk-like-krita-to-mix-colours-color-like-paint/29967630#29967630">related discussion on Stack Overflow</a>
+</p>
+</li>
+<li> <p><a href="https://www.munsellcolourscienceforpainters.com/MunsellResources/SpectralReflectancesOf2007MunsellBookOfColorGlossy.txt">spectral library source</a>
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>munsell.spectra
+</p>
+
+
+</div>

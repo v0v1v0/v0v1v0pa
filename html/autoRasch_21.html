@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate the artificial dataset</h2>
+
+<h3>Description</h3>
+
+<p>This function generates simulated datasets with different attributes
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generate_data(
+  responseType = "multidim.nocorrel",
+  theta = c(-3, 3),
+  sdtheta = 6,
+  ntheta = 301,
+  beta = c(-2.5, 2.5),
+  sdbeta = 4,
+  nitem = 6,
+  alpha = c(1),
+  sdlambda = 1,
+  ncat = 5,
+  thGap = 0.8,
+  ndim = 3,
+  randtype = "uniform",
+  corLevel = 0,
+  dim.members = c(),
+  seed = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>responseType</code></td>
+<td>
+<p>The type of the dataset. The types include <code>multidim.nocorrel</code>, <code>multidim.withcorrel</code>, <code>discriminate</code>, <code>multidim.within</code>, and <code>testlets</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>A vector of the ability parameters range value, <code>c(min.theta,max.theta)</code>. It applies when the <code>randtype = "uniform"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdtheta</code></td>
+<td>
+<p>Standard deviation which is used to generate theta values using <code>stats::rnorm()</code> with <code>n = ntheta</code>, <code>mean = 0</code>, and <code>sd = sdtheta</code>.It applies when the <code>randtype = "normal"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntheta</code></td>
+<td>
+<p>The number of the observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>A vector of the item difficulty parameters range value, <code>c(min.beta,max.beta)</code>. It applies when the <code>randtype = "uniform"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdbeta</code></td>
+<td>
+<p>Standard deviation which is used to generate item location values using <code>stats::rnorm()</code> with <code>n = nitem</code>, <code>mean = 0</code>, and <code>sd = sdbeta</code>.It applies when the <code>randtype = "normal"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nitem</code></td>
+<td>
+<p>The number of the items in each subgroup.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A vector of the discrimination parameters apply to each items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdlambda</code></td>
+<td>
+<p>A vector of the standard deviation to simulate the testlet (local dependency) effect. The effect is added using <code>stats::rnorm()</code> with <code>n = ntheta</code>, <code>mean = 0</code>, and <code>sd = sdlambda</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncat</code></td>
+<td>
+<p>The number of the response categories</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thGap</code></td>
+<td>
+<p>The difference between adjacent threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndim</code></td>
+<td>
+<p>The number of subgroups (dimensions/testlets) created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randtype</code></td>
+<td>
+<p>The randomize type. This includes <code>uniform</code> and <code>normal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corLevel</code></td>
+<td>
+<p>The correlation between the two dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim.members</code></td>
+<td>
+<p>The list of item members in each dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer seed for reproducibility.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The generated dataset as a <code>data.frame</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># 1. Multidimensional Polytomous Dataset with 0.2 Correlation
+# Generate multidimensional dataset which having correlation of 0.2 between the dimensions
+correl02_multidim &lt;- generate_data(
+  responseType = "multidim.withcorrel", corLevel = 0.2, seed = 2021
+)
+
+# 2.  Within-item Multidimensional Polytomous Dataset
+# Generate multidimensional dataset with some items relate to more than one
+# dimension.
+withinItem_multidim &lt;- generate_data(
+  responseType = "multidim.within", ndim = 3,
+  dim.members = list(c(1:6,13),c(3,7:12),c(5,13:18)), seed = 2021
+)
+
+# 3. Multi-testlets Polytomous Dataset
+# Generate dataset which consist of two bundle items with different level of
+# local dependency effect.
+testlets_dataset &lt;- generate_data(
+  responseType = "testlets", ndim = 2, sdlambda = c(0,4), seed = 2021
+)
+
+# 4a. Inhomogenous Dichotomous Dataset
+# Generate dataset with binary type responses containing three subsets
+# with different discrimination values.
+
+dicho_inh_dset &lt;- generate_data(
+  responseType = "discriminate", ncat = 2, seed = 2021,
+  alpha = c(0.04,0.045,0.05,0.055,0.06,0.065,0.2,0.25,0.3,0.35,0.4,0.45,
+            2.6,2.65,2.7,2.75,2.8,2.85)
+)
+
+# 4b. Inhomogenous Polytomous Dataset
+# Generate dataset with polytomous responses (five categories) containing
+# three subsets with different discrimination values.
+
+poly_inh_dset &lt;- generate_data(
+  responseType = "discriminate", ncat = 5, seed = 2021,
+  alpha = c(0.04,0.045,0.05,0.055,0.06,0.065,0.2,0.25,0.3,0.35,0.4,0.45,
+            2.6,2.65,2.7,2.75,2.8,2.85)
+)
+
+# 4c. Shorter Inhomogenous Polytomous Dataset
+short_poly_data &lt;- generate_data(
+  alpha = c(0.02,0.5,2), nitem = 3, ndim = 3, ncat = 5,
+  theta = c(-6,6), beta = c(-4,4), ntheta = 151, seed = 2021
+)
+
+# 4d. Short Dataset containing DIF items
+# Generate dataset with polytomous responses (five categories) containing
+# three subsets with different discrimination values and two DIF-items.
+seed &lt;- c(54748,96765)
+difset_short1 &lt;- generate_data(responseType = "discriminate", ncat = 3,
+                                ntheta = 50, nitem = 3, ndim = 1,
+                                seed = seed[1], alpha = c(2))
+difset_short2 &lt;- generate_data(responseType = "discriminate", ncat = 3,
+                                ntheta = 50, nitem = 2, ndim = 1,
+                                seed = seed[2], alpha = c(0.8),
+                                beta = c(-2.5,2.5))
+shortDIF &lt;- cbind(rbind(difset_short1,difset_short1),
+                   c(difset_short2[,1],difset_short2[,2]))
+
+# 5a. Uncorrelated Multidimensional Dichotomous Dataset
+# Generate dataset with binary type responses containing three subsets which
+# represent different uncorrelated dimensions.
+dicho_md_dset &lt;- generate_data(
+  responseType = "multidim.nocorrel", ncat = 2, seed = 2021
+)
+
+# 5b. Uncorrelated Multidimensional Polytomous Dataset
+# Generate dataset with polytomous responses (five categories) containing
+# three subsets which represent different uncorrelated dimensions.
+poly_md_dset &lt;- generate_data(
+  responseType = "multidim.nocorrel", ncat = 5, seed = 2021
+)
+
+</code></pre>
+
+
+</div>

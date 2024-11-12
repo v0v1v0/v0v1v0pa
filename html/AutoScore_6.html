@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AutoScore_parsimony</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AutoScore STEP(ii): Select the best model with parsimony plot (AutoScore Modules 2+3+4)</h2>
+
+<h3>Description</h3>
+
+<p>AutoScore STEP(ii): Select the best model with parsimony plot (AutoScore Modules 2+3+4)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AutoScore_parsimony(
+  train_set,
+  validation_set,
+  rank,
+  max_score = 100,
+  n_min = 1,
+  n_max = 20,
+  cross_validation = FALSE,
+  fold = 10,
+  categorize = "quantile",
+  quantiles = c(0, 0.05, 0.2, 0.8, 0.95, 1),
+  max_cluster = 5,
+  do_trace = FALSE,
+  auc_lim_min = 0.5,
+  auc_lim_max = "adaptive"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>train_set</code></td>
+<td>
+<p>A processed <code>data.frame</code> that contains data to be analyzed, for training.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>validation_set</code></td>
+<td>
+<p>A processed <code>data.frame</code> that contains data for validation purpose.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>the raking result generated from AutoScore STEP(i) <code>AutoScore_rank</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_score</code></td>
+<td>
+<p>Maximum total score (Default: 100).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_min</code></td>
+<td>
+<p>Minimum number of selected variables (Default: 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_max</code></td>
+<td>
+<p>Maximum number of selected variables (Default: 20).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cross_validation</code></td>
+<td>
+<p>If set to <code>TRUE</code>, cross-validation would be used for generating parsimony plot, which is
+suitable for small-size data. Default to <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+<p>The number of folds used in cross validation (Default: 10). Available if <code>cross_validation = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorize</code></td>
+<td>
+<p>Methods for categorize continuous variables. Options include "quantile" or "kmeans" (Default: "quantile").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>Predefined quantiles to convert continuous variables to categorical ones. (Default: c(0, 0.05, 0.2, 0.8, 0.95, 1)) Available if <code>categorize = "quantile"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_cluster</code></td>
+<td>
+<p>The max number of cluster (Default: 5). Available if <code>categorize = "kmeans"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do_trace</code></td>
+<td>
+<p>If set to TRUE, all results based on each fold of cross-validation would be printed out and plotted (Default: FALSE). Available if <code>cross_validation = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auc_lim_min</code></td>
+<td>
+<p>Min y_axis limit in the parsimony plot (Default: 0.5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auc_lim_max</code></td>
+<td>
+<p>Max y_axis limit in the parsimony plot (Default: "adaptive").</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the second step of the general AutoScore workflow, to generate the parsimony plot to help select a parsimonious model.
+In this step, it goes through AutoScore Module 2,3 and 4 multiple times and to evaluate the performance under different variable list.
+The generated parsimony plot would give researcher an intuitive figure to choose the best models.
+If data size is small (ie, &lt;5000), an independent validation set may not be a wise choice. Then, we suggest using cross-validation
+to maximize the utility of data. Set <code>cross_validation=TRUE</code>. Run <code>vignette("Guide_book", package = "AutoScore")</code> to see the guidebook or vignette.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List of AUC value for different number of variables
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p>Xie F, Chakraborty B, Ong MEH, Goldstein BA, Liu N, AutoScore: A Machine Learning-Based Automatic Clinical
+Score Generator and Its Application to Mortality Prediction Using Electronic Health Records,
+JMIR Med Inform 2020;8(10):e21798, doi: 10.2196/21798
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+<p><code>AutoScore_rank</code>, <code>AutoScore_weighting</code>, <code>AutoScore_fine_tuning</code>, <code>AutoScore_testing</code>, Run <code>vignette("Guide_book", package = "AutoScore")</code> to see the guidebook or vignette.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# see AutoScore Guidebook for the whole 5-step workflow
+data("sample_data")
+names(sample_data)[names(sample_data) == "Mortality_inpatient"] &lt;- "label"
+out_split &lt;- split_data(data = sample_data, ratio = c(0.7, 0.1, 0.2))
+train_set &lt;- out_split$train_set
+validation_set &lt;- out_split$validation_set
+ranking &lt;- AutoScore_rank(train_set, ntree=100)
+AUC &lt;- AutoScore_parsimony(
+train_set,
+validation_set,
+rank = ranking,
+max_score = 100,
+n_min = 1,
+n_max = 20,
+categorize = "quantile",
+quantiles = c(0, 0.05, 0.2, 0.8, 0.95, 1)
+)
+</code></pre>
+
+
+</div>

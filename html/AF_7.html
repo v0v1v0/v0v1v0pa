@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AFivglm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Attributable fraction function based on Instrumental Variables (IV) regression as an <code>ivglm</code> object in the <code>ivtools</code> package.</h2>
+
+<h3>Description</h3>
+
+<p><code>AFivglm</code> estimates the model-based adjusted attributable fraction from a Instrumental Variable regression from a <code>ivglm</code> object. The IV regression can be estimated by either G-estimation or Two Stage estimation for a binary exposure and outcome.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">AFivglm(object, data)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted Instrumental Variable regression of class "<code>ivglm</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment (<code>formula</code>), typically the environment from which the function is called.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>AFivglm</code> estimates the attributable fraction for an IV regression
+under the hypothetical scenario where a binary exposure <code>X</code> is eliminated from the population.
+The estimate can be adjusted for IV-outcome confounders <code>L</code> in the <code>ivglm</code> function. 
+Let the AF function be defined as
+</p>
+<p style="text-align: center;"><code class="reqn">AF=1-\frac{Pr(Y_0=1)}{Pr(Y=1)}</code>
+</p>
+
+<p>where <code class="reqn">Pr(Y_0=1)</code> denotes the counterfactual outcome prevalence had everyone been unexposed and <code class="reqn">Pr(Y=1)</code> denotes the factual outcome prevalence.
+If the instrument <code>Z</code> is valid, conditional on covariates <code>L</code>, i.e. fulfills the IV assumptions 1) the IV should have a (preferably strong) association with
+the exposure, 2) the effect of the IV on the outcome should only go through the exposure and 3) the IV-outcome association should be unconfounded
+(Imbens and Angrist, 1994) then <code class="reqn">Pr(Y_0=1)</code> can be estimated.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>AF.est</code></td>
+<td>
+<p>estimated attributable fraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AF.var</code></td>
+<td>
+<p>estimated variance of <code>AF.est</code>. The variance is obtained by combining the delta methods with the sandwich formula.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Elisabeth Dahlqwist, Arvid Sjölander
+</p>
+
+
+<h3>References</h3>
+
+<p>Dahlqwist E., Kutalik Z., Sjölander, A. (2019). Using Instrumental Variables to estimate the attributable fraction. <em>Manuscript</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ivglm</code> used for fitting the causal risk ratio or odds ratio using the G-estimator or Two stage estimator.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1
+set.seed(2)
+n &lt;- 5000
+## parameter a0 determines the outcome prevalence
+a0 &lt;- -4
+psi.true &lt;- 1
+l &lt;- rbinom(n, 1, 0.5)
+u &lt;- rbinom(n, 1, 0.5)
+z &lt;- rbinom(n, 1, plogis(a0))
+x &lt;- rbinom(n, 1, plogis(a0+3*z+ u))
+y &lt;- rbinom(n, 1, exp(a0+psi.true*x+u))
+d &lt;- data.frame(z,u,x,y,l)
+## Outcome prevalence 
+mean(d$y)
+
+####### G-estimation
+## log CRR
+fitz.l &lt;- glm(z~1, family=binomial, data=d)
+gest_log &lt;- ivglm(estmethod="g", X="x", Y="y",
+                  fitZ.L=fitz.l, data=d, link="log")
+AFgestlog &lt;- AFivglm(gest_log, data=d)
+summary(AFgestlog)
+
+## log COR
+## Associational model, saturated
+fit_y &lt;- glm(y~x+z+x*z, family="binomial", data=d)
+## Estimations of COR and AF
+gest_logit &lt;- ivglm(estmethod="g", X="x", Y="y",
+                    fitZ.L=fitz.l, fitY.LZX=fit_y,
+                    data=d, link="logit")
+AFgestlogit &lt;- AFivglm(gest_logit, data = d)
+summary(AFgestlogit)
+
+####### TS estimation
+## log CRR
+# First stage
+fitx &lt;- glm(x ~ z, family=binomial, data=d)
+# Second stage
+fity &lt;- glm(y ~ x, family=poisson, data=d)
+## Estimations of CRR and AF
+TSlog &lt;- ivglm(estmethod="ts", X="x", Y="y",
+               fitY.LX=fity, fitX.LZ=fitx, data=d, link="log")
+AFtslog &lt;- AFivglm(TSlog, data=d)
+summary(AFtslog)
+
+## log COR
+# First stage
+fitx_logit &lt;- glm(x ~ z, family=binomial, data=d)
+# Second stage
+fity_logit &lt;- glm(y ~ x, family=binomial, data=d)
+## Estimations of COR and AF
+TSlogit &lt;- ivglm(estmethod="ts", X="x", Y="y",
+                 fitY.LX=fity_logit, fitX.LZ=fitx_logit,
+                  data=d, link="logit")
+AFtslogit &lt;- AFivglm(TSlogit, data=d)
+summary(AFtslogit)
+
+## Example 2: IV-outcome confounding by L
+####### G-estimation
+## log CRR
+fitz.l &lt;- glm(z~l, family=binomial, data=d)
+gest_log &lt;- ivglm(estmethod="g", X="x", Y="y",
+                  fitZ.L=fitz.l, data=d, link="log")
+AFgestlog &lt;- AFivglm(gest_log, data=d)
+summary(AFgestlog)
+
+## log COR
+## Associational model
+fit_y &lt;- glm(y~x+z+l+x*z+x*l+z*l, family="binomial", data=d)
+## Estimations of COR and AF
+gest_logit &lt;- ivglm(estmethod="g", X="x", Y="y",
+                    fitZ.L=fitz.l, fitY.LZX=fit_y,
+                    data=d, link="logit")
+AFgestlogit &lt;- AFivglm(gest_logit, data = d)
+summary(AFgestlogit)
+
+####### TS estimation
+## log CRR
+# First stage
+fitx &lt;- glm(x ~ z+l, family=binomial, data=d)
+# Second stage
+fity &lt;- glm(y ~ x+l, family=poisson, data=d)
+## Estimations of CRR and AF
+TSlog &lt;- ivglm(estmethod="ts", X="x", Y="y",
+               fitY.LX=fity, fitX.LZ=fitx, data=d,
+               link="log")
+AFtslog &lt;- AFivglm(TSlog, data=d)
+summary(AFtslog)
+
+## log COR
+# First stage
+fitx_logit &lt;- glm(x ~ z+l, family=binomial, data=d)
+# Second stage
+fity_logit &lt;- glm(y ~ x+l, family=binomial, data=d)
+## Estimations of COR and AF
+TSlogit &lt;- ivglm(estmethod="ts", X="x", Y="y",
+                 fitY.LX=fity_logit, fitX.LZ=fitx_logit,
+                 data=d, link="logit")
+AFtslogit &lt;- AFivglm(TSlogit, data=d)
+summary(AFtslogit)
+</code></pre>
+
+
+</div>

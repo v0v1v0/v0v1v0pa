@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>colorChart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Visualize soil colors in Munsell notation according to within-group frequency.</h2>
+
+<h3>Description</h3>
+
+<p>Visualize soil colors in Munsell notation according to within-group frequency.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">colorChart(
+  m,
+  g = factor("All"),
+  size = TRUE,
+  annotate = FALSE,
+  chip.cex = 3,
+  chip.cex.min = 0.1,
+  chip.cex.max = 1.5,
+  chip.border.col = "black",
+  annotate.cex = chip.cex * 0.25,
+  annotate.type = c("count", "percentage"),
+  threshold = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>character vector of color in Munsell notation ('10YR 4/6')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>factor describing group membership, typically a generalization of horizon designation, default value will generate a fake grouping that covers all of the colors in <code>m</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>logical, encode group-wise frequency with chip size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>annotate</code></td>
+<td>
+<p>logical, annotate color chip frequency</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chip.cex</code></td>
+<td>
+<p>scaling factor applied to each color chip</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chip.cex.min</code></td>
+<td>
+<p>lower limit for color chip frequency depiction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chip.cex.max</code></td>
+<td>
+<p>lower limit for color chip frequency depiction</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chip.border.col</code></td>
+<td>
+<p>color for chip borders (outline)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>annotate.cex</code></td>
+<td>
+<p>scaling factor for chip frequency annotation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>annotate.type</code></td>
+<td>
+<p>character, within-group <code>count</code> or <code>percentage</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>numeric within 0-1, color chips with proportion <code style="white-space: pre;">⁠&lt; threshold⁠</code> are removed</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>trellis</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# required for latticeExtra:useOuterStrips
+if(!requireNamespace('latticeExtra')) {
+  
+  # two hue pages
+  ric &lt;- expand.grid(
+    hue = c('5YR', '7.5YR'),
+    value = 2:8,
+    chroma = 2:8
+  )
+  
+  # combine hue, value, chroma into standard Munsell notation
+  ric &lt;- sprintf("%s %s/%s", ric$hue, ric$value, ric$chroma)
+  
+  # note that chip frequency-based size is disabled 
+  # because all chips have equal frequency
+  colorChart(ric, chip.cex = 4, size = TRUE)
+  
+  # annotation of frequency
+  colorChart(ric, chip.cex = 4, annotate = TRUE)
+  
+  # bootstrap to larger size
+  ric.big &lt;- sample(ric, size = 100, replace = TRUE)
+  
+  # frequency can be encoded in size
+  colorChart(ric.big, chip.cex = 3)
+  colorChart(ric.big, chip.cex = 5, annotate = TRUE)
+     
+  # constant size
+  colorChart(ric.big, chip.cex = 3, size = FALSE)
+  colorChart(ric.big, chip.cex = 3, size = FALSE, chip.border.col = 'NA')
+  
+  # simulate colors based dE00 thresholding
+  p &lt;- list(
+    list(m = '10YR 4/4', thresh = 10, hues = c('10YR', '7.5YR'))
+  )
+  
+  # perform 500 simulations
+  s &lt;- simulateColor(method = 'dE00', n = 500, parameters = p)
+  
+  # result is a list, use the first element
+  colorChart(s[[1]], chip.cex = 4)
+  
+  # increase the possible range of color chip sizes
+  colorChart(s[[1]], chip.cex = 4, chip.cex.min = 0.01, chip.cex.max = 2)
+  
+  # slightly funky support for neutral hues
+  N &lt;- sprintf('N %s/', 2:8)
+  cols &lt;- c(rep(N, times = 5), ric.big)
+  
+  # note special panel used to show neutral hues
+  colorChart(cols, size = FALSE, annotate = TRUE)
+  
+  # filter proportions below given threshold
+  colorChart(cols, size = FALSE, annotate = TRUE, threshold = 0.01, 
+  chip.cex = 4, annotate.type = 'percentage')
+  
+}
+
+</code></pre>
+
+
+</div>

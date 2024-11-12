@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_simulation_matrices</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Simulated Person and Item Parameter Matrices for the Thurstonian IRT Model
+Based on Confirmatory Factor Analysis Results</h2>
+
+<h3>Description</h3>
+
+<p>This function takes in factor analysis results from <code>lavaan::cfa()</code> or <code>get_CFA_estimates()</code>, and
+generates simulated person and item parameter matrices for the Thurstonian IRT model. 
+The latent "utility" value of each item for each simulated person is also produced.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_simulation_matrices(
+  loadings,
+  intercepts,
+  residuals,
+  covariances,
+  N,
+  N_items,
+  N_dims,
+  dim_names,
+  empirical
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>loadings, intercepts, residuals, covariances</code></td>
+<td>
+<p>Data frame of factor loadings, intercepts, residuals and latent variable covariances,
+preferably obtained from <code>get_CFA_estimates()</code>, or extracted from <code>lavaan::parameterEstimates()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>Number of simulated responses you wish to generate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N_items</code></td>
+<td>
+<p>Optional. Total number of response items. Default to the number of rows
+in <code>loadings</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N_dims</code></td>
+<td>
+<p>Optional. Total number of response items. Default to the length of <code>dim_names</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim_names</code></td>
+<td>
+<p>Name of the latent variables (dimensions); Order should be consistent with 
+how they appear in your CFA model as you have specified in <code>get_CFA_estimates()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empirical</code></td>
+<td>
+<p>As in <code>MASS::mvrnorm()</code>;  Should mu and sigma specify the empirical, 
+rather than population mean and covariance?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the Thurstonian IRT model (Brown &amp; Maydeu-Olivares, 2011), this function
+generates the latent utility value of <code>N_item</code> Likert items for each of the 
+<code>N</code> participants.
+</p>
+<p>Readers can refer to Brown &amp; Maydeu-Olivares (2011) and the online tutorial in
+Li et al., (in press) for detailed description of simulation procedures.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+
+<p><code>Lambda</code> Item loading matrix specifying which items load onto which dimension,
+</p>
+<p><code>Mu</code> Item intercept matrix,
+</p>
+<p><code>Epsilon</code> Item residual matrix,
+</p>
+<p><code>Theta</code> Simulated latent scores for each of the <code>N_dims</code> dimensions for all <code>N</code> simulated respondents,
+</p>
+<p><code>Utility</code> latent utility value of <code>N_item</code> Likert items for each of the <code>N</code> participants.
+
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Mengtong Li
+</p>
+
+
+<h3>References</h3>
+
+<p>Brown, A., &amp; Maydeu-Olivares, A. (2011). Item response modeling of forced-choice questionnaires. <em>Educational and Psychological Measurement, 71</em>(3), 460-502. https://doi.org/10.1177/0013164410375112
+Li, M., Zhang, B., Li, L., Sun, T., &amp; Brown, A., (2024). Mixed-Keying or Desirability-Matching in the Construction of Forced-Choice Measures? An Empirical Investigation and Practical Recommendations. <em>Organizational Research Methods</em>. https://doi.org/10.1177/10944281241229784
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_CFA_estimates()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">rating_data &lt;- HEXACO_example_data
+cfa_model &lt;- paste0("H =~ ", paste0("SS", seq(6,60,6), collapse = " + "), "\n",
+                    "E =~ ", paste0("SS", seq(5,60,6), collapse = " + "), "\n",
+                    "X =~ ", paste0("SS", seq(4,60,6), collapse = " + "), "\n",
+                    "A =~ ", paste0("SS", seq(3,60,6), collapse = " + "), "\n",
+                    "C =~ ", paste0("SS", seq(2,60,6), collapse = " + "), "\n",
+                    "O =~ ", paste0("SS", seq(1,60,6), collapse = " + "), "\n")
+cfa_estimates &lt;- get_CFA_estimates(response_data = rating_data,
+                                   fit_model = cfa_model, 
+                                   item_names = paste0("SS",c(1:60)))
+cfa_matrices &lt;- get_simulation_matrices(loadings = cfa_estimates$loadings,
+                                        intercepts = cfa_estimates$intercepts,
+                                        residuals = cfa_estimates$residuals,
+                                        covariances = cfa_estimates$covariances,
+                                        N = 100, N_items = 60, N_dims = 6,
+                                        dim_names = c("H", "E", "X", "A", "C", "O"),
+                                        empirical = TRUE)
+
+</code></pre>
+
+
+</div>

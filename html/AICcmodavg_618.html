@@ -1,0 +1,492 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multComp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create Model Selection Tables based on Multiple Comparisons
+</h2>
+
+<h3>Description</h3>
+
+<p>This function is an alternative to traditional multiple comparison
+tests in designed experiments.  It creates a model selection table based
+on different grouping patterns of a factor and computes model-averaged
+predictions for each of the factor levels.  The current version works
+with objects of <code>aov</code>, <code>glm</code>, <code>gls</code>, <code>lm</code>,
+<code>lme</code>, <code>mer</code>, <code>merMod</code>, <code>lmerModLmerTest</code>,
+<code>negbin</code>, and <code>rlm</code>, <code>survreg</code> classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multComp(mod, factor.id, letter.labels = TRUE, second.ord = TRUE,
+         nobs = NULL, sort = TRUE, newdata = NULL, uncond.se = "revised", 
+         conf.level = 0.95, correction = "none", ...)
+
+## S3 method for class 'aov'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        ...) 
+
+## S3 method for class 'lm'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        ...)
+
+## S3 method for class 'gls'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        ...) 
+
+## S3 method for class 'glm'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        type = "response", c.hat = 1, gamdisp = NULL, ...)
+
+## S3 method for class 'lme'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        ...)
+
+## S3 method for class 'negbin'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        type = "response", ...)
+
+## S3 method for class 'rlm'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        ...)
+
+## S3 method for class 'survreg'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        type = "response", ...)
+
+## S3 method for class 'mer'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95, correction = "none",
+        type = "response", ...)
+
+## S3 method for class 'merMod'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95,
+        correction = "none", type = "response", ...)
+
+## S3 method for class 'lmerModLmerTest'
+multComp(mod, factor.id, letter.labels = TRUE,
+        second.ord = TRUE, nobs = NULL, sort = TRUE, newdata = NULL,
+        uncond.se = "revised", conf.level = 0.95,
+        correction = "none", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+
+<p>a model of one of the above-mentioned classes that includes at least one
+factor as an explanatory variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor.id</code></td>
+<td>
+
+<p>the factor of interest, on which the groupings (multiple comparisons)
+are based. The user must supply the name of the categorical variable
+between quotes as it appears in the model formula.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>letter.labels</code></td>
+<td>
+
+<p>logical. If <code>TRUE</code>, letters are used as labels to denote the
+grouping structure.  If <code>FALSE</code>, numbers are used as group labels.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>second.ord</code></td>
+<td>
+
+<p>logical.  If <code>TRUE</code>, the function returns the second-order
+Akaike information criterion (i.e., AICc), otherwise returns
+Akaike's Information Criterion (AIC).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+
+<p>this argument allows to specify a numeric value other than total sample
+size to compute the AICc (i.e., <code>nobs</code> defaults to total number of
+observations).  This is relevant only for certain types of models such
+as mixed models where sample size is not straightforward.  In
+such cases, one might use total number of observations or number of
+independent clusters (e.g., sites) as the value of <code>nobs</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+
+<p>logical.  If <code>TRUE</code>, the model selection table is ranked according
+to the (Q)AIC(c) values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+
+<p>a data frame with the same structure as that of the original data
+frame for which we want to make predictions.  This data frame should 
+hold all variables constant other than the <code>factor.id</code> variable.
+All levels of the <code>factor.id</code> variables should be included in the
+<code>newdata</code> data frame to get model-averaged predictions for each
+level.  If <code>NULL</code>, model-averaged predictions are computed for
+each level of the <code>factor.id</code> variable while the values of the
+other explanatory variables are taken from the first row of the
+original data set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uncond.se</code></td>
+<td>
+<p>either, <code>"old"</code>, or <code>"revised"</code>, specifying
+the equation used to compute the unconditional standard error of a
+model-averaged estimate.  With <code>uncond.se = "old"</code>, computations
+are based on equation 4.9 of Burnham and Anderson (2002), which was
+the former way to compute unconditional standard errors.  With
+<code>uncond.se = "revised"</code>, equation 6.12 of Burnham and Anderson
+(2002) is used.  Anderson (2008, p. 111) recommends use of the revised
+version for the computation of unconditional standard errors and it is
+now the default.  Note that versions of package <code>AICcmodavg</code> &lt;
+1.04 used the old method to compute unconditional standard errors.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>the confidence level (<code class="reqn">1 - \alpha</code>) requested for
+the computation of unconditional confidence intervals around
+predicted values for each level of <code>factor.id</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>the type of correction applied to obtain confidence
+intervals for simultaneous inference (i.e., corrected for multiple
+comparisons).  Current corrections include <code>"none"</code> for
+uncorrected unconditional confidence intervals, <code>"bonferroni"</code>
+for Bonferroni-adjusted confidence intervals (Dunn 1961), and
+<code>"sidak"</code> for Sidak-adjusted confidence intervals (Sidak 1967).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the scale of prediction requested, one of <code>"response"</code>
+or <code>"link"</code>.  The latter is only relevant for <code>glm</code> and
+<code>mer</code> classes.  Note that the value <code>"terms"</code> is not defined
+for <code>multComp</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hat</code></td>
+<td>
+
+<p>value of overdispersion parameter (i.e., variance inflation factor)
+such as that obtained from <code>c_hat</code>.  Note that values of 
+<code>c.hat</code> different from 1 are only appropriate for binomial
+GLM's with trials &gt; 1 (i.e., success/trial or cbind(success,
+failure) syntax) or with Poisson GLM's.  If <code>c.hat &gt; 1</code>,
+<code>multComp</code> will return the quasi-likelihood analogue of the
+information criterion requested.  This  option is not supported for
+generalized linear mixed models of the <code>mer</code> class. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamdisp</code></td>
+<td>
+
+<p>the value of the gamma dispersion parameter in a gamma GLM.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments passed to the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A number of pairwise comparison tests are available for traditional
+experimental designs, some controlling for the experiment-wise error and
+others for comparison-wise errors (Day and Quinn 1991).  With the advent
+of information-theoretic approaches, there has been a need for methods
+analogous to multiple comparison tests in a model selection
+framework.  Dayton (1998) and Burnham et al. (2011) suggested using
+different parameterizations or grouping patterns of a factor to perform
+multiple comparisons with model selection.  As such, it is possible to
+assess the support in favor of certain grouping patterns based on a
+factor.
+</p>
+<p>For example, a factor with three levels has four possible grouping
+patterns: {abc} (all groups are different), {abb} (the first group
+differs from the other two), {aab} (the first two groups differ from the
+third), and {aaa} (all groups are equal).  <code>multComp</code> implements
+such an approach by pooling groups of the factor variable in a model and
+updating the model, for each grouping pattern possible.  The models are
+ranked according to one of four information criteria (AIC, AICc, QAIC,
+and QAICc), and the labels in the table correspond to the grouping
+pattern.  Note that the factor levels are sorted according to their means
+for the response variable before being assigned to a group.  The
+function also returns model-averaged predictions and unconditional
+standard errors for each level of the <code>factor.id</code> variable based on
+the support in favor of each model (i.e., grouping pattern).
+</p>
+<p>The number of grouping patterns increases substantially with the number
+of factor levels, as <code class="reqn">2^{k - 1}</code>, where <code class="reqn">k</code> is the number of
+factor levels.  <code>multComp</code> supports factors with a maximum of 6
+levels.  Also note that <code>multComp</code> does not handle models where
+the <code>factor.id</code> variable is involved in an interaction.  In such
+cases, one should create the interaction variable manually before
+fitting the model (see Examples).
+</p>
+<p><code>multComp</code> currently implements three methods of computing
+confidence intervals.  The default unconditional confidence intervals
+do not account for multiple comparisons (<code>correction = "none"</code>).
+With a large number <code class="reqn">m</code> of potential pairwise comparisons among
+levels of <code>factor.id</code>, there is an increased risk of type I
+error.  For <code class="reqn">m</code> pairwise comparisons and a given <code class="reqn">\alpha</code>
+level, <code>correction = "bonferroni"</code> computes the unconditional
+confidence intervals based on <code class="reqn">\alpha_{corr} = \frac{\alpha}{m}</code>
+(Dunn 1961).  When <code>correction = "sidak"</code>, <code>multComp</code>
+reports Sidak-adjusted confidence intervals, i.e., <code class="reqn">\alpha_{corr}
+  = 1 - (1 - \alpha)^{\frac{1}{m}}</code>. 
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>multComp</code> creates a list of class <code>multComp</code> with the
+following components: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>factor.id</code></td>
+<td>
+<p>the factor for which grouping patterns are investigated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+<p>a list with the output of each model representing a
+different grouping pattern for the factor of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.names</code></td>
+<td>
+<p>a vector of model names denoting the grouping pattern
+for each level of the factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.table</code></td>
+<td>
+<p>the model selection table for the models
+corresponding to each grouping pattern for the factor of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordered.levels</code></td>
+<td>
+<p>the levels of the factor ordered according to the
+mean of the response variable. The grouping patterns (and model names)
+in the model selection table are based on the same order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.avg.est</code></td>
+<td>
+<p>a matrix with the model-averaged prediction,
+unconditional standard error, and confidence intervals for each
+level of the factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>the confidence level used for the confidence
+intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>the type of correction applied to the confidence
+intervals to account for potential pairwise comparisons.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marc J. Mazerolle
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham, K. P., Anderson, D. R., Huyvaert, K. P. (2011) AIC model
+selection and multimodel inference in behaviorial ecology: some
+background, observations and comparisons. <em>Behavioral Ecology and
+Sociobiology</em> <b>65</b>, 23–25. 
+</p>
+<p>Day, R. W., Quinn, G. P. (1989) Comparisons of treatments after an
+analysis of variance in ecology. <em>Ecological Monographs</em>
+<b>59</b>, 433–463. 
+</p>
+<p>Dayton, C. M. (1998) Information criteria for the paired-comparisons
+problem. <em>American Statistician</em>, <b>52</b> 144–151.
+</p>
+<p>Dunn, O. J. (1961) Multiple comparisons among means. <em>Journal of the
+American Statistical Association</em> <b>56</b>, 52–64.
+</p>
+
+<p>Sidak, Z. (1967) Rectangular confidence regions for the means of
+multivariate normal distributions. <em>Journal of the American
+Statistical Association</em> <b>62</b>, 626–633.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aictab</code>, <code>confset</code>, <code>c_hat</code>,
+<code>evidence</code>, <code>glht</code>, <code>fit.contrast</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##one-way ANOVA example
+data(turkey)
+
+##convert diet to factor
+turkey$Diet &lt;- as.factor(turkey$Diet)
+##run one-way ANOVA
+m.aov &lt;- lm(Weight.gain ~ Diet, data = turkey)
+
+##compute models with different grouping patterns
+##and also compute model-averaged group means
+out &lt;- multComp(m.aov, factor.id = "Diet", correction = "none")
+##look at results
+out
+
+##look at grouping structure of a given model
+##and compare with original variable
+cbind(model.frame(out$models[[2]]), turkey$Diet)
+
+##evidence ratio
+evidence(out$model.table)
+
+##compute Bonferroni-adjusted confidence intervals
+multComp(m.aov, factor.id = "Diet", correction = "bonferroni")
+
+
+##two-way ANOVA with interaction
+## Not run: 
+data(calcium)
+
+m.aov2 &lt;- lm(Calcium ~ Hormone + Sex + Hormone:Sex, data = calcium)
+
+##multiple comparisons
+multComp(m.aov2, factor.id = "Hormone")
+##returns an error because 'Hormone' factor is
+##involved in an interaction
+
+##create interaction variable
+calcium$inter &lt;- interaction(calcium$Hormone, calcium$Sex)
+
+##run model with interaction
+m.aov.inter &lt;- lm(Calcium ~ inter, data = calcium)
+
+##compare both
+logLik(m.aov2)
+logLik(m.aov.inter)
+##both are identical
+
+##multiple comparisons
+multComp(m.aov.inter, factor.id = "inter")
+
+## End(Not run)
+
+
+##Poisson regression
+## Not run: 
+##example from ?glm
+##Dobson (1990) Page 93: Randomized Controlled Trial :
+counts &lt;- c(18,17,15,20,10,20,25,13,12)
+outcome &lt;- gl(3,1,9)
+treatment &lt;- gl(3,3)
+print(d.AD &lt;- data.frame(treatment, outcome, counts))
+glm.D93 &lt;- glm(counts ~ outcome + treatment, data = d.AD, family = poisson)
+
+multComp(mod = glm.D93, factor.id = "outcome")
+
+## End(Not run)
+
+
+##example specifying 'newdata'
+## Not run: 
+data(dry.frog)
+m1 &lt;- lm(log_Mass_lost ~ Shade + Substrate +
+      cent_Initial_mass + Initial_mass2,
+      data = dry.frog)
+
+multComp(m1, factor.id = "Substrate",
+          newdata = data.frame(
+            Substrate = c("PEAT", "SOIL", "SPHAGNUM"),
+            Shade = 0, cent_Initial_mass = 0,
+            Initial_mass2 = 0))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

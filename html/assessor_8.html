@@ -1,0 +1,90 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>resid_zeroinfl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Residuals for regression models with zero-inflated outcomes</h2>
+
+<h3>Description</h3>
+
+<p>Caluates the DPIT residuals for a regression model with zero-inflated discrete outcome.
+A zero-inflated model from <code>pscl</code> is used in this function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">resid_zeroinfl(model, plot=TRUE, scale='normal')
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model object, which is the output of <code>pscl::zeroinfl</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A logical value indicating whether or not to return QQ-plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>You can choose the scale of the residuals among <code>normal</code> and <code>uniform</code> scales. The default scale is <code>normal</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>DPIT residuals. If <code>plot=TRUE</code>, also produces a QQ plot.
+</p>
+
+
+<h3>References</h3>
+
+<p>Yang, Lu. "Double Probability Integral Transform Residuals for Regression Models with Discrete Outcomes." arXiv preprint arXiv:2308.15596 (2023).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Zero-Inflated Poisson
+library(pscl)
+n &lt;- 500
+set.seed(1234)
+# Covariates
+x1 &lt;- rnorm(n)
+x2 &lt;- rbinom(n, 1, 0.7)
+# Coefficients
+beta0 &lt;- -2
+beta1 &lt;- 2
+beta2 &lt;- 1
+beta00 &lt;- -2
+beta10 &lt;- 2
+
+# Mean of Poisson part
+lambda1 &lt;- exp(beta0 + beta1 * x1 + beta2 * x2)
+# Excess zero probability
+p0 &lt;- 1 / (1 + exp(-(beta00 + beta10 * x1)))
+## simulate outcomes
+y0 &lt;- rbinom(n, size = 1, prob = 1 - p0)
+y1 &lt;- rpois(n, lambda1)
+y &lt;- ifelse(y0 == 0, 0, y1)
+## True model
+modelzero1 &lt;- zeroinfl(y ~ x1 + x2 | x1, dist = "poisson", link = "logit")
+resid.zero1 &lt;- resid_zeroinfl(modelzero1, plot = TRUE, scale = "uniform")
+
+## Zero inflation
+modelzero2 &lt;- glm(y ~ x1 + x2, family = poisson(link = "log"))
+resid.zero2 &lt;- resid_disc(modelzero2, plot = TRUE, scale = "normal")
+</code></pre>
+
+
+</div>

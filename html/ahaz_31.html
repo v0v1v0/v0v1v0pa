@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tune.ahazpen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Choice of penalty parameter in ahazpen</h2>
+
+<h3>Description</h3>
+
+<p>Tuning of penalty parameters for  the  penalized semiparametric
+additive hazards model via cross-validation - or via non-stochastic
+procedures, akin to BIC for likelihood-based models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tune.ahazpen(surv, X, weights, standardize=TRUE, penalty=lasso.control(),
+             tune=cv.control(), dfmax=nvars, lambda, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censored
+and counting process format (left-truncation) is supported. Tied
+survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1 for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Logical flag for variable standardization, prior to
+model fitting. Parameter estimates are always returned on
+the original scale. Default is <code>standardize=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>A description of the penalty function to be used for
+model fitting. This can be a character string naming a penalty
+function (currently <code>"lasso"</code> or stepwise SCAD, <code>"sscad"</code>)
+or it can be a call to the penalty function. Default is
+<code>penalty=lasso.control()</code>. See <code>ahazpen.pen.control</code> for the available
+penalty functions and advanced options; see also the examples.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfmax</code></td>
+<td>
+<p>Limit the maximum number of covariates included in the
+model. Default is <code>nvars=nobs-1</code>. Unless a complete
+regularization path is needed, it is <strong>highly</strong>
+recommended to initially choose a relatively smaller value of
+<code>dfmax</code> to reduce computation time and memory usage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>An optional user supplied sequence of penalty parameters. Typical usage
+is to have the 
+program compute its own <code>lambda</code> sequence based on
+<code>nlambda</code> and <code>lambda.min</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune</code></td>
+<td>
+<p>A description of the tuning method to be used. This can be
+a character string naming a tuning control
+function (currently <code>"cv"</code> or <code>"bic"</code>) or a call to the
+tuning control function. Default is
+5-fold cross-validation, 
+<code>tune=cv.control()</code>, see <code>ahaz.tune.control</code> for more
+options. See also the examples.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed to <code>ahazpen</code>, see
+<code>ahazpen</code> for options.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function performs an initial penalized fit based on the
+penalty supplied in <code>penalty</code> to obtain a  sequence of
+penalty parameters. Subsequently, it selects among these an optimal penalty parameter based on
+the tuning control function described in <code>tune</code>, see  <code>ahaz.tune.control</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"tune.ahazpen"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The actual sequence of <code>lambda</code> values used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tunem</code></td>
+<td>
+<p>The tuning score for each value of <code>lambda</code> (mean
+cross-validated error, if <code>tune=cv.control()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tunesd</code></td>
+<td>
+<p>Estimate of the cross-validated standard error, if <code>tune=cv.control()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tunelo</code></td>
+<td>
+<p>Lower curve = <code>tunem-tunemsd</code>, if <code>tune=cv.control()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tuneup</code></td>
+<td>
+<p>Upper curve = <code>tunem+tunemsd</code>, if <code>tune=cv.control()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min</code></td>
+<td>
+<p>Value of <code>lambda</code> for which <code>tunem</code> is
+minimized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Number of non-zero coefficients at each value of
+<code>lambda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tune</code></td>
+<td>
+<p>The selected <code>tune</code> of S3 class
+<code>"ahaz.tune.control"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>The selected <code>penalty</code> of S3 class <code>"ahazpen.pen.control"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>foldsused</code></td>
+<td>
+<p>Folds actually used, if <code>tune=cv.control()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gorst-Rasmussen, A. &amp; Scheike, T. H. (2011). <em>Independent screening for
+single-index hazard rate models with ultra-high dimensional features.</em>
+Technical report R-2011-06, Department of Mathematical Sciences, Aalborg University.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ahaz.tune.control</code>, <code>plot.tune.ahazpen</code>, <code>ahazpen</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Training/test data
+set.seed(20202)
+train &lt;- sample(1:nrow(sorlie),76)
+test &lt;- setdiff(1:nrow(sorlie),train)
+
+# Run cross validation on training data
+set.seed(10101)
+cv.las &lt;- tune.ahazpen(surv[train,], X[train,],dfmax=30)
+plot(cv.las)
+
+# Check fit on the test data
+testrisk &lt;- predict(cv.las,X[test,],type="lp")
+plot(survfit(surv[test,]~I(testrisk&lt;median(testrisk))),main="Low versus high risk")
+
+# Advanced example, cross-validation of one-step SCAD
+# with initial solution derived from univariate models.
+# Since init.sol is specified as a function, it is
+# automatically cross-validated as well
+scadfun&lt;-function(surv,X,weights){coef(ahaz(surv,X,univariate=TRUE))}
+set.seed(10101)
+cv.ssc&lt;-tune.ahazpen(surv[train,],X[train,],
+                     penalty=sscad.control(init.sol=scadfun),
+                     tune=cv.control(rep=5),dfmax=30)
+# Check fit on test data
+testrisk &lt;- predict(cv.ssc,X[test,],type="lp")
+plot(survfit(surv[test,]~I(testrisk&lt;median(testrisk))),main="Low versus high risk")
+</code></pre>
+
+
+</div>

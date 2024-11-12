@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ataCoKriging</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Area-to-area, area-to-point coKriging prediciton, cross-validation.
+</h2>
+
+<h3>Description</h3>
+
+<p>Area-to-area, area-to-point coKriging prediciton, cross-validation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ataCoKriging(x, unknownVarId, unknown, ptVgms, nmax = 10, longlat = FALSE,
+    oneCondition = FALSE, meanVal = NULL, auxRatioAdj = TRUE,
+    showProgress = FALSE, nopar = FALSE, clarkAntiLog = FALSE)
+
+atpCoKriging(x, unknownVarId, unknown0, ptVgms, nmax = 10, longlat = FALSE,
+    oneCondition = FALSE, meanVal = NULL, auxRatioAdj = TRUE,
+    showProgress = FALSE, nopar = FALSE)
+
+ataCoKriging.cv(x, unknownVarId, nfold = 10, ptVgms, nmax = 10, longlat = FALSE,
+    oneCondition = FALSE, meanVal = NULL, auxRatioAdj = TRUE,
+    showProgress = FALSE, nopar = FALSE, clarkAntiLog = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>discretized areas of all variables, each is a discreteArea object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unknownVarId</code></td>
+<td>
+
+<p>variable name (charaster) defined in x for prediction.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unknown</code></td>
+<td>
+
+<p>a discreted discreteArea object or data.frame[areaId,ptx,pty,weight] to be predicted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unknown0</code></td>
+<td>
+
+<p>for points prediction or data.frame[ptx,pty] (one point per row) to be predicted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+
+<p>number of fold for cross-validation. for leave-one-out cross-validation, nfold = nrow(x[[unknownVarId]]$areaValues).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptVgms</code></td>
+<td>
+
+<p>point-scale direct and cross variograms, ataKrigVgm object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmax</code></td>
+<td>
+
+<p>max number of neighborhoods used for interpolation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>longlat</code></td>
+<td>
+
+<p>coordinates are longitude/latitude or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oneCondition</code></td>
+<td>
+
+<p>only one contrained condition for all points and all variables, \sum_i=1^n\lambda_i +\sum_j=1^m\beta_j =1, assuming expected means of variables known and constant with the study area.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanVal</code></td>
+<td>
+
+<p>expected means of variables for oneCondition coKriging, data.frame(varId,value). If missing, simple mean values of areas from x will be used instead.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxRatioAdj</code></td>
+<td>
+
+<p>for oneCondition Kriging, adjusting the auxiliary variable residue by a ratio between the primary variable mean and auxiliary variable mean.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showProgress</code></td>
+<td>
+
+<p>show progress bar for batch interpolation (multi destination areas).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nopar</code></td>
+<td>
+
+<p>disable parallel process in the function even if ataEnableCluster() has been called, mainly for internal use.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clarkAntiLog</code></td>
+<td>
+
+<p>for log-transformed input data, whether the estimated value should be adjusted(i.e. exponentiation).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>estimated value of destination area and its variance.
+</p>
+
+
+<h3>References</h3>
+
+<p>Clark, I., 1998. Geostatistical estimation and the lognormal distribution. Geocongress. Pretoria, RSA., [online] Available from: http://kriging.com/publications/Geocongress1998.pdf.
+Goovaerts, P., 2008. Kriging and semivariogram deconvolution in the presence of irregular geographical units. Mathematical Geosciences 40 (1): 101-128.
+Isaaks, E. H., Srivastava, R. M., 1989. An introduction to applied geostatistics. New York, Oxford University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>deconvPointVgmForCoKriging, deconvPointCrossVgm, ataKriging
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(atakrig)
+library(terra)
+
+## demo data ----
+rpath &lt;- system.file("extdata", package="atakrig")
+aod3k &lt;- rast(file.path(rpath, "MOD04_3K_A2017042.tif"))
+aod10 &lt;- rast(file.path(rpath, "MOD04_L2_A2017042.tif"))
+
+aod3k.d &lt;- discretizeRaster(aod3k, 1500)
+aod10.d &lt;- discretizeRaster(aod10, 1500)
+grid.pred &lt;- discretizeRaster(aod3k, 1500, type = "all")
+
+aod3k.d$areaValues$value &lt;- log(aod3k.d$areaValues$value)
+aod10.d$areaValues$value &lt;- log(aod10.d$areaValues$value)
+
+## area-to-area Kriging ----
+# point-scale variogram from combined AOD-3k and AOD-10
+aod.combine &lt;- rbindDiscreteArea(x = aod3k.d, y = aod10.d)
+vgm.ok_combine &lt;- deconvPointVgm(aod.combine, model="Exp", ngroup=12, rd=0.75)
+
+# point-scale cross-variogram
+aod.list &lt;- list(aod3k=aod3k.d, aod10=aod10.d)
+aod.list &lt;- list(aod3k=aod3k.d, aod10=aod10.d)
+vgm.ck &lt;- deconvPointVgmForCoKriging(aod.list, model="Exp", ngroup=12, rd=0.75,
+                                    fixed.range = 9e4)
+
+# prediction
+ataStartCluster(2) # parallel with 2 nodes
+pred.ataok &lt;- ataKriging(aod10.d, grid.pred, vgm.ck$aod10, showProgress = TRUE)
+pred.ataok_combine &lt;- ataKriging(aod.combine, grid.pred, vgm.ok_combine, showProgress = TRUE)
+pred.atack &lt;- ataCoKriging(aod.list, unknownVarId="aod3k", unknown=grid.pred,
+                           ptVgms=vgm.ck, oneCondition=TRUE, auxRatioAdj=TRUE, showProgress = TRUE)
+ataStopCluster()
+
+# reverse log transform
+pred.ataok$pred &lt;- exp(pred.ataok$pred)
+pred.ataok$var &lt;- exp(pred.ataok$var)
+pred.ataok_combine$pred &lt;- exp(pred.ataok_combine$pred)
+pred.ataok_combine$var &lt;- exp(pred.ataok_combine$var)
+
+pred.atack$pred &lt;- exp(pred.atack$pred)
+pred.atack$var &lt;- exp(pred.atack$var)
+
+# convert result to raster
+pred.ataok.r &lt;- rast(pred.ataok[,2:4])
+pred.ataok_combine.r &lt;- rast(pred.ataok_combine[,2:4])
+pred.atack.r &lt;- rast(pred.atack[,2:4])
+
+# display
+pred &lt;- rast(list(aod3k, pred.ataok_combine.r$pred, pred.ataok.r$pred, pred.atack.r$pred))
+names(pred) &lt;- c("aod3k","ok_combine","ataok","atack")
+plot(pred)
+
+</code></pre>
+
+
+</div>

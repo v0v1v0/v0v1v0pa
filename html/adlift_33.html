@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>invtnpmp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>invtnpmp</h2>
+
+<h3>Description</h3>
+
+<p>Performs the inverse lifting transform on a detail and scaling coefficient vector with grid <span class="env">X</span> and corresponding coefficients <span class="env">coeff</span>, based on multiple point information. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">invtnpmp(X, coefflist, coeff, lengths, lengthsremove, pointsin, removelist,
+ neighbrs, newneighbrs, schemehist, interhist, nadd = length(X) - 2,
+ intercept = TRUE, neighbours = 1, closest = FALSE, LocalPred = LinearPredmp, mpdet)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>data vector of the grid used in the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefflist</code></td>
+<td>
+<p>list of detail and multiple scaling coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of detail and scaling coefficients in the wavelet decomposition of the signal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>vector of interval lengths to be used in the update step of the transform. This is of length <span class="env">pointsin</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthsremove</code></td>
+<td>
+<p>vector of interval lengths corresponding to the points removed during the forward transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>indices into <span class="env">X</span> of the scaling coefficients in the wavelet decomposition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>removelist</code></td>
+<td>
+<p>a vector of indices into <span class="env">X</span> of the lifted coefficients during the transform (in the order of removal). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighbrs</code></td>
+<td>
+<p>a list of indices into <span class="env">X</span>. Each list entry gives the indices of the neighbours of the removed point used at that particular step of the forward transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newneighbrs</code></td>
+<td>
+<p>a list of indices into <span class="env">X</span>. Each list entry gives the indices of the multiple neighbours of the removed point used at that particular step of the forward transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>schemehist</code></td>
+<td>
+<p>a vector of character strings indicating the type of regression used at each step of the forward transform. This is NULL apart from when <span class="env">AdaptNeigh</span> is to be used in the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interhist</code></td>
+<td>
+<p>a boolean vector indicating whether or not an intercept was used in the regression curve at each step of the forward transform. This is NULL apart from when <span class="env">AdaptNeigh</span> is to be used in the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nadd</code></td>
+<td>
+<p>The number of steps to perform of the inverse transform. This corresponds to (<code>length(X)-nkeep</code>) in the forward transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>Boolean value for whether or not an intercept is used in the prediction step of the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighbours</code></td>
+<td>
+<p>the number of neighbours in the computation of the predicted value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closest</code></td>
+<td>
+<p>a boolean value showing whether or not the neighbours were symmetrical (FALSE) about the removed point during the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LocalPred</code></td>
+<td>
+<p>The type of regression to be performed. Possible options are <code>LinearPredmp</code>, <code>QuadPredmp</code>, <code>CubicPredmp</code>, <code>AdaptPredmp</code> and <code>AdaptNeighmp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mpdet</code></td>
+<td>
+<p>how the mutiple point detail coefficients are computed.  Possible values are "ave", in which the multiple detail coefficients produced when performing the multiple predictions are averaged, or "min", where the overall minimum detail coefficient is taken.  </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This algorithm reconstructs an estimate of a function/signal from information about detail and scaling coefficients in its wavelet decomposition, using the multiple point structure information to estimate the spread of original points.
+Step One.  Extract information about the first point to be added in the transform from the <b>last</b> entries in <span class="env">removelist</span>, <span class="env">lengthsremove</span> and <span class="env">neighbrs</span>. Use this information to discover the correct placement of this point in relation to the indices in <span class="env">pointsin</span>. 
+</p>
+<p>Step Two. Using the information about the prediction scheme used in the "forward" transform, use the corresponding version of <span class="env">LocalPred</span> to obtain prediction weights and value for the lifted point. 
+</p>
+<p>Step Three. "Undo" the update step of the transform, and then the prediction step of the transform. The vector of scaling and detail coefficients, as well as the interval lengths are modified accordingly. 
+</p>
+<p>Step Four. Remove the added point from <span class="env">removelist</span>. Update <span class="env">pointsin</span> and <span class="env">lengths</span> to contain the added point.
+</p>
+<p>Step Five. Return to step 1 but in the identification of the next point to add, the second to last entries in (the original) <span class="env">removelist</span>, <span class="env">lengthsremove</span> and <span class="env">neighbrs</span> are used to indentify the point and then place it in <span class="env">pointsin</span>. 
+</p>
+<p>The algorithm continues like this until as many points as desired are added. 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>data vector of the grid used in the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>vector of signal function values after inversion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengths</code></td>
+<td>
+<p>vector of interval lengths at the start of the transform. This should be the same as <code>intervals(X)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthsremove</code></td>
+<td>
+<p>vector of interval lengths corresponding to the points added during the transform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pointsin</code></td>
+<td>
+<p>indices into <span class="env">X</span> of the scaling coefficients in the wavelet decomposition. These are the indices of the <span class="env">X</span> values which remain after all points in <span class="env">removelist</span> have been added.  For a straight forward-inverse transform implementation, this should be <code>order(X)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>removelist</code></td>
+<td>
+<p>a vector of indices into <span class="env">X</span> of the lifted coefficients during the transform (in the reverse order of how they were added).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Matt Nunes (<a href="mailto:nunesrpackages@gmail.com">nunesrpackages@gmail.com</a>), Marina Knight </p>
+
+
+<h3>See Also</h3>
+
+<p><code>AdaptNeighmp</code>, <code>AdaptPredmp</code>, <code>CubicPredmp</code>, <code>fwtnpmp</code>, <code>invtnp</code>, <code>LinearPredmp</code>, <code>QuadPredmp</code>, 
+<code>UndoPointsUpdatemp</code>     </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#read in multiple point data...
+
+data(motorcycledata)
+times&lt;-motorcycledata$time
+accel&lt;-motorcycledata$accel
+shortf&lt;-adjustx(times,accel)$sepf
+
+out&lt;-fwtnpmp(times,accel,LocalPred=CubicPredmp,neighbours=2)
+
+inv&lt;-invtnpmp(times, out$coefflist, out$coeff, out$lengths, out$lengthsremove, out$pointsin,
+out$removelist,out$neighbrs,out$newneighbrs,out$schemehist,out$interhist, neighbours = 2,
+LocalPred = CubicPredmp)
+
+sum(abs(shortf-inv$coeff)) 
+</code></pre>
+
+
+</div>

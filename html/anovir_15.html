@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nll_exposed_infected</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Negative log-likelihood function: exposed-infected</h2>
+
+<h3>Description</h3>
+
+<p>Function returning negative log-likelihood (nll) for patterns of mortality in
+infected and control treatments, where the infected population harbours an
+unobserved proportion of hosts that were exposed to infection, but did not
+become infected.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nll_exposed_infected(
+  a1 = a1,
+  b1 = b1,
+  a2 = a2,
+  b2 = b2,
+  p1 = p1,
+  data = data,
+  time = time,
+  censor = censor,
+  infected_treatment = infected_treatment,
+  d1 = "Weibull",
+  d2 = "Weibull"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>a1, b1</code></td>
+<td>
+<p>location and scale parameters for background mortality</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a2, b2</code></td>
+<td>
+<p>location and scale parameters for mortality due to infection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1</code></td>
+<td>
+<p>unobserved proportion of hosts exposed to infection and infected; 0
+&lt;= p1 &lt;= 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>name of data frame containing survival data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>name of data frame column identifying time of event; time &gt; 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor</code></td>
+<td>
+<p>name of data frame column idenifying if event was death (0) or
+right-censoring (1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>infected_treatment</code></td>
+<td>
+<p>name of data frame column identifying if data are
+from an infected (1) or uninfected (0) treatment</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d1, d2</code></td>
+<td>
+<p>names of probability distributions chosen to describe background
+mortality and mortality due to infection, respectively'; both default to
+the Weibull distribution</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function returns the nll based on five parameters, the location and
+scale parameters for background mortality and mortality due to infection,
+respectively, plus a parameter for the proportion of hosts that became
+infected when exposed to infection.
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nll_two_inf_subpops_obs</code>
+<code>nll_two_inf_subpops_unobs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># check column names in head of data frame with data to analyse
+    head(data_parker)
+
+# step #1: prepare nll function for analysis
+    m01_prep_function &lt;- function(a1 = a1, b1 = b1, a2 = a2, b2 = b2, p1 = p1){
+      nll_exposed_infected(
+        a1 = a1, b1 = b1, a2 = a2, b2 = b2, p1 = p1,
+        data = data_parker,
+        time = t,
+        censor = censored,
+        infected_treatment = g,
+        d1 = "Frechet",
+        d2 = "Weibull")
+        }
+
+# step #2: send 'prep_function' to mle2 for maximum likelihood estimation
+    m01 &lt;- mle2(m01_prep_function,
+             start = list(a1 = 2.5, b1 = 1, a2 = 2, b2 = 0.5, p1 = 0.5)
+             )
+
+    summary(m01)
+
+# model setting lower &amp; upper bounds to parameter estimates
+  # including 0 &lt; p1 &lt; 1
+    m02 &lt;- mle2(m01_prep_function,
+             start = list(a1 = 2.5, b1 = 1.2, a2 = 1.9, b2 = 0.16, p1 = 0.48),
+             method = "L-BFGS-B",
+             lower = c(a1 = 0, b1 = 0, a2 = 0, b2 = 0, p1 = 0),
+             upper = c(a1 = Inf, b1 = Inf, a2 = Inf, b2 = Inf, p1 = 1),
+             )
+
+    summary(m02)
+
+
+</code></pre>
+
+
+</div>

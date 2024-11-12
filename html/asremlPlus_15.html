@@ -1,0 +1,254 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alldiffs.object</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Description of an alldiffs object</h2>
+
+<h3>Description</h3>
+
+<p>An object of S3-class <code>alldiffs</code> that stores the predictions for a model, 
+along with supplied statistics for all pairwise differences. While 
+<code>alldiffs.object</code> can be constructed by defining a <code>list</code> with 
+the appropriate components, it can be formed by passing the components to 
+<code>as.alldiffs</code>, or from a <code>predictions</code> <code>data.frame</code> using 
+<code>allDifferences.data.frame</code>.
+</p>
+<p><code>as.alldiffs</code> is function that assembles an object of this class from 
+supplied components.
+</p>
+<p><code>is.alldiffs</code> is the membership function for this class; it tests 
+that an object is of class <code>alldiffs</code>.
+</p>
+<p><code>validAlldiffs(object)</code> can be used to test the validity of an object 
+with this class. 
+</p>
+<p><code>allDifferences.data.frame</code> is the function that constructs an 
+object of this class by calculating components from statistics supplied via 
+its arguments and then using <code>as.alldiffs</code> to make the object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>list</code> of class <code>alldiffs</code> containing the following components: 
+<code>predictions</code>, <code>vcov</code>, <code>differences</code>, 
+<code>p.differences</code>, <code>sed</code>, <code>LSD</code> and <code>backtransforms</code>. 
+Except for <code>predictions</code>, the components are optional and can be set 
+to <code>NULL</code>. 
+</p>
+<p>An <code>alldiffs.object</code> also has attributes <code>response</code>, 
+<code>response.title</code>, <code>term</code>, <code>classify</code>, <code>tdf</code>, <code>alpha</code>, 
+<code>sortFactor</code> and <code>sortOrder</code>, which may be set to <code>NULL</code>.
+</p>
+<p>The details of the components are as follows:
+</p>
+
+<ol>
+<li> <p><code>predictions</code>: A <code>predictions.frame</code>, being a <code>data.frame</code> 
+beginning with the variables classifying the predictions, in the same order 
+as in the <code>classify</code>, and also containing columns named 
+<code>predicted.value</code>, <code>standard.error</code> and <code>est.status</code>; 
+each row contains a single predicted value. The number of rows should equal the 
+number of unique combinations of the <code>classify</code> variables and will be in 
+standard order for the <code>classify</code> variables. That is, the values of the 
+last variable change with every row, those of the second-last variable only 
+change after all the values of the last variable have been traversed; 
+in general, the values of a variable are the same for all the 
+combinations of the values to the variables to its right in the <code>classify</code>.
+</p>
+<p>The <code>data.frame</code> may also include columns for the lower and upper 
+values of error intervals, either standard error, confidence or half-LSD 
+intervals.  The names of these columns will consist of three parts 
+separated by full stops: 
+1) the first part will be <code>lower</code> or <code>upper</code>; 
+2) the second part will be one of <code>Confidence</code>, 
+<code>StandardError</code> or <code>halfLeastSignificant</code>; 
+3) the third component will be <code>limits</code>.
+</p>
+<p>Note that the names <code>standard.error</code> and 
+<code>est.status</code> have been changed to <code>std.error</code> and <code>status</code> 
+in the <code>pvals</code> component produced by <code>asreml-R4</code>; if the new names 
+are in the <code>data.frame</code> supplied to <code>predictions</code>, they will be 
+returned to the previous names. 
+</p>
+</li>
+<li> <p><code>differences</code>: A <code>matrix</code> containing all pairwise differences between
+the predictions; it should have the same number of rows and columns as there are
+rows in <code>predictions</code>.
+</p>
+</li>
+<li> <p><code>p.differences</code>: A <code>matrix</code> containing p-values for all pairwise differences 
+between the predictions; each p-value is computed as the probability of a t-statistic 
+as large as or larger than the observed difference divided by its standard error. 
+The degrees of freedom of the t distribution for computing it are computed as 
+the denominator degrees of freedom of the F value for the fixed term, if available; 
+otherwise, the degrees of freedom stored in the attribute <code>tdf</code> are used; 
+the matrix should be of the same size as that for <code>differences</code>.
+</p>
+</li>
+<li> <p><code>sed</code>: A <code>matrix</code> containing the standard errors of all pairwise differences 
+between the predictions; they are used in computing the p-values in <code>p.differences</code>.
+</p>
+</li>
+<li> <p><code>vcov</code>: A <code>matrix</code> containing the variance matrix of the predictions; it is 
+used in computing the variance of linear transformations of the predictions.
+</p>
+</li>
+<li> <p><code>LSD</code>: An <code>LSD.frame</code> containing (i) <code>c</code>, the number of pairwise 
+predictions comparisons for each LSD value and the mean, minimum, maximum and assigned LSD, 
+(ii) the column <code>accuracyLSD</code> that gives a measure of the accuracy of the 
+assigned LSD. given the variation in LSD values, and (iii) the columns <code>false.pos</code> and 
+<code>false.neg</code> that contain the number of false positives and negatives if the 
+<code>assignedLSD</code> value(s) is(are) used to determine the significance of the 
+pairwise predictions differences. The LSD values in the <code>assignedLSD</code> 
+column is used to determine the significance of pairwise differences that involve 
+predictions for the combination of levels given by a row name. The value in the 
+<code>assignedLSD</code> column is specified using the <code>LSDstatistic</code> argument. 
+</p>
+</li>
+<li> <p><code>backtransforms</code>: When the response values have been transformed for analysis, 
+a <code>data.frame</code> containing the backtransformed values of the 
+predicted values is added to the <code>alldiffs.object</code>. This <code>data.frame</code> 
+is consistent with the <code>predictions</code> component, except 
+that the column named <code>predicted.value</code> is replaced by one called 
+<code>backtransformed.predictions</code>. Any <code>error.interval</code> values will also 
+be the backtransformed values. Each row contains a single predicted value.
+</p>
+</li>
+</ol>
+<p>The details of the <code>attributes</code> of an <code>alldiffs.object</code> are:
+</p>
+
+<ol>
+<li> <p><code>response</code>: A <code>character</code> specifying the response variable for the 
+predictions.
+</p>
+</li>
+<li> <p><code>response.title</code>: A <code>character</code> specifying the title for the response variable 
+for the predictions.
+</p>
+</li>
+<li> <p><code>term</code>: A <code>character</code> giving the variables that define the term 
+that was fitted using <code>asreml</code> and that corresponds 
+to <code>classify</code>. It is often the same as <code>classify</code>.
+</p>
+</li>
+<li> <p><code>classify</code>: A <code>character</code> giving the variables that define the margins
+of the multiway table used in the prediction. Multiway tables are 
+specified by forming an interaction type term from the 
+classifying variables, that is, separating the variable names 
+with the <code>:</code> operator.
+</p>
+</li>
+<li> <p><code>tdf</code>: An <code>integer</code> specifying the degrees of freedom of the standard error. It is used as 
+the degrees of freedom for the t-distribution on which p-values and confidence 
+intervals are based.
+</p>
+</li>
+<li> <p><code>alpha</code>: An <code>integer</code> specifying the significance level. It is used as 
+the significance level calculating LSDs.
+</p>
+</li>
+<li> <p><code>LSDtype</code>: If the <code>LSD</code> component is not <code>NULL</code> then <code>LSDtype</code> is 
+added as an attribute. A <code>character</code> nominating the type of grouping of seds to be used 
+in combining LSDs.
+</p>
+</li>
+<li> <p><code>LSDby</code>: If the <code>LSD</code> component is not <code>NULL</code> then <code>LSDby</code> is added 
+as an attribute. A <code>character</code> <code>vector</code> containing the names of the factors and numerics 
+within whose combinations the LSDs are to be summarized.
+</p>
+</li>
+<li> <p><code>LSDstatistic</code>: If the <code>LSD</code> component is not <code>NULL</code> then <code>LSDstatistic</code> is 
+added as an attribute. A <code>character</code> nominating what statistic to use in summarizing a  
+set of LSDs.
+</p>
+</li>
+<li> <p><code>LSDaccuracy</code>: If the <code>LSD</code> component is not <code>NULL</code> then <code>LSDaccuracy</code> is 
+added as an attribute. A <code>character</code> nominating the method of calculating a measure of 
+the accuracy of the LSDs stored in the <code>assignedLSD</code> column of the <code>LSD.frame</code>.
+</p>
+</li>
+<li> <p><code>sortFactor</code>: <code>factor</code> that indexes the set of predicted values that 
+determined the sorting of the components.
+</p>
+</li>
+<li> <p><code>sortOrder</code>: A <code>character</code> vector that is the same length as the number of levels for 
+<code>sortFactor</code> in the <code>predictions</code> component of the 
+<code>alldiffs.object</code>. It specifies the order of the 
+levels in the reordered components of the <code>alldiffs.object</code>.
+</p>
+</li>
+</ol>
+<p>The following creates a <code>sortOrder</code> vector <code>levs</code> for factor 
+<code>f</code> based on the values in <code>x</code>: <br><code>levs &lt;- levels(f)[order(x)]</code>.
+</p>
+<p>See <code>predictPlus.asreml</code> for more information.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Chris Brien</p>
+
+
+<h3>See Also</h3>
+
+<p><code>is.alldiffs</code>, <code>as.alldiffs</code>, <code>validAlldiffs</code>, <code>allDifferences.data.frame</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(Oats.dat)
+
+  ## Use asreml to get predictions and associated statistics
+
+  ## Not run: 
+  m1.asr &lt;- asreml(Yield ~ Nitrogen*Variety, 
+                   random=~Blocks/Wplots,
+                   data=Oats.dat)
+  current.asrt &lt;- as.asrtests(m1.asr)
+  Var.pred &lt;- asreml::predict.asreml(m1.asr, classify="Nitrogen:Variety", 
+                                      sed=TRUE)
+  if (getASRemlVersionLoaded(nchar = 1) == "3")
+    Var.pred &lt;- Var.pred$predictions
+  Var.preds &lt;- Var.pred$pvals
+  Var.sed &lt;- Var.pred$sed
+  Var.vcov &lt;- NULL
+  
+## End(Not run)
+  
+  ## Use lmerTest and emmmeans to get predictions and associated statistics
+  if (requireNamespace("lmerTest", quietly = TRUE) &amp; 
+      requireNamespace("emmeans", quietly = TRUE))
+  {
+    m1.lmer &lt;- lmerTest::lmer(Yield ~ Nitrogen*Variety + (1|Blocks/Wplots),
+                              data=Oats.dat)
+    Var.emm &lt;- emmeans::emmeans(m1.lmer, specs = ~ Nitrogen:Variety)
+    Var.preds &lt;- summary(Var.emm)
+    den.df &lt;- min(Var.preds$df)
+    ## Modify Var.preds to be compatible with a predictions.frame
+    Var.preds &lt;- as.predictions.frame(Var.preds, predictions = "emmean", 
+                                      se = "SE", interval.type = "CI", 
+                                      interval.names = c("lower.CL", "upper.CL"))
+    Var.vcov &lt;- vcov(Var.emm)
+    Var.sed &lt;- NULL
+  }
+
+  ## Use the predictions obtained with either asreml or lmerTest
+  if (exists("Var.preds"))
+  {
+    ## Form an all.diffs object
+     Var.diffs &lt;- as.alldiffs(predictions = Var.preds, classify = "Nitrogen:Variety", 
+                              sed = Var.sed, vcov = Var.vcov, tdf = den.df)
+
+    ## Check the class and validity of the alldiffs object
+    is.alldiffs(Var.diffs)
+    validAlldiffs(Var.diffs)
+  }
+</code></pre>
+
+
+</div>

@@ -1,0 +1,309 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ahazpen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit penalized semiparametric additive hazards model</h2>
+
+<h3>Description</h3>
+
+<p> Fit a  semiparametric additive hazards model via penalized
+estimating equations using, for example, the lasso penalty. The complete regularization path is computed  at a grid
+of values for the penalty parameter lambda via the method of cyclic
+coordinate descent. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ahazpen(surv, X, weights,  standardize=TRUE,  penalty=lasso.control(),
+        nlambda=100, dfmax=nvars, pmax=min(nvars, 2*dfmax),
+        lambda.minf=ifelse(nobs &lt; nvars,0.05, 1e-4), lambda,
+        penalty.wgt=NULL, keep=NULL, control=list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Response in the form of a survival object, as returned by the
+function <code>Surv()</code> in the package <span class="pkg">survival</span>. Right-censored
+and counting process format (left-truncation) is supported. Tied
+survival times are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix. Missing values are not supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional vector of observation weights. Default is 1 for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Logical flag for variable standardization, prior to
+model fitting. Estimates are always returned on
+the original scale. Default is <code>standardize=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>A description of the penalty function to be used for
+model fitting. This can be a character string naming a penalty
+function (currently <code>"lasso"</code> or stepwise SCAD, <code>"sscad"</code>) or a call to
+the desired penalty function. <br> See <code>ahazpen.pen.control</code> for the available
+penalty functions and advanced options; see also the examples. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>The number of <code>lambda</code> values. Default is
+<code>nlambda=100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfmax</code></td>
+<td>
+<p>Limit the maximum number of variables in the
+model. Unless a complete
+regularization path is needed, it is highly
+recommended to initially choose a relatively smaller value of
+<code>dfmax</code> to substantially reduce computation time. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmax</code></td>
+<td>
+<p>Limit the maximum number of variables to ever be
+considered by the coordinate descent algorithm. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.minf</code></td>
+<td>
+<p>Smallest value of <code>lambda</code>, as a fraction of
+<code>lambda.max</code>, the (data-derived) smallest
+value of <code>lambda</code> for which all regression coefficients are zero. The default depends on the
+sample size <code>nobs</code> relative to the number of variables
+<code>nvars</code>. If <code>nobs &gt;= nvars</code>, the default is <code>0.0001</code>,
+close to zero.  When <code>nobs &lt; nvars</code>, the default is <code>0.05</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>An optional user supplied sequence of penalty parameters. Typical usage
+is to have the 
+program compute its own <code>lambda</code> sequence based on
+<code>nlambda</code> and <code>lambda.minf</code>. A user-specified
+lambda sequence overrides <code>dfmax</code> but not <code>pmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty.wgt</code></td>
+<td>
+<p>A vector of nonnegative penalty weights for each
+regression coefficient. This is a number that multiplies <code>lambda</code> to allow
+differential penalization. Can be 0 for some variables, which implies
+no penalization so that the variable is always included in the
+model; or <code>Inf</code> which implies that the variable is never
+included in the model. Default is 1 for all variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep</code></td>
+<td>
+<p>A vector of indices of variables which should always be included in
+the model (no penalization). Equivalent to specifying a <code>penalty.wgt</code> of 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of parameters for controlling the
+model fitting algorithm. The list is passed to <code>ahazpen.fit.control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fits the sequence of models implied by the penalty function
+<code>penalty</code>, the sequence of penalty parameters <code>lambda</code> by
+using the very efficient method of cyclic coordinate descent.
+</p>
+<p>For data sets with a very large number of covariates, it is recommended
+to only calculate partial paths by specifying a smallish value of
+<code>dmax</code>.
+</p>
+<p>The sequence <code>lambda</code> is computed automatically by the algorithm
+but can also be set (semi)manually by specifying <code>nlambda</code> or
+<code>lambda</code>. The stability and efficiency of the algorithm is highly
+dependent on the grid <code>lambda</code> values being reasonably dense, and
+<code>lambda</code> (and <code>nlambda</code>) should be specified accordingly. In
+particular, it is not recommended to specify a single or a few lambda
+values. Instead, a partial regularization path should be calculated and
+the functions <code>predict.ahazpen</code> or
+<code>coef.ahazpen</code> should be used to extract coefficient
+estimates at specific lambda values.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object with S3 class <code>"ahazpen"</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The call that produced this object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>An <code>
+      nvars x length(lambda)</code> matrix (in sparse column format, class <code>dgCMatrix</code>) of penalized regression coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The sequence of actual <code>lambda</code> values used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>The number of nonzero coefficients for each value of
+<code>lambda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>Number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvars</code></td>
+<td>
+<p>Number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>A copy of the argument <code>survival</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npasses</code></td>
+<td>
+<p>Total number of passes by the fitting algorithm over the data,
+for all lambda values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty.wgt</code></td>
+<td>
+<p>The actually used <code>penalty.wgt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>An object of class <code>ahaz.pen.control</code>, as
+specified by <code>penalty</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dfmax</code></td>
+<td>
+<p>A copy of <code>dfmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>A copy of <code>pmax</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gorst-Rasmussen A., Scheike T. H. (2012). <em>Coordinate Descent Methods
+for the Penalized Semiparametric Additive Hazards Model</em>. Journal of
+Statistical Software, <b>47</b>(9):1-17. <a href="https://www.jstatsoft.org/v47/i09/">https://www.jstatsoft.org/v47/i09/</a>
+</p>
+<p>Gorst-Rasmussen, A. &amp; Scheike, T. H. (2011). <em>Independent screening for
+single-index hazard rate models with ultra-high dimensional features.</em>
+Technical report R-2011-06, Department of Mathematical Sciences, Aalborg University.
+</p>
+<p>Leng, C. &amp; Ma, S. (2007). <em>Path consistent model selection in
+additive risk model via Lasso</em>. Statistics in Medicine; <b>26</b>:3753-3770.
+</p>
+<p>Martinussen, T. &amp; Scheike, T. H. (2008). <em>Covariate selection
+for the semiparametric additive risk model.</em> Scandinavian Journal of
+Statistics; <b>36</b>:602-619.
+</p>
+<p>Zou, H. &amp; Li, R. (2008). <em>One-step sparse estimates in nonconcave
+penalized likelihood models</em>, Annals of Statistics; <b>36</b>:1509-1533.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>print.ahazpen</code>, <code>predict.ahazpen</code>,
+<code>coef.ahazpen</code>,  <code>plot.ahazpen</code>,
+<code>tune.ahazpen</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(sorlie)
+
+# Break ties
+set.seed(10101)
+time &lt;- sorlie$time+runif(nrow(sorlie))*1e-2
+
+# Survival data + covariates
+surv &lt;- Surv(time,sorlie$status)
+X &lt;- as.matrix(sorlie[,3:ncol(sorlie)])
+
+# Fit additive hazards regression model
+fit1 &lt;- ahazpen(surv, X,penalty="lasso", dfmax=30)
+fit1
+plot(fit1)
+
+# Extend the grid to contain exactly 100 lambda values
+lrange &lt;- range(fit1$lambda)
+fit2 &lt;- ahazpen(surv, X,penalty="lasso", lambda.minf=lrange[1]/lrange[2])
+plot(fit2)
+
+# User-specified lambda sequence
+lambda &lt;- exp(seq(log(0.30), log(0.1), length = 100))
+fit2 &lt;- ahazpen(surv, X, penalty="lasso", lambda = lambda)
+plot(fit2)
+
+# Advanced usage - specify details of the penalty function
+fit4 &lt;- ahazpen(surv, X,penalty=sscad.control(nsteps=2))
+fit4
+fit5 &lt;- ahazpen(surv, X,penalty=lasso.control(alpha=0.1))
+plot(fit5)
+</code></pre>
+
+
+</div>

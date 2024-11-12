@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>locate_credentials</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Locate AWS Credentials</h2>
+
+<h3>Description</h3>
+
+<p>Locate AWS credentials from likely sources
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">locate_credentials(
+  key = NULL,
+  secret = NULL,
+  session_token = NULL,
+  region = NULL,
+  file = Sys.getenv("AWS_SHARED_CREDENTIALS_FILE", default_credentials_file()),
+  profile = NULL,
+  default_region = getOption("cloudyr.aws.default_region", "us-east-1"),
+  verbose = getOption("verbose", FALSE)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>An AWS Access Key ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>secret</code></td>
+<td>
+<p>An AWS Secret Access Key</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>session_token</code></td>
+<td>
+<p>Optionally, an AWS Security Token Service (STS) temporary Session Token</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>region</code></td>
+<td>
+<p>A character string containing the AWS region for the request. If missing, “us-east-1” is assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>A character string containing a path to a centralized ‘<span class="samp">⁠.aws/credentials⁠</span>’ file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>profile</code></td>
+<td>
+<p>A character string specifying which profile to use from the file. By default, the profile named in <span class="env">AWS_PROFILE</span> is used, otherwise the “default” profile is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_region</code></td>
+<td>
+<p>A character string specifying a default string to use of no user-supplied value is found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical indicating whether to be verbose.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions locate values of AWS credentials (access key, secret access key, session token, and region) from likely sources. The order in which these are searched is as follows:
+</p>
+
+<ol>
+<li>
+<p> user-supplied values passed to the function
+</p>
+</li>
+<li>
+<p> environment variables (<span class="env">AWS_ACCESS_KEY_ID</span>, <span class="env">AWS_SECRET_ACCESS_KEY</span>, <span class="env">AWS_DEFAULT_REGION</span>, and <span class="env">AWS_SESSION_TOKEN</span>)
+</p>
+</li>
+<li>
+<p> an instance role (on the running ECS task from which this function is called) as identified by <code>metadata</code>, if the aws.ec2metadata package is installed
+</p>
+</li>
+<li>
+<p> an IAM instance role (on the running EC2 instance from which this function is called) as identified by <code>metadata</code>, if the aws.ec2metadata package is installed
+</p>
+</li>
+<li>
+<p> a profile in a local credentials dot file in the current working directory, using the profile specified by <span class="env">AWS_PROFILE</span>
+</p>
+</li>
+<li>
+<p> the default profile in that local credentials file
+</p>
+</li>
+<li>
+<p> a profile in a global credentials dot file in a location set by <span class="env">AWS_SHARED_CREDENTIALS_FILE</span> or defaulting typically to ‘<span class="file">~/.aws/credentials</span>’ (or another OS-specific location), using the profile specified by <span class="env">AWS_PROFILE</span>
+</p>
+</li>
+<li>
+<p> the default profile in that global credentials file
+</p>
+</li>
+</ol>
+<p>If <span class="env">AWS_ACCESS_KEY_ID</span> and <span class="env">AWS_SECRET_ACCESS_KEY</span> environment variables are not present when the package is loaded, then <code>use_credentials</code> is invoked using the file specified in <span class="env">AWS_SHARED_CREDENTIALS_FILE</span> (or another default location) and the profile specified in <span class="env">AWS_PROFILE</span> (or, if missing, the “default” profile).
+</p>
+<p>To use this (and any cloudyr package) on AWS EC2 instances, users will also need to install the <a href="https://cran.r-project.org/package=aws.ec2metadata">aws.ec2metadata</a> package, which allows <code>locate_credentials</code> to know it is running in an instance and check for relevant values. If this package is not installed, instance metadata is not checked.
+</p>
+<p>Because region is often handled slightly differently from credentials and is required for most requests (whereas some services allow anonymous requests without specifying credentials), the value of region is searched for in the same order as the above but lacking a value there fails safe with the following preference ranking of possible region values (regardless of location of other credentials):
+</p>
+
+<ol>
+<li>
+<p> a user-supplied value
+</p>
+</li>
+<li>
+<p> the <span class="env">AWS_DEFAULT_REGION</span> environment variable
+</p>
+</li>
+<li>
+<p> (only on EC2 instances) a region declared in the instance metadata
+</p>
+</li>
+<li>
+<p> (if a credentials file is being used) the value specified therein
+</p>
+</li>
+<li>
+<p> the default value specified in <code>default_region</code> (i.e., “us-east-1” - this can be overriden with the option “cloudyr.aws.default_region”)
+</p>
+</li>
+</ol>
+<p>As such, user-supplied values of <code>region</code> always trump any other value.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>signature_v4</code>, <code>signature_v2_auth</code>, <code>use_credentials</code>
+</p>
+
+
+</div>
